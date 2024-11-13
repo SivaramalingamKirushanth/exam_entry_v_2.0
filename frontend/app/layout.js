@@ -22,10 +22,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-100 overflow-y-scroll`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-100 h-screen overflow-hidden`}
       >
         <Header />
-        <div className="pt-20 h-full w-full">{children}</div>
+        <div className="pt-20 h-full w-full overflow-y-scroll">{children}</div>
       </body>
     </html>
   );
