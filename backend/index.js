@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 
 import db from "./config/db.js";
+import authRouter from "./routes/auth.route.js";
 
 dotenv.config();
 
@@ -11,6 +12,10 @@ const port = 8080;
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
+
+//ALL THE ROUTES
+app.use("/api1/auth", authRouter);
+///////////////////////////////////////////////////////////
 
 app.use((err, req, res, next) => {
   const statuscode = err.statuscode;
@@ -27,14 +32,14 @@ app.listen(port, () => {
 });
 
 // Function to get users from the "batch" table
-async function getUsers() {
-  try {
-    const [rows] = await db.query("SELECT * FROM batch");
-    console.log(rows);
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    throw error;
-  }
-}
+// async function getUsers() {
+//   try {
+//     const [rows] = await db.query("SELECT * FROM batch");
+//     console.log(rows);
+//   } catch (error) {
+//     console.error("Error fetching users:", error);
+//     throw error;
+//   }
+// }
 
-getUsers();
+// getUsers();
