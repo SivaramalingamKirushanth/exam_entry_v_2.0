@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 
-import db from "./config/db.js";
+import pool from "./config/db.js";
 
 dotenv.config();
 
@@ -26,15 +26,33 @@ app.listen(port, () => {
   console.log(`app is listening on port ${port}`);
 });
 
-// Function to get users from the "batch" table
-async function getUsers() {
-  try {
-    const [rows] = await db.query("SELECT * FROM batch");
-    console.log(rows);
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    throw error;
-  }
-}
+// export const getActiveStudents = async (req, res) => {
+//   const { name, userName, conatctNo, email } = req.body;
+//   const role_id = 4;
+//   const password = "dfsdfdsf";
+//   const hashedPassword = await bcrypt.sign(efe, wewewe);
+//   try {
+//     // Define the SQL query with placeholders for security
+//     const query = `INSERT INTO manager_detail ( m_id, name, email, contact_no, address, status) VALUES ('?','?','?','?','?','?','?')`;
 
-getUsers();
+//     // Use the pool to get a promise-based connection and execute the query
+//     const [rows] = await pool.execute(query, [
+//       "active",
+//       "stu",
+//       "active",
+//       "stu",
+//       "active",
+//       "stu",
+//     ]);
+
+//     // Send the result as a response
+//     res.status(200).json(rows);
+//   } catch (error) {
+//     console.error("Error fetching active students:", error);
+//     res
+//       .status(500)
+//       .json({ error: "An error occurred while fetching active students." });
+//   }
+// };
+
+// getUsers();

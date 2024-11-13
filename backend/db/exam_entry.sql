@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 08, 2024 at 10:23 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Generation Time: Nov 13, 2024 at 07:16 AM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -76,12 +76,34 @@ CREATE TABLE `department` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `dep_hod`
+--
+
+CREATE TABLE `dep_hod` (
+  `d_id` int(11) NOT NULL,
+  `m_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `faculty`
 --
 
 CREATE TABLE `faculty` (
   `f_id` int(11) NOT NULL,
   `f_name` varchar(250) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `fac_deen`
+--
+
+CREATE TABLE `fac_deen` (
+  `f_id` int(11) NOT NULL,
+  `m_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -98,14 +120,28 @@ CREATE TABLE `fac_dep` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `managers`
+-- Table structure for table `manager`
 --
 
-CREATE TABLE `managers` (
+CREATE TABLE `manager` (
   `m_id` int(11) NOT NULL,
-  `role` int(11) NOT NULL,
-  `f_id` int(11) NOT NULL,
-  `d_id` int(11) NOT NULL
+  `user_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `manager_detail`
+--
+
+CREATE TABLE `manager_detail` (
+  `id` int(11) NOT NULL,
+  `m_id` int(11) NOT NULL,
+  `name` varchar(500) NOT NULL,
+  `email` varchar(250) NOT NULL,
+  `contact_no` varchar(100) NOT NULL,
+  `address` varchar(500) NOT NULL,
+  `status` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -118,6 +154,17 @@ CREATE TABLE `roles` (
   `role_id` varchar(50) NOT NULL,
   `role_name` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `roles`
+--
+
+INSERT INTO `roles` (`role_id`, `role_name`) VALUES
+('1', 'admin'),
+('2', 'dean'),
+('3', 'hod'),
+('4', 'lecturer'),
+('5', 'student');
 
 -- --------------------------------------------------------
 
@@ -133,16 +180,17 @@ CREATE TABLE `student` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `student_details`
+-- Table structure for table `student_detail`
 --
 
-CREATE TABLE `student_details` (
-  `id` int(50) NOT NULL,
+CREATE TABLE `student_detail` (
+  `id` int(11) NOT NULL,
   `s_id` int(11) NOT NULL,
   `name` varchar(150) NOT NULL,
-  `batch_id` varchar(150) NOT NULL,
+  `batch_ids` varchar(150) NOT NULL,
+  `d_id` int(11) NOT NULL,
   `email` varchar(100) NOT NULL,
-  `contactno` varchar(50) NOT NULL,
+  `contact_no` varchar(50) NOT NULL,
   `address` varchar(100) NOT NULL,
   `status` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -201,10 +249,16 @@ ALTER TABLE `fac_dep`
   ADD PRIMARY KEY (`f_id`,`d_id`);
 
 --
--- Indexes for table `managers`
+-- Indexes for table `manager`
 --
-ALTER TABLE `managers`
+ALTER TABLE `manager`
   ADD PRIMARY KEY (`m_id`);
+
+--
+-- Indexes for table `manager_detail`
+--
+ALTER TABLE `manager_detail`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `roles`
@@ -219,9 +273,9 @@ ALTER TABLE `student`
   ADD PRIMARY KEY (`s_id`,`user_id`);
 
 --
--- Indexes for table `student_details`
+-- Indexes for table `student_detail`
 --
-ALTER TABLE `student_details`
+ALTER TABLE `student_detail`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -253,10 +307,16 @@ ALTER TABLE `faculty`
   MODIFY `f_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `managers`
+-- AUTO_INCREMENT for table `manager`
 --
-ALTER TABLE `managers`
+ALTER TABLE `manager`
   MODIFY `m_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `manager_detail`
+--
+ALTER TABLE `manager_detail`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `student`
@@ -265,10 +325,10 @@ ALTER TABLE `student`
   MODIFY `s_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `student_details`
+-- AUTO_INCREMENT for table `student_detail`
 --
-ALTER TABLE `student_details`
-  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `student_detail`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `user`
