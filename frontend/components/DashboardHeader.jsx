@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+const regex = /^[a-zA-Z]+\d+$/;
+
 const DashboardHeader = () => {
   const pathname = usePathname().split("/").slice(1);
 
@@ -24,8 +26,14 @@ const DashboardHeader = () => {
                 <React.Fragment key={ind}>
                   <BreadcrumbItem>
                     <BreadcrumbLink href={"./"}>
-                      <span className="capitalize underline-offset-4 hover:underline">
-                        {item}
+                      <span
+                        className={`${
+                          regex.test(decodeURI(item))
+                            ? "uppercase"
+                            : "capitalize"
+                        } underline-offset-4 hover:underline`}
+                      >
+                        {decodeURI(item)}
                       </span>
                     </BreadcrumbLink>
                   </BreadcrumbItem>
@@ -36,7 +44,13 @@ const DashboardHeader = () => {
               return (
                 <BreadcrumbItem key={ind}>
                   <BreadcrumbPage>
-                    <span className="capitalize font-semibold ">{item}</span>
+                    <span
+                      className={`${
+                        regex.test(decodeURI(item)) ? "uppercase" : "capitalize"
+                      } font-semibold `}
+                    >
+                      {decodeURI(item)}
+                    </span>
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               );

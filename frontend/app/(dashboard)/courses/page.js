@@ -1,9 +1,7 @@
 "use client";
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -16,35 +14,35 @@ const users = () => {
     <div className="flex justify-end md:justify-center">
       <div className="md:w-[70%] flex gap-6 flex-wrap">
         <Link
-          href={`${pathname}/applied science`}
+          href={`${pathname}/faculties`}
           className="w-[30%] hover:shadow-md rounded-xl"
         >
           <Card>
             <CardHeader>
-              <CardTitle>Applied Science</CardTitle>
+              <CardTitle>Faculties</CardTitle>
+              <CardDescription>no of Faculties</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link
+          href={`${pathname}/departments`}
+          className="w-[30%] hover:shadow-md rounded-xl"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Departments</CardTitle>
               <CardDescription>no of Departments</CardDescription>
             </CardHeader>
           </Card>
         </Link>
         <Link
-          href={`${pathname}/applied science`}
+          href={`${pathname}/degree programmes`}
           className="w-[30%] hover:shadow-md rounded-xl"
         >
           <Card>
             <CardHeader>
-              <CardTitle>Bussiness Studies</CardTitle>
-              <CardDescription>no of Departments</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-        <Link
-          href={`${pathname}/applied science`}
-          className="w-[30%] hover:shadow-md rounded-xl"
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Technology</CardTitle>
-              <CardDescription>no of Departments</CardDescription>
+              <CardTitle>Degree programmes</CardTitle>
+              <CardDescription>no of Degree programmes</CardDescription>
             </CardHeader>
           </Card>
         </Link>
