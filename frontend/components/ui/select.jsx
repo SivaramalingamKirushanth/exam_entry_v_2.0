@@ -10,6 +10,8 @@ import {
 import * as SelectPrimitive from "@radix-ui/react-select";
 
 import { cn } from "@/lib/utils";
+import { ChevronsUpDown } from "lucide-react";
+import { LucideChevronsUpDown } from "lucide-react";
 
 const Select = SelectPrimitive.Root;
 
@@ -29,7 +31,10 @@ const SelectTrigger = React.forwardRef(
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <CaretSortIcon className="h-4 w-4 opacity-50" />
+        <LucideChevronsUpDown
+          className="opacity-50 size-[17px] 
+        "
+        />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )

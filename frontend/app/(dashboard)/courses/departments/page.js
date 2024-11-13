@@ -1,4 +1,3 @@
-import DialogBox from "./DialogBox";
 import DepartmentDetails from "./DepartmentDetails";
 
 const departments = () => {
