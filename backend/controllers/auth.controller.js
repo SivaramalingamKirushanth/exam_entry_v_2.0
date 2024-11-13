@@ -5,77 +5,75 @@ export const studentRegister = async (req, res, next) => {
   const { user_name, name, d_id, email, contact_no, address, status } =
     req.body;
   const role_id = 5;
-  const batch_ids = "";
 
   try {
+    // Validate required fields at once
+    if (
+      !user_name ||
+      !name ||
+      !d_id ||
+      !email ||
+      !contact_no ||
+      !address ||
+      !status
+    ) {
+      return res.status(400).json({ error: "Missing credentials" });
+    }
+
+    // Generate and hash password
     const password = await generatePassword();
     const hashedPassword = await hashPassword(password);
 
-    if (
-      user_name == "" ||
-      name == "" ||
-      d_id == "" ||
-      email == "" ||
-      contact_no == "" ||
-      address == "" ||
-      status == ""
-    ) {
-      throw new Error("missing credentials");
-    }
-
-    const [userExit] = await pool.execute(
+    // Check if user already exists
+    const [userExists] = await pool.execute(
       "SELECT COUNT(*) AS count FROM user WHERE user_name = ?",
       [user_name]
     );
-
-    if (userExit[0].count > 0) {
-      throw new Error("User already exists");
+    if (userExists[0].count > 0) {
+      return res.status(409).json({ error: "User already exists" });
     }
 
-    const query1 =
-      "INSERT INTO user(user_name, password, role_id) VALUES (?,?,?)";
+    // Begin user creation transaction
+    await pool.getConnection(async (conn) => {
+      try {
+        await conn.beginTransaction();
 
-    const [results1] = await pool.execute(query1, [
-      user_name,
-      hashedPassword,
-      role_id,
-    ]);
+        // Insert into 'user' table
+        const [results1] = await conn.execute(
+          "INSERT INTO user(user_name, password, role_id) VALUES (?,?,?)",
+          [user_name, hashedPassword, role_id]
+        );
+        const user_id = results1.insertId;
 
-    if (results1) {
-      const user_id = results1.insertId;
-      const query2 = "INSERT INTO student(user_id) VALUES (?)";
-      const [results2] = await pool.execute(query2, [user_id]);
-
-      if (results2) {
+        // Insert into 'student' table
+        const [results2] = await conn.execute(
+          "INSERT INTO student(user_id) VALUES (?)",
+          [user_id]
+        );
         const s_id = results2.insertId;
-        const query3 =
-          "INSERT INTO student_detail(s_id, name,d_id, email, contact_no, address, status) VALUES (?,?,?,?,?,?,?)";
-        const [results3] = await pool.execute(query3, [
-          s_id,
-          name,
-          d_id,
-          email,
-          contact_no,
-          address,
-          status,
-        ]);
 
-        if (results3) {
-          return res.status(201).json("student_detail created successfully");
-        } else {
-          throw new Error("insert to student_detail failed");
-        }
-      } else {
-        throw new Error("insert to the student table failed");
+        // Insert into 'student_detail' table
+        await conn.execute(
+          "INSERT INTO student_detail(s_id, name, d_id, email, contact_no, address, status) VALUES (?,?,?,?,?,?,?)",
+          [s_id, name, d_id, email, contact_no, address, status]
+        );
+
+        await conn.commit();
+        res.status(201).json("Student registered successfully");
+      } catch (error) {
+        await conn.rollback();
+        throw error;
+      } finally {
+        conn.release();
       }
-    } else {
-      throw new Error("insert to user table failed");
-    }
+    });
   } catch (error) {
     console.error("Error adding student:", error);
     res
       .status(500)
-      .json({ error: "An error occurred while adding student." + error });
+      .json({
+        error: "An error occurred while adding student: " + error.message,
+      });
   }
 };
 
