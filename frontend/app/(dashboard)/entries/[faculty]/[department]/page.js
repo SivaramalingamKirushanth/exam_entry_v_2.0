@@ -16,35 +16,35 @@ const users = () => {
     <div className="flex justify-end md:justify-center">
       <div className="md:w-[70%] flex gap-6 flex-wrap">
         <Link
-          href={`${pathname}/applied science`}
+          href={`${pathname}/information technology`}
           className="w-[30%] hover:shadow-md rounded-xl"
         >
           <Card>
             <CardHeader>
-              <CardTitle>Applied Science</CardTitle>
-              <CardDescription>no of Departments</CardDescription>
+              <CardTitle>Information Technology</CardTitle>
+              <CardDescription>no of Levels</CardDescription>
             </CardHeader>
           </Card>
         </Link>
         <Link
-          href={`${pathname}/applied science`}
+          href={`${pathname}/information technology (hons)`}
           className="w-[30%] hover:shadow-md rounded-xl"
         >
           <Card>
             <CardHeader>
-              <CardTitle>Bussiness Studies</CardTitle>
-              <CardDescription>no of Departments</CardDescription>
+              <CardTitle>Information Technology (Hons)</CardTitle>
+              <CardDescription>no of Levels</CardDescription>
             </CardHeader>
           </Card>
         </Link>
         <Link
-          href={`${pathname}/applied science`}
+          href={`${pathname}/applied mathematics and computing`}
           className="w-[30%] hover:shadow-md rounded-xl"
         >
           <Card>
             <CardHeader>
-              <CardTitle>Technology</CardTitle>
-              <CardDescription>no of Departments</CardDescription>
+              <CardTitle>Applied Mathematics And Computing</CardTitle>
+              <CardDescription>no of Levels</CardDescription>
             </CardHeader>
           </Card>
         </Link>

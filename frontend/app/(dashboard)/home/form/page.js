@@ -39,6 +39,42 @@ const Form = () => {
               <Badge variant="failure">Not Eligible</Badge>
             </h1>
           </div>
+          <div className="flex px-3 py-4 bg-white rounded-lg justify-between w-full md:w-[80%]">
+            <h1 className="uppercase w-1/6 shrink-0">IT3113(P)</h1>
+            <h1 className="capitalize w-4/6 shrink-0">
+              Knowledge Base System and Logic Programming (P)
+            </h1>
+            <h1 className="capitalize w-1/6 shrink-0 text-center">
+              <Badge variant="success">Eligible</Badge>
+            </h1>
+          </div>
+          <div className="flex px-3 py-4 bg-white rounded-lg justify-between w-full md:w-[80%]">
+            <h1 className="uppercase w-1/6 shrink-0">IT3113(T)</h1>
+            <h1 className="capitalize w-4/6 shrink-0">
+              Knowledge Base System and Logic Programming (T)
+            </h1>
+            <h1 className="capitalize w-1/6 shrink-0 text-center">
+              <Badge variant="failure">Not Eligible</Badge>
+            </h1>
+          </div>
+          <div className="flex px-3 py-4 bg-white rounded-lg justify-between w-full md:w-[80%]">
+            <h1 className="uppercase w-1/6 shrink-0">IT3113(P)</h1>
+            <h1 className="capitalize w-4/6 shrink-0">
+              Knowledge Base System and Logic Programming (P)
+            </h1>
+            <h1 className="capitalize w-1/6 shrink-0 text-center">
+              <Badge variant="success">Eligible</Badge>
+            </h1>
+          </div>
+          <div className="flex px-3 py-4 bg-white rounded-lg justify-between w-full md:w-[80%]">
+            <h1 className="uppercase w-1/6 shrink-0">IT3113(T)</h1>
+            <h1 className="capitalize w-4/6 shrink-0">
+              Knowledge Base System and Logic Programming (T)
+            </h1>
+            <h1 className="capitalize w-1/6 shrink-0 text-center">
+              <Badge variant="failure">Not Eligible</Badge>
+            </h1>
+          </div>
         </div>
         <div className="flex justify-end">
           <Link href="/home">
