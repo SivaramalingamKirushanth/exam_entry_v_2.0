@@ -24,6 +24,8 @@ export const studentRegister = async (req, res, next) => {
 
   try {
     const password = await generatePassword();
+    // show the generated password for only login testing 
+    console.log("Generated password:", password);  
     const hashedPassword = await hashPassword(password);
 
     const conn = await pool.getConnection();
@@ -150,12 +152,23 @@ export const login = async (req, res, next) => {
         [user_name]
       );
 
+      // Log the retrieved user data
+      console.log("Database result:", user);
+
       if (user.length == 0) {
+        console.log("User not found in database");
         return res.status(401).json({ error: "Invalid username or password" });
       }
 
       const { user_id, password: hashedPassword, role_id } = user[0];
+      // Log passwords only for debugging
+      console.log("Plaintext password:", password);
+      console.log("Hashed password from DB:", hashedPassword);
+
+      // Verify the password
       const isPasswordValid = await verifyPassword(password, hashedPassword);
+      console.log("Is password valid:", isPasswordValid);
+
       if (!isPasswordValid) {
         return res.status(401).json({ error: "Invalid username or password" });
       }
@@ -165,7 +178,7 @@ export const login = async (req, res, next) => {
         expiresIn: "1h",
       });
 
-      // Send response with token and redirect URL
+      // Send response
       res.status(200).json({ message: "Login successful", token, redirectUrl });
     } catch (error) {
       console.error("Error during login:", error);
