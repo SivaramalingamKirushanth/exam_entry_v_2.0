@@ -6,7 +6,6 @@ export const studentRegister = async (req, res, next) => {
     req.body;
   const role_id = 5;
 
-  // Check if all required fields are provided
   if (
     !user_name ||
     !name ||
@@ -20,7 +19,6 @@ export const studentRegister = async (req, res, next) => {
   }
 
   try {
-    // Generate password and hash it
     const password = await generatePassword();
     const hashedPassword = await hashPassword(password);
 
