@@ -95,7 +95,7 @@ const DialogBox = () => {
 
   useEffect(() => {
     console.log(data);
-    if (data.name && data.email && data.contact && data.dean) {
+    if (data.name && data.shortname && data.department && data.faculty) {
       setBtnEnable(true);
     } else {
       setBtnEnable(false);
@@ -106,12 +106,14 @@ const DialogBox = () => {
     <Dialog>
       <DialogTrigger className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm">
         <FaPlus />
-        &nbsp;Create a faculty
+        &nbsp;Create a degree programme
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle> Faculty</DialogTitle>
-          <DialogDescription>You can create a faculty here</DialogDescription>
+          <DialogTitle> Degree programme</DialogTitle>
+          <DialogDescription>
+            You can create a degree programme here
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -126,88 +128,60 @@ const DialogBox = () => {
               value={data.name || ""}
             />
           </div>
-
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="email" className="text-right">
-              Email
+            <Label htmlFor="shortname" className="text-right">
+              Short name
             </Label>
             <Input
-              id="email"
-              name="email"
-              className="col-span-3"
-              onChange={(e) => onDataChanged(e)}
-              value={data.email || ""}
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="contact" className="text-right">
-              Contact No
-            </Label>
-            <Input
-              id="contact"
-              name="contact"
-              className="col-span-3"
-              onChange={(e) => onDataChanged(e)}
-              value={data.contact || ""}
+              id="shortname"
+              name="shortname"
+              className="col-span-3 uppercase"
+              onChange={(e) => {
+                let ele = e;
+                ele.target.value = ele.target.value.toUpperCase();
+                onDataChanged(ele);
+              }}
+              value={data.shortname || ""}
             />
           </div>
 
           <div className={`grid grid-cols-4 items-center gap-4`}>
-            <Label className="text-right">Dean</Label>
-            <div className="grid col-span-3">
-              {" "}
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    role="combobox"
-                    aria-expanded={open}
-                    className="col-span-3 flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-white px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer"
-                  >
-                    {data.dean
-                      ? managers.find((manager) => manager.value === data.dean)
-                          ?.label
-                      : "Select manager"}
-                    <ChevronsUpDown className="opacity-50 size-[17px] " />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="py-0 px-1 border-none shadow-none">
-                  <Command className="border shadow-md">
-                    <CommandInput placeholder="Search manager" />
-                    <CommandList>
-                      <CommandEmpty>No manager found.</CommandEmpty>
-                      <CommandGroup>
-                        {managers.map((manager) => (
-                          <CommandItem
-                            key={manager.value}
-                            value={manager.value}
-                            onSelect={(currentValue) => {
-                              setData((cur) => ({
-                                ...cur,
-                                dean:
-                                  currentValue === data.dean
-                                    ? ""
-                                    : currentValue,
-                              }));
-                              setOpen(false);
-                            }}
-                          >
-                            {manager.label}
-                            <Check
-                              className={cn(
-                                "ml-auto",
-                                data.dean === manager.value
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
+            <Label className="text-right">Faculty</Label>
+            <Select
+              onValueChange={(e) => {
+                setData((cur) => ({ ...cur, department: "" }));
+                onDataChanged(e);
+              }}
+              value={data.faculty ? "faculty:" + data.faculty : ""}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select faculty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="faculty:light">ABC</SelectItem>
+                <SelectItem value="faculty:dark">Dark</SelectItem>
+                <SelectItem value="faculty:system">System</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className={`grid grid-cols-4 items-center gap-4`}>
+            <Label className="text-right">Department</Label>
+            <Select
+              onValueChange={(e) => {
+                onDataChanged(e);
+              }}
+              disabled={!data.faculty}
+              value={data.department ? "department:" + data.department : ""}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="department:light">ABC</SelectItem>
+                <SelectItem value="department:dark">Dark</SelectItem>
+                <SelectItem value="department:system">System</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-4 gap-4">

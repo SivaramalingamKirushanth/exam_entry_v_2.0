@@ -1,4 +1,3 @@
-import DialogBox from "./DialogBox";
 import FacultyDetails from "./FacultyDetails";
 
 const faculties = () => {

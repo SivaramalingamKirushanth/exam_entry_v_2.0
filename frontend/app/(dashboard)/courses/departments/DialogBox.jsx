@@ -131,56 +131,57 @@ const DialogBox = () => {
 
           <div className={`grid grid-cols-4 items-center gap-4`}>
             <Label className="text-right">HOD</Label>
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={open}
-                  className="w-[200px] justify-between"
-                >
-                  {data.hod
-                    ? managers.find((manager) => manager.value === data.hod)
-                        ?.label
-                    : "Select manager..."}
-                  <ChevronsUpDown className="opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[200px] p-0">
-                <Command>
-                  <CommandInput placeholder="Search manager..." />
-                  <CommandList>
-                    <CommandEmpty>No manager found.</CommandEmpty>
-                    <CommandGroup>
-                      {managers.map((manager) => (
-                        <CommandItem
-                          key={manager.value}
-                          value={manager.value}
-                          onSelect={(currentValue) => {
-                            setData((cur) => ({
-                              ...cur,
-                              hod:
-                                currentValue === data.hod ? "" : currentValue,
-                            }));
-                            setOpen(false);
-                          }}
-                        >
-                          {manager.label}
-                          <Check
-                            className={cn(
-                              "ml-auto",
-                              data.hod === manager.value
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <div className="grid col-span-3">
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    role="combobox"
+                    aria-expanded={open}
+                    className="col-span-3 flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-white px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer"
+                  >
+                    {data.hod
+                      ? managers.find((manager) => manager.value === data.hod)
+                          ?.label
+                      : "Select manager"}
+                    <ChevronsUpDown className="opacity-50 size-[17px] " />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="py-0 px-1 border-none shadow-none">
+                  <Command className="border shadow-md">
+                    <CommandInput placeholder="Search manager" />
+                    <CommandList>
+                      <CommandEmpty>No manager found.</CommandEmpty>
+                      <CommandGroup>
+                        {managers.map((manager) => (
+                          <CommandItem
+                            key={manager.value}
+                            value={manager.value}
+                            onSelect={(currentValue) => {
+                              setData((cur) => ({
+                                ...cur,
+                                hod:
+                                  currentValue === data.hod ? "" : currentValue,
+                              }));
+                              setOpen(false);
+                            }}
+                          >
+                            {manager.label}
+                            <Check
+                              className={cn(
+                                "ml-auto",
+                                data.hod === manager.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
           <div className={`grid grid-cols-4 items-center gap-4`}>
             <Label className="text-right">Faculty</Label>
@@ -190,8 +191,8 @@ const DialogBox = () => {
               }}
               value={data.faculty ? "faculty:" + data.faculty : ""}
             >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Faculty" />
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select faculty" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="faculty:light">ABC</SelectItem>
