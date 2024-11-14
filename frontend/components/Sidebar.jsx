@@ -13,20 +13,19 @@ const Sidebar = () => {
         <RiHome2Line size={25} className="shrink-0" />
         home
       </Link>
-
-      <Link
-        href="/courses"
-        className="flex gap-3 uppercase items-center p-3 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150"
-      >
-        <LucideBook size={25} className="shrink-0" />
-        Courses
-      </Link>
       <Link
         href="/users"
         className="flex gap-3 uppercase items-center p-3 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150"
       >
         <LucideUser2 size={25} className="shrink-0" />
         users
+      </Link>
+      <Link
+        href="/courses"
+        className="flex gap-3 uppercase items-center p-3 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150"
+      >
+        <LucideBook size={25} className="shrink-0" />
+        Courses
       </Link>
       <Link
         href="/examinations"

@@ -6,74 +6,76 @@ export const studentRegister = async (req, res, next) => {
     req.body;
   const role_id = 5;
 
-  try {
-    // Validate required fields at once
-    if (
-      !user_name ||
-      !name ||
-      !d_id ||
-      !email ||
-      !contact_no ||
-      !address ||
-      !status
-    ) {
-      return res.status(400).json({ error: "Missing credentials" });
-    }
+  // Check if all required fields are provided
+  if (
+    !user_name ||
+    !name ||
+    !d_id ||
+    !email ||
+    !contact_no ||
+    !address ||
+    !status
+  ) {
+    return res.status(400).json({ error: "Missing credentials" });
+  }
 
-    // Generate and hash password
+  try {
+    // Generate password and hash it
     const password = await generatePassword();
     const hashedPassword = await hashPassword(password);
 
-    // Check if user already exists
-    const [userExists] = await pool.execute(
-      "SELECT COUNT(*) AS count FROM user WHERE user_name = ?",
-      [user_name]
-    );
-    if (userExists[0].count > 0) {
-      return res.status(409).json({ error: "User already exists" });
-    }
+    // Establish a connection for transaction
+    const conn = await pool.getConnection();
 
-    // Begin user creation transaction
-    await pool.getConnection(async (conn) => {
-      try {
-        await conn.beginTransaction();
+    try {
+      await conn.beginTransaction();
 
-        // Insert into 'user' table
-        const [results1] = await conn.execute(
-          "INSERT INTO user(user_name, password, role_id) VALUES (?,?,?)",
-          [user_name, hashedPassword, role_id]
-        );
-        const user_id = results1.insertId;
-
-        // Insert into 'student' table
-        const [results2] = await conn.execute(
-          "INSERT INTO student(user_id) VALUES (?)",
-          [user_id]
-        );
-        const s_id = results2.insertId;
-
-        // Insert into 'student_detail' table
-        await conn.execute(
-          "INSERT INTO student_detail(s_id, name, d_id, email, contact_no, address, status) VALUES (?,?,?,?,?,?,?)",
-          [s_id, name, d_id, email, contact_no, address, status]
-        );
-
-        await conn.commit();
-        res.status(201).json("Student registered successfully");
-      } catch (error) {
-        await conn.rollback();
-        throw error;
-      } finally {
-        conn.release();
+      // Check if the user already exists
+      const [userExists] = await conn.execute(
+        "SELECT COUNT(*) AS count FROM user WHERE user_name = ?",
+        [user_name]
+      );
+      if (userExists[0].count > 0) {
+        conn.release(); // Release the connection
+        return res.status(409).json({ error: "User already exists" });
       }
-    });
+
+      // Insert into 'user' table
+      const [userResult] = await conn.execute(
+        "INSERT INTO user(user_name, password, role_id) VALUES (?,?,?)",
+        [user_name, hashedPassword, role_id]
+      );
+      const user_id = userResult.insertId;
+
+      // Insert into 'student' table
+      const [studentResult] = await conn.execute(
+        "INSERT INTO student(user_id) VALUES (?)",
+        [user_id]
+      );
+      const s_id = studentResult.insertId;
+
+      // Insert into 'student_detail' table
+      await conn.execute(
+        "INSERT INTO student_detail(s_id, name, d_id, email, contact_no, address, status) VALUES (?,?,?,?,?,?,?)",
+        [s_id, name, d_id, email, contact_no, address, status]
+      );
+
+      // Commit the transaction
+      await conn.commit();
+
+      res.status(201).json({ message: "Student registered successfully" });
+    } catch (error) {
+      // Rollback the transaction in case of error
+      await conn.rollback();
+      res
+        .status(500)
+        .json({ error: "An error occurred while registering student" });
+    } finally {
+      conn.release(); // Always release the connection
+    }
   } catch (error) {
-    console.error("Error adding student:", error);
-    res
-      .status(500)
-      .json({
-        error: "An error occurred while adding student: " + error.message,
-      });
+    console.error("Error during registration:", error);
+    res.status(500).json({ error: "Failed to establish database connection" });
   }
 };
 
