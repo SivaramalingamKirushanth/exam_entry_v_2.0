@@ -1,6 +1,10 @@
 import pool from "../config/db.js";
 import { generatePassword, hashPassword } from "../utils/functions.js";
 
+import jwt from "jsonwebtoken";
+import { verifyPassword } from "../utils/functions.js";
+const JWT_SECRET = process.env.JWT_SECRET || "uov@exam";
+
 export const studentRegister = async (req, res, next) => {
   const { user_name, name, d_id, email, contact_no, address, status } =
     req.body;
@@ -126,6 +130,51 @@ export const managerRegister = async (req, res, next) => {
     }
   } catch (error) {
     console.error("Error during registration:", error);
+    res.status(500).json({ error: "Failed to establish database connection" });
+  }
+};
+
+export const login = async (req, res, next) => {
+  const { user_name, password } = req.body;
+
+  if (!user_name || !password) {
+    return res.status(400).json({ error: "Missing credentials" });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [user] = await conn.execute(
+        "SELECT user_id, password, role_id FROM user WHERE user_name = ?",
+        [user_name]
+      );
+
+      if (user.length == 0) {
+        return res.status(401).json({ error: "Invalid username or password" });
+      }
+
+      const { user_id, password: hashedPassword, role_id } = user[0];
+      const isPasswordValid = await verifyPassword(password, hashedPassword);
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: "Invalid username or password" });
+      }
+
+      // Generate JWT Token
+      const token = jwt.sign({ user_id, role_id }, JWT_SECRET, {
+        expiresIn: "1h",
+      });
+
+      // Send response with token and redirect URL
+      res.status(200).json({ message: "Login successful", token, redirectUrl });
+    } catch (error) {
+      console.error("Error during login:", error);
+      res.status(500).json({ error: "An error occurred during login" });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
     res.status(500).json({ error: "Failed to establish database connection" });
   }
 };
