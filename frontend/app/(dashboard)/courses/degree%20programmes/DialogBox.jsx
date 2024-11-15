@@ -42,7 +42,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const DialogBox = () => {
-  const [data, setData] = useState({ active: true });
+  const [data, setData] = useState({ active: true, levels: [] });
   const [btnEnable, setBtnEnable] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -70,7 +70,12 @@ const DialogBox = () => {
   ];
 
   const onDataChanged = (e) => {
-    if (e.target) {
+    if (typeof e == "string" && e.startsWith("level")) {
+      setData((curData) => ({
+        ...curData,
+        levels: [...curData.levels, e.split(":")[1]],
+      }));
+    } else if (e?.target) {
       setData((curData) => ({ ...curData, [e.target?.name]: e.target?.value }));
     } else if (typeof e == "boolean") {
       setData((curData) => ({ ...curData, active: e }));
@@ -86,16 +91,22 @@ const DialogBox = () => {
     console.log(data);
 
     //after all the work are done
-    setData({ active: true });
+    setData({ active: true, levels: [] });
   };
 
   const onFormResetted = () => {
-    setData({ active: true });
+    setData({ active: true, levels: [] });
   };
 
   useEffect(() => {
     console.log(data);
-    if (data.name && data.shortname && data.department && data.faculty) {
+    if (
+      data.name &&
+      data.shortname &&
+      data.department &&
+      data.faculty &&
+      data.levels.length
+    ) {
       setBtnEnable(true);
     } else {
       setBtnEnable(false);
@@ -183,7 +194,35 @@ const DialogBox = () => {
               </SelectContent>
             </Select>
           </div>
-
+          <div className="grid grid-cols-4 gap-4">
+            <Label className="text-right">Levels</Label>
+            <div className="items-top flex col-span-3 items-center gap-4">
+              {[1, 2, 3, 4, 5].map((item) => (
+                <div className="items-top flex space-x-2 items-center">
+                  <Checkbox
+                    id={`level${item}`}
+                    onCheckedChange={(e) => {
+                      e
+                        ? onDataChanged(`level:${item}`)
+                        : setData((curData) => ({
+                            ...curData,
+                            levels: curData.levels.filter((ele) => ele != item),
+                          }));
+                    }}
+                    checked={data.levels.includes(item + "")}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <label
+                      htmlFor={`level${item}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      {item}
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="grid grid-cols-4 gap-4">
             <Label className="text-right">Status</Label>
             <div className="items-top flex space-x-2 col-span-3 items-center">
