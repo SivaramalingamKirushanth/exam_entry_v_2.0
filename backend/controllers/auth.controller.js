@@ -87,6 +87,8 @@ export const managerRegister = async (req, res, next) => {
 
   try {
     const password = await generatePassword();
+
+    console.log("Generated password:", password);
     const hashedPassword = await hashPassword(password);
 
     const conn = await pool.getConnection();
