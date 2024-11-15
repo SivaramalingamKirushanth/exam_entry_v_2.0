@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 
 import pool from "./config/db.js";
 import authRouter from "./routes/auth.route.js";
+import userRoutes from "./routes/user.route.js";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(cookieParser());
 
 //ALL THE ROUTES
 app.use("/api1/auth", authRouter);
+app.use("/api1/user", userRoutes);
 ///////////////////////////////////////////////////////////
 
 app.use((err, req, res, next) => {
