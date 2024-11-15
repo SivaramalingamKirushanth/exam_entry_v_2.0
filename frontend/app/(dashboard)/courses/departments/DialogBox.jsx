@@ -94,7 +94,6 @@ const DialogBox = () => {
   };
 
   useEffect(() => {
-    console.log(data);
     if (data.name && data.email && data.contact && data.hod && data.faculty) {
       setBtnEnable(true);
     } else {

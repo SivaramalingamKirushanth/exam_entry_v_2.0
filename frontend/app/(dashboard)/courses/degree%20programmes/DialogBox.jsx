@@ -99,7 +99,6 @@ const DialogBox = () => {
   };
 
   useEffect(() => {
-    console.log(data);
     if (
       data.name &&
       data.shortname &&

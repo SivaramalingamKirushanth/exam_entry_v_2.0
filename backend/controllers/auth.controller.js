@@ -3,6 +3,7 @@ import { generatePassword, hashPassword } from "../utils/functions.js";
 
 import jwt from "jsonwebtoken";
 import { verifyPassword } from "../utils/functions.js";
+import errorProvider from "../utils/errorProvider.js";
 const JWT_SECRET = process.env.JWT_SECRET || "uov@exam";
 
 export const studentRegister = async (req, res, next) => {
@@ -19,13 +20,13 @@ export const studentRegister = async (req, res, next) => {
     !address ||
     !status
   ) {
-    return res.status(400).json({ error: "Missing credentials" });
+    return next(errorProvider(400, "Missing credentials"));
   }
 
   try {
     const password = await generatePassword();
-    // show the generated password for only login testing 
-    console.log("Generated password:", password);  
+    // show the generated password for only login testing
+    console.log("Generated password:", password);
     const hashedPassword = await hashPassword(password);
 
     const conn = await pool.getConnection();
@@ -39,7 +40,7 @@ export const studentRegister = async (req, res, next) => {
       );
       if (userExists[0].count > 0) {
         conn.release();
-        return res.status(409).json({ error: "User already exists" });
+        return next(errorProvider(409, "User already exists"));
       }
 
       const [userResult] = await conn.execute(
@@ -64,15 +65,13 @@ export const studentRegister = async (req, res, next) => {
       res.status(201).json({ message: "Student registered successfully" });
     } catch (error) {
       await conn.rollback();
-      res
-        .status(500)
-        .json({ error: "An error occurred while registering student" });
+      return next(errorProvider(500, "User already exists"));
     } finally {
       conn.release();
     }
   } catch (error) {
     console.error("Error during registration:", error);
-    res.status(500).json({ error: "Failed to establish database connection" });
+    return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
 
@@ -179,7 +178,10 @@ export const login = async (req, res, next) => {
       });
 
       // Send response
-      res.status(200).json({ message: "Login successful", token, redirectUrl });
+      res
+        .cookie("access-token", token, { httpOnly: true })
+        .status(200)
+        .json({ message: "Login successful" });
     } catch (error) {
       console.error("Error during login:", error);
       res.status(500).json({ error: "An error occurred during login" });
