@@ -1,6 +1,10 @@
 import pool from "../config/db.js";
 import { generatePassword, hashPassword } from "../utils/functions.js";
 
+import jwt from "jsonwebtoken";
+import { verifyPassword } from "../utils/functions.js";
+const JWT_SECRET = process.env.JWT_SECRET || "uov@exam";
+
 export const studentRegister = async (req, res, next) => {
   const { user_name, name, d_id, email, contact_no, address, status } =
     req.body;
@@ -20,6 +24,8 @@ export const studentRegister = async (req, res, next) => {
 
   try {
     const password = await generatePassword();
+    // show the generated password for only login testing 
+    console.log("Generated password:", password);  
     const hashedPassword = await hashPassword(password);
 
     const conn = await pool.getConnection();
@@ -126,6 +132,62 @@ export const managerRegister = async (req, res, next) => {
     }
   } catch (error) {
     console.error("Error during registration:", error);
+    res.status(500).json({ error: "Failed to establish database connection" });
+  }
+};
+
+export const login = async (req, res, next) => {
+  const { user_name, password } = req.body;
+
+  if (!user_name || !password) {
+    return res.status(400).json({ error: "Missing credentials" });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [user] = await conn.execute(
+        "SELECT user_id, password, role_id FROM user WHERE user_name = ?",
+        [user_name]
+      );
+
+      // Log the retrieved user data
+      console.log("Database result:", user);
+
+      if (user.length == 0) {
+        console.log("User not found in database");
+        return res.status(401).json({ error: "Invalid username or password" });
+      }
+
+      const { user_id, password: hashedPassword, role_id } = user[0];
+      // Log passwords only for debugging
+      console.log("Plaintext password:", password);
+      console.log("Hashed password from DB:", hashedPassword);
+
+      // Verify the password
+      const isPasswordValid = await verifyPassword(password, hashedPassword);
+      console.log("Is password valid:", isPasswordValid);
+
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: "Invalid username or password" });
+      }
+
+      // Generate JWT Token
+      const token = jwt.sign({ user_id, role_id }, JWT_SECRET, {
+        expiresIn: "1h",
+      });
+
+      // Send response
+      res.status(200).json({ message: "Login successful", token, redirectUrl });
+    } catch (error) {
+      console.error("Error during login:", error);
+      res.status(500).json({ error: "An error occurred during login" });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
     res.status(500).json({ error: "Failed to establish database connection" });
   }
 };

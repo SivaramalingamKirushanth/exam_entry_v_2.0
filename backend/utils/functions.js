@@ -9,3 +9,15 @@ export const hashPassword = async (password) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   return hashedPassword;
 };
+
+export const verifyPassword = async (password, hashedPassword) => {
+  try {
+    return await bcrypt.compare(password, hashedPassword);
+  } catch (error) {
+    console.error("Error verifying password:", error);
+    throw new Error("Password verification failed");
+  }
+};
+
+
+
