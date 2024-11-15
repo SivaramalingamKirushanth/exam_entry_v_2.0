@@ -3,8 +3,11 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 
 import pool from "./config/db.js";
+
 import authRouter from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
+import curriculumRouter from "./routes/curriculum.route.js";
+
 
 dotenv.config();
 
@@ -14,9 +17,11 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-//ALL THE ROUTES
+/////////ALL THE ROUTES
 app.use("/api1/auth", authRouter);
 app.use("/api1/user", userRoutes);
+app.use("/api1/curriculum", curriculumRouter);
+
 ///////////////////////////////////////////////////////////
 
 app.use((err, req, res, next) => {

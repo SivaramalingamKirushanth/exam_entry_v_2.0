@@ -87,7 +87,7 @@ export const managerRegister = async (req, res, next) => {
 
   try {
     const password = await generatePassword();
-    // show the generated password for only login testing
+
     console.log("Generated password:", password);
     const hashedPassword = await hashPassword(password);
 
