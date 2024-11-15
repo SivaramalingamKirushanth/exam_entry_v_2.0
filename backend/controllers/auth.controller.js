@@ -4,7 +4,7 @@ import { generatePassword, hashPassword } from "../utils/functions.js";
 import jwt from "jsonwebtoken";
 import { verifyPassword } from "../utils/functions.js";
 import errorProvider from "../utils/errorProvider.js";
-const JWT_SECRET = process.env.JWT_SECRET || "uov@exam";
+const JWT_SECRET = process.env.JWT_SECRET || "abc123";
 
 export const studentRegister = async (req, res, next) => {
   const { user_name, name, d_id, email, contact_no, address, status } =
@@ -62,7 +62,9 @@ export const studentRegister = async (req, res, next) => {
 
       await conn.commit();
 
-      res.status(201).json({ message: "Student registered successfully" });
+      return res
+        .status(201)
+        .json({ message: "Student registered successfully" });
     } catch (error) {
       await conn.rollback();
       return next(errorProvider(500, "User already exists"));
@@ -80,7 +82,7 @@ export const managerRegister = async (req, res, next) => {
   const role_id = 4;
 
   if (!user_name || !name || !email || !contact_no || !address || !status) {
-    return res.status(400).json({ error: "Missing credentials" });
+    return next(errorProvider(400, "Missing credentials"));
   }
 
   try {
@@ -98,7 +100,7 @@ export const managerRegister = async (req, res, next) => {
       );
       if (userExists[0].count > 0) {
         conn.release();
-        return res.status(409).json({ error: "User already exists" });
+        return next(errorProvider(409, "User already exists"));
       }
 
       const [userResult] = await conn.execute(
@@ -123,15 +125,15 @@ export const managerRegister = async (req, res, next) => {
       res.status(201).json({ message: "Manger registered successfully" });
     } catch (error) {
       await conn.rollback();
-      res
-        .status(500)
-        .json({ error: "An error occurred while registering manager" });
+      return next(
+        errorProvider(500, "An error occurred while registering manager")
+      );
     } finally {
       conn.release();
     }
   } catch (error) {
     console.error("Error during registration:", error);
-    res.status(500).json({ error: "Failed to establish database connection" });
+    return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
 
@@ -139,7 +141,7 @@ export const login = async (req, res, next) => {
   const { user_name, password } = req.body;
 
   if (!user_name || !password) {
-    return res.status(400).json({ error: "Missing credentials" });
+    return next(errorProvider(400, "Missing credentials"));
   }
 
   try {
@@ -156,7 +158,7 @@ export const login = async (req, res, next) => {
 
       if (user.length == 0) {
         console.log("User not found in database");
-        return res.status(401).json({ error: "Invalid username or password" });
+        return next(errorProvider(401, "Invalid username or password"));
       }
 
       const { user_id, password: hashedPassword, role_id } = user[0];
@@ -169,7 +171,7 @@ export const login = async (req, res, next) => {
       console.log("Is password valid:", isPasswordValid);
 
       if (!isPasswordValid) {
-        return res.status(401).json({ error: "Invalid username or password" });
+        return next(errorProvider(401, "Invalid username or password"));
       }
 
       // Generate JWT Token
@@ -178,18 +180,18 @@ export const login = async (req, res, next) => {
       });
 
       // Send response
-      res
+      return res
         .cookie("access-token", token, { httpOnly: true })
         .status(200)
         .json({ message: "Login successful" });
     } catch (error) {
       console.error("Error during login:", error);
-      res.status(500).json({ error: "An error occurred during login" });
+      return next(errorProvider(500, "An error occurred during login"));
     } finally {
       conn.release();
     }
   } catch (error) {
     console.error("Database connection error:", error);
-    res.status(500).json({ error: "Failed to establish database connection" });
+    return next(errorProvider(500, "Failed to establish database connection"));
   }
 };

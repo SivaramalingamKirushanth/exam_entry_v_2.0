@@ -4,6 +4,7 @@ import {
   managerRegister,
   login,
 } from "../controllers/auth.controller.js";
+import { verifyAdmin } from "../utils/verifyUsers.js";
 
 const router = express.Router();
 
