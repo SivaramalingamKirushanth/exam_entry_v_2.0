@@ -2,7 +2,7 @@ import pool from "../config/db.js";
 import errorProvider from "../utils/errorProvider.js";
 
 export const getAllSubjectDetails = async (req, res, next) => {
-  const m_id = req.params.m_id;
+  const m_id = 1;
 
   if (!m_id) {
     return next(errorProvider(400, "Missing m_id "));

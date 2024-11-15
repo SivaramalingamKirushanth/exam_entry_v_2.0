@@ -3,6 +3,6 @@ import { getAllSubjectDetails } from "../controllers/curriculum.controller.js";
 
 const router = express.Router();
 
-router.get("/getAllSubjectDetails/:m_id", getAllSubjectDetails);
+router.get("/getAllSubjectDetails", getAllSubjectDetails);
 
 export default router;
