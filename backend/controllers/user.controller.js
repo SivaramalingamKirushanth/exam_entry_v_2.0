@@ -80,3 +80,86 @@ export const getAllManagers = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const updateStudent = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const { name, d_id, email, contact_no, address, status } = req.body;
+
+      const s_id = 1;
+
+      const [result] = await conn.execute(
+        `UPDATE student_detail 
+          SET 
+            name = ?, 
+            d_id = ?, 
+            email = ?, 
+            contact_no = ?, 
+            address = ?, 
+            status = ? 
+          WHERE s_id = ?`,
+        [name, d_id, email, contact_no, address, status, s_id]
+      );
+
+      if (result.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "Student not found or no changes made" });
+      }
+
+      return res.status(200).json({ message: "Student updated successfully" });
+    } catch (error) {
+      console.error("Error updating student:", error);
+      return next(
+        errorProvider(500, "An error occurred while updating the student")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const updateManager = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const { name, email, contact_no, address, status } = req.body;
+
+      const m_id = 1;
+
+      const [result] = await conn.execute(
+        `UPDATE manager_detail 
+          SET 
+            name = ?, 
+            email = ?, 
+            contact_no = ?, 
+            address = ?, 
+            status = ? 
+          WHERE m_id = ?`,
+        [name, email, contact_no, address, status, m_id]
+      );
+
+      if (result.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "Manager not found or no changes made" });
+      }
+
+      return res.status(200).json({ message: "Manager updated successfully" });
+    } catch (error) {
+      console.error("Error updating manager:", error);
+      return next(
+        errorProvider(500, "An error occurred while updating the manager")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
