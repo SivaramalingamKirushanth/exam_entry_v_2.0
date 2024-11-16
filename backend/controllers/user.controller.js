@@ -163,3 +163,84 @@ export const updateManager = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const getAllHODs = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [hods] = await conn.execute(
+        `SELECT 
+            u.user_id, 
+            u.user_name, 
+            md.name, 
+            md.email, 
+            md.contact_no, 
+            md.address, 
+            md.status 
+          FROM user u
+          INNER JOIN manager m ON u.user_id = m.user_id
+          INNER JOIN manager_detail md ON m.m_id = md.m_id
+          WHERE u.role_id = 3`
+      );
+
+      // for testing only
+      console.log("Retrieved HODs:", hods);
+
+      if (!hods.length) {
+        return res.status(404).json({ message: "No HODs found" });
+      }
+
+      return res.status(200).json({ hods });
+    } catch (error) {
+      console.error("Error retrieving HODs:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving HODs")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getAllDeans = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [deans] = await conn.execute(
+        `SELECT 
+            u.user_id, 
+            u.user_name, 
+            md.name, 
+            md.email, 
+            md.contact_no, 
+            md.address, 
+            md.status 
+          FROM user u
+          INNER JOIN manager m ON u.user_id = m.user_id
+          INNER JOIN manager_detail md ON m.m_id = md.m_id
+          WHERE u.role_id = 2`
+      );
+      // for testing only
+      console.log("Retrieved Deans:", deans);
+
+      if (!deans.length) {
+        return res.status(404).json({ message: "No Deans found" });
+      }
+
+      return res.status(200).json({ deans });
+    } catch (error) {
+      console.error("Error retrieving Deans:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving Deans")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
