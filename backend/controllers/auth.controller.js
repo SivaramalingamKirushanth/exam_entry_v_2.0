@@ -79,7 +79,7 @@ export const studentRegister = async (req, res, next) => {
 
 export const managerRegister = async (req, res, next) => {
   const { user_name, name, email, contact_no, address, status } = req.body;
-  const role_id = 4;
+  const role_id = 2;
 
   if (!user_name || !name || !email || !contact_no || !address || !status) {
     return next(errorProvider(400, "Missing credentials"));
