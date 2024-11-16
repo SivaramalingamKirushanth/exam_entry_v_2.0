@@ -189,3 +189,77 @@ export const getDegreeById = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const getDepartmentsByFaculty = async (req, res, next) => {
+  // const { f_id } = req.body;
+  const f_id = 1;
+
+  if (!f_id) {
+    return next(errorProvider(400, "Missing f_id."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const query = `
+          SELECT * FROM department INNER JOIN fac_dep  ON department.d_id = fac_dep.d_id
+          WHERE fac_dep.f_id = ?`;
+
+      const [results] = await conn.execute(query, [f_id]);
+
+      if (results.length === 0) {
+        return res
+          .status(404)
+          .json({ message: `No departments found for f_id: ${f_id}` });
+      }
+
+      return res.status(200).json({ departments: results });
+    } catch (error) {
+      console.error("Error fetching departments by f_id:", error);
+      return next(errorProvider(500, "Failed to fetch departments by f_id"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getDegreesByDepartment = async (req, res, next) => {
+  // const { d_id } = req.body;
+  const d_id = 1;
+
+  if (!d_id) {
+    return next(errorProvider(400, "Missing d_id."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const query = `
+        SELECT *FROM degree INNER JOIN dep_deg ON degree.deg_id = dep_deg.deg_id
+        WHERE dep_deg.d_id = ?`;
+
+      const [results] = await conn.execute(query, [d_id]);
+
+      if (results.length === 0) {
+        return res
+          .status(404)
+          .json({ message: `No degrees found for d_id: ${d_id}` });
+      }
+
+      return res.status(200).json({ degrees: results });
+    } catch (error) {
+      console.error("Error fetching degrees by d_id:", error);
+      return next(errorProvider(500, "Failed to fetch degrees by d_id"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
