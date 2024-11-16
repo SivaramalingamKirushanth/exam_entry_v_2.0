@@ -68,7 +68,7 @@ export const getCurriculumsByHod_id = async (req, res, next) => {
         INNER JOIN 
           dep_hod ON dep_deg.d_id = dep_hod.d_id
         WHERE 
-          dep_hod.m_id = ?
+          dep_hod.m_id = ? AND curriculum.status = 'Active'
       `;
 
       const [results] = await conn.execute(query, [m_id]);
