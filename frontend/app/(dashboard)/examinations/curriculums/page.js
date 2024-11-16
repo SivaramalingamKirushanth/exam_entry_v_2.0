@@ -1,13 +1,13 @@
-import UserDetails from "./UserDetails";
+import CurriculumsDetails from "./CurriculumsDetails";
 
-const users = () => {
+const curriculums = () => {
   return (
     <div className="flex justify-end md:justify-center">
-      <div className="md:w-[70%] ">
-        <UserDetails />
+      <div className="md:w-[80%] ">
+        <CurriculumsDetails />
       </div>
     </div>
   );
 };
 
-export default users;
+export default curriculums;

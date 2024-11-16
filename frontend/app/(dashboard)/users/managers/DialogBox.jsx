@@ -136,41 +136,6 @@ const DialogBox = () => {
               value={data.address || ""}
             />
           </div>
-          {/* <div className="grid grid-cols-4 gap-4">
-            <Label className="text-right">Position</Label>
-            <RadioGroup
-              defaultValue="position:lecturer"
-              onValueChange={(e) => onDataChanged(e)}
-              className="flex col-span-3 gap-4 flex-wrap"
-            >
-              <div className="flex items-center space-x-1">
-                <RadioGroupItem
-                  value="position:lecturer"
-                  id="r1"
-                  checked={data.position == "lecturer"}
-                />
-                <Label htmlFor="r1">Lecturer</Label>
-              </div>
-
-              <div className="flex items-center space-x-1">
-                <RadioGroupItem
-                  value="position:hod"
-                  id="r2"
-                  checked={data.position == "hod"}
-                />
-                <Label htmlFor="r2">Hod</Label>
-              </div>
-
-              <div className="flex items-center space-x-1 pr-3">
-                <RadioGroupItem
-                  value="position:dean"
-                  id="r3"
-                  checked={data.position == "dean"}
-                />
-                <Label htmlFor="r3">Dean</Label>
-              </div>
-            </RadioGroup>
-          </div> */}
 
           <div className="grid grid-cols-4 gap-4">
             <Label className="text-right">Status</Label>
@@ -183,7 +148,7 @@ const DialogBox = () => {
               <div className="grid gap-1.5 leading-none">
                 <label
                   htmlFor="status"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   Active
                 </label>

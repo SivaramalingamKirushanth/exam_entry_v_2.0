@@ -70,7 +70,7 @@ const DialogBox = () => {
   ];
 
   const onDataChanged = (e) => {
-    if (e.target) {
+    if (e?.target) {
       setData((curData) => ({ ...curData, [e.target?.name]: e.target?.value }));
     } else if (typeof e == "boolean") {
       setData((curData) => ({ ...curData, active: e }));
@@ -94,7 +94,15 @@ const DialogBox = () => {
   };
 
   useEffect(() => {
-    if (data.name && data.email && data.contact && data.hod && data.faculty) {
+    if (
+      data.subId &&
+      data.subName &&
+      data.department &&
+      data.faculty &&
+      data.degree &&
+      data.level &&
+      data.semester
+    ) {
       setBtnEnable(true);
     } else {
       setBtnEnable(false);
@@ -105,87 +113,50 @@ const DialogBox = () => {
     <Dialog>
       <DialogTrigger className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm">
         <FaPlus />
-        &nbsp;Create a department
+        &nbsp;Create a curriculum
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle> Department</DialogTitle>
+          <DialogTitle> Curriculum</DialogTitle>
           <DialogDescription>
-            You can create a department here
+            You can create a curriculum here
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
+            <Label htmlFor="subId" className="text-right">
+              Subject ID
+            </Label>
+            <Input
+              id="subId"
+              name="subId"
+              className="col-span-3"
+              onChange={(e) => onDataChanged(e)}
+              value={data.subId || ""}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="subName" className="text-right">
               Name
             </Label>
             <Input
-              id="name"
-              name="name"
-              className="col-span-3"
-              onChange={(e) => onDataChanged(e)}
-              value={data.name || ""}
+              id="subName"
+              name="subName"
+              className="col-span-3 uppercase"
+              onChange={(e) => {
+                let ele = e;
+                ele.target.value = ele.target.value.toUpperCase();
+                onDataChanged(ele);
+              }}
+              value={data.subName || ""}
             />
           </div>
 
           <div className={`grid grid-cols-4 items-center gap-4`}>
-            <Label className="text-right">HOD</Label>
-            <div className="grid col-span-3">
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    role="combobox"
-                    aria-expanded={open}
-                    className="col-span-3 flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-white px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer"
-                  >
-                    {data.hod
-                      ? managers.find((manager) => manager.value === data.hod)
-                          ?.label
-                      : "Select manager"}
-                    <ChevronsUpDown className="opacity-50 size-[17px] " />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="py-0 px-1 border-none shadow-none">
-                  <Command className="border shadow-md">
-                    <CommandInput placeholder="Search manager" />
-                    <CommandList>
-                      <CommandEmpty>No manager found.</CommandEmpty>
-                      <CommandGroup>
-                        {managers.map((manager) => (
-                          <CommandItem
-                            key={manager.value}
-                            value={manager.value}
-                            onSelect={(currentValue) => {
-                              setData((cur) => ({
-                                ...cur,
-                                hod:
-                                  currentValue === data.hod ? "" : currentValue,
-                              }));
-                              setOpen(false);
-                            }}
-                          >
-                            {manager.label}
-                            <Check
-                              className={cn(
-                                "ml-auto",
-                                data.hod === manager.value
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-          <div className={`grid grid-cols-4 items-center gap-4`}>
             <Label className="text-right">Faculty</Label>
             <Select
               onValueChange={(e) => {
+                setData((cur) => ({ ...cur, department: "" }));
                 onDataChanged(e);
               }}
               value={data.faculty ? "faculty:" + data.faculty : ""}
@@ -200,31 +171,88 @@ const DialogBox = () => {
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="email" className="text-right">
-              Email
-            </Label>
-            <Input
-              id="email"
-              name="email"
-              className="col-span-3"
-              onChange={(e) => onDataChanged(e)}
-              value={data.email || ""}
-            />
+          <div className="grid grid-cols-4 gap-4 items-center ">
+            <Label className="text-right">Department</Label>
+            <Select
+              onValueChange={(e) => {
+                setData((cur) => ({ ...cur, degree: "" }));
+                onDataChanged(e);
+              }}
+              disabled={!data.faculty}
+              value={data.department ? "department:" + data.department : ""}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="department:light">ABC</SelectItem>
+                <SelectItem value="department:dark">Dark</SelectItem>
+                <SelectItem value="department:system">System</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="contact" className="text-right">
-              Contact No
-            </Label>
-            <Input
-              id="contact"
-              name="contact"
-              className="col-span-3"
-              onChange={(e) => onDataChanged(e)}
-              value={data.contact || ""}
-            />
+          <div className={`grid grid-cols-4 items-center gap-4`}>
+            <Label className="text-right">Degree Programme</Label>
+            <Select
+              onValueChange={(e) => {
+                onDataChanged(e);
+              }}
+              disabled={!data.department}
+              value={data.degree ? "degree:" + data.degree : ""}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select degree programme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="degree:Computer Science (Hone)">
+                  Computer Science (Hone)
+                </SelectItem>
+                <SelectItem value="degree:Applied Mathematics and Computing">
+                  Applied Mathematics and Computing
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-
+          <div className="grid grid-cols-4 gap-4">
+            <Label className="text-right">Level</Label>
+            <RadioGroup
+              onValueChange={(e) => onDataChanged(e)}
+              className="flex col-span-3 gap-4 flex-wrap"
+            >
+              {[3, 4].map((item) => (
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value={`level:${item}`}
+                    id={`l${item}`}
+                    checked={data.level == item}
+                  />
+                  <Label htmlFor={`l${item}`} className="cursor-pointer">
+                    {item}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            <Label className="text-right">Semester</Label>
+            <RadioGroup
+              onValueChange={(e) => onDataChanged(e)}
+              className="flex col-span-3 gap-4 flex-wrap"
+            >
+              {[1, 2].map((item) => (
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value={`semester:${item}`}
+                    id={`l${item}`}
+                    checked={data.semester == item}
+                  />
+                  <Label htmlFor={`l${item}`} className="cursor-pointer">
+                    {item}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
           <div className="grid grid-cols-4 gap-4">
             <Label className="text-right">Status</Label>
             <div className="items-top flex space-x-2 col-span-3 items-center">

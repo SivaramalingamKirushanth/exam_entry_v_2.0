@@ -15,17 +15,6 @@ const users = () => {
     <div className="flex justify-end md:justify-center">
       <div className="md:w-[70%] flex gap-6 flex-wrap">
         <Link
-          href={`${pathname}/batches`}
-          className="w-[32%] hover:shadow-md rounded-xl"
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Batches</CardTitle>
-              <CardDescription>no of Batches</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-        <Link
           href={`${pathname}/curriculums`}
           className="w-[30%] hover:shadow-md rounded-xl"
         >
@@ -33,6 +22,17 @@ const users = () => {
             <CardHeader>
               <CardTitle>Curriculums</CardTitle>
               <CardDescription>no of Curriculums</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link
+          href={`${pathname}/batches`}
+          className="w-[32%] hover:shadow-md rounded-xl"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Batches</CardTitle>
+              <CardDescription>no of Batches</CardDescription>
             </CardHeader>
           </Card>
         </Link>

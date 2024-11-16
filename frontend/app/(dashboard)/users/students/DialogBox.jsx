@@ -146,9 +146,7 @@ const DialogBox = () => {
           </div>
 
           <div className={`grid grid-cols-4 items-center gap-4`}>
-            <Label className="text-right">
-              Faculty
-            </Label>
+            <Label className="text-right">Faculty</Label>
             <Select
               onValueChange={(e) => {
                 setData((cur) => ({ ...cur, department: "" }));
@@ -199,7 +197,7 @@ const DialogBox = () => {
               <div className="grid gap-1.5 leading-none">
                 <label
                   htmlFor="status"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   Active
                 </label>
