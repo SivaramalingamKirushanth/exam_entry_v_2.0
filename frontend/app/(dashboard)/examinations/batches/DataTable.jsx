@@ -30,7 +30,6 @@ import { Input } from "@/components/ui/input";
 import DialogBox from "./DialogBox";
 
 export function DataTable({ columns, data }) {
-  console.log(columns);
   const [sorting, setSorting] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
 
