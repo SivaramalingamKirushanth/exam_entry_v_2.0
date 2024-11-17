@@ -38,35 +38,11 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import StudentSelection from "./StudentSelection";
 
 const DialogBox = () => {
   const [data, setData] = useState({ active: true });
   const [btnEnable, setBtnEnable] = useState(false);
-  const [showStudents, setShowStudents] = useState(false);
-  const managers = [
-    {
-      value: "next.js",
-      label: "Next.js",
-    },
-    {
-      value: "sveltekit",
-      label: "SvelteKit",
-    },
-    {
-      value: "nuxt.js",
-      label: "Nuxt.js",
-    },
-    {
-      value: "remix",
-      label: "Remix",
-    },
-    {
-      value: "astro",
-      label: "Astro",
-    },
-  ];
 
   const onDataChanged = (e) => {
     if (e?.target) {
@@ -90,7 +66,7 @@ const DialogBox = () => {
     }
 
     setData((curData) => ({ ...curData, acadYear: value }));
-    e.target.value = data.acadYear;
+    e.target.value = value;
   };
 
   const onFormSubmited = () => {
@@ -106,8 +82,7 @@ const DialogBox = () => {
 
   useEffect(() => {
     if (
-      data.subId &&
-      data.subName &&
+      data.acadYear &&
       data.department &&
       data.faculty &&
       data.degree &&
@@ -115,10 +90,9 @@ const DialogBox = () => {
       data.semester
     ) {
       setBtnEnable(true);
-      setShowStudents(true);
     } else {
       setBtnEnable(false);
-      setShowStudents(false);
+      false;
     }
   }, [data]);
 
@@ -131,19 +105,20 @@ const DialogBox = () => {
       <div className="flex gap-5">
         <DialogContent
           className={`${
-            showStudents ? "sm:max-w-[90vw]" : "sm:max-w-[425px]"
+            btnEnable ? "sm:max-w-[90vw]" : "sm:max-w-[425px]"
           } transition-all duration-300 `}
         >
-          <DialogHeader>
-            <DialogTitle> Batch</DialogTitle>
-            <DialogDescription>You can create a batch here</DialogDescription>
-          </DialogHeader>
           <div className="flex">
             <div
-              className={`grid gap-4 py-4 ${
-                showStudents ? "sm:max-w-[425px]" : ""
-              } `}
+              className={`grid gap-4 ${btnEnable ? "sm:max-w-[425px]" : ""} `}
             >
+              <DialogHeader>
+                <DialogTitle> Batch</DialogTitle>
+                <DialogDescription>
+                  You can create a batch here
+                </DialogDescription>
+              </DialogHeader>
+
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="batchId" className="text-right">
                   Batch ID
@@ -153,7 +128,11 @@ const DialogBox = () => {
                   name="batchId"
                   className="col-span-3"
                   disabled={true}
-                  value={data.subId || ""}
+                  value={
+                    `${data.acadYear || "XXXX"}IT${data.level || "X"}${
+                      data.semester || "X"
+                    }` || ""
+                  }
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -169,19 +148,9 @@ const DialogBox = () => {
                   name="acadYear"
                   id="acadYear"
                   onBlur={(e) => onAcadYearChanged(e)}
-                  // value={data.acadYear || ""}
+                  onChange={(e) => onDataChanged(e)}
+                  value={data.acadYear || ""}
                 />
-
-                {/* <Input
-                  name="acadYear"
-                  className="col-span-3"
-                  onChange={(e) => {
-                    let ele = e;
-                    ele.target.value = ele.target.value.toUpperCase();
-                    onDataChanged(ele);
-                  }}
-                  value={data.subName || ""}
-                /> */}
               </div>
 
               <div className={`grid grid-cols-4 items-center gap-4`}>
@@ -304,8 +273,12 @@ const DialogBox = () => {
                 </div>
               </div>
             </div>
+            {btnEnable && (
+              <div className="container mx-auto">
+                <StudentSelection setData={setData} btnEnable={btnEnable} />
+              </div>
+            )}
           </div>
-
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onFormResetted}>
               Reset
