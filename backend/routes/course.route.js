@@ -2,6 +2,7 @@ import express from "express";
 import {
   createFaculty,
   createDepartment,
+  addDegree,
   getAllFaculties,
   getFacultyById,
   getAllDepartments,
@@ -16,6 +17,8 @@ const router = express.Router();
 
 router.post("/createFaculty", createFaculty);
 router.post("/createDepartment", createDepartment);
+
+router.post("/addDegree", addDegree);
 
 router.get("/getAllFaculties", getAllFaculties);
 router.post("/getFacultyById", getFacultyById);
