@@ -125,6 +125,68 @@ export const createDepartment = async (req, res, next) => {
   }
 };
 
+export const addDegree = async (req, res, next) => {
+  const { deg_name, short, level, status, d_id } = req.body;
+
+  // Validate required fields
+  if (!deg_name || !short || !level || !d_id) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  // Validate status active or inactive
+  const degreeStatus = status === "active" ? "active" : "inactive";
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      await conn.beginTransaction();
+
+      // Check if degree already exists
+      const [degreeExists] = await conn.execute(
+        "SELECT COUNT(*) AS count FROM degree WHERE deg_name = ? OR short = ?",
+        [deg_name, short]
+      );
+
+      if (degreeExists[0].count > 0) {
+        conn.release();
+        return next(errorProvider(409, "Degree already exists"));
+      }
+
+      // Insert into degree table
+      const [degreeResult] = await conn.execute(
+        "INSERT INTO degree (deg_name, short, levels, status) VALUES (?, ?, ?, ?)",
+        [deg_name, short, level, degreeStatus]
+      );
+      const deg_id = degreeResult.insertId;
+
+      // Insert into dep_deg table
+      await conn.execute("INSERT INTO dep_deg (d_id, deg_id) VALUES (?, ?)", [
+        d_id,
+        deg_id,
+      ]);
+
+      await conn.commit();
+
+      res.status(201).json({
+        message: "Degree added successfully",
+        deg_id,
+      });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error during degree creation:", error);
+      return next(
+        errorProvider(500, "An error occurred while adding the degree")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
 export const getAllFaculties = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
