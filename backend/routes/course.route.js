@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  createFaculty,
   getAllFaculties,
   getFacultyById,
   getAllDepartments,
@@ -8,9 +9,11 @@ import {
   getAllDegrees,
   getDepartmentsByFaculty,
   getDegreesByDepartment,
-} from "../controllers/cause.controller.js";
+} from "../controllers/course.controller.js";
 
 const router = express.Router();
+
+router.post("/createFaculty", createFaculty);
 
 router.get("/getAllFaculties", getAllFaculties);
 router.post("/getFacultyById", getFacultyById);

@@ -1,6 +1,62 @@
 import pool from "../config/db.js";
 import errorProvider from "../utils/errorProvider.js";
 
+export const createFaculty = async (req, res, next) => {
+  let { f_name, email, contact_no, status, m_id } = req.body;
+
+  // Default status to "inactive" if it is not provided or is empty
+  if (!status) {
+    status = "inactive";
+  }
+
+  if (!f_name || !email || !contact_no || !m_id) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  // Ensure status is  "active" or "inactive"
+  if (status !== "active" && status !== "inactive") {
+    return next(errorProvider(400, "Invalid status value"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      await conn.beginTransaction();
+
+      // Insert into faculty table
+      const [facultyResult] = await conn.execute(
+        "INSERT INTO faculty (f_name, email, contact_no, status) VALUES (?, ?, ?, ?)",
+        [f_name, email, contact_no, status]
+      );
+      const f_id = facultyResult.insertId;
+
+      // Insert into fac_dean table
+      await conn.execute("INSERT INTO fac_dean (f_id, m_id) VALUES (?, ?)", [
+        f_id,
+        m_id,
+      ]);
+
+      await conn.commit();
+
+      return res
+        .status(201)
+        .json({ message: "Faculty created successfully", f_id });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error while creating faculty:", error);
+      return next(
+        errorProvider(500, "An error occurred while creating faculty")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
 export const getAllFaculties = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
