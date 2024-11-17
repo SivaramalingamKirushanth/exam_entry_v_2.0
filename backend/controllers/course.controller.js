@@ -4,18 +4,12 @@ import errorProvider from "../utils/errorProvider.js";
 export const createFaculty = async (req, res, next) => {
   let { f_name, email, contact_no, status, m_id } = req.body;
 
-  // Default status to "inactive" if it is not provided or is empty
   if (!status) {
-    status = "inactive";
+    status = "false";
   }
 
   if (!f_name || !email || !contact_no || !m_id) {
     return next(errorProvider(400, "Missing required fields"));
-  }
-
-  // Ensure status is  "active" or "inactive"
-  if (status !== "active" && status !== "inactive") {
-    return next(errorProvider(400, "Invalid status value"));
   }
 
   try {
@@ -65,8 +59,9 @@ export const createDepartment = async (req, res, next) => {
     return next(errorProvider(400, "Missing required fields"));
   }
 
-  // Validate status active or inactive
-  const departmentStatus = status === "active" ? "active" : "inactive";
+  if (!status) {
+    status = "false";
+  }
 
   try {
     const conn = await pool.getConnection();
@@ -88,7 +83,7 @@ export const createDepartment = async (req, res, next) => {
       // Insert into department table
       const [departmentResult] = await conn.execute(
         "INSERT INTO department (d_name, email, contact_no, status) VALUES (?, ?, ?, ?)",
-        [d_name, email, contact_no, departmentStatus]
+        [d_name, email, contact_no, status]
       );
       const d_id = departmentResult.insertId;
 
@@ -125,16 +120,16 @@ export const createDepartment = async (req, res, next) => {
   }
 };
 
-export const addDegree = async (req, res, next) => {
+export const createDegree = async (req, res, next) => {
   const { deg_name, short, level, status, d_id } = req.body;
 
   // Validate required fields
   if (!deg_name || !short || !level || !d_id) {
     return next(errorProvider(400, "Missing required fields"));
   }
-
-  // Validate status active or inactive
-  const degreeStatus = status === "active" ? "active" : "inactive";
+  if (!status) {
+    status = "false";
+  }
 
   try {
     const conn = await pool.getConnection();
@@ -156,7 +151,7 @@ export const addDegree = async (req, res, next) => {
       // Insert into degree table
       const [degreeResult] = await conn.execute(
         "INSERT INTO degree (deg_name, short, levels, status) VALUES (?, ?, ?, ?)",
-        [deg_name, short, level, degreeStatus]
+        [deg_name, short, level, status]
       );
       const deg_id = degreeResult.insertId;
 
