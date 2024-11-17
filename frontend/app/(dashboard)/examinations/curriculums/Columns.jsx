@@ -14,30 +14,34 @@ import {
 
 export const columns = [
   {
-    accessorKey: "name",
+    accessorKey: "sub_id",
+    header: "Subject ID",
+  },
+  {
+    accessorKey: "sub_name",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Name
+          Subject name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "shortname",
-    header: "Short Name",
+    accessorKey: "degree_name",
+    header: "Degree programme",
   },
   {
-    accessorKey: "faculty",
-    header: "Faculty",
+    accessorKey: "level",
+    header: "Level",
   },
   {
-    accessorKey: "department",
-    header: "Department",
+    accessorKey: "semester",
+    header: "Semester",
   },
   {
     accessorKey: "status",

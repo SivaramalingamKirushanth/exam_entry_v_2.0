@@ -12,7 +12,7 @@ export const getAllFaculties = async (req, res, next) => {
       const [results] = await conn.execute(query);
 
       if (results.length === 0) {
-        return res.status(404).json({ message: "No faculties found." });
+        return next(errorProvider(404, "No faculties found."));
       }
 
       return res.status(200).json({ faculties: results });
@@ -46,9 +46,7 @@ export const getFacultyById = async (req, res, next) => {
       const [results] = await conn.execute(query, [f_id]);
 
       if (results.length === 0) {
-        return res
-          .status(404)
-          .json({ message: `No faculty found for f_id: ${f_id}` });
+        return next(errorProvider(404, `No faculty found for f_id: ${f_id}`));
       }
 
       return res.status(200).json({ faculty: results[0] });
@@ -75,7 +73,7 @@ export const getAllDepartments = async (req, res, next) => {
       const [results] = await conn.execute(query);
 
       if (results.length === 0) {
-        return res.status(404).json({ message: "No departments found." });
+        return next(errorProvider(404, "No departments found."));
       }
 
       return res.status(200).json({ departments: results });
@@ -109,9 +107,9 @@ export const getDepartmentById = async (req, res, next) => {
       const [results] = await conn.execute(query, [d_id]);
 
       if (results.length === 0) {
-        return res
-          .status(404)
-          .json({ message: `No department found for d_id: ${d_id}` });
+        return next(
+          errorProvider(404, `No department found for d_id: ${d_id}`)
+        );
       }
 
       return res.status(200).json({ department: results[0] });
@@ -138,7 +136,7 @@ export const getAllDegrees = async (req, res, next) => {
       const [results] = await conn.execute(query);
 
       if (results.length === 0) {
-        return res.status(404).json({ message: "No degrees found." });
+        return next(errorProvider(404, "No degrees found."));
       }
 
       return res.status(200).json({ degrees: results });
@@ -172,9 +170,9 @@ export const getDegreeById = async (req, res, next) => {
       const [results] = await conn.execute(query, [deg_id]);
 
       if (results.length === 0) {
-        return res
-          .status(404)
-          .json({ message: `No degree found for deg_id: ${deg_id}` });
+        return next(
+          errorProvider(404, `No degree found for deg_id: ${deg_id}`)
+        );
       }
 
       return res.status(200).json({ degree: results[0] });
@@ -209,9 +207,9 @@ export const getDepartmentsByFaculty = async (req, res, next) => {
       const [results] = await conn.execute(query, [f_id]);
 
       if (results.length === 0) {
-        return res
-          .status(404)
-          .json({ message: `No departments found for f_id: ${f_id}` });
+        return next(
+          errorProvider(404, `No departments found for f_id: ${f_id}`)
+        );
       }
 
       return res.status(200).json({ departments: results });
@@ -246,9 +244,7 @@ export const getDegreesByDepartment = async (req, res, next) => {
       const [results] = await conn.execute(query, [d_id]);
 
       if (results.length === 0) {
-        return res
-          .status(404)
-          .json({ message: `No degrees found for d_id: ${d_id}` });
+        return next(errorProvider(404, `No degrees found for d_id: ${d_id}`));
       }
 
       return res.status(200).json({ degrees: results });
