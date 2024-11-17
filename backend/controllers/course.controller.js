@@ -57,6 +57,74 @@ export const createFaculty = async (req, res, next) => {
   }
 };
 
+export const createDepartment = async (req, res, next) => {
+  const { d_name, email, contact_no, status, f_id, m_id } = req.body;
+
+  // Validate required fields
+  if (!d_name || !email || !contact_no || !f_id || !m_id) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  // Validate status active or inactive
+  const departmentStatus = status === "active" ? "active" : "inactive";
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      await conn.beginTransaction();
+
+      // Check if department already exists
+      const [departmentExists] = await conn.execute(
+        "SELECT COUNT(*) AS count FROM department WHERE d_name = ? OR email = ?",
+        [d_name, email]
+      );
+
+      if (departmentExists[0].count > 0) {
+        conn.release();
+        return next(errorProvider(409, "Department already exists"));
+      }
+
+      // Insert into department table
+      const [departmentResult] = await conn.execute(
+        "INSERT INTO department (d_name, email, contact_no, status) VALUES (?, ?, ?, ?)",
+        [d_name, email, contact_no, departmentStatus]
+      );
+      const d_id = departmentResult.insertId;
+
+      // Insert into dep_hod table
+      await conn.execute("INSERT INTO dep_hod (d_id, m_id) VALUES (?, ?)", [
+        d_id,
+        m_id,
+      ]);
+
+      // Insert into fac_dep table
+      await conn.execute("INSERT INTO fac_dep (f_id, d_id) VALUES (?, ?)", [
+        f_id,
+        d_id,
+      ]);
+
+      await conn.commit();
+
+      res.status(201).json({
+        message: "Department created successfully",
+        d_id,
+      });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error during department creation:", error);
+      return next(
+        errorProvider(500, "An error occurred while creating department")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
 export const getAllFaculties = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
