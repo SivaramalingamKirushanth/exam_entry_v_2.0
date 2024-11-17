@@ -4,6 +4,7 @@ import errorProvider from "../utils/errorProvider.js";
 export const createFaculty = async (req, res, next) => {
   let { f_name, email, contact_no, status, m_id } = req.body;
 
+
   if (!status) {
     status = "false";
   }
@@ -12,11 +13,23 @@ export const createFaculty = async (req, res, next) => {
     return next(errorProvider(400, "Missing required fields"));
   }
 
+
   try {
     const conn = await pool.getConnection();
 
     try {
       await conn.beginTransaction();
+
+      // Check if faculty already exists (based on f_name or email)
+      const [facultyExists] = await conn.execute(
+        "SELECT COUNT(*) AS count FROM faculty WHERE f_name = ? OR email = ?",
+        [f_name, email]
+      );
+
+      if (facultyExists[0].count > 0) {
+        conn.release();
+        return next(errorProvider(409, "Faculty already exists"));
+      }
 
       // Insert into faculty table
       const [facultyResult] = await conn.execute(
@@ -41,6 +54,64 @@ export const createFaculty = async (req, res, next) => {
       console.error("Error while creating faculty:", error);
       return next(
         errorProvider(500, "An error occurred while creating faculty")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const updateFaculty = async (req, res, next) => {
+  //const { f_id } = req.body;
+  const f_id = 6;
+  const { f_name, email, contact_no, status, m_id } = req.body;
+
+  if (!f_name || !email || !contact_no || !m_id) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  const facultyStatus = status === "active" ? "active" : "inactive";
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      await conn.beginTransaction();
+
+      // Check if faculty exists
+      const [facultyExists] = await conn.execute(
+        "SELECT COUNT(*) AS count FROM faculty WHERE f_id = ?",
+        [f_id]
+      );
+
+      if (facultyExists[0].count === 0) {
+        conn.release();
+        return next(errorProvider(404, "Faculty not found"));
+      }
+
+      // Update faculty table
+      await conn.execute(
+        "UPDATE faculty SET f_name = ?, email = ?, contact_no = ?, status = ? WHERE f_id = ?",
+        [f_name, email, contact_no, facultyStatus, f_id]
+      );
+
+      // Update fac_dean table
+      await conn.execute("UPDATE fac_dean SET m_id = ? WHERE f_id = ?", [
+        m_id,
+        f_id,
+      ]);
+
+      await conn.commit();
+
+      return res.status(200).json({ message: "Faculty updated successfully" });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error while updating faculty:", error);
+      return next(
+        errorProvider(500, "An error occurred while updating faculty")
       );
     } finally {
       conn.release();
@@ -119,6 +190,71 @@ export const createDepartment = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+export const updateDepartment = async (req, res, next) => {
+  //const { d_id } = req.body;
+  const d_id = 1;
+  const { d_name, email, contact_no, status, f_id, m_id } = req.body;
+
+  if (!d_name || !email || !contact_no || !f_id || !m_id) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  const departmentStatus = status === "active" ? "active" : "inactive";
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      await conn.beginTransaction();
+
+      // Check if department exists
+      const [departmentExists] = await conn.execute(
+        "SELECT COUNT(*) AS count FROM department WHERE d_id = ?",
+        [d_id]
+      );
+
+      if (departmentExists[0].count === 0) {
+        conn.release();
+        return next(errorProvider(404, "Department not found"));
+      }
+
+      // Update department table
+      await conn.execute(
+        "UPDATE department SET d_name = ?, email = ?, contact_no = ?, status = ? WHERE d_id = ?",
+        [d_name, email, contact_no, departmentStatus, d_id]
+      );
+
+      // Update dep_hod table
+      await conn.execute("UPDATE dep_hod SET m_id = ? WHERE d_id = ?", [
+        m_id,
+        d_id,
+      ]);
+
+      // // Update fac_dep table
+      // await conn.execute("UPDATE fac_dep SET f_id = ? WHERE d_id = ?", [
+      //   f_id,
+      //   d_id,
+      // ]);
+
+      await conn.commit();
+
+      return res
+        .status(200)
+        .json({ message: "Department updated successfully" });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error while updating department:", error);
+      return next(
+        errorProvider(500, "An error occurred while updating department")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
 
 export const createDegree = async (req, res, next) => {
   const { deg_name, short, level, status, d_id } = req.body;
@@ -172,6 +308,63 @@ export const createDegree = async (req, res, next) => {
       console.error("Error during degree creation:", error);
       return next(
         errorProvider(500, "An error occurred while adding the degree")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+export const updateDegree = async (req, res, next) => {
+  //const { deg_id } = req.body;
+  const deg_id = 1;
+  const { deg_name, short, level, status, d_id } = req.body;
+
+  if (!deg_name || !short || !level || !d_id) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  const degreeStatus = status === "active" ? "active" : "inactive";
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      await conn.beginTransaction();
+
+      // Check if degree exists
+      const [degreeExists] = await conn.execute(
+        "SELECT COUNT(*) AS count FROM degree WHERE deg_id = ?",
+        [deg_id]
+      );
+
+      if (degreeExists[0].count === 0) {
+        conn.release();
+        return next(errorProvider(404, "Degree not found"));
+      }
+
+      // Update degree table
+      await conn.execute(
+        "UPDATE degree SET deg_name = ?, short = ?, levels = ?, status = ? WHERE deg_id = ?",
+        [deg_name, short, level, degreeStatus, deg_id]
+      );
+
+      // Update dep_deg table
+      await conn.execute("UPDATE dep_deg SET d_id = ? WHERE deg_id = ?", [
+        d_id,
+        deg_id,
+      ]);
+
+      await conn.commit();
+
+      return res.status(200).json({ message: "Degree updated successfully" });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error while updating degree:", error);
+      return next(
+        errorProvider(500, "An error occurred while updating the degree")
       );
     } finally {
       conn.release();
