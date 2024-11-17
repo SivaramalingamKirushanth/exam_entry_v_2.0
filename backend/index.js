@@ -7,7 +7,7 @@ import pool from "./config/db.js";
 import authRouter from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import curriculumRouter from "./routes/curriculum.route.js";
-import causeRouter from "./routes/cause.route.js";
+import courseRouter from "./routes/course.route.js";
 
 dotenv.config();
 
@@ -21,7 +21,7 @@ app.use(cookieParser());
 app.use("/api1/auth", authRouter);
 app.use("/api1/user", userRoutes);
 app.use("/api1/curriculum", curriculumRouter);
-app.use("/api1/cause", causeRouter);
+app.use("/api1/course", courseRouter);
 ///////////////////////////////////////////////////////////
 
 app.use((err, req, res, next) => {

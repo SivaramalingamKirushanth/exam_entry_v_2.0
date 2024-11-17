@@ -1,5 +1,8 @@
 import express from "express";
 import {
+  createFaculty,
+  createDepartment,
+  addDegree,
   getAllFaculties,
   getFacultyById,
   getAllDepartments,
@@ -8,16 +11,24 @@ import {
   getAllDegrees,
   getDepartmentsByFaculty,
   getDegreesByDepartment,
-} from "../controllers/cause.controller.js";
+} from "../controllers/course.controller.js";
 
 const router = express.Router();
 
+router.post("/createFaculty", createFaculty);
+router.post("/createDepartment", createDepartment);
+
+router.post("/addDegree", addDegree);
+
 router.get("/getAllFaculties", getAllFaculties);
 router.post("/getFacultyById", getFacultyById);
+
 router.get("/getAllDepartments", getAllDepartments);
 router.post("/getDepartmentById", getDepartmentById);
+
 router.get("/getAllDegrees", getAllDegrees);
 router.post("/getDegreeById", getDegreeById);
+
 router.post("/getDepartmentsByFaculty", getDepartmentsByFaculty);
 router.post("/getDegreesByDepartment", getDegreesByDepartment);
 
