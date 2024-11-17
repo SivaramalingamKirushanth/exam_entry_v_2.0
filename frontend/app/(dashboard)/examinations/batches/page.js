@@ -1,13 +1,13 @@
-import UserDetails from "./UserDetails";
+import BatchesDetails from "./BatchesDetails";
 
-const users = () => {
+const batches = () => {
   return (
     <div className="flex justify-end md:justify-center">
-      <div className="md:w-[70%] ">
-        <UserDetails />
+      <div className="md:w-[80%] ">
+        <BatchesDetails />
       </div>
     </div>
   );
 };
 
-export default users;
+export default batches;

@@ -188,7 +188,7 @@ export const getDegreeById = async (req, res, next) => {
   }
 };
 
-export const getDepartmentsByFaculty = async (req, res, next) => {
+export const getDepartmentsByFacultyId = async (req, res, next) => {
   // const { f_id } = req.body;
   const f_id = 1;
 
@@ -225,7 +225,7 @@ export const getDepartmentsByFaculty = async (req, res, next) => {
   }
 };
 
-export const getDegreesByDepartment = async (req, res, next) => {
+export const getDegreesByDepartmentId = async (req, res, next) => {
   // const { d_id } = req.body;
   const d_id = 1;
 
