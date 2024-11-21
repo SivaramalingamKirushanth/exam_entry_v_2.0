@@ -288,3 +288,84 @@ export const getAllDeans = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const deleteUser = async (req, res, next) => {
+  //const { user_id } = req.body;
+
+  const user_id = 1;
+
+  if (!user_id) {
+    return res.status(400).json({ 
+      message: "user_id is required" 
+    });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      const [student] = await conn.execute(
+        `SELECT s_id FROM student WHERE user_id = ?`,
+        [user_id]
+      );
+
+      if (student.length > 0) {
+        const s_id = student[0].s_id;
+
+        await conn.execute(`DELETE FROM student_detail WHERE s_id = ?`, [s_id]);
+        await conn.execute(`DELETE FROM student WHERE user_id = ?`, [user_id]);
+      } 
+      else {
+        const [manager] = await conn.execute(
+          `SELECT m_id FROM manager WHERE user_id = ?`,
+          [user_id]
+        );
+
+        if (manager.length > 0) {
+          const m_id = manager[0].m_id;
+
+          await conn.execute(`DELETE FROM manager_detail WHERE m_id = ?`, 
+            [m_id]
+          );
+
+          await conn.execute(`DELETE FROM manager WHERE user_id = ?`, 
+            [user_id]
+          );
+        }
+      }
+
+      const [result] = await conn.execute(
+        `DELETE FROM user WHERE user_id = ?`,
+        [user_id]
+      );
+
+      await conn.commit();
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ 
+          message: "User not found" 
+        });
+      }
+      return res.status(200).json({ 
+        message: "User deleted successfully" 
+      });
+    } 
+    catch (error) {
+      console.error("Error deleting user:", error);
+
+      await conn.rollback();
+
+      return next(
+        errorProvider(500, "An error occurred while deleting the user")
+      );
+    } 
+    finally {
+      conn.release();
+    }
+  } 
+  catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
