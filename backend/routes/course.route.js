@@ -4,7 +4,7 @@ import {
   updateFaculty,
   createDepartment,
   updateDepartment,
-  addDegree,
+  createDegree,
   updateDegree,
   getAllFaculties,
   getFacultyById,
@@ -24,7 +24,7 @@ router.put("/updateFaculty", updateFaculty);
 router.post("/createDepartment", createDepartment);
 router.put("/updateDepartment", updateDepartment);
 
-router.post("/addDegree", addDegree);
+router.post("/createDegree", createDegree);
 router.put("/updateDegree", updateDegree);
 
 router.get("/getAllFaculties", getAllFaculties);

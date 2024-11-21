@@ -11,10 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import DialogBox from "./DialogBox";
 
 export const columns = [
   {
-    accessorKey: "username",
+    accessorKey: "user_name",
     header: "User name",
   },
   {
@@ -36,7 +37,7 @@ export const columns = [
     header: "Email",
   },
   {
-    accessorKey: "contactNo",
+    accessorKey: "contact_no",
     header: "Contact No",
   },
   {
@@ -44,32 +45,28 @@ export const columns = [
     header: "Address",
   },
   {
-    accessorKey: "role",
+    accessorKey: "role_id",
     header: "Role",
+    cell: ({ row }) => {
+      return (
+        <p>
+          {row.role_id == 2 ? "Dean" : row.role_id == 3 ? "Hod" : "Lecturer"}
+        </p>
+      );
+    },
   },
   {
     accessorKey: "status",
     header: "Status",
+    cell: ({ row }) => {
+      return <p>{row.original.status === "true" ? "Active" : "Not active"}</p>;
+    },
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => console.log(123)}>
-              Edit
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      console.log(row);
+      return <DialogBox user_id={row.original.user_id} />;
     },
   },
 ];

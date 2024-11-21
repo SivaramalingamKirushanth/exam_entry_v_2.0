@@ -9,71 +9,116 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  SelectLabel,
-  SelectGroup,
-} from "@/components/ui/select";
-import { FaPlus } from "react-icons/fa6";
+import { toast } from "sonner";
+
+import { FaPen, FaPlus } from "react-icons/fa6";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { managerRegister } from "@/utils/apiRequests/auth.api";
+import { getAllManagers, getManagerById } from "@/utils/apiRequests/user.api";
 
-const DialogBox = () => {
-  const [data, setData] = useState({ position: "lecturer", active: true });
+const DialogBox = ({ user_id }) => {
+  const [formData, setFormData] = useState({
+    status: "true",
+  });
   const [btnEnable, setBtnEnable] = useState(false);
+  const queryClient = useQueryClient();
 
-  const onDataChanged = (e) => {
+  const { status, mutate } = useMutation({
+    mutationFn: managerRegister,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries(["managers"]);
+      toast(res.message);
+    },
+    onError: (err) => toast("Manger registered failed"),
+  });
+
+  const { data, isLoading, error, refetch } = useQuery({
+    queryFn: () => getManagerById(user_id),
+    queryKey: ["managers", user_id],
+    enabled: false,
+  });
+
+  {
+    user_id && refetch();
+  }
+
+  useEffect(() => {
+    if (data) setFormData(data);
+  }, [data]);
+
+  const onformDataChanged = (e) => {
     if (e.target) {
-      setData((curData) => ({ ...curData, [e.target?.name]: e.target?.value }));
+      setFormData((curformData) => ({
+        ...curformData,
+        [e.target?.name]: e.target?.value,
+      }));
     } else if (typeof e == "boolean") {
-      setData((curData) => ({ ...curData, active: e }));
+      setFormData((curformData) => ({ ...curformData, status: e + "" }));
     } else {
-      setData((curData) => ({
-        ...curData,
+      setFormData((curformData) => ({
+        ...curformData,
         [e.split(":")[0]]: e.split(":")[1],
       }));
     }
   };
 
-  const onFormSubmited = () => {
-    console.log(data);
-
+  const onFormSubmited = async () => {
+    console.log(formData);
+    mutate(formData);
     //after all the work are done
-    setData({ active: true });
+    setFormData({ status: "true" });
   };
 
   const onFormResetted = () => {
-    setData({ active: true });
+    setFormData({ status: "true" });
   };
 
   useEffect(() => {
-    if (data.name && data.uname && data.email && data.contact && data.address) {
+    console.log(formData);
+    if (
+      formData.name &&
+      formData.user_name &&
+      formData.email &&
+      formData.contact_no &&
+      formData.address
+    ) {
       setBtnEnable(true);
     } else {
       setBtnEnable(false);
     }
-    // console.log(data);
-    // console.log(data.position == "hod" && data.faculty);
-  }, [data]);
+    // console.log(formData);
+    // console.log(formData.position == "hod" && formData.faculty);
+  }, [formData]);
 
   return (
     <Dialog>
-      <DialogTrigger className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm">
-        <FaPlus />
-        &nbsp;Create a manager
+      <DialogTrigger
+        className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm"
+        onClick={user_id ? null : onFormResetted}
+      >
+        {user_id ? (
+          <>
+            <FaPen />
+            Edit
+          </>
+        ) : (
+          <>
+            <FaPlus />
+            &nbsp;Create a manager
+          </>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle> Manager</DialogTitle>
-          <DialogDescription>You can create a manager here</DialogDescription>
+          <DialogDescription>
+            You can {user_id ? "update" : "create"} a manager here
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -84,20 +129,20 @@ const DialogBox = () => {
               id="name"
               name="name"
               className="col-span-3"
-              onChange={(e) => onDataChanged(e)}
-              value={data.name || ""}
+              onChange={(e) => onformDataChanged(e)}
+              value={formData?.name || ""}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="uname" className="text-right">
+            <Label htmlFor="user_name" className="text-right">
               User name
             </Label>
             <Input
-              id="uname"
-              name="uname"
+              id="user_name"
+              name="user_name"
               className="col-span-3"
-              onChange={(e) => onDataChanged(e)}
-              value={data.uname || ""}
+              onChange={(e) => onformDataChanged(e)}
+              value={formData?.user_name || ""}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -108,20 +153,20 @@ const DialogBox = () => {
               id="email"
               name="email"
               className="col-span-3"
-              onChange={(e) => onDataChanged(e)}
-              value={data.email || ""}
+              onChange={(e) => onformDataChanged(e)}
+              value={formData?.email || ""}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="contact" className="text-right">
+            <Label htmlFor="contact_no" className="text-right">
               Contact No
             </Label>
             <Input
-              id="contact"
-              name="contact"
+              id="contact_no"
+              name="contact_no"
               className="col-span-3"
-              onChange={(e) => onDataChanged(e)}
-              value={data.contact || ""}
+              onChange={(e) => onformDataChanged(e)}
+              value={formData?.contact_no || ""}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -132,8 +177,8 @@ const DialogBox = () => {
               id="address"
               name="address"
               className="col-span-3"
-              onChange={(e) => onDataChanged(e)}
-              value={data.address || ""}
+              onChange={(e) => onformDataChanged(e)}
+              value={formData?.address || ""}
             />
           </div>
 
@@ -142,15 +187,15 @@ const DialogBox = () => {
             <div className="items-top flex space-x-2 col-span-3 items-center">
               <Checkbox
                 id="status"
-                onCheckedChange={(e) => onDataChanged(e)}
-                checked={data.active}
+                onCheckedChange={(e) => onformDataChanged(e)}
+                checked={formData?.status === "true"}
               />
               <div className="grid gap-1.5 leading-none">
                 <label
                   htmlFor="status"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
-                  Active
+                  status
                 </label>
               </div>
             </div>

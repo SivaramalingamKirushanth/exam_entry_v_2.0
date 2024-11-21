@@ -54,19 +54,63 @@ export const getAllManagers = async (req, res, next) => {
             md.email, 
             md.contact_no, 
             md.address, 
-            md.status 
+            md.status,
+            u.role_id 
           FROM user u
           INNER JOIN manager m ON u.user_id = m.user_id
           INNER JOIN manager_detail md ON m.m_id = md.m_id
-          WHERE u.role_id = 4`
+          WHERE u.role_id = 4 or u.role_id = 3 or u.role_id = 2`
       );
 
       console.log("Retrieved managers:", managers); // Debugging log
-      if (!managers.length) {
-        return res.status(404).json({ message: "No managers found" });
-      }
+      // if (!managers.length) {
+      //   return res.status(404).json({ message: "No managers found" });
+      // }
 
-      return res.status(200).json({ managers });
+      return res.status(200).json(managers);
+    } catch (error) {
+      console.error("Error retrieving managers:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving managers")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getManagerById = async (req, res, next) => {
+  const { user_id } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [manager] = await conn.execute(
+        `SELECT 
+            u.user_id, 
+            u.user_name, 
+            md.name, 
+            md.email, 
+            md.contact_no, 
+            md.address, 
+            md.status,
+            u.role_id 
+          FROM user u
+          INNER JOIN manager m ON u.user_id = m.user_id
+          INNER JOIN manager_detail md ON m.m_id = md.m_id
+          WHERE u.user_id = ?`,
+        [user_id]
+      );
+
+      console.log("Retrieved manager:", manager[0]); // Debugging log
+      // if (!managers.length) {
+      //   return res.status(404).json({ message: "No managers found" });
+      // }
+
+      return res.status(200).json(manager[0]);
     } catch (error) {
       console.error("Error retrieving managers:", error);
       return next(
@@ -164,7 +208,7 @@ export const updateManager = async (req, res, next) => {
   }
 };
 
-export const getAllHODs = async (req, res, next) => {
+export const getAllHods = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {

@@ -1,8 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-
-import pool from "./config/db.js";
+import cors from "cors";
 
 import authRouter from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
@@ -16,7 +15,12 @@ const port = 8080;
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
-
+// Or enable CORS for specific origins
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+  })
+);
 /////////ALL THE ROUTES
 app.use("/api1/auth", authRouter);
 app.use("/api1/user", userRoutes);
