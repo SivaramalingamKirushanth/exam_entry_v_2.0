@@ -17,7 +17,7 @@ router.post("/getManagerById", getManagerById);
 router.put("/updateStudent", updateStudent);
 router.put("/updateManager", updateManager);
 
-router.get("/getAllHODs", getAllHods);
+router.get("/getAllHods", getAllHods);
 router.get("/getAllDeans", getAllDeans);
 
 export default router;
