@@ -7,6 +7,7 @@ import {
   getAllHods,
   getAllDeans,
   getManagerById,
+  deleteUser,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -19,5 +20,7 @@ router.put("/updateManager", updateManager);
 
 router.get("/getAllHods", getAllHods);
 router.get("/getAllDeans", getAllDeans);
+
+router.delete("/deleteUser", deleteUser);
 
 export default router;
