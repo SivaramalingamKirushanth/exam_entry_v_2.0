@@ -7,6 +7,7 @@ import authRouter from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import curriculumRouter from "./routes/curriculum.route.js";
 import courseRouter from "./routes/course.route.js";
+import batchRouter from "./routes/batch.route.js";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use("/api1/auth", authRouter);
 app.use("/api1/user", userRoutes);
 app.use("/api1/curriculum", curriculumRouter);
 app.use("/api1/course", courseRouter);
+app.use("/api1/batch", batchRouter);
 ///////////////////////////////////////////////////////////
 
 app.use((err, req, res, next) => {
