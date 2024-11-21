@@ -2,71 +2,67 @@ import pool from "../config/db.js";
 import errorProvider from "../utils/errorProvider.js";
 
 export const createBatch = async (req, res, next) => {
+  const { batch_id, academic_year, description, sub_id, m_id, status } =
+    req.body;
+
+  // Validate input data
+  if (
+    !batch_id ||
+    !academic_year ||
+    !description ||
+    !sub_id ||
+    !m_id ||
+    !status
+  ) {
+    return next(
+      errorProvider(
+        400,
+        "All fields (batch_id, academic_year, description, sub_id, m_id, status) are required"
+      )
+    );
+  }
+
   try {
     const conn = await pool.getConnection();
+
     try {
-      const { batch_id, academic_year, description } = req.body;
+      await conn.beginTransaction();
 
-      if (!batch_id || !academic_year || !description) {
-        return res.status(400).json({
-          message:
-            "All fields (batch_id, academic_year, description) are required",
-        });
-      }
-
-      const [result] = await conn.execute(
-        `INSERT INTO batch (batch_id, academic_year, description) 
-           VALUES (?, ?, ?)`,
+      const [batchResult] = await conn.execute(
+        "INSERT INTO batch(batch_id, academic_year, description) VALUES (?, ?, ?)",
         [batch_id, academic_year, description]
       );
 
-      return res.status(201).json({
-        message: "Batch created successfully",
-        batch: { batch_id, academic_year, description },
-      });
-    } catch (error) {
-      console.error("Error creating batch:", error);
-      return next(
-        errorProvider(500, "An error occurred while creating the batch")
-      );
-    } finally {
-      conn.release();
-    }
-  } catch (error) {
-    console.error("Database connection error:", error);
-    return next(errorProvider(500, "Failed to establish database connection"));
-  }
-};
-
-export const createCurriculumLecture = async (req, res, next) => {
-  try {
-    const conn = await pool.getConnection();
-    try {
-      const { batch_id, sub_id, m_id, status } = req.body;
-
-      if (!batch_id || !sub_id || !m_id || !status) {
-        return res.status(400).json({
-          message: "All fields (batch_id, sub_id, m_id, status) are required",
-        });
-      }
-
-      const [result] = await conn.execute(
-        `INSERT INTO batch_curriculum_lecture (batch_id, sub_id, m_id, status)
-           VALUES (?, ?, ?, ?)`,
+      const [batchDetailsResult] = await conn.execute(
+        "INSERT INTO batch_curriculum_lecture(batch_id, sub_id, m_id, status) VALUES (?, ?, ?, ?)",
         [batch_id, sub_id, m_id, status]
       );
 
+      await conn.commit();
       return res.status(201).json({
-        message: "Batch-Subject-Manager relationship created successfully",
-        data: { batch_id, sub_id, m_id, status },
+        message: "Batch and batch subject details created successfully",
+        data: {
+          batch: {
+            batch_id,
+            academic_year,
+            description,
+          },
+          batch_curriculum_lecture: {
+            batch_id,
+            sub_id,
+            m_id,
+            status,
+          },
+        },
       });
     } catch (error) {
-      console.error(
-        "Error creating batch-subject-manager relationship:",
-        error
-      );
+      await conn.rollback();
+      console.error("Error creating batch and details:", error);
       return next(
-        errorProvider(500, "An error occurred while creating the relationship")
+        errorProvider(
+          500,
+          "An error occurred while creating the batch and details"
+        )
       );
     } finally {
       conn.release();
