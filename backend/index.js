@@ -11,7 +11,7 @@ import batchRouter from "./routes/batch.route.js";
 
 dotenv.config();
 
-const port = 8080;
+const port = 9000;
 
 const app = express();
 app.use(express.json());

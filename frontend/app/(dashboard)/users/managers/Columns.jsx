@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import DialogBox from "./DialogBox";
+import { FaPen } from "react-icons/fa6";
 
 export const columns = [
   {
@@ -66,7 +67,12 @@ export const columns = [
     id: "actions",
     cell: ({ row }) => {
       console.log(row);
-      return <DialogBox user_id={row.original.user_id} />;
+      <Button userId={row.original.user_id}>
+        <FaPen />
+        &nbsp;Edit
+      </Button>;
+
+      return <DialogBox />;
     },
   },
 ];
