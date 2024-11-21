@@ -37,10 +37,41 @@ command to run if program contains helper info
 
 ## Authors
 
-Contributors names and contact info
+- **2020ICT18**  
+  - Name: I.M.C Jeewantha  
+  - Email: chamithjeewa123@gmail.com  
+  - GitHub: [GitHub Profile](https://github.com/chamithjeewantha)  
 
-ex. Dominique Pizzie  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
+- **2020ICT24**  
+  - Name: E.W.A.P Egodawitharana  
+  - Email: piumal302@gmail.com  
+  - GitHub: [GitHub Profile](https://github.com/piumal302)  
+
+- **2020ICT48**  
+  - Name: A.I.F Ilma  
+  - Email: ilmaismail029@gmail.com  
+  - GitHub: [GitHub Profile](https://github.com/IlmaIsmail)  
+
+- **2020ICT57**  
+  - Name: C.H Hettiarachchi  
+  - Email: chamathkahettiarachchi@gmail.com  
+  - GitHub: [GitHub Profile](https://github.com/Chamathka01)  
+
+- **2020ICT64**  
+  - Name: M.I.F Ilma  
+  - Email: ifilma2001@gmail.com  
+  - GitHub: [GitHub Profile](https://github.com/Ilmfathima)  
+
+- **2020ICT101**  
+  - Name: A.R Wijesuriya  
+  - Email: arwijesuriya.7@gmail.com  
+  - GitHub: [GitHub Profile](https://github.com/arwijesuriya)  
+
+- **2020ICT119**  
+  - Name: L.M Zahran  
+  - Email: zzzahrannnldeen@gmail.com  
+  - GitHub: [GitHub Profile](https://github.com/jallu-dev)  
+
 
 ## Version History
 
