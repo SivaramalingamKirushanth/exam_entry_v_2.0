@@ -1,6 +1,6 @@
 # EXAM ENTRY SYSTEM
 
-Simple overview of use/purpose.
+The Examination Entry System is a digital platform designed to streamline university exam registration. It allows students to apply for exams easily, while enabling management and staff to verify eligibility based on attendance and discipline. The system also supports to print the exam addmissions and attendance sheet generation ensuring efficient exam management
 
 ## Description
 
