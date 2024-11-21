@@ -66,13 +66,12 @@ export const columns = [
   {
     id: "actions",
     cell: ({ row }) => {
-      console.log(row);
-      <Button userId={row.original.user_id}>
-        <FaPen />
-        &nbsp;Edit
-      </Button>;
-
-      return <DialogBox />;
+      return (
+        <Button variant="outline" className="editBtn" id={row.original.user_id}>
+          <FaPen />
+          &nbsp;Edit
+        </Button>
+      );
     },
   },
 ];

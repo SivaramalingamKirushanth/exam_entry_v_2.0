@@ -10,11 +10,14 @@ import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { managerRegister } from "@/utils/apiRequests/auth.api";
 import { getManagerById } from "@/utils/apiRequests/user.api";
+import { MdCancel } from "react-icons/md";
 
-const DialogBox = ({ userId, isOpen, setIsOpen, modalRef }) => {
+const Model = ({ userId, isOpen, setIsOpen, modalRef, setUserId }) => {
   const [formData, setFormData] = useState({ status: "true" });
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
+
+  console.log(userId, isOpen);
 
   const { status, mutate } = useMutation({
     mutationFn: managerRegister,
@@ -32,6 +35,7 @@ const DialogBox = ({ userId, isOpen, setIsOpen, modalRef }) => {
   });
 
   useEffect(() => {
+    console.log(data);
     if (data) setFormData(data);
   }, [data]);
 
@@ -55,6 +59,7 @@ const DialogBox = ({ userId, isOpen, setIsOpen, modalRef }) => {
   };
 
   useEffect(() => {
+    console.log(formData);
     const isFormValid =
       formData.name &&
       formData.user_name &&
@@ -64,15 +69,16 @@ const DialogBox = ({ userId, isOpen, setIsOpen, modalRef }) => {
     setBtnEnable(isFormValid);
   }, [formData]);
 
-  const toggleModal = () => {
-    if (userId) refetch();
-    setIsOpen((prev) => !prev);
-  };
+  useEffect(() => {
+    console.log("userId: " + userId);
+    userId && refetch();
+  }, [userId]);
 
   const handleOutsideClick = (e) => {
     if (modalRef.current && !modalRef.current.contains(e.target)) {
       setIsOpen(false);
       onFormReset();
+      setUserId("");
     }
   };
 
@@ -87,23 +93,6 @@ const DialogBox = ({ userId, isOpen, setIsOpen, modalRef }) => {
 
   return (
     <>
-      <Button
-        onClick={toggleModal}
-        className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm"
-      >
-        {userId ? (
-          <>
-            <FaPen />
-            Edit
-          </>
-        ) : (
-          <>
-            <FaPlus />
-            &nbsp;Create a manager
-          </>
-        )}
-      </Button>
-
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div
@@ -118,9 +107,10 @@ const DialogBox = ({ userId, isOpen, setIsOpen, modalRef }) => {
                 onClick={() => {
                   setIsOpen(false);
                   onFormReset();
+                  setUserId("");
                 }}
               >
-                ✕
+                <MdCancel className="text-lg" />
               </Button>
             </div>
 
@@ -185,4 +175,4 @@ const DialogBox = ({ userId, isOpen, setIsOpen, modalRef }) => {
   );
 };
 
-export default DialogBox;
+export default Model;

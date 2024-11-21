@@ -19,6 +19,7 @@ import { getAllManagers } from "@/utils/apiRequests/user.api";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import Modal from "./Model";
 import { Button } from "@/components/ui/button";
+import { FaPlus } from "react-icons/fa6";
 
 const ManagerDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
@@ -48,6 +49,18 @@ const ManagerDetails = () => {
     setStatus(e);
   };
 
+  const toggleModal = () => {
+    isOpen && setUserId("");
+    setIsOpen((prev) => !prev);
+  };
+
+  const onEditClicked = (e) => {
+    if (e.target.classList.contains("editBtn")) {
+      setUserId(e.target.id);
+      toggleModal();
+    }
+  };
+
   useEffect(() => {
     if (data) {
       let filtData1 = searchValue
@@ -74,26 +87,6 @@ const ManagerDetails = () => {
       setFilteredData(filtData3);
     }
   }, [searchValue, role, status, data]);
-
-  const toggleModal = () => {
-    setIsOpen((prev) => !prev);
-  };
-
-  const handleOutsideClick = (e) => {
-    if (modalRef.current && !modalRef.current.contains(e.target)) {
-      setIsOpen(false);
-      onFormReset();
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener("mousedown", handleOutsideClick);
-    } else {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    }
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [isOpen]);
 
   return (
     <>
@@ -154,20 +147,21 @@ const ManagerDetails = () => {
           </div>
         </div>
       </div>
-      <Button
-        onClick={toggleModal}
-        className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm"
-      >
-        create
-      </Button>
+
       <Modal
         userId={userId}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         modalRef={modalRef}
+        setUserId={setUserId}
       />
       <div className="container mx-auto">
-        <DataTable columns={columns} data={filteredData} />
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          onEditClicked={onEditClicked}
+          toggleModal={toggleModal}
+        />
       </div>
     </>
   );

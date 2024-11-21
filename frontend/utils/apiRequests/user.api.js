@@ -2,7 +2,6 @@ import axiosInstance from "@/lib/axiosInstance";
 
 export const getAllManagers = async () => {
   const response = await axiosInstance.get("/user/getAllManagers");
-  console.log(response.data);
   return response.data;
 };
 
