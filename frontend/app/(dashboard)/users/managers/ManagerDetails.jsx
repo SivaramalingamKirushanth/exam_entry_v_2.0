@@ -28,7 +28,7 @@ const ManagerDetails = () => {
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
   const modalRef = useRef(null);
-  const [userId, setUserId] = useState("");
+  const [editId, setEditId] = useState("");
 
   const { data, isLoading, error } = useQuery({
     queryFn: getAllManagers,
@@ -50,13 +50,13 @@ const ManagerDetails = () => {
   };
 
   const toggleModal = () => {
-    isOpen && setUserId("");
+    isOpen && setEditId("");
     setIsOpen((prev) => !prev);
   };
 
   const onEditClicked = (e) => {
     if (e.target.classList.contains("editBtn")) {
-      setUserId(e.target.id);
+      setEditId(e.target.id);
       toggleModal();
     }
   };
@@ -149,11 +149,11 @@ const ManagerDetails = () => {
       </div>
 
       <Modal
-        userId={userId}
+        editId={editId}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         modalRef={modalRef}
-        setUserId={setUserId}
+        setEditId={setEditId}
       />
       <div className="container mx-auto">
         <DataTable

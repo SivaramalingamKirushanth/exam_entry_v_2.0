@@ -97,7 +97,7 @@ export const getManagerById = async (req, res, next) => {
             md.contact_no, 
             md.address, 
             md.status,
-            u.role_id 
+            u.role_id,md.m_id 
           FROM user u
           INNER JOIN manager m ON u.user_id = m.user_id
           INNER JOIN manager_detail md ON m.m_id = md.m_id
@@ -168,13 +168,11 @@ export const updateStudent = async (req, res, next) => {
 };
 
 export const updateManager = async (req, res, next) => {
+  const { name, email, contact_no, address, status, m_id } = req.body;
+
   try {
     const conn = await pool.getConnection();
     try {
-      const { name, email, contact_no, address, status } = req.body;
-
-      const m_id = 1;
-
       const [result] = await conn.execute(
         `UPDATE manager_detail 
           SET 
@@ -295,8 +293,8 @@ export const deleteUser = async (req, res, next) => {
   const user_id = 1;
 
   if (!user_id) {
-    return res.status(400).json({ 
-      message: "user_id is required" 
+    return res.status(400).json({
+      message: "user_id is required",
     });
   }
 
@@ -315,8 +313,7 @@ export const deleteUser = async (req, res, next) => {
 
         await conn.execute(`DELETE FROM student_detail WHERE s_id = ?`, [s_id]);
         await conn.execute(`DELETE FROM student WHERE user_id = ?`, [user_id]);
-      } 
-      else {
+      } else {
         const [manager] = await conn.execute(
           `SELECT m_id FROM manager WHERE user_id = ?`,
           [user_id]
@@ -325,13 +322,13 @@ export const deleteUser = async (req, res, next) => {
         if (manager.length > 0) {
           const m_id = manager[0].m_id;
 
-          await conn.execute(`DELETE FROM manager_detail WHERE m_id = ?`, 
-            [m_id]
-          );
+          await conn.execute(`DELETE FROM manager_detail WHERE m_id = ?`, [
+            m_id,
+          ]);
 
-          await conn.execute(`DELETE FROM manager WHERE user_id = ?`, 
-            [user_id]
-          );
+          await conn.execute(`DELETE FROM manager WHERE user_id = ?`, [
+            user_id,
+          ]);
         }
       }
 
@@ -343,15 +340,14 @@ export const deleteUser = async (req, res, next) => {
       await conn.commit();
 
       if (result.affectedRows === 0) {
-        return res.status(404).json({ 
-          message: "User not found" 
+        return res.status(404).json({
+          message: "User not found",
         });
       }
-      return res.status(200).json({ 
-        message: "User deleted successfully" 
+      return res.status(200).json({
+        message: "User deleted successfully",
       });
-    } 
-    catch (error) {
+    } catch (error) {
       console.error("Error deleting user:", error);
 
       await conn.rollback();
@@ -359,12 +355,10 @@ export const deleteUser = async (req, res, next) => {
       return next(
         errorProvider(500, "An error occurred while deleting the user")
       );
-    } 
-    finally {
+    } finally {
       conn.release();
     }
-  } 
-  catch (error) {
+  } catch (error) {
     console.error("Database connection error:", error);
     return next(errorProvider(500, "Failed to establish database connection"));
   }

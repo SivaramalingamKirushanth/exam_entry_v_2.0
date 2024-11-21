@@ -11,3 +11,9 @@ export const getManagerById = async (user_id) => {
   });
   return response.data;
 };
+
+export const updateManager = async (data) => {
+  console.log(data);
+  const response = await axiosInstance.put("/user/updateManager", data);
+  return response.data;
+};

@@ -1,41 +1,38 @@
 "use client";
 
 import { toast } from "sonner";
-import { FaPen, FaPlus } from "react-icons/fa6";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { managerRegister } from "@/utils/apiRequests/auth.api";
-import { getManagerById } from "@/utils/apiRequests/user.api";
-import { MdCancel } from "react-icons/md";
+import { getManagerById, updateManager } from "@/utils/apiRequests/user.api";
+import { GiCancel } from "react-icons/gi";
 
-const Model = ({ userId, isOpen, setIsOpen, modalRef, setUserId }) => {
+const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({ status: "true" });
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
 
-  console.log(userId, isOpen);
-
   const { status, mutate } = useMutation({
-    mutationFn: managerRegister,
+    mutationFn: editId ? updateManager : managerRegister,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["managers"]);
+      setEditId("");
       toast(res.message);
     },
-    onError: (err) => toast("Manager registration failed"),
+    onError: (err) => toast("Operation failed"),
   });
 
   const { data, refetch } = useQuery({
-    queryFn: () => getManagerById(userId),
-    queryKey: ["managers", userId],
+    queryFn: () => getManagerById(editId),
+    queryKey: ["managers", editId],
     enabled: false,
   });
 
   useEffect(() => {
-    console.log(data);
     if (data) setFormData(data);
   }, [data]);
 
@@ -59,7 +56,6 @@ const Model = ({ userId, isOpen, setIsOpen, modalRef, setUserId }) => {
   };
 
   useEffect(() => {
-    console.log(formData);
     const isFormValid =
       formData.name &&
       formData.user_name &&
@@ -70,15 +66,14 @@ const Model = ({ userId, isOpen, setIsOpen, modalRef, setUserId }) => {
   }, [formData]);
 
   useEffect(() => {
-    console.log("userId: " + userId);
-    userId && refetch();
-  }, [userId]);
+    editId && refetch();
+  }, [editId]);
 
   const handleOutsideClick = (e) => {
     if (modalRef.current && !modalRef.current.contains(e.target)) {
       setIsOpen(false);
       onFormReset();
-      setUserId("");
+      setEditId("");
     }
   };
 
@@ -99,65 +94,103 @@ const Model = ({ userId, isOpen, setIsOpen, modalRef, setUserId }) => {
             ref={modalRef}
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
-            {/* Header */}
             <div className="flex justify-between items-center border-b pb-2 mb-4">
               <h3 className="text-lg font-semibold">Manager</h3>
-              <Button
-                variant="ghost"
+
+              <GiCancel
+                className="text-2xl hover:cursor-pointer hover:text-zinc-700"
                 onClick={() => {
                   setIsOpen(false);
                   onFormReset();
-                  setUserId("");
+                  setEditId("");
                 }}
-              >
-                <MdCancel className="text-lg" />
-              </Button>
+              />
             </div>
 
-            {/* Form */}
-            <div className="grid gap-4">
-              {[
-                { id: "name", label: "Name" },
-                { id: "user_name", label: "User Name" },
-                { id: "email", label: "Email" },
-                { id: "contact_no", label: "Contact No" },
-                { id: "address", label: "Address" },
-              ].map((field) => (
-                <div
-                  key={field.id}
-                  className="grid grid-cols-4 items-center gap-4"
-                >
-                  <Label htmlFor={field.id} className="text-right">
-                    {field.label}
-                  </Label>
-                  <Input
-                    id={field.id}
-                    name={field.id}
-                    className="col-span-3"
-                    onChange={onFormDataChanged}
-                    value={formData[field.id] || ""}
-                  />
-                </div>
-              ))}
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  className="col-span-3"
+                  onChange={(e) => onFormDataChanged(e)}
+                  value={formData?.name || ""}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="user_name" className="text-right">
+                  User name
+                </Label>
+                <Input
+                  id="user_name"
+                  name="user_name"
+                  className="col-span-3"
+                  onChange={(e) => onFormDataChanged(e)}
+                  value={formData?.user_name || ""}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  className="col-span-3"
+                  onChange={(e) => onFormDataChanged(e)}
+                  value={formData?.email || ""}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="contact_no" className="text-right">
+                  Contact No
+                </Label>
+                <Input
+                  id="contact_no"
+                  name="contact_no"
+                  className="col-span-3"
+                  onChange={(e) => onFormDataChanged(e)}
+                  value={formData?.contact_no || ""}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="address" className="text-right">
+                  Address
+                </Label>
+                <Input
+                  id="address"
+                  name="address"
+                  className="col-span-3"
+                  onChange={(e) => onFormDataChanged(e)}
+                  value={formData?.address || ""}
+                />
+              </div>
 
-              <div className="grid grid-cols-4 gap-4 items-center">
+              <div className="grid grid-cols-4 gap-4">
                 <Label className="text-right">Status</Label>
-                <div className="flex items-center col-span-3">
+                <div className="items-top flex space-x-2 col-span-3 items-center">
                   <Checkbox
                     id="status"
-                    checked={formData.status === "true"}
                     onCheckedChange={(e) => onFormDataChanged(e)}
+                    checked={formData?.status === "true"}
                   />
-                  <Label htmlFor="status" className="ml-2">
-                    Active
-                  </Label>
+                  <div className="grid gap-1.5 leading-none">
+                    <label
+                      htmlFor="status"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      status
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="flex justify-end space-x-2 mt-4">
-              <Button type="button" variant="outline" onClick={onFormReset}>
+            <div className="flex justify-between space-x-2 mt-4">
+              <Button type="button" variant="warning" onClick={onFormReset}>
                 Reset
               </Button>
               <Button
@@ -165,7 +198,7 @@ const Model = ({ userId, isOpen, setIsOpen, modalRef, setUserId }) => {
                 disabled={!btnEnable}
                 onClick={onFormSubmitted}
               >
-                {userId ? "Update" : "Create"}
+                {editId ? "Update" : "Create"}
               </Button>
             </div>
           </div>
