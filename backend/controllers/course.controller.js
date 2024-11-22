@@ -4,7 +4,6 @@ import errorProvider from "../utils/errorProvider.js";
 export const createFaculty = async (req, res, next) => {
   let { f_name, email, contact_no, status, m_id } = req.body;
 
-
   if (!status) {
     status = "false";
   }
@@ -12,7 +11,6 @@ export const createFaculty = async (req, res, next) => {
   if (!f_name || !email || !contact_no || !m_id) {
     return next(errorProvider(400, "Missing required fields"));
   }
-
 
   try {
     const conn = await pool.getConnection();
@@ -380,16 +378,14 @@ export const getAllFaculties = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const query = `
-          SELECT * FROM faculty`;
+      const query = `SELECT * FROM faculty`;
 
       const [results] = await conn.execute(query);
+      // if (results.length === 0) {
+      //   return next(errorProvider(400, "No faculties found."));
+      // }
 
-      if (results.length === 0) {
-        return next(errorProvider(404, "No faculties found."));
-      }
-
-      return res.status(200).json({ faculties: results });
+      return res.status(200).json(results);
     } catch (error) {
       console.error("Error fetching all faculties:", error);
       return next(errorProvider(500, "Failed to fetch all faculties"));
@@ -563,8 +559,7 @@ export const getDegreeById = async (req, res, next) => {
 };
 
 export const getDepartmentsByFacultyId = async (req, res, next) => {
-  // const { f_id } = req.body;
-  const f_id = 1;
+  const { f_id } = req.body;
 
   if (!f_id) {
     return next(errorProvider(400, "Missing f_id."));
@@ -585,8 +580,7 @@ export const getDepartmentsByFacultyId = async (req, res, next) => {
           errorProvider(404, `No departments found for f_id: ${f_id}`)
         );
       }
-
-      return res.status(200).json({ departments: results });
+      return res.status(200).json(results);
     } catch (error) {
       console.error("Error fetching departments by f_id:", error);
       return next(errorProvider(500, "Failed to fetch departments by f_id"));

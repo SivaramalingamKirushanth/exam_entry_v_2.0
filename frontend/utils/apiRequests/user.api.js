@@ -5,6 +5,11 @@ export const getAllManagers = async () => {
   return response.data;
 };
 
+export const getAllStudents = async () => {
+  const response = await axiosInstance.get("/user/getAllStudents");
+  return response.data;
+};
+
 export const getManagerById = async (user_id) => {
   const response = await axiosInstance.post("/user/getManagerById", {
     user_id,
@@ -12,8 +17,19 @@ export const getManagerById = async (user_id) => {
   return response.data;
 };
 
+export const getStudentById = async (user_id) => {
+  const response = await axiosInstance.post("/user/getStudentById", {
+    user_id,
+  });
+  return response.data;
+};
+
 export const updateManager = async (data) => {
-  console.log(data);
   const response = await axiosInstance.put("/user/updateManager", data);
+  return response.data;
+};
+
+export const updateStudent = async (data) => {
+  const response = await axiosInstance.put("/user/updateStudent", data);
   return response.data;
 };

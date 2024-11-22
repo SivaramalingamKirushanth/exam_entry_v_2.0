@@ -1,17 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import DialogBox from "./DialogBox";
 import { FaPen } from "react-icons/fa6";
 
 export const columns = [
@@ -51,7 +41,11 @@ export const columns = [
     cell: ({ row }) => {
       return (
         <p>
-          {row.role_id == 2 ? "Dean" : row.role_id == 3 ? "Hod" : "Lecturer"}
+          {row.original.role_id == 2
+            ? "Dean"
+            : row.original.role_id == 3
+            ? "Hod"
+            : "Lecturer"}
         </p>
       );
     },
@@ -65,6 +59,8 @@ export const columns = [
   },
   {
     id: "actions",
+    header: "Actions",
+
     cell: ({ row }) => {
       return (
         <Button variant="outline" className="editBtn" id={row.original.user_id}>
