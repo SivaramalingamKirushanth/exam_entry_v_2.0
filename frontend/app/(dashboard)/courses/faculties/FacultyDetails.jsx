@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import Modal from "./Model";
-import { getAllFaculties } from "@/utils/apiRequests/course.api";
+import { getAllFacultiesWithExtraDetails } from "@/utils/apiRequests/course.api";
 
 const FacultyDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
@@ -26,8 +26,8 @@ const FacultyDetails = () => {
   const [editId, setEditId] = useState("");
 
   const { data, isLoading, error } = useQuery({
-    queryFn: getAllFaculties,
-    queryKey: ["faculties"],
+    queryFn: getAllFacultiesWithExtraDetails,
+    queryKey: ["facultiesExtra"],
   });
 
   const onClearClicked = () => setSearchValue("");

@@ -188,14 +188,17 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             {managers.map((manager) => (
                               <CommandItem
                                 key={manager.m_id}
-                                value={manager.m_id.toString()}
+                                value={
+                                  manager.name + ":" + manager.m_id.toString()
+                                }
                                 onSelect={(currentValue) => {
                                   setFormData((cur) => ({
                                     ...cur,
                                     m_id:
-                                      currentValue == formData.m_id
+                                      currentValue.split(":")[1] ==
+                                      formData.m_id
                                         ? ""
-                                        : currentValue,
+                                        : currentValue.split(":")[1],
                                   }));
                                   setComboBoxOpen(false);
                                 }}

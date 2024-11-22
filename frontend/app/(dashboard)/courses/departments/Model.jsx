@@ -14,9 +14,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  createFaculty,
-  getFacultyById,
-  updateFaculty,
+  createDepartment,
+  getAllFaculties,
+  getDepartmentById,
+  updateDepartment,
 } from "@/utils/apiRequests/course.api";
 import { Check, ChevronsUpDown } from "lucide-react";
 import {
@@ -29,6 +30,13 @@ import {
 } from "@/components/ui/command";
 import { getAllManagers } from "@/utils/apiRequests/user.api";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({ status: "true" });
@@ -37,9 +45,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [comboBoxOpen, setComboBoxOpen] = useState(false);
 
   const { status, mutate } = useMutation({
-    mutationFn: editId ? updateFaculty : createFaculty,
+    mutationFn: editId ? updateDepartment : createDepartment,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["faculties"]);
+      queryClient.invalidateQueries(["departments"]);
       setEditId("");
       toast(res.message);
     },
@@ -47,8 +55,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   });
 
   const { data, refetch } = useQuery({
-    queryFn: () => getFacultyById(editId),
-    queryKey: ["faculties", editId],
+    queryFn: () => getDepartmentById(editId),
+    queryKey: ["departments", editId],
     enabled: false,
   });
 
@@ -59,6 +67,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   } = useQuery({
     queryFn: getAllManagers,
     queryKey: ["managers"],
+  });
+
+  const { data: facultyData } = useQuery({
+    queryFn: getAllFaculties,
+    queryKey: ["faculties"],
   });
 
   useEffect(() => {
@@ -92,8 +105,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   useEffect(() => {
+    console.log(formData);
     const isFormValid =
-      formData.f_name && formData.email && formData.contact_no && formData.m_id;
+      formData.d_name &&
+      formData.email &&
+      formData.contact_no &&
+      formData.m_id &&
+      formData.f_id;
     setBtnEnable(isFormValid);
   }, [formData]);
 
@@ -110,7 +128,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
-              <h3 className="text-lg font-semibold">Faculty</h3>
+              <h3 className="text-lg font-semibold">Department</h3>
 
               <GiCancel
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
@@ -121,48 +139,22 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 }}
               />
             </div>
-
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="f_name" className="text-right">
+                <Label htmlFor="d_name" className="text-right">
                   Name
                 </Label>
                 <Input
-                  id="f_name"
-                  name="f_name"
+                  id="d_name"
+                  name="d_name"
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
-                  value={formData.f_name || ""}
-                />
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  name="email"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  value={formData.email || ""}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="contact_no" className="text-right">
-                  Contact No
-                </Label>
-                <Input
-                  id="contact_no"
-                  name="contact_no"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  value={formData.contact_no || ""}
+                  value={formData.d_name || ""}
                 />
               </div>
 
               <div className={`grid grid-cols-4 items-center gap-4`}>
-                <Label className="text-right">Dean</Label>
+                <Label className="text-right">HOD</Label>
                 <div className="grid col-span-3">
                   <Popover open={comboBoxOpen} onOpenChange={setComboBoxOpen}>
                     <PopoverTrigger asChild>
@@ -188,14 +180,17 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             {managers.map((manager) => (
                               <CommandItem
                                 key={manager.m_id}
-                                value={manager.m_id.toString()}
+                                value={
+                                  manager.name + ":" + manager.m_id.toString()
+                                }
                                 onSelect={(currentValue) => {
                                   setFormData((cur) => ({
                                     ...cur,
                                     m_id:
-                                      currentValue == formData.m_id
+                                      currentValue.split(":")[1] ==
+                                      formData.m_id
                                         ? ""
-                                        : currentValue,
+                                        : currentValue.split(":")[1],
                                   }));
                                   setComboBoxOpen(false);
                                 }}
@@ -217,6 +212,50 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     </PopoverContent>
                   </Popover>
                 </div>
+              </div>
+              <div className={`grid grid-cols-4 items-center gap-4`}>
+                <Label className="text-right">Faculty</Label>
+                <Select
+                  onValueChange={(e) => {
+                    onFormDataChanged(e);
+                  }}
+                  value={formData.f_id ? "f_id:" + formData.f_id : ""}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Faculty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {facultyData?.map((item) => (
+                      <SelectItem value={`f_id:${item.f_id}`}>
+                        {item.f_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  className="col-span-3"
+                  onChange={(e) => onFormDataChanged(e)}
+                  value={formData.email || ""}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="contact_no" className="text-right">
+                  Contact No
+                </Label>
+                <Input
+                  id="contact_no"
+                  name="contact_no"
+                  className="col-span-3"
+                  onChange={(e) => onFormDataChanged(e)}
+                  value={formData.contact_no || ""}
+                />
               </div>
 
               <div className="grid grid-cols-4 gap-4">
@@ -244,7 +283,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 variant="warning"
                 onClick={() => {
                   onFormReset();
-                  editId && setFormData((cur) => ({ ...cur, f_id: data.f_id }));
+                  editId && setFormData((cur) => ({ ...cur, d_id: data.d_id }));
                 }}
               >
                 Reset

@@ -201,7 +201,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   }}
                   value={formData.f_id ? "f_id:" + formData.f_id : ""}
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Faculty" />
                   </SelectTrigger>
                   <SelectContent>

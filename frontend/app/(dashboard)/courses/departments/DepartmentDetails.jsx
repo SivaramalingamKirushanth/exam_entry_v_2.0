@@ -3,66 +3,32 @@
 import { columns } from "./Columns";
 import { DataTable } from "./DataTable";
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MdCancel } from "react-icons/md";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-async function getData() {
-  // Fetch data from your API here.
-  return [
-    {
-      name: "Physical Science",
-      hod: "alex",
-      faculty: "Applied Science",
-      degreesProgrames: 4,
-      email: "alex@example.com",
-      contactNo: "234-567-8901",
-      status: "active",
-    },
-    {
-      name: "Project Management",
-      hod: "martin",
-      faculty: "Bussiness Studies",
-      degreesProgrames: 2,
-      email: "martin@example.com",
-      contactNo: "345-567-8901",
-      status: "active",
-    },
-    {
-      name: "Technology",
-      hod: "ram",
-      faculty: "Technology",
-      degreesProgrames: 1,
-      email: "ram@example.com",
-      contactNo: "234-789-1234",
-      status: "active",
-    },
-  ];
-}
+import { useQuery } from "@tanstack/react-query";
+import Modal from "./Model";
+import { getAllDepartmentsWithExtraDetails } from "@/utils/apiRequests/course.api";
 
 const DepartmentDetails = () => {
-  const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
+  const [isOpen, setIsOpen] = useState(false);
+  const modalRef = useRef(null);
+  const [editId, setEditId] = useState("");
 
-  useEffect(() => {
-    const load = async () => {
-      const data = await getData();
-      setData(data);
-      setFilteredData(data);
-    };
-
-    load();
-  }, []);
+  const { data, isLoading, error } = useQuery({
+    queryFn: getAllDepartmentsWithExtraDetails,
+    queryKey: ["DepartmentsExtra"],
+  });
 
   const onClearClicked = () => setSearchValue("");
 
@@ -74,19 +40,31 @@ const DepartmentDetails = () => {
     setStatus(e);
   };
 
+  const toggleModal = () => {
+    isOpen && setEditId("");
+    setIsOpen((prev) => !prev);
+  };
+
+  const onEditClicked = (e) => {
+    if (e.target.classList.contains("editBtn")) {
+      setEditId(e.target.id);
+      toggleModal();
+    }
+  };
+
   useEffect(() => {
-    let filtData1 = searchValue
-      ? data.filter((item) =>
-          item.name.toLowerCase().includes(searchValue.toLowerCase())
-        )
-      : data;
-    let filtData2 = filtData1.filter((item) => {
-      return status == "all"
-        ? true
-        : item.status == status.split("-").join(" ");
-    });
-    setFilteredData(filtData2);
-  }, [searchValue, status]);
+    if (data) {
+      let filtData1 = searchValue
+        ? data.filter((item) =>
+            item.d_name.toLowerCase().includes(searchValue.toLowerCase())
+          )
+        : data;
+      let filtData2 = filtData1.filter((item) => {
+        return status == "all" ? true : item.status == status;
+      });
+      setFilteredData(filtData2);
+    }
+  }, [searchValue, status, data]);
 
   return (
     <>
@@ -119,8 +97,8 @@ const DepartmentDetails = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="not-active">Not active</SelectItem>
+                  <SelectItem value="true">Active</SelectItem>
+                  <SelectItem value="false">Not active</SelectItem>
                   <SelectItem value="all">All</SelectItem>
                 </SelectGroup>
               </SelectContent>
@@ -128,8 +106,20 @@ const DepartmentDetails = () => {
           </div>
         </div>
       </div>
+      <Modal
+        editId={editId}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        modalRef={modalRef}
+        setEditId={setEditId}
+      />
       <div className="container mx-auto">
-        <DataTable columns={columns} data={filteredData} />
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          onEditClicked={onEditClicked}
+          toggleModal={toggleModal}
+        />
       </div>
     </>
   );
