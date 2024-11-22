@@ -7,30 +7,39 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { studentRegister } from "@/utils/apiRequests/auth.api";
-import { getStudentById, updateStudent } from "@/utils/apiRequests/user.api";
 import { GiCancel } from "react-icons/gi";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
-  getAllFaculties,
-  getDepartmentsByFacultyId,
+  createFaculty,
+  getFacultyById,
+  updateFaculty,
 } from "@/utils/apiRequests/course.api";
+import { Check, ChevronsUpDown } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { getAllManagers } from "@/utils/apiRequests/user.api";
+import { cn } from "@/lib/utils";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({ status: "true" });
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
+  const [comboBoxOpen, setComboBoxOpen] = useState(false);
 
   const { status, mutate } = useMutation({
-    mutationFn: editId ? updateStudent : studentRegister,
+    mutationFn: editId ? updateFaculty : createFaculty,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students"]);
+      queryClient.invalidateQueries(["faculties"]);
       setEditId("");
       toast(res.message);
     },
@@ -38,33 +47,23 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   });
 
   const { data, refetch } = useQuery({
-    queryFn: () => getStudentById(editId),
-    queryKey: ["students", editId],
+    queryFn: () => getFacultyById(editId),
+    queryKey: ["faculties", editId],
     enabled: false,
   });
 
-  const { data: facultyData, refetch: facultyRefetch } = useQuery({
-    queryFn: getAllFaculties,
-    queryKey: ["faculties"],
+  const {
+    data: managers,
+    isLoading,
+    error,
+  } = useQuery({
+    queryFn: getAllManagers,
+    queryKey: ["managers"],
   });
-
-  const { data: departmentData, refetch: departmentRefetch } = useQuery({
-    queryFn: () => formData.f_id && getDepartmentsByFacultyId(formData?.f_id),
-    queryKey: ["departments", "faculties", formData?.f_id],
-    enabled: false,
-  });
-
-  useEffect(() => {
-    formData?.f_id && departmentRefetch();
-  }, [formData.f_id]);
 
   useEffect(() => {
     if (data) setFormData(data);
   }, [data]);
-
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
 
   const onFormDataChanged = (e) => {
     if (e.target) {
@@ -94,18 +93,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   useEffect(() => {
     const isFormValid =
-      formData.name &&
-      formData.user_name &&
-      formData.email &&
-      formData.contact_no &&
-      formData.address &&
-      formData.f_id &&
-      formData.d_id;
+      formData.f_name && formData.email && formData.contact_no && formData.m_id;
     setBtnEnable(isFormValid);
   }, [formData]);
 
   useEffect(() => {
-    console.log(formData);
     editId && refetch();
   }, [editId]);
 
@@ -118,7 +110,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
-              <h3 className="text-lg font-semibold">Student</h3>
+              <h3 className="text-lg font-semibold">Faculty</h3>
 
               <GiCancel
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
@@ -132,29 +124,18 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
+                <Label htmlFor="f_name" className="text-right">
                   Name
                 </Label>
                 <Input
-                  id="name"
-                  name="name"
+                  id="f_name"
+                  name="f_name"
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
-                  value={formData.name || ""}
+                  value={formData.f_name || ""}
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="user_name" className="text-right">
-                  User name
-                </Label>
-                <Input
-                  id="user_name"
-                  name="user_name"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  value={formData.user_name || ""}
-                />
-              </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="email" className="text-right">
                   Email
@@ -179,65 +160,65 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   value={formData.contact_no || ""}
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="address" className="text-right">
-                  Address
-                </Label>
-                <Input
-                  id="address"
-                  name="address"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  value={formData.address || ""}
-                />
-              </div>
 
               <div className={`grid grid-cols-4 items-center gap-4`}>
-                <Label className="text-right">Faculty</Label>
-                <Select
-                  onValueChange={(e) => {
-                    setFormData((cur) => ({ ...cur, d_id: "" }));
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.f_id ? "f_id:" + formData.f_id : ""}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Faculty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {facultyData?.map((item) => (
-                      <SelectItem value={`f_id:${item.f_id}`}>
-                        {item.f_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-right">Dean</Label>
+                <div className="grid col-span-3">
+                  <Popover open={comboBoxOpen} onOpenChange={setComboBoxOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        role="combobox"
+                        aria-expanded={comboBoxOpen}
+                        className="col-span-3 flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-white px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer"
+                      >
+                        {formData.m_id
+                          ? managers.find(
+                              (manager) => manager.m_id == formData.m_id
+                            )?.name
+                          : "Select manager"}
+                        <ChevronsUpDown className="opacity-50 size-[17px] " />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="py-0 px-1 border-none shadow-none">
+                      <Command className="border shadow-md">
+                        <CommandInput placeholder="Search manager" />
+                        <CommandList>
+                          <CommandEmpty>No manager found.</CommandEmpty>
+                          <CommandGroup>
+                            {managers.map((manager) => (
+                              <CommandItem
+                                key={manager.m_id}
+                                value={manager.m_id.toString()}
+                                onSelect={(currentValue) => {
+                                  setFormData((cur) => ({
+                                    ...cur,
+                                    m_id:
+                                      currentValue == formData.m_id
+                                        ? ""
+                                        : currentValue,
+                                  }));
+                                  setComboBoxOpen(false);
+                                }}
+                              >
+                                {manager.name}
+                                <Check
+                                  className={cn(
+                                    "ml-auto",
+                                    formData.m_id == manager.m_id
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
-              <div
-                className={`${
-                  formData.f_id ? "grid" : "hidden"
-                } grid-cols-4 items-center gap-4`}
-              >
-                <Label className="text-right">Department</Label>
-                <Select
-                  onValueChange={(e) => onFormDataChanged(e)}
-                  value={formData.d_id ? "d_id:" + formData.d_id : ""}
-                >
-                  <SelectTrigger
-                    disabled={!formData.f_id}
-                    className={`w-[180px]`}
-                  >
-                    <SelectValue placeholder="Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departmentData?.map((item) => (
-                      <SelectItem value={`d_id:${item.d_id}`} key={item.d_id}>
-                        {item.d_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
               <div className="grid grid-cols-4 gap-4">
                 <Label className="text-right">Status</Label>
                 <div className="items-top flex space-x-2 col-span-3 items-center">
@@ -257,14 +238,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 </div>
               </div>
             </div>
-
             <div className="flex justify-between space-x-2 mt-4">
               <Button
                 type="button"
                 variant="warning"
                 onClick={() => {
                   onFormReset();
-                  editId && setFormData((cur) => ({ ...cur, s_id: data.s_id }));
+                  editId && setFormData((cur) => ({ ...cur, f_id: data.f_id }));
                 }}
               >
                 Reset

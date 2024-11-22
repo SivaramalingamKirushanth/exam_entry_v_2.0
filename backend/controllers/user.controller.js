@@ -53,17 +53,13 @@ export const getAllManagers = async (req, res, next) => {
             md.contact_no, 
             md.address, 
             md.status,
-            u.role_id 
+            u.role_id,
+            md.m_id 
           FROM user u
           INNER JOIN manager m ON u.user_id = m.user_id
           INNER JOIN manager_detail md ON m.m_id = md.m_id
           WHERE u.role_id = 4 or u.role_id = 3 or u.role_id = 2`
       );
-
-      console.log("Retrieved managers:", managers);
-      // if (!managers.length) {
-      //   return res.status(404).json({ message: "No managers found" });
-      // }
 
       return res.status(200).json(managers);
     } catch (error) {

@@ -61,13 +61,12 @@ const StudentDetails = () => {
               item.user_name.toLowerCase().includes(searchValue.toLowerCase())
           )
         : data;
-      console.log(filtData1);
       let filtData2 = filtData1.filter((item) => {
         return status == "all" ? true : item.status == status;
       });
       setFilteredData(filtData2);
     }
-  }, [searchValue, status, status, data]);
+  }, [searchValue, status, data]);
 
   return (
     <>

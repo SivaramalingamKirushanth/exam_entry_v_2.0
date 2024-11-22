@@ -173,7 +173,14 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
             </div>
 
             <div className="flex justify-between space-x-2 mt-4">
-              <Button type="button" variant="warning" onClick={onFormReset}>
+              <Button
+                type="button"
+                variant="warning"
+                onClick={() => {
+                  onFormReset();
+                  editId && setFormData((cur) => ({ ...cur, m_id: data.m_id }));
+                }}
+              >
                 Reset
               </Button>
               <Button

@@ -11,10 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { FaPen } from "react-icons/fa6";
 
 export const columns = [
   {
-    accessorKey: "name",
+    accessorKey: "f_name",
     header: ({ column }) => {
       return (
         <Button
@@ -28,47 +29,42 @@ export const columns = [
     },
   },
   {
-    accessorKey: "dean",
+    accessorKey: "manager_name",
     header: "Dean",
   },
   {
-    accessorKey: "departments",
-    header: "departments",
+    accessorKey: "department_count",
+    header: "No of departments",
   },
   {
-    accessorKey: "degreesProgrames",
-    header: "Degrees Programes",
+    accessorKey: "degree_count",
+    header: "No of Degree programmes",
   },
   {
     accessorKey: "email",
     header: "Email",
   },
   {
-    accessorKey: "contactNo",
+    accessorKey: "contact_no",
     header: "Contact No",
   },
   {
     accessorKey: "status",
     header: "Status",
+    cell: ({ row }) => {
+      return <p>{row.original.status === "true" ? "Active" : "Not active"}</p>;
+    },
   },
   {
     id: "actions",
+    header: "Actions",
+
     cell: ({ row }) => {
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => console.log(123)}>
-              Edit
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button variant="outline" className="editBtn" id={row.original.f_id}>
+          <FaPen />
+          &nbsp;Edit
+        </Button>
       );
     },
   },
