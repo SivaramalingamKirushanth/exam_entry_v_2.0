@@ -363,3 +363,57 @@ export const deleteUser = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const getNoOfManagers = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.execute(
+        "SELECT COUNT(*) AS manager_count FROM manager"
+      );
+
+      const { manager_count } = result[0];
+
+      return res.status(200).json({
+        count: manager_count,
+      });
+    } catch (error) {
+      console.error("Error retrieving number of managers:", error);
+      return next(
+        errorProvider(500, "An error occurred while the manager count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getNoOfStudents = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.execute(
+        "SELECT COUNT(*) AS student_count FROM student"
+      );
+
+      const { student_count } = result[0];
+
+      return res.status(200).json({
+        count: student_count,
+      });
+    } catch (error) {
+      console.error("Error retrieving number of students:", error);
+      return next(
+        errorProvider(500, "An error occurred while fetching the student count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};

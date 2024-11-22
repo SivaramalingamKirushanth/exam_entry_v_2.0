@@ -72,3 +72,30 @@ export const createBatch = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const getNoOfBatches = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.execute(
+        "SELECT COUNT(*) AS batch_count FROM batch"
+      );
+
+      const { batch_count } = result[0];
+
+      return res.status(200).json({
+        count: batch_count,
+      });
+    } catch (error) {
+      console.error("Error retrieving number of batches:", error);
+      return next(
+        errorProvider(500, "An error occurred while the batch count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
