@@ -111,7 +111,10 @@ const DialogBox = () => {
 
   return (
     <Dialog>
-      <DialogTrigger className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm">
+      <DialogTrigger
+        className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm"
+        onClick={onFormResetted}
+      >
         <FaPlus />
         &nbsp;Create a curriculum
       </DialogTrigger>
@@ -215,43 +218,45 @@ const DialogBox = () => {
           </div>
           <div className="grid grid-cols-4 gap-4">
             <Label className="text-right">Level</Label>
-            <RadioGroup
-              onValueChange={(e) => onDataChanged(e)}
-              className="flex col-span-3 gap-4 flex-wrap"
-            >
+            <div className="flex col-span-3 gap-4 flex-wrap">
               {[3, 4].map((item) => (
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value={`level:${item}`}
+                  <input
+                    type="radio"
+                    value={item}
                     id={`l${item}`}
                     checked={data.level == item}
+                    name="level"
+                    onClick={(e) => onDataChanged(e)}
+                    className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
                   />
                   <Label htmlFor={`l${item}`} className="cursor-pointer">
                     {item}
                   </Label>
                 </div>
               ))}
-            </RadioGroup>
+            </div>
           </div>
           <div className="grid grid-cols-4 gap-4">
             <Label className="text-right">Semester</Label>
-            <RadioGroup
-              onValueChange={(e) => onDataChanged(e)}
-              className="flex col-span-3 gap-4 flex-wrap"
-            >
+            <div className="flex col-span-3 gap-4 flex-wrap">
               {[1, 2].map((item) => (
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value={`semester:${item}`}
-                    id={`l${item}`}
+                  <input
+                    type="radio"
+                    value={item}
+                    id={`s${item}`}
                     checked={data.semester == item}
+                    name="semester"
+                    onClick={(e) => onDataChanged(e)}
+                    className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
                   />
-                  <Label htmlFor={`l${item}`} className="cursor-pointer">
+                  <Label htmlFor={`s${item}`} className="cursor-pointer">
                     {item}
                   </Label>
                 </div>
               ))}
-            </RadioGroup>
+            </div>
           </div>
           <div className="grid grid-cols-4 gap-4">
             <Label className="text-right">Status</Label>

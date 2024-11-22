@@ -4,7 +4,6 @@ import errorProvider from "../utils/errorProvider.js";
 export const createFaculty = async (req, res, next) => {
   let { f_name, email, contact_no, status, m_id } = req.body;
 
-
   if (!status) {
     status = "false";
   }
@@ -12,7 +11,6 @@ export const createFaculty = async (req, res, next) => {
   if (!f_name || !email || !contact_no || !m_id) {
     return next(errorProvider(400, "Missing required fields"));
   }
-
 
   try {
     const conn = await pool.getConnection();
@@ -630,6 +628,189 @@ export const getDegreesByDepartmentId = async (req, res, next) => {
     }
   } catch (error) {
     console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getNoOfFaculty = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.execute(
+        "SELECT COUNT(*) AS faculty_count FROM faculty"
+      );
+
+      const { faculty_count } = result[0];
+
+      return res.status(200).json({
+        count: faculty_count,
+      });
+    } catch (error) {
+      console.error("Error retrieving number of faculty:", error);
+      return next(
+        errorProvider(500, "An error occurred while the faculty count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getNoOfDepartments = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.execute(
+        "SELECT COUNT(*) AS department_count FROM department"
+      );
+
+      const { department_count } = result[0];
+
+      return res.status(200).json({
+        count: department_count,
+      });
+    } catch (error) {
+      console.error("Error retrieving number of departments:", error);
+      return next(
+        errorProvider(500, "An error occurred while the department count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getNoOfDegrees = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.execute(
+        "SELECT COUNT(*) AS degree_count FROM degree"
+      );
+
+      const { degree_count } = result[0];
+
+      return res.status(200).json({
+        count: degree_count,
+      });
+    } catch (error) {
+      console.error("Error retrieving number of degrees:", error);
+      return next(
+        errorProvider(500, "An error occurred while the degree count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getNoOfDepartmentsByFaculty = async (req, res, next) => {
+  try {
+    const { f_id } = req.params;
+
+    if (!f_id) {
+      return res.status(400).json({ message: "Faculty ID is required" });
+    }
+
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.execute(
+        "SELECT COUNT(DISTINCT d_id) AS department_count FROM fac_dep WHERE f_id = ?",
+        [f_id]
+      );
+
+      const { department_count } = result[0];
+
+      return res.status(200).json({
+        count: department_count,
+      });
+    } catch (error) {
+      console.error("Error retrieving number of departments:", error);
+      return next(
+        errorProvider(500, "An error occurred while  the department count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+export const getNoOfDegreesByDepartment = async (req, res, next) => {
+  try {
+    const { d_id } = req.params;
+
+    if (!d_id) {
+      return res
+        .status(400)
+        .json({ message: "Department ID (d_id) is required" });
+    }
+
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.execute(
+        "SELECT COUNT(DISTINCT deg_id) AS degree_count FROM dep_deg WHERE d_id = ?",
+        [d_id]
+      );
+
+      const { degree_count } = result[0];
+
+      return res.status(200).json({
+        count: degree_count,
+      });
+    } catch (error) {
+      console.error("Error retrieving number of degrees:", error);
+      return next(
+        errorProvider(500, "An error occurred while  the degree count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+export const getNoOfDegreesByLevel = async (req, res, next) => {
+  try {
+    const { levels } = req.params;
+
+    if (!levels) {
+      return res.status(400).json({ message: "Levels is required" });
+    }
+
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.execute(
+        "SELECT COUNT(*) AS degree_count FROM degree WHERE levels = ?",
+        [levels]
+      );
+
+      const { degree_count } = result[0];
+
+      return res.status(200).json({
+        count: degree_count,
+      });
+    } catch (error) {
+      console.error("Error retrieving degree count by levels:", error);
+      return next(
+        errorProvider(500, "An error occurred while the degree count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };

@@ -103,7 +103,10 @@ const DialogBox = () => {
 
   return (
     <Dialog>
-      <DialogTrigger className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm">
+      <DialogTrigger
+        className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm"
+        onClick={onFormResetted}
+      >
         <FaPlus />
         &nbsp;Create a faculty
       </DialogTrigger>

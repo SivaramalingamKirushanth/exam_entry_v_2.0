@@ -38,6 +38,7 @@ export const studentRegister = async (req, res, next) => {
         "SELECT COUNT(*) AS count FROM user WHERE user_name = ?",
         [user_name]
       );
+
       if (userExists[0].count > 0) {
         conn.release();
         return next(errorProvider(409, "User already exists"));
@@ -79,7 +80,7 @@ export const studentRegister = async (req, res, next) => {
 
 export const managerRegister = async (req, res, next) => {
   const { user_name, name, email, contact_no, address, status } = req.body;
-  const role_id = 2;
+  const role_id = 4;
 
   if (!user_name || !name || !email || !contact_no || !address || !status) {
     return next(errorProvider(400, "Missing credentials"));
@@ -100,6 +101,7 @@ export const managerRegister = async (req, res, next) => {
         "SELECT COUNT(*) AS count FROM user WHERE user_name = ?",
         [user_name]
       );
+
       if (userExists[0].count > 0) {
         conn.release();
         return next(errorProvider(409, "User already exists"));

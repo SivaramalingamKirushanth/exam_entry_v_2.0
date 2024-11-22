@@ -1,6 +1,9 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/components/Header";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import ReactQueryProvider from "@/utils/providers/ReactQueryProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,8 +27,14 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-100 h-screen overflow-hidden`}
       >
-        <Header />
-        <div className="pt-20 h-full w-full overflow-y-scroll">{children}</div>
+        <ReactQueryProvider>
+          <Header />
+          <div className="pt-20 h-full w-full overflow-y-scroll">
+            {children}
+          </div>
+          <Toaster />
+          <ReactQueryDevtools />
+        </ReactQueryProvider>
       </body>
     </html>
   );
