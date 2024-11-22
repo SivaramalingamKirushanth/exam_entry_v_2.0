@@ -9,6 +9,8 @@ import {
   getManagerById,
   deleteUser,
   getStudentById,
+  getNoOfManagers,
+  getNoOfStudents,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -27,4 +29,6 @@ router.get("/getAllDeans", getAllDeans);
 
 router.delete("/deleteUser", deleteUser);
 
+router.get("/getNoOfManagers", getNoOfManagers);
+router.get("/getNoOfStudents", getNoOfStudents);
 export default router;
