@@ -182,3 +182,29 @@ export const updateCurriculum = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+export const getNoOfCurriculums = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.execute(
+        "SELECT COUNT(*) AS curriculum_count FROM curriculum"
+      );
+
+      const { curriculum_count } = result[0];
+
+      return res.status(200).json({
+        count: curriculum_count,
+      });
+    } catch (error) {
+      console.error("Error retrieving number of curriculums:", error);
+      return next(
+        errorProvider(500, "An error occurred while the curriculum count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
