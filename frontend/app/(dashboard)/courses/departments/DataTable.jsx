@@ -23,7 +23,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
-import DialogBox from "./DialogBox";
 import { FaPlus } from "react-icons/fa6";
 
 export function DataTable({ columns, data, onEditClicked, toggleModal }) {

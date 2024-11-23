@@ -247,10 +247,10 @@ export const updateDepartment = async (req, res, next) => {
 };
 
 export const createDegree = async (req, res, next) => {
-  const { deg_name, short, level, status, d_id } = req.body;
+  const { deg_name, short, levels: levelsArr, status, d_id } = req.body;
+  const levels = levelsArr.join(":");
 
-  // Validate required fields
-  if (!deg_name || !short || !level || !d_id) {
+  if (!deg_name || !short || !levels || !d_id) {
     return next(errorProvider(400, "Missing required fields"));
   }
   if (!status) {
@@ -277,7 +277,7 @@ export const createDegree = async (req, res, next) => {
       // Insert into degree table
       const [degreeResult] = await conn.execute(
         "INSERT INTO degree (deg_name, short, levels, status) VALUES (?, ?, ?, ?)",
-        [deg_name, short, level, status]
+        [deg_name, short, levels, status]
       );
       const deg_id = degreeResult.insertId;
 
@@ -309,15 +309,14 @@ export const createDegree = async (req, res, next) => {
 };
 
 export const updateDegree = async (req, res, next) => {
-  //const { deg_id } = req.body;
-  const deg_id = 1;
-  const { deg_name, short, level, status, d_id } = req.body;
+  const { deg_id } = req.body;
 
-  if (!deg_name || !short || !level || !d_id) {
+  const { deg_name, short, levels: levelsArr, status, d_id } = req.body;
+  const levels = levelsArr.join(":");
+
+  if (!deg_name || !short || !levels || !d_id) {
     return next(errorProvider(400, "Missing required fields"));
   }
-
-  const degreeStatus = status === "active" ? "active" : "inactive";
 
   try {
     const conn = await pool.getConnection();
@@ -339,7 +338,7 @@ export const updateDegree = async (req, res, next) => {
       // Update degree table
       await conn.execute(
         "UPDATE degree SET deg_name = ?, short = ?, levels = ?, status = ? WHERE deg_id = ?",
-        [deg_name, short, level, degreeStatus, deg_id]
+        [deg_name, short, levels, status, deg_id]
       );
 
       // Update dep_deg table
@@ -555,6 +554,30 @@ export const getAllDegrees = async (req, res, next) => {
   }
 };
 
+export const getAllDegreesWithExtraDetails = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const query = `SELECT dg.deg_id,dg.deg_name,dg.short,dg.status,d.d_id,d.d_name AS department_name,f.f_id,
+    f.f_name AS faculty_name FROM degree dg LEFT JOIN dep_deg dd ON dg.deg_id = dd.deg_id LEFT JOIN department d ON dd.d_id = d.d_id LEFT JOIN fac_dep fd ON d.d_id = fd.d_id LEFT JOIN 
+    faculty f ON fd.f_id = f.f_id`;
+
+      const [results] = await conn.execute(query);
+
+      return res.status(200).json(results);
+    } catch (error) {
+      console.error("Error fetching all faculties:", error);
+      return next(errorProvider(500, "Failed to fetch all faculties"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
 export const getDegreeById = async (req, res, next) => {
   const { deg_id } = req.body;
 
@@ -566,10 +589,9 @@ export const getDegreeById = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const query = `
-        SELECT * FROM degree WHERE deg_id = ?`;
-
+      const query = `SELECT dg.*,d.d_id,f.f_id FROM degree dg LEFT JOIN dep_deg dd ON dg.deg_id = dd.deg_id LEFT JOIN department d ON dd.d_id = d.d_id LEFT JOIN fac_dep fd ON d.d_id = fd.d_id LEFT JOIN faculty f ON fd.f_id = f.f_id where dg.deg_id = ?`;
       const [results] = await conn.execute(query, [deg_id]);
+      console.log(results);
 
       if (results.length === 0) {
         return next(
@@ -577,7 +599,9 @@ export const getDegreeById = async (req, res, next) => {
         );
       }
 
-      return res.status(200).json(results[0]);
+      return res
+        .status(200)
+        .json({ ...results[0], levels: results[0].levels.split(":") });
     } catch (error) {
       console.error("Error fetching degree by ID:", error);
       return next(errorProvider(500, "Failed to fetch degree by ID"));
@@ -601,9 +625,7 @@ export const getDepartmentsByFacultyId = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const query = `
-          SELECT * FROM department INNER JOIN fac_dep  ON department.d_id = fac_dep.d_id
-          WHERE fac_dep.f_id = ?`;
+      const query = `SELECT department.* FROM department INNER JOIN fac_dep ON department.d_id = fac_dep.d_id WHERE fac_dep.f_id = ?`;
 
       const [results] = await conn.execute(query, [f_id]);
 

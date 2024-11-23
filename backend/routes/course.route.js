@@ -22,6 +22,7 @@ import {
   getNoOfDegreesByLevel,
   getAllFacultiesWithExtraDetails,
   getAllDepartmentsWithExtraDetails,
+  getAllDegreesWithExtraDetails,
 } from "../controllers/course.controller.js";
 
 const router = express.Router();
@@ -56,5 +57,5 @@ router.post("/getDegreeById", getDegreeById);
 router.post("/getDegreesByDepartmentId", getDegreesByDepartmentId);
 router.get("/getNoOfDegrees", getNoOfDegrees);
 router.post("/getNoOfDegreesByLevel/:levels", getNoOfDegreesByLevel);
-
+router.get("/getAllDegreesWithExtraDetails", getAllDegreesWithExtraDetails);
 export default router;
