@@ -10,16 +10,12 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { getAllManagers } from "@/utils/apiRequests/user.api";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import Modal from "./Model";
-import { Button } from "@/components/ui/button";
-import { FaPlus } from "react-icons/fa6";
 
 const ManagerDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
@@ -71,15 +67,7 @@ const ManagerDetails = () => {
           )
         : data;
       let filtData2 = filtData1.filter((item) => {
-        return role == "all"
-          ? true
-          : role == "lecturer"
-          ? item.role_id == 4
-          : role == "hod"
-          ? item.role_id == 3
-          : role == "dean"
-          ? item.role_id == 2
-          : false;
+        return role == "all" ? true : item.role_id == role;
       });
       let filtData3 = filtData2.filter((item) => {
         return status == "all" ? true : item.status == status;
@@ -119,9 +107,9 @@ const ManagerDetails = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="hod">Hod</SelectItem>
-                  <SelectItem value="dean">Dean</SelectItem>
-                  <SelectItem value="lecturer">Lecturer</SelectItem>
+                  <SelectItem value="2">Dean</SelectItem>
+                  <SelectItem value="3">Hod</SelectItem>
+                  <SelectItem value="4">Lecturer</SelectItem>
                   <SelectItem value="all">All</SelectItem>
                 </SelectGroup>
               </SelectContent>

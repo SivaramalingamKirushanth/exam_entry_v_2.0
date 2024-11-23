@@ -1,14 +1,11 @@
 "use client";
 
 import {
-  ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
   getPaginationRowModel,
-  SortingState,
   getSortedRowModel,
-  VisibilityState,
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,10 +23,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import DialogBox from "./DialogBox";
+import { FaPlus } from "react-icons/fa6";
 
-export function DataTable({ columns, data }) {
+export function DataTable({ columns, data, onEditClicked, toggleModal }) {
   const [sorting, setSorting] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
 
@@ -51,7 +47,13 @@ export function DataTable({ columns, data }) {
   return (
     <div>
       <div className="flex items-center mb-4">
-        <DialogBox />
+        <Button
+          onClick={toggleModal}
+          className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm"
+        >
+          <FaPlus />
+          &nbsp;Create student
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto mb-2">
@@ -109,7 +111,7 @@ export function DataTable({ columns, data }) {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} onClick={(e) => onEditClicked(e)}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
