@@ -94,3 +94,13 @@ export const getDegreeById = async (deg_id) => {
   });
   return response.data;
 };
+
+export const getDegreesByDepartmentId = async (d_id) => {
+  const response = await axiosInstance.post(
+    "/course/getDegreesByDepartmentId",
+    { d_id }
+  );
+
+  console.log(response.data);
+  return response.data;
+};

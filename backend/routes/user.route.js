@@ -11,12 +11,15 @@ import {
   getStudentById,
   getNoOfManagers,
   getNoOfStudents,
+  getAllActiveManagers,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
 
 router.get("/getAllStudents", getAllStudents);
 router.get("/getAllManagers", getAllManagers);
+
+router.get("/getAllActiveManagers", getAllActiveManagers);
 
 router.post("/getManagerById", getManagerById);
 router.post("/getStudentById", getStudentById);

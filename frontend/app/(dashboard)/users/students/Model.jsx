@@ -105,7 +105,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   }, [formData]);
 
   useEffect(() => {
-    console.log(formData);
+    console.log(editId);
     editId && refetch();
   }, [editId]);
 
@@ -225,7 +225,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 >
                   <SelectTrigger
                     disabled={!formData.f_id}
-                    className={`w-[180px]`}
+                    className="col-span-3"
                   >
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>

@@ -370,7 +370,7 @@ export const getAllFaculties = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const query = `SELECT * FROM faculty`;
+      const query = `SELECT * FROM faculty where status = 'true'`;
 
       const [results] = await conn.execute(query);
 
@@ -449,7 +449,7 @@ export const getAllDepartments = async (req, res, next) => {
 
     try {
       const query = `
-        SELECT * FROM department`;
+        SELECT * FROM department where status = 'true'`;
 
       const [results] = await conn.execute(query);
 
@@ -533,7 +533,7 @@ export const getAllDegrees = async (req, res, next) => {
 
     try {
       const query = `
-        SELECT * FROM degree`;
+        SELECT * FROM degree where status = 'true'`;
 
       const [results] = await conn.execute(query);
 
@@ -625,7 +625,7 @@ export const getDepartmentsByFacultyId = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const query = `SELECT department.* FROM department INNER JOIN fac_dep ON department.d_id = fac_dep.d_id WHERE fac_dep.f_id = ?`;
+      const query = `SELECT department.* FROM department INNER JOIN fac_dep ON department.d_id = fac_dep.d_id WHERE fac_dep.f_id = ? AND department.status = 'true'`;
 
       const [results] = await conn.execute(query, [f_id]);
 
@@ -659,8 +659,8 @@ export const getDegreesByDepartmentId = async (req, res, next) => {
 
     try {
       const query = `
-        SELECT *FROM degree INNER JOIN dep_deg ON degree.deg_id = dep_deg.deg_id
-        WHERE dep_deg.d_id = ?`;
+        SELECT * FROM degree INNER JOIN dep_deg ON degree.deg_id = dep_deg.deg_id
+        WHERE dep_deg.d_id = ? AND degree.status = 'true'`;
 
       const [results] = await conn.execute(query, [d_id]);
 

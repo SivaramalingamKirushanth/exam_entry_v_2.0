@@ -33,6 +33,11 @@ app.use("/api1/batch", batchRouter);
 app.use((err, req, res, next) => {
   const statuscode = err.statuscode;
   const message = err.message;
+  console.log({
+    success: false,
+    message,
+    statuscode,
+  });
   return res.status(statuscode).json({
     success: false,
     message,

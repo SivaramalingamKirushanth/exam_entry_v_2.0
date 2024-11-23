@@ -1,9 +1,84 @@
 import pool from "../config/db.js";
 import errorProvider from "../utils/errorProvider.js";
 
-export const getCurriculumsByLec_id = async (req, res, next) => {
-  //const{m_id}=req.user
-  const m_id = 1;
+export const getAllCurriculums = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const query = `
+        SELECT * FROM curriculum WHERE status = 'true'`;
+
+      const [results] = await conn.execute(query);
+
+      return res.status(200).json(results);
+    } catch (error) {
+      console.error("Error fetching curriculum details:", error);
+      return next(errorProvider(500, "Failed to fetch curriculum details"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getCurriculumById = async (req, res, next) => {
+  const { sub_id } = req.body;
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const query = `
+        SELECT curriculum.*,dep_deg.d_id,fac_dep.f_id FROM curriculum INNER JOIN dep_deg ON curriculum.deg_id = dep_deg.deg_id INNER JOIN fac_dep ON dep_deg.d_id = fac_dep.d_id WHERE sub_id = ?`;
+
+      const [results] = await conn.execute(query, [sub_id]);
+
+      if (results.length === 0) {
+        return res.status(404).json({
+          message: "No curriculum details found for the given sub_id.",
+        });
+      }
+
+      return res.status(200).json(results[0]);
+    } catch (error) {
+      console.error("Error fetching curriculum details:", error);
+      return next(errorProvider(500, "Failed to fetch curriculum details"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getAllCurriculumsWithExtraDetails = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const query = `
+        SELECT curriculum.*,degree.deg_name AS degree_name FROM curriculum JOIN degree ON curriculum.deg_id = degree.deg_id`;
+
+      const [results] = await conn.execute(query);
+      console.log(results);
+      return res.status(200).json(results);
+    } catch (error) {
+      console.error("Error fetching curriculum details:", error);
+      return next(errorProvider(500, "Failed to fetch curriculum details"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getCurriculumsByLecId = async (req, res, next) => {
+  const { m_id } = req.user;
 
   if (!m_id) {
     return next(errorProvider(400, "Missing m_id "));
@@ -41,9 +116,8 @@ export const getCurriculumsByLec_id = async (req, res, next) => {
   }
 };
 
-export const getCurriculumsByHod_id = async (req, res, next) => {
-  //const{m_id}=req.user
-  const m_id = 2;
+export const getCurriculumsByHodId = async (req, res, next) => {
+  const { m_id } = req.user;
 
   if (!m_id) {
     return next(errorProvider(400, "Missing hod_id"));
@@ -98,9 +172,9 @@ export const getCurriculumsByHod_id = async (req, res, next) => {
 };
 
 export const createCurriculum = async (req, res, next) => {
-  const { sub_id, sub_name, sem_no, deg_id, level, status } = req.body;
+  const { sub_code, sub_name, sem_no, deg_id, level, status } = req.body;
 
-  if (!sub_id || !sub_name || !sem_no || !deg_id || !level || !status) {
+  if (!sub_code || !sub_name || !sem_no || !deg_id || !level || !status) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -108,9 +182,9 @@ export const createCurriculum = async (req, res, next) => {
     const conn = await pool.getConnection();
     try {
       const [result] = await conn.execute(
-        `INSERT INTO curriculum (sub_id, sub_name, sem_no, deg_id, level, status)
+        `INSERT INTO curriculum (sub_code, sub_name, sem_no, deg_id, level, status)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [sub_id, sub_name, sem_no, deg_id, level, status]
+        [sub_code, sub_name, sem_no, deg_id, level, status]
       );
 
       return res.status(201).json({
@@ -137,30 +211,30 @@ export const updateCurriculum = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
-      const { sub_id, sub_name, sem_no, deg_id, level, status } = req.body;
+      const { sub_code, sub_name, sem_no, deg_id, level, status, sub_id } =
+        req.body;
 
       if (!sub_id) {
-        return res
-          .status(400)
-          .json({ message: "Subject ID (sub_id) is required" });
+        return next(errorProvider(400, "Subject ID (sub_id) is required"));
       }
 
       const [result] = await conn.execute(
         `UPDATE curriculum 
           SET 
+            sub_code = ?,
             sub_name = ?, 
             sem_no = ?, 
             deg_id = ?, 
             level = ?, 
             status = ? 
           WHERE sub_id = ?`,
-        [sub_name, sem_no, deg_id, level, status, sub_id]
+        [sub_code, sub_name, sem_no, deg_id, level, status, sub_id]
       );
 
       if (result.affectedRows === 0) {
-        return res
-          .status(404)
-          .json({ message: "Curriculum record not found or no changes made" });
+        return next(
+          errorProvider(404, "Curriculum record not found or no changes made")
+        );
       }
 
       return res

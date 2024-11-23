@@ -76,6 +76,37 @@ export const getAllManagers = async (req, res, next) => {
   }
 };
 
+export const getAllActiveManagers = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [managers] = await conn.execute(
+        `SELECT 
+            md.name, 
+            md.email, 
+            md.contact_no, 
+            md.address, 
+            md.status,
+            md.m_id 
+          FROM manager m INNER JOIN manager_detail md ON m.m_id = md.m_id
+          WHERE md.status = 'true'`
+      );
+
+      return res.status(200).json(managers);
+    } catch (error) {
+      console.error("Error retrieving managers:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving managers")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
 export const getManagerById = async (req, res, next) => {
   const { user_id } = req.body;
 

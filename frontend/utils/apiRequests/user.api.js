@@ -5,6 +5,11 @@ export const getAllManagers = async () => {
   return response.data;
 };
 
+export const getAllActiveManagers = async () => {
+  const response = await axiosInstance.get("/user/getAllActiveManagers");
+  return response.data;
+};
+
 export const getAllStudents = async () => {
   const response = await axiosInstance.get("/user/getAllStudents");
   return response.data;

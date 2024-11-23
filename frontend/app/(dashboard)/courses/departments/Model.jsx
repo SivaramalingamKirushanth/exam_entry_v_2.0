@@ -28,7 +28,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { getAllManagers } from "@/utils/apiRequests/user.api";
+import { getAllActiveManagers } from "@/utils/apiRequests/user.api";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -47,7 +47,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const { status, mutate } = useMutation({
     mutationFn: editId ? updateDepartment : createDepartment,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["departments"]);
+      queryClient.invalidateQueries(["DepartmentsExtra"]);
       setEditId("");
       toast(res.message);
     },
@@ -65,13 +65,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     isLoading,
     error,
   } = useQuery({
-    queryFn: getAllManagers,
-    queryKey: ["managers"],
+    queryFn: getAllActiveManagers,
+    queryKey: ["ActiveManagers"],
   });
 
   const { data: facultyData } = useQuery({
     queryFn: getAllFaculties,
-    queryKey: ["faculties"],
+    queryKey: ["ActiveFaculties"],
   });
 
   useEffect(() => {

@@ -2,80 +2,32 @@
 import { columns } from "./Columns";
 import { DataTable } from "./DataTable";
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MdCancel } from "react-icons/md";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import departments from "./page";
-
-async function getData() {
-  // Fetch data from your API here.
-  return [
-    {
-      sub_id: "CS101",
-      sub_name: "Introduction to Computer Science",
-      degree_name: "Bachelor of Science in Computer Science",
-      level: 1,
-      semester: 1,
-      status: "active",
-    },
-    {
-      sub_id: "CS102",
-      sub_name: "Data Structures",
-      degree_name: "Bachelor of Science in Computer Science",
-      level: 2,
-      semester: 2,
-      status: "active",
-    },
-    {
-      sub_id: "ENG201",
-      sub_name: "Advanced English Writing",
-      degree_name: "Bachelor of Arts in English",
-      level: 2,
-      semester: 1,
-      status: "not active",
-    },
-    {
-      sub_id: "MATH301",
-      sub_name: "Calculus III",
-      degree_name: "Bachelor of Science in Mathematics",
-      level: 3,
-      semester: 2,
-      status: "active",
-    },
-    {
-      sub_id: "PHY401",
-      sub_name: "Quantum Mechanics",
-      degree_name: "Bachelor of Science in Physics",
-      level: 4,
-      semester: 1,
-      status: "not active",
-    },
-  ];
-}
+import { useQuery } from "@tanstack/react-query";
+import Modal from "./Model";
+import { getAllCurriculumsWithExtraDetails } from "@/utils/apiRequests/curriculum.api";
 
 const CurriculumsDetails = () => {
-  const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
+  const [isOpen, setIsOpen] = useState(false);
+  const modalRef = useRef(null);
+  const [editId, setEditId] = useState("");
 
-  useEffect(() => {
-    const load = async () => {
-      const data = await getData();
-      setData(data);
-      setFilteredData(data);
-    };
-
-    load();
-  }, []);
+  const { data, isLoading, error } = useQuery({
+    queryFn: getAllCurriculumsWithExtraDetails,
+    queryKey: ["curriculumsExtra"],
+  });
 
   const onClearClicked = () => setSearchValue("");
 
@@ -87,19 +39,31 @@ const CurriculumsDetails = () => {
     setStatus(e);
   };
 
+  const toggleModal = () => {
+    isOpen && setEditId("");
+    setIsOpen((prev) => !prev);
+  };
+
+  const onEditClicked = (e) => {
+    if (e.target.classList.contains("editBtn")) {
+      setEditId(e.target.id);
+      toggleModal();
+    }
+  };
+
   useEffect(() => {
-    let filtData1 = searchValue
-      ? data.filter((item) =>
-          item.name.toLowerCase().includes(searchValue.toLowerCase())
-        )
-      : data;
-    let filtData2 = filtData1.filter((item) => {
-      return status == "all"
-        ? true
-        : item.status == status.split("-").join(" ");
-    });
-    setFilteredData(filtData2);
-  }, [searchValue, status]);
+    if (data) {
+      let filtData1 = searchValue
+        ? data.filter((item) =>
+            item.sub_name.toLowerCase().includes(searchValue.toLowerCase())
+          )
+        : data;
+      let filtData2 = filtData1.filter((item) => {
+        return status == "all" ? true : item.status == status;
+      });
+      setFilteredData(filtData2);
+    }
+  }, [searchValue, status, data]);
 
   return (
     <>
@@ -132,8 +96,8 @@ const CurriculumsDetails = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="not-active">Not active</SelectItem>
+                  <SelectItem value="true">Active</SelectItem>
+                  <SelectItem value="false">Not active</SelectItem>
                   <SelectItem value="all">All</SelectItem>
                 </SelectGroup>
               </SelectContent>
@@ -141,8 +105,20 @@ const CurriculumsDetails = () => {
           </div>
         </div>
       </div>
+      <Modal
+        editId={editId}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        modalRef={modalRef}
+        setEditId={setEditId}
+      />
       <div className="container mx-auto">
-        <DataTable columns={columns} data={filteredData} />
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          onEditClicked={onEditClicked}
+          toggleModal={toggleModal}
+        />
       </div>
     </>
   );

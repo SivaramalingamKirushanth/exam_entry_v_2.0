@@ -95,13 +95,13 @@ const DialogBox = () => {
 
   useEffect(() => {
     if (
-      data.subId &&
-      data.subName &&
-      data.department &&
-      data.faculty &&
-      data.degree &&
+      data.sub_code &&
+      data.sub_name &&
+      data.d_id &&
+      data.f_id &&
+      data.deg_id &&
       data.level &&
-      data.semester
+      data.sem_no
     ) {
       setBtnEnable(true);
     } else {
