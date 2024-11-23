@@ -27,7 +27,7 @@ const DepartmentDetails = () => {
 
   const { data, isLoading, error } = useQuery({
     queryFn: getAllDepartmentsWithExtraDetails,
-    queryKey: ["DepartmentsExtra"],
+    queryKey: ["departmentsExtra"],
   });
 
   const onClearClicked = () => setSearchValue("");

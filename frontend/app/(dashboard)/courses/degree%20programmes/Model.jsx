@@ -32,11 +32,14 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const { status, mutate } = useMutation({
     mutationFn: editId ? updateDegree : createDegree,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["DegreesExtra"]);
+      queryClient.invalidateQueries(["degreesExtra"]);
       setEditId("");
       toast(res.message);
     },
-    onError: (err) => toast("Operation failed"),
+    onError: (err) => {
+      console.log(err);
+      toast("Operation failed");
+    },
   });
 
   const { data, refetch } = useQuery({
@@ -47,12 +50,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   const { data: facultyData } = useQuery({
     queryFn: getAllFaculties,
-    queryKey: ["ActiveFaculties"],
+    queryKey: ["activeFaculties"],
   });
 
   const { data: departmentData, refetch: departmentDataRefetch } = useQuery({
     queryFn: () => getDepartmentsByFacultyId(formData.f_id),
-    queryKey: ["ActiveDepartments", "faculty", formData.f_id],
+    queryKey: ["activeDepartments", "faculty", formData.f_id],
     enabled: false,
   });
 

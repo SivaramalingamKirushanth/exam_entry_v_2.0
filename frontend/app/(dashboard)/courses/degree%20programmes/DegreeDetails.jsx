@@ -26,7 +26,7 @@ const DegreeDetails = () => {
 
   const { data, isLoading, error } = useQuery({
     queryFn: getAllDegreesWithExtraDetails,
-    queryKey: ["DegreesExtra"],
+    queryKey: ["degreesExtra"],
   });
 
   const onClearClicked = () => setSearchValue("");

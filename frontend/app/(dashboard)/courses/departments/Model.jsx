@@ -51,7 +51,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setEditId("");
       toast(res.message);
     },
-    onError: (err) => toast("Operation failed"),
+    onError: (err) => {
+      console.log(err);
+      toast("Operation failed");
+    },
   });
 
   const { data, refetch } = useQuery({
@@ -66,12 +69,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     error,
   } = useQuery({
     queryFn: getAllActiveManagers,
-    queryKey: ["ActiveManagers"],
+    queryKey: ["activeManagers"],
   });
 
   const { data: facultyData } = useQuery({
     queryFn: getAllFaculties,
-    queryKey: ["ActiveFaculties"],
+    queryKey: ["activeFaculties"],
   });
 
   useEffect(() => {

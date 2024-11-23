@@ -34,7 +34,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setEditId("");
       toast(res.message);
     },
-    onError: (err) => toast("Operation failed"),
+    onError: (err) => {
+      console.log(err);
+      toast("Operation failed");
+    },
   });
 
   const { data, refetch } = useQuery({
@@ -50,7 +53,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   const { data: departmentData, refetch: departmentRefetch } = useQuery({
     queryFn: () => formData.f_id && getDepartmentsByFacultyId(formData?.f_id),
-    queryKey: ["departments", "faculties", formData?.f_id],
+    queryKey: ["departments", "faculty", formData?.f_id],
     enabled: false,
   });
 
