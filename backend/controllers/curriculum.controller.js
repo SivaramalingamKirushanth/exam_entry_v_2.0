@@ -63,6 +63,30 @@ export const getAllCurriculumsWithExtraDetails = async (req, res, next) => {
         SELECT curriculum.*,degree.deg_name AS degree_name FROM curriculum JOIN degree ON curriculum.deg_id = degree.deg_id`;
 
       const [results] = await conn.execute(query);
+
+      return res.status(200).json(results);
+    } catch (error) {
+      console.error("Error fetching curriculum details:", error);
+      return next(errorProvider(500, "Failed to fetch curriculum details"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getCurriculumByDegLevSem = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    const { deg_id, level, sem_no } = req.body;
+
+    try {
+      const query = `
+        SELECT * FROM curriculum WHERE deg_id = ? AND level = ? AND sem_no = ? AND status = 'true'`;
+
+      const [results] = await conn.execute(query, [deg_id, level, sem_no]);
       console.log(results);
       return res.status(200).json(results);
     } catch (error) {

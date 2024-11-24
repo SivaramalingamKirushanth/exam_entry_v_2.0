@@ -19,6 +19,20 @@ export const getCurriculumById = async (sub_id) => {
   return response.data;
 };
 
+export const getCurriculumByDegLevSem = async (deg_id, level, sem_no) => {
+  console.log(deg_id, level, sem_no);
+  const response = await axiosInstance.post(
+    "/curriculum/getCurriculumByDegLevSem",
+    {
+      deg_id,
+      level,
+      sem_no,
+    }
+  );
+  console.log(response.data);
+  return response.data;
+};
+
 export const getCurriculumsByLecId = async () => {
   const response = await axiosInstance.get("/curriculum/getCurriculumsByLecId");
   return response.data;

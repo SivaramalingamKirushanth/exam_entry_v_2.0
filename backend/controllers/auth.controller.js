@@ -157,33 +157,23 @@ export const login = async (req, res, next) => {
         [user_name]
       );
 
-      // Log the retrieved user data
-      console.log("Database result:", user);
-
       if (user.length == 0) {
         console.log("User not found in database");
         return next(errorProvider(401, "Invalid username or password"));
       }
 
       const { user_id, password: hashedPassword, role_id } = user[0];
-      // Log passwords only for debugging
-      console.log("Plaintext password:", password);
-      console.log("Hashed password from DB:", hashedPassword);
 
-      // Verify the password
       const isPasswordValid = await verifyPassword(password, hashedPassword);
-      console.log("Is password valid:", isPasswordValid);
 
       if (!isPasswordValid) {
         return next(errorProvider(401, "Invalid username or password"));
       }
 
-      // Generate JWT Token
       const token = jwt.sign({ user_id, role_id }, JWT_SECRET, {
         expiresIn: "1h",
       });
 
-      // Send response
       return res
         .cookie("access-token", token, { httpOnly: true })
         .status(200)

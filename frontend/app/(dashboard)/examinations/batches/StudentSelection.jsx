@@ -110,7 +110,7 @@ const columns = [
   },
 ];
 
-const StudentSelection = ({ setData, btnEnable }) => {
+const StudentSelection = ({ setFormData, btnEnable }) => {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -174,7 +174,7 @@ const StudentSelection = ({ setData, btnEnable }) => {
   }, [table.getFilteredSelectedRowModel().rows]);
 
   useEffect(() => {
-    setData((cur) => ({ ...cur, students: selectedStudents }));
+    setFormData((cur) => ({ ...cur, students: selectedStudents }));
   }, [selectedStudents]);
 
   useEffect(() => {
@@ -182,8 +182,8 @@ const StudentSelection = ({ setData, btnEnable }) => {
   }, [btnEnable]);
 
   return (
-    <div className="w-full">
-      <div className="flex items-center py-2 mx-8">
+    <div className="w-full h-[60vh] mb-2">
+      <div className="flex items-center py-2 px-1">
         <Input
           placeholder="Search by student id or name"
           onChange={(e) => onSearchChange(e)}
@@ -217,7 +217,7 @@ const StudentSelection = ({ setData, btnEnable }) => {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="rounded-md border max-h-[370px] min-h-[370px] mx-8 overflow-y-scroll">
+      <div className="rounded-md border max-h-[370px] min-h-[370px] overflow-y-scroll">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

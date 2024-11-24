@@ -8,6 +8,7 @@ import {
   getAllCurriculums,
   getAllCurriculumsWithExtraDetails,
   getCurriculumById,
+  getCurriculumByDegLevSem,
 } from "../controllers/curriculum.controller.js";
 
 const router = express.Router();
@@ -18,6 +19,7 @@ router.get(
   getAllCurriculumsWithExtraDetails
 );
 router.post("/getCurriculumById", getCurriculumById);
+router.post("/getCurriculumByDegLevSem", getCurriculumByDegLevSem);
 router.get("/getCurriculumsByLecId", getCurriculumsByLecId);
 router.get("/getCurriculumsByHod_id", getCurriculumsByHodId);
 router.post("/createCurriculum", createCurriculum);

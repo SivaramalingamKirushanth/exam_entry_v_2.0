@@ -1,11 +1,60 @@
 import pool from "../config/db.js";
 import errorProvider from "../utils/errorProvider.js";
 
+export const getAllBatches = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [batches] = await conn.execute(`SELECT * FROM batch`);
+
+      if (!batches.length) {
+        return next(errorProvider(404, "No Bathces found"));
+      }
+
+      return res.status(200).json(batches);
+    } catch (error) {
+      console.error("Error retrieving batches:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving batches")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getBatchById = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [batches] = await conn.execute(`SELECT * FROM batch`);
+
+      if (!batches.length) {
+        return next(errorProvider(404, "No Bathces found"));
+      }
+
+      return res.status(200).json(batches);
+    } catch (error) {
+      console.error("Error retrieving batches:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving batches")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
 export const createBatch = async (req, res, next) => {
   const { batch_id, academic_year, description, sub_id, m_id, status } =
     req.body;
 
-  // Validate input data
   if (
     !batch_id ||
     !academic_year ||

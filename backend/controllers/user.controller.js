@@ -130,7 +130,6 @@ export const getManagerById = async (req, res, next) => {
         [user_id]
       );
 
-      console.log("Retrieved manager:", manager[0]); // Debugging log
       if (!manager.length) {
         return res.status(404).json({ message: "No manager found" });
       }
@@ -176,7 +175,6 @@ export const getStudentById = async (req, res, next) => {
         [user_id]
       );
 
-      console.log("Retrieved student:", student[0]); // Debugging log
       if (!student.length) {
         return res.status(404).json({ message: "No student found" });
       }
@@ -294,9 +292,6 @@ export const getAllHods = async (req, res, next) => {
           WHERE u.role_id = 3`
       );
 
-      // for testing only
-      console.log("Retrieved HODs:", hods);
-
       if (!hods.length) {
         return res.status(404).json({ message: "No HODs found" });
       }
@@ -334,8 +329,6 @@ export const getAllDeans = async (req, res, next) => {
           INNER JOIN manager_detail md ON m.m_id = md.m_id
           WHERE u.role_id = 2`
       );
-      // for testing only
-      console.log("Retrieved Deans:", deans);
 
       if (!deans.length) {
         return res.status(404).json({ message: "No Deans found" });
