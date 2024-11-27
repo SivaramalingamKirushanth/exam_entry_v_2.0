@@ -91,7 +91,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const onFormReset = () => {
-    setFormData({ status: "true" });
+    setFormData(data);
   };
 
   useEffect(() => {
@@ -248,10 +248,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               <Button
                 type="button"
                 variant="warning"
-                onClick={() => {
-                  onFormReset();
-                  editId && setFormData((cur) => ({ ...cur, f_id: data.f_id }));
-                }}
+                onClick={() => onFormReset()}
               >
                 Reset
               </Button>

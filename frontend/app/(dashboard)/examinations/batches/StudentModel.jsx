@@ -48,7 +48,7 @@ const StudentModel = ({
 
   const onFormSubmitted = () => {
     mutate({ batch_id: feedId, oldData, selectedStudents });
-    setSelectedStudents(oldData);
+    setSelectedStudents([]);
     setIsFeedOpen(false);
   };
 

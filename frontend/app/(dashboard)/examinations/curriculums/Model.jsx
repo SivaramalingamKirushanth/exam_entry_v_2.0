@@ -104,7 +104,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const onFormReset = () => {
-    setFormData({ status: "true" });
+    setFormData(data);
   };
 
   useEffect(() => {
@@ -195,7 +195,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectTrigger>
                   <SelectContent>
                     {facultyData?.map((item) => (
-                      <SelectItem value={`f_id:${item.f_id}`}>
+                      <SelectItem value={`f_id:${item.f_id}`} key={item.f_id}>
                         {item.f_name}
                       </SelectItem>
                     ))}
@@ -217,7 +217,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectTrigger>
                   <SelectContent>
                     {departmentData?.map((item) => (
-                      <SelectItem value={`d_id:${item.d_id}`}>
+                      <SelectItem key={item.d_id} value={`d_id:${item.d_id}`}>
                         {item.d_name}
                       </SelectItem>
                     ))}
@@ -238,7 +238,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectTrigger>
                   <SelectContent>
                     {degreeData?.map((item) => (
-                      <SelectItem value={`deg_id:${item.deg_id}`}>
+                      <SelectItem
+                        key={item.deg_id}
+                        value={`deg_id:${item.deg_id}`}
+                      >
                         {item.deg_name}
                       </SelectItem>
                     ))}
@@ -258,6 +261,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                       <input
                         type="radio"
                         value={item}
+                        key={item}
                         id={`l${item}`}
                         checked={formData.level == item}
                         name="level"
@@ -281,6 +285,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   {[1, 2].map((item) => (
                     <div className="flex items-center space-x-2">
                       <input
+                        key={item}
                         type="radio"
                         value={item}
                         id={`s${item}`}
@@ -319,11 +324,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               <Button
                 type="button"
                 variant="warning"
-                onClick={() => {
-                  onFormReset();
-                  editId &&
-                    setFormData((cur) => ({ ...cur, sub_id: data.sub_id }));
-                }}
+                onClick={() => onFormReset()}
               >
                 Reset
               </Button>

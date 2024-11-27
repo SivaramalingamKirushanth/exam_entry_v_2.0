@@ -1,10 +1,6 @@
 "use client";
 
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -153,28 +149,6 @@ const StudentSelection = ({
       rowSelection,
     },
   });
-
-  // useEffect(() => {
-  //   if (table.getFilteredSelectedRowModel().rows.length) {
-  //     setSelectedStudents(
-  //       table.getFilteredSelectedRowModel().rows.map((obj) => obj.original.s_id)
-  //     );
-  //   }
-  // }, [table.getFilteredSelectedRowModel().rows]);
-
-  // useEffect(() => {
-  //   if (selectedStudents?.length) {
-  //     console.log(selectedStudents.map((val) => ({ original: { s_id: val } })));
-  //     console.log(table.getFilteredSelectedRowModel().rows);
-  //     table.getFilteredSelectedRowModel().rows = selectedStudents.map(
-  //       (val) => ({ original: { s_id: val } })
-  //     );
-  //   }
-  // }, [selectedStudents]);
-
-  // useEffect(() => {
-  //   table.getFilteredSelectedRowModel().rows = [];
-  // }, [btnEnable]);
 
   useEffect(() => {
     if (feedId) {

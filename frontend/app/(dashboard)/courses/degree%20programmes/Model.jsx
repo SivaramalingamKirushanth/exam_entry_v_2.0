@@ -91,7 +91,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const onFormReset = () => {
-    setFormData({ status: "true", levels: [] });
+    setFormData(data);
   };
 
   useEffect(() => {
@@ -176,7 +176,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectTrigger>
                   <SelectContent>
                     {facultyData?.map((item) => (
-                      <SelectItem value={`f_id:${item.f_id}`}>
+                      <SelectItem key={item.f_id} value={`f_id:${item.f_id}`}>
                         {item.f_name}
                       </SelectItem>
                     ))}
@@ -197,7 +197,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectTrigger>
                   <SelectContent>
                     {departmentData?.map((item) => (
-                      <SelectItem value={`d_id:${item.d_id}`}>
+                      <SelectItem key={item.d_id} value={`d_id:${item.d_id}`}>
                         {item.d_name}
                       </SelectItem>
                     ))}
@@ -209,7 +209,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 <Label className="text-right">Levels</Label>
                 <div className="items-top flex col-span-3 items-center gap-4">
                   {[1, 2, 3, 4, 5].map((item) => (
-                    <div className="items-top flex space-x-2 items-center">
+                    <div
+                      className="items-top flex space-x-2 items-center"
+                      key={item}
+                    >
                       <Checkbox
                         id={`level${item}`}
                         onCheckedChange={(e) => {
@@ -261,11 +264,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               <Button
                 type="button"
                 variant="warning"
-                onClick={() => {
-                  onFormReset();
-                  editId &&
-                    setFormData((cur) => ({ ...cur, deg_id: data.deg_id }));
-                }}
+                onClick={() => onFormReset()}
               >
                 Reset
               </Button>

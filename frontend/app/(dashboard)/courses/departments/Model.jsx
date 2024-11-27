@@ -104,7 +104,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const onFormReset = () => {
-    setFormData({ status: "true" });
+    setFormData(data);
   };
 
   useEffect(() => {
@@ -229,7 +229,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectTrigger>
                   <SelectContent>
                     {facultyData?.map((item) => (
-                      <SelectItem value={`f_id:${item.f_id}`}>
+                      <SelectItem key={item.f_id} value={`f_id:${item.f_id}`}>
                         {item.f_name}
                       </SelectItem>
                     ))}
@@ -284,10 +284,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               <Button
                 type="button"
                 variant="warning"
-                onClick={() => {
-                  onFormReset();
-                  editId && setFormData((cur) => ({ ...cur, d_id: data.d_id }));
-                }}
+                onClick={() => onFormReset()}
               >
                 Reset
               </Button>

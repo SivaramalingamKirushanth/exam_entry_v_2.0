@@ -65,10 +65,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     if (data) setFormData(data);
   }, [data]);
 
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
-
   const onFormDataChanged = (e) => {
     if (e.target) {
       setFormData((curData) => ({
@@ -92,7 +88,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const onFormReset = () => {
-    setFormData({ status: "true" });
+    setFormData(data);
   };
 
   useEffect(() => {
@@ -108,7 +104,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   }, [formData]);
 
   useEffect(() => {
-    console.log(editId);
     editId && refetch();
   }, [editId]);
 
@@ -209,7 +204,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectTrigger>
                   <SelectContent>
                     {facultyData?.map((item) => (
-                      <SelectItem value={`f_id:${item.f_id}`}>
+                      <SelectItem key={item.f_id} value={`f_id:${item.f_id}`}>
                         {item.f_name}
                       </SelectItem>
                     ))}
@@ -265,10 +260,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               <Button
                 type="button"
                 variant="warning"
-                onClick={() => {
-                  onFormReset();
-                  editId && setFormData((cur) => ({ ...cur, s_id: data.s_id }));
-                }}
+                onClick={() => onFormReset()}
               >
                 Reset
               </Button>
