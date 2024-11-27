@@ -44,7 +44,9 @@ export const columns = [
   },
   {
     id: "actions",
-    header: "Actions",
+    header: () => {
+      return <p className="text-center">Actions</p>;
+    },
 
     cell: ({ row }) => {
       return (
@@ -57,7 +59,10 @@ export const columns = [
             <FaPen />
             &nbsp;Edit
           </Button>
-          <Button className="feedBtn" id={row.original.batch_id}>
+          <Button
+            className="feedBtn"
+            id={row.original.batch_id + ":" + row.original.degree_name_short}
+          >
             <FaUserPlus />
             &nbsp;Feed students
           </Button>

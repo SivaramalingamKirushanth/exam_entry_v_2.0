@@ -25,7 +25,7 @@ import {
 import { useState } from "react";
 import { FaPlus } from "react-icons/fa6";
 
-export function DataTable({ columns, data, onEditClicked, toggleModal }) {
+export function DataTable({ columns, data, onBtnClicked, toggleModal }) {
   const [sorting, setSorting] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
 
@@ -111,7 +111,7 @@ export function DataTable({ columns, data, onEditClicked, toggleModal }) {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} onClick={(e) => onEditClicked(e)}>
+                    <TableCell key={cell.id} onClick={(e) => onBtnClicked(e)}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

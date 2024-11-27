@@ -87,7 +87,6 @@ export const getCurriculumByDegLevSem = async (req, res, next) => {
         SELECT * FROM curriculum WHERE deg_id = ? AND level = ? AND sem_no = ? AND status = 'true'`;
 
       const [results] = await conn.execute(query, [deg_id, level, sem_no]);
-      console.log(results);
       return res.status(200).json(results);
     } catch (error) {
       console.error("Error fetching curriculum details:", error);

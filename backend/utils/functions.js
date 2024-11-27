@@ -19,5 +19,24 @@ export const verifyPassword = async (password, hashedPassword) => {
   }
 };
 
+export function parseString(input) {
+  const regex = /^(\d{4})([A-Za-z()]+)(\d)(\d)$/;
+  const match = input.match(regex);
 
+  if (match) {
+    const academic_year = match[1];
+    const degree_name_short = match[2];
+    const level = match[3];
+    const sem_no = match[4];
 
+    return {
+      academic_year,
+      degree_name_short,
+      level,
+      sem_no,
+      batch_id: input,
+    };
+  } else {
+    throw new Error("Invalid format");
+  }
+}

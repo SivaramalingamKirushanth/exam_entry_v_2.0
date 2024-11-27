@@ -29,6 +29,15 @@ export const getStudentById = async (user_id) => {
   return response.data;
 };
 
+export const getStudentByDegShort = async (short) => {
+  console.log(short);
+  const response = await axiosInstance.post("/user/getStudentByDegShort", {
+    short,
+  });
+  console.log(response.data);
+  return response.data;
+};
+
 export const updateManager = async (data) => {
   const response = await axiosInstance.put("/user/updateManager", data);
   return response.data;

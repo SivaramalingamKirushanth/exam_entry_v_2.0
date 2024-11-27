@@ -194,6 +194,40 @@ export const getStudentById = async (req, res, next) => {
   }
 };
 
+export const getStudentByDegShort = async (req, res, next) => {
+  const { short } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [students] = await conn.execute(
+        `SELECT sd.s_id,sd.name FROM student_detail sd INNER JOIN dep_deg dd ON sd.d_id = dd.d_id INNER JOIN degree d ON dd.deg_id = d.deg_id WHERE d.short = ? AND sd.status = 'true'`,
+        [short]
+      );
+
+      if (!students.length) {
+        return res
+          .status(404)
+          .json({ message: "No students found in current department" });
+      }
+
+      console.log(students);
+
+      return res.status(200).json(students);
+    } catch (error) {
+      console.error("Error retrieving student:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving student")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
 export const updateStudent = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();

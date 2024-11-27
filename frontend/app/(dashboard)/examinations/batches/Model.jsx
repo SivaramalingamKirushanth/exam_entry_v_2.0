@@ -52,6 +52,8 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { FaExclamation } from "react-icons/fa";
+import { createBatch } from "@/utils/apiRequests/batch.api";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({ status: "true" });
@@ -61,9 +63,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [comboBoxOpen, setComboBoxOpen] = useState({});
 
   const { status, mutate } = useMutation({
-    mutationFn: editId ? updateCurriculum : createCurriculum,
+    mutationFn: editId ? updateCurriculum : createBatch,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["curriculumsExtra"]);
+      queryClient.invalidateQueries(["batches"]);
       setEditId("");
       toast(res.message);
     },
@@ -139,6 +141,15 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setFormData((curData) => ({
         ...curData,
         [e.target?.name]: e.target?.value,
+        batch_id: `${
+          e.target?.name == "academic_year"
+            ? e.target?.value
+            : formData.academic_year || "XXXX"
+        }${specificDegreeData?.short || "XX"}${
+          e.target?.name == "level" ? e.target?.value : formData.level || "X"
+        }${
+          e.target?.name == "sem_no" ? e.target?.value : formData.sem_no || "X"
+        }`,
       }));
     } else if (typeof e == "boolean") {
       setFormData((curData) => ({ ...curData, status: e.toString() }));
@@ -146,6 +157,15 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setFormData((curData) => ({
         ...curData,
         [e.split(":")[0]]: e.split(":")[1],
+        batch_id: `${
+          e.target?.name == "academic_year"
+            ? e.target?.value
+            : formData.academic_year || "XXXX"
+        }${specificDegreeData?.short || "XX"}${
+          e.target?.name == "level" ? e.target?.value : formData.level || "X"
+        }${
+          e.target?.name == "sem_no" ? e.target?.value : formData.sem_no || "X"
+        }`,
       }));
     }
   };
@@ -158,12 +178,21 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       value = +e.target.max;
     }
 
-    setFormData((curData) => ({ ...curData, academic_year: value }));
+    setFormData((curData) => ({
+      ...curData,
+      academic_year: value,
+      batch_id: `${value}${specificDegreeData?.short || "XX"}${
+        e.target?.name == "level" ? e.target?.value : formData.level || "X"
+      }${
+        e.target?.name == "sem_no" ? e.target?.value : formData.sem_no || "X"
+      }`,
+    }));
     e.target.value = value;
   };
 
   const onFormSubmitted = () => {
-    mutate(formData);
+    const { batch_id, subjects, status } = formData;
+    mutate({ batch_id, subjects, status });
     setFormData({ status: "true" });
     setIsOpen(false);
   };
@@ -173,28 +202,51 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   useEffect(() => {
-    const isFormValid =
-      formData.academic_year &&
-      formData.d_id &&
-      formData.f_id &&
-      formData.deg_id &&
-      formData.sem_no &&
-      formData.level &&
-      curriculumByDegLevSemRefetch();
-
-    setSidePartEnable(isFormValid);
-  }, [formData]);
+    setFormData((cur) => ({ ...cur, subjects: {} }));
+  }, [formData.sem_no, formData.level, formData.deg_id]);
 
   useEffect(() => {
-    console.log(formData);
-    const isFormValid =
+    let isFormValid =
       formData.academic_year &&
       formData.d_id &&
       formData.f_id &&
       formData.deg_id &&
       formData.sem_no &&
       formData.level;
-    setBtnEnable(isFormValid);
+
+    if (isFormValid) {
+      curriculumByDegLevSemRefetch();
+    }
+
+    setSidePartEnable(isFormValid);
+  }, [formData]);
+
+  useEffect(() => {
+    console.log(formData);
+    let isFormValid = true;
+
+    if (sidePartEnable) {
+      if (curriculumByDegLevSemData?.length) {
+        if (formData.subjects) {
+          if (
+            Object.values(formData.subjects).length ==
+            curriculumByDegLevSemData.length
+          ) {
+            Object.values(formData.subjects).forEach((value) => {
+              if (!value) {
+                isFormValid = false;
+              }
+            });
+          } else {
+            isFormValid = false;
+          }
+        } else {
+          isFormValid = false;
+        }
+      }
+
+      setBtnEnable(sidePartEnable && isFormValid);
+    }
   }, [formData]);
 
   useEffect(() => {
@@ -215,6 +267,17 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     }
   }, [formData?.deg_id]);
 
+  useEffect(() => {
+    if (specificDegreeData) {
+      setFormData((curData) => ({
+        ...curData,
+        batch_id: `${formData.academic_year || "XXXX"}${
+          specificDegreeData?.short || "XX"
+        }${formData.level || "X"}${formData.sem_no || "X"}`,
+      }));
+    }
+  }, [specificDegreeData]);
+
   return (
     <>
       {isOpen && (
@@ -222,7 +285,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
           <div
             ref={modalRef}
             className={`${
-              btnEnable ? "sm:max-w-[90vw]" : "sm:max-w-[425px]"
+              sidePartEnable
+                ? "sm:max-w-[90vw] w-[850px]"
+                : "sm:max-w-[425px] w-[425px]"
             } transition-all duration-300 bg-white rounded-lg shadow-lg p-6 h-[95vh]`}
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
@@ -240,9 +305,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
             <div className="w-full flex flex-col justify-between  h-[80vh]">
               <div className="flex ">
                 <div
-                  className={`flex flex-col justify-start gap-4 ${
-                    sidePartEnable ? "sm:max-w-[425px]" : ""
-                  } `}
+                  className={`flex flex-col justify-start gap-4 sm:max-w-[360px] w-[360px] shrink-0 `}
                 >
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="batch_id" className="text-right">
@@ -253,9 +316,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                       name="batch_id"
                       className="col-span-3"
                       disabled={true}
-                      value={`${formData.academic_year || "XXXX"}${
-                        specificDegreeData?.short || "XX"
-                      }${formData.level || "X"}${formData.sem_no || "X"}`}
+                      value={formData.batch_id || "XXXXXXXX"}
                     />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
@@ -416,95 +477,122 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     </div>
                   </div>
                 </div>
-                {sidePartEnable && (
-                  <div className="container mx-auto h-[70vh] overflow-auto p-1 flex flex-col justify-start gap-4">
-                    {curriculumByDegLevSemData?.map((obj) => {
-                      return (
-                        <div className={`grid grid-cols-4 items-center gap-4`}>
-                          <Label className="text-right">{obj.sub_code}</Label>
-                          <div className="grid col-span-3">
-                            <Popover
-                              open={comboBoxOpen[obj.sub_code]}
-                              onOpenChange={(bool) =>
-                                setComboBoxOpen((cur) => ({
-                                  ...cur,
-                                  [obj.sub_code]: bool,
-                                }))
-                              }
-                            >
-                              <PopoverTrigger asChild>
-                                <button
-                                  role="combobox"
-                                  aria-expanded={comboBoxOpen}
-                                  className="col-span-3 flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-white px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer"
-                                >
-                                  {formData?.subjects?.[obj.sub_code]
-                                    ? managers.find(
-                                        (manager) =>
-                                          manager.m_id ==
-                                          formData.subjects[obj.sub_code]
-                                      )?.name
-                                    : "Select manager"}
-                                  <ChevronsUpDown className="opacity-50 size-[17px] " />
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent className="py-0 px-1 border-none shadow-none">
-                                <Command className="border shadow-md">
-                                  <CommandInput placeholder="Search manager" />
-                                  <CommandList>
-                                    <CommandEmpty>
-                                      No manager found.
-                                    </CommandEmpty>
-                                    <CommandGroup>
-                                      {managers.map((manager) => (
-                                        <CommandItem
-                                          key={manager.m_id}
-                                          value={
-                                            manager.name +
-                                            ":" +
-                                            manager.m_id.toString()
-                                          }
-                                          onSelect={(currentValue) => {
-                                            setFormData((cur) => ({
-                                              ...cur,
-                                              subjects: {
-                                                ...cur.subjects,
-                                                [obj.sub_code]:
-                                                  currentValue.split(":")[1] ===
-                                                  cur?.subjects?.[obj.sub_code]
-                                                    ? ""
-                                                    : currentValue.split(
-                                                        ":"
-                                                      )[1],
-                                              },
-                                            }));
-                                            setComboBoxOpen(false);
-                                          }}
-                                        >
-                                          {manager.name}
-                                          <Check
-                                            className={cn(
-                                              "ml-auto",
-                                              formData?.subjects?.[
-                                                obj.sub_code
-                                              ] == manager.m_id
-                                                ? "opacity-100"
-                                                : "opacity-0"
-                                            )}
-                                          />
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
-                                  </CommandList>
-                                </Command>
-                              </PopoverContent>
-                            </Popover>
+                {sidePartEnable &&
+                  (curriculumByDegLevSemData?.length ? (
+                    <div className="container w-[425px] mx-auto h-[70vh] overflow-auto p-1 flex flex-col justify-start gap-4">
+                      {curriculumByDegLevSemData?.map((obj) => {
+                        return (
+                          <div
+                            className={`grid grid-cols-4 items-center gap-4`}
+                          >
+                            <Label className="text-right">{obj.sub_code}</Label>
+                            <div className="grid col-span-3">
+                              <Popover
+                                open={comboBoxOpen[obj.sub_id]}
+                                onOpenChange={(bool) => {
+                                  setComboBoxOpen((cur) => ({
+                                    ...cur,
+                                    [obj.sub_id]: bool,
+                                  }));
+                                }}
+                              >
+                                <PopoverTrigger asChild>
+                                  <button
+                                    role="combobox"
+                                    aria-expanded={comboBoxOpen}
+                                    className="col-span-3 flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-white px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer"
+                                  >
+                                    {formData?.subjects?.[obj.sub_id]
+                                      ? managers.find(
+                                          (manager) =>
+                                            manager.m_id ==
+                                            formData.subjects[obj.sub_id]
+                                        )?.name
+                                      : "Select manager"}
+                                    <ChevronsUpDown className="opacity-50 size-[17px] " />
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="py-0 px-1 border-none shadow-none">
+                                  <Command className="border shadow-md">
+                                    <CommandInput placeholder="Search manager" />
+                                    <CommandList>
+                                      <CommandEmpty>
+                                        No manager found.
+                                      </CommandEmpty>
+                                      <CommandGroup>
+                                        {managers.map((manager) => (
+                                          <CommandItem
+                                            key={manager.m_id}
+                                            value={
+                                              manager.name +
+                                              ":" +
+                                              manager.m_id.toString()
+                                            }
+                                            onSelect={(currentValue) => {
+                                              setFormData((cur) => ({
+                                                ...cur,
+                                                subjects: {
+                                                  ...cur.subjects,
+                                                  [obj.sub_id]:
+                                                    currentValue.split(
+                                                      ":"
+                                                    )[1] ===
+                                                    cur?.subjects?.[obj.sub_id]
+                                                      ? ""
+                                                      : currentValue.split(
+                                                          ":"
+                                                        )[1],
+                                                },
+                                              }));
+                                              setComboBoxOpen((cur) => ({
+                                                ...cur,
+                                                [obj.sub_id]: false,
+                                              }));
+                                            }}
+                                          >
+                                            {manager.name}
+                                            <Check
+                                              className={cn(
+                                                "ml-auto",
+                                                formData?.subjects?.[
+                                                  obj.sub_id
+                                                ] == manager.m_id
+                                                  ? "opacity-100"
+                                                  : "opacity-0"
+                                              )}
+                                            />
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="p-3 flex">
+                      <FaExclamation className="text-red-700 text-5xl inline-block" />
+                      <p>
+                        There is no curriculum available for {formData.level}
+                        {formData.level == "1" ? (
+                          <sup>st</sup>
+                        ) : formData.level == "2" ? (
+                          <sup>nd</sup>
+                        ) : formData.level == "3" ? (
+                          <sup>rd</sup>
+                        ) : (
+                          <sup>th</sup>
+                        )}
+                        &nbsp; year, {formData.sem_no}
+                        {formData.sem_no == "1" ? <sup>st</sup> : <sup>nd</sup>}
+                        &nbsp; semester, of {specificDegreeData?.deg_name}
+                      </p>
+                    </div>
+                  ))}
               </div>
               <div className="flex justify-between space-x-2 mt-4">
                 <Button
@@ -523,7 +611,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 </Button>
                 <Button
                   type="button"
-                  disabled={!sidePartEnable}
+                  disabled={!btnEnable}
                   onClick={onFormSubmitted}
                 >
                   {editId ? "Update" : "Create"}

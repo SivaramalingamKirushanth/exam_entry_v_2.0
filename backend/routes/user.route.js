@@ -12,6 +12,7 @@ import {
   getNoOfManagers,
   getNoOfStudents,
   getAllActiveManagers,
+  getStudentByDegShort,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -34,4 +35,7 @@ router.delete("/deleteUser", deleteUser);
 
 router.get("/getNoOfManagers", getNoOfManagers);
 router.get("/getNoOfStudents", getNoOfStudents);
+
+router.post("/getStudentByDegShort", getStudentByDegShort);
+
 export default router;

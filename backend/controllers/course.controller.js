@@ -591,7 +591,6 @@ export const getDegreeById = async (req, res, next) => {
     try {
       const query = `SELECT dg.*,d.d_id,f.f_id FROM degree dg LEFT JOIN dep_deg dd ON dg.deg_id = dd.deg_id LEFT JOIN department d ON dd.d_id = d.d_id LEFT JOIN fac_dep fd ON d.d_id = fd.d_id LEFT JOIN faculty f ON fd.f_id = f.f_id where dg.deg_id = ?`;
       const [results] = await conn.execute(query, [deg_id]);
-      console.log(results);
 
       if (results.length === 0) {
         return next(
