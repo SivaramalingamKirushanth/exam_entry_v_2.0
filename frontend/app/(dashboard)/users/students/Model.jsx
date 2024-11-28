@@ -36,6 +36,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     },
     onError: (err) => {
       console.log(err);
+      setEditId("");
       toast("Operation failed");
     },
   });
@@ -88,7 +89,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const onFormReset = () => {
-    setFormData(data);
+    setFormData(data || { status: "true" });
   };
 
   useEffect(() => {
@@ -122,7 +123,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
                 onClick={() => {
                   setIsOpen(false);
-                  onFormReset();
+                  setFormData({ status: "true" });
                   setEditId("");
                 }}
               />

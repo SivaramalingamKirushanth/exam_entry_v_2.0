@@ -1,14 +1,15 @@
 import pool from "../config/db.js";
 import errorProvider from "../utils/errorProvider.js";
+import { generatePassword, hashPassword } from "../utils/functions.js";
 
 export const createFaculty = async (req, res, next) => {
-  let { f_name, email, contact_no, status, m_id } = req.body;
+  let { f_name, email, contact_no, status } = req.body;
 
   if (!status) {
     status = "false";
   }
 
-  if (!f_name || !email || !contact_no || !m_id) {
+  if (!f_name || !email || !contact_no) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
@@ -20,33 +21,35 @@ export const createFaculty = async (req, res, next) => {
 
       // Check if faculty already exists (based on f_name or email)
       const [facultyExists] = await conn.execute(
-        "SELECT COUNT(*) AS count FROM faculty WHERE f_name = ? OR email = ?",
+        "SELECT COUNT(*) AS count FROM faculty f LEFT JOIN user u ON f.user_id = u.user_id WHERE f.f_name = ? OR u.user_name = ?",
         [f_name, email]
       );
 
       if (facultyExists[0].count > 0) {
         conn.release();
-        return next(errorProvider(409, "Faculty already exists"));
+        return next(errorProvider(409, "Faculty or email already exists"));
       }
+
+      const password = await generatePassword();
+
+      console.log("Generated password:", password);
+      const hashedPassword = await hashPassword(password);
+
+      const [userResult] = await conn.execute(
+        "INSERT INTO user(user_name, password, role_id) VALUES (?,?,?)",
+        [email, hashedPassword, "2"]
+      );
+      const user_id = userResult.insertId;
 
       // Insert into faculty table
       const [facultyResult] = await conn.execute(
-        "INSERT INTO faculty (f_name, email, contact_no, status) VALUES (?, ?, ?, ?)",
-        [f_name, email, contact_no, status]
+        "INSERT INTO faculty (f_name, user_id, contact_no, status) VALUES (?, ?, ?, ?)",
+        [f_name, user_id, contact_no, status]
       );
-      const f_id = facultyResult.insertId;
-
-      // Insert into fac_dean table
-      await conn.execute("INSERT INTO fac_dean (f_id, m_id) VALUES (?, ?)", [
-        f_id,
-        m_id,
-      ]);
 
       await conn.commit();
 
-      return res
-        .status(201)
-        .json({ message: "Faculty created successfully", f_id });
+      return res.status(201).json({ message: "Faculty created successfully" });
     } catch (error) {
       await conn.rollback();
       console.error("Error while creating faculty:", error);
@@ -63,9 +66,9 @@ export const createFaculty = async (req, res, next) => {
 };
 
 export const updateFaculty = async (req, res, next) => {
-  const { f_id, f_name, email, contact_no, status, m_id } = req.body;
+  const { f_id, f_name, email, contact_no, status } = req.body;
 
-  if (!f_name || !email || !contact_no || !m_id) {
+  if (!f_id || !f_name || !email || !contact_no) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
@@ -77,25 +80,24 @@ export const updateFaculty = async (req, res, next) => {
 
       // Check if faculty exists
       const [facultyExists] = await conn.execute(
-        "SELECT COUNT(*) AS count FROM faculty WHERE f_id = ?",
+        "SELECT * FROM faculty WHERE f_id = ?",
         [f_id]
       );
 
-      if (facultyExists[0].count === 0) {
+      if (!facultyExists.length) {
         conn.release();
         return next(errorProvider(404, "Faculty not found"));
       }
 
       // Update faculty table
       await conn.execute(
-        "UPDATE faculty SET f_name = ?, email = ?, contact_no = ?, status = ? WHERE f_id = ?",
-        [f_name, email, contact_no, status, f_id]
+        "UPDATE faculty SET f_name = ?, contact_no = ?, status = ? WHERE f_id = ?",
+        [f_name, contact_no, status, f_id]
       );
 
-      // Update fac_dean table
-      await conn.execute("UPDATE fac_dean SET m_id = ? WHERE f_id = ?", [
-        m_id,
-        f_id,
+      await conn.execute("UPDATE user SET user_name = ? WHERE user_id = ?", [
+        email,
+        facultyExists[0].user_id,
       ]);
 
       await conn.commit();
@@ -117,9 +119,9 @@ export const updateFaculty = async (req, res, next) => {
 };
 
 export const createDepartment = async (req, res, next) => {
-  const { d_name, email, contact_no, status, f_id, m_id } = req.body;
+  const { d_name, email, contact_no, status, f_id } = req.body;
 
-  if (!d_name || !email || !contact_no || !f_id || !m_id) {
+  if (!d_name || !email || !contact_no || !f_id) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
@@ -135,7 +137,7 @@ export const createDepartment = async (req, res, next) => {
 
       // Check if department already exists
       const [departmentExists] = await conn.execute(
-        "SELECT COUNT(*) AS count FROM department WHERE d_name = ? OR email = ?",
+        "SELECT COUNT(*) AS count FROM department d LEFT JOIN user u ON d.user_id = u.user_id WHERE d.d_name = ? OR u.user_name = ?",
         [d_name, email]
       );
 
@@ -144,18 +146,24 @@ export const createDepartment = async (req, res, next) => {
         return next(errorProvider(409, "Department already exists"));
       }
 
+      const password = await generatePassword();
+
+      console.log("Generated password:", password);
+      const hashedPassword = await hashPassword(password);
+
+      const [userResult] = await conn.execute(
+        "INSERT INTO user(user_name, password, role_id) VALUES (?,?,?)",
+        [email, hashedPassword, "3"]
+      );
+
+      const user_id = userResult.insertId;
+
       // Insert into department table
       const [departmentResult] = await conn.execute(
-        "INSERT INTO department (d_name, email, contact_no, status) VALUES (?, ?, ?, ?)",
-        [d_name, email, contact_no, status]
+        "INSERT INTO department (d_name, user_id, contact_no, status) VALUES (?, ?, ?, ?)",
+        [d_name, user_id, contact_no, status]
       );
       const d_id = departmentResult.insertId;
-
-      // Insert into dep_hod table
-      await conn.execute("INSERT INTO dep_hod (d_id, m_id) VALUES (?, ?)", [
-        d_id,
-        m_id,
-      ]);
 
       // Insert into fac_dep table
       await conn.execute("INSERT INTO fac_dep (f_id, d_id) VALUES (?, ?)", [
@@ -167,7 +175,6 @@ export const createDepartment = async (req, res, next) => {
 
       res.status(201).json({
         message: "Department created successfully",
-        d_id,
       });
     } catch (error) {
       await conn.rollback();
@@ -183,12 +190,11 @@ export const createDepartment = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
 export const updateDepartment = async (req, res, next) => {
-  const { d_id } = req.body;
+  const { d_id, d_name, email, contact_no, status, f_id } = req.body;
 
-  const { d_name, email, contact_no, status, f_id, m_id } = req.body;
-
-  if (!d_name || !email || !contact_no || !f_id || !m_id) {
+  if (!d_id || !d_name || !email || !contact_no || !f_id) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
@@ -199,25 +205,24 @@ export const updateDepartment = async (req, res, next) => {
       await conn.beginTransaction();
 
       const [departmentExists] = await conn.execute(
-        "SELECT COUNT(*) AS count FROM department WHERE d_id = ?",
+        "SELECT * FROM department WHERE d_id = ?",
         [d_id]
       );
 
-      if (departmentExists[0].count === 0) {
+      if (!departmentExists.length) {
         conn.release();
         return next(errorProvider(404, "Department not found"));
       }
 
       // Update department table
       await conn.execute(
-        "UPDATE department SET d_name = ?, email = ?, contact_no = ?, status = ? WHERE d_id = ?",
-        [d_name, email, contact_no, status, d_id]
+        "UPDATE department SET d_name = ?, contact_no = ?, status = ? WHERE d_id = ?",
+        [d_name, contact_no, status, d_id]
       );
 
-      // Update dep_hod table
-      await conn.execute("UPDATE dep_hod SET m_id = ? WHERE d_id = ?", [
-        m_id,
-        d_id,
+      await conn.execute("UPDATE user SET user_name = ? WHERE user_id = ?", [
+        email,
+        departmentExists[0].user_id,
       ]);
 
       // // Update fac_dep table
@@ -392,8 +397,8 @@ export const getAllFacultiesWithExtraDetails = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const query = `SELECT  f.*, COUNT(DISTINCT fd.d_id) AS department_count, COUNT(DISTINCT dd.deg_id) AS degree_count, md.name AS manager_name FROM faculty f LEFT JOIN fac_dep fd ON f.f_id = fd.f_id LEFT JOIN 
-    dep_deg dd ON fd.d_id = dd.d_id LEFT JOIN fac_dean fdn ON f.f_id = fdn.f_id LEFT JOIN manager_detail md ON fdn.m_id = md.m_id GROUP BY f.f_id, md.name`;
+      const query = `SELECT  f.*,u.user_name AS email, COUNT(DISTINCT fd.d_id) AS department_count, COUNT(DISTINCT dd.deg_id) AS degree_count FROM faculty f LEFT JOIN user u ON f.user_id = u.user_id LEFT JOIN fac_dep fd ON f.f_id = fd.f_id LEFT JOIN 
+    dep_deg dd ON fd.d_id = dd.d_id  GROUP BY f.f_id`;
 
       const [results] = await conn.execute(query);
 
@@ -421,8 +426,7 @@ export const getFacultyById = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const query = `
-          SELECT f.*,fac_dean.m_id FROM faculty f INNER JOIN fac_dean ON f.f_id = fac_dean.f_id WHERE f.f_id = ?`;
+      const query = `SELECT f.*, u.user_name AS email FROM faculty f LEFT JOIN user u ON u.user_id = f.user_id WHERE f.f_id = ?`;
 
       const [results] = await conn.execute(query, [f_id]);
 
@@ -475,7 +479,7 @@ export const getAllDepartmentsWithExtraDetails = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const query = `SELECT  d.*, f.f_name AS faculty_name, COUNT(DISTINCT dd.deg_id) AS degree_count, md.name AS manager_name FROM department d LEFT JOIN fac_dep fd ON d.d_id = fd.d_id LEFT JOIN faculty f ON fd.f_id = f.f_id LEFT JOIN dep_deg dd ON d.d_id = dd.d_id LEFT JOIN dep_hod dh ON d.d_id = dh.d_id LEFT JOIN  manager_detail md ON dh.m_id = md.m_id GROUP BY d.d_id, d.d_name, f.f_name, md.name`;
+      const query = `SELECT  d.*,u.user_name AS email, f.f_name AS faculty_name, COUNT(DISTINCT dd.deg_id) AS degree_count FROM department d LEFT JOIN user u ON d.user_id = u.user_id LEFT JOIN fac_dep fd ON d.d_id = fd.d_id LEFT JOIN faculty f ON fd.f_id = f.f_id LEFT JOIN dep_deg dd ON d.d_id = dd.d_id GROUP BY d.d_id, d.d_name, f.f_name`;
 
       const [results] = await conn.execute(query);
 
@@ -504,7 +508,7 @@ export const getDepartmentById = async (req, res, next) => {
 
     try {
       const query = `
-        SELECT d.*,fd.f_id,dh.m_id FROM department d INNER JOIN fac_dep fd ON d.d_id = fd.d_id INNER JOIN dep_hod dh ON dh.d_id = d.d_id WHERE d.d_id = ?`;
+        SELECT d.*,fd.f_id, u.user_name AS email FROM department d INNER JOIN fac_dep fd ON d.d_id = fd.d_id LEFT JOIN user u ON u.user_id = d.user_id WHERE d.d_id = ?`;
 
       const [results] = await conn.execute(query, [d_id]);
 

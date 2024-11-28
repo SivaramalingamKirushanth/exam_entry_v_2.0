@@ -7,11 +7,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getNoOfManagers, getNoOfStudents } from "@/utils/apiRequests/user.api";
+
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const users = () => {
   const pathname = usePathname();
+  const { data: noOfManagersData } = useQuery({
+    queryFn: getNoOfManagers,
+    queryKey: ["noOfManagers"],
+  });
+
+  const { data: noOfStudentsData } = useQuery({
+    queryFn: getNoOfStudents,
+    queryKey: ["noOfStudents"],
+  });
 
   return (
     <div className="flex justify-end md:justify-center">
@@ -23,7 +35,10 @@ const users = () => {
           <Card>
             <CardHeader>
               <CardTitle>Managers</CardTitle>
-              <CardDescription>no of Managers</CardDescription>
+              <CardDescription>
+                {" "}
+                {noOfManagersData?.count} {noOfManagersData && "Managers"}
+              </CardDescription>
             </CardHeader>
           </Card>
         </Link>
@@ -34,7 +49,10 @@ const users = () => {
           <Card>
             <CardHeader>
               <CardTitle>Students</CardTitle>
-              <CardDescription>no of Students</CardDescription>
+              <CardDescription>
+                {" "}
+                {noOfStudentsData?.count} {noOfStudentsData && "Students"}
+              </CardDescription>
             </CardHeader>
           </Card>
         </Link>

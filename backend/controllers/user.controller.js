@@ -58,7 +58,7 @@ export const getAllManagers = async (req, res, next) => {
           FROM user u
           INNER JOIN manager m ON u.user_id = m.user_id
           INNER JOIN manager_detail md ON m.m_id = md.m_id
-          WHERE u.role_id = 4 or u.role_id = 3 or u.role_id = 2`
+          WHERE u.role_id = 4`
       );
 
       return res.status(200).json(managers);

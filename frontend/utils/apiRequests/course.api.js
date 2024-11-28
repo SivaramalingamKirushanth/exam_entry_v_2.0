@@ -27,6 +27,13 @@ export const getFacultyById = async (f_id) => {
   return response.data;
 };
 
+export const getNoOfFaculty = async () => {
+  const response = await axiosInstance.get("/course/getNoOfFaculty");
+  return response.data;
+};
+
+///////////////////////////////
+/////////////////////////////////
 export const getDepartmentsByFacultyId = async (f_id) => {
   const response = await axiosInstance.post(
     "/course/getDepartmentsByFacultyId",
@@ -61,6 +68,11 @@ export const getDepartmentById = async (d_id) => {
   const response = await axiosInstance.post("/course/getDepartmentById", {
     d_id,
   });
+  return response.data;
+};
+
+export const getNoOfDepartments = async () => {
+  const response = await axiosInstance.get("/course/getNoOfDepartments");
   return response.data;
 };
 
@@ -102,5 +114,10 @@ export const getDegreesByDepartmentId = async (d_id) => {
   );
 
   console.log(response.data);
+  return response.data;
+};
+
+export const getNoOfDegrees = async () => {
+  const response = await axiosInstance.get("/course/getNoOfDegrees");
   return response.data;
 };

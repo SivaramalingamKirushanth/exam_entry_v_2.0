@@ -5,11 +5,33 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  getNoOfDegrees,
+  getNoOfDepartments,
+  getNoOfFaculty,
+} from "@/utils/apiRequests/course.api";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const users = () => {
   const pathname = usePathname();
+
+  const { data: noOfFacultiesData } = useQuery({
+    queryFn: getNoOfFaculty,
+    queryKey: ["noOfFaculties"],
+  });
+
+  const { data: noOfDepartmentsData } = useQuery({
+    queryFn: getNoOfDepartments,
+    queryKey: ["noOfDepartments"],
+  });
+
+  const { data: noOfDegreesData } = useQuery({
+    queryFn: getNoOfDegrees,
+    queryKey: ["noOfDegrees"],
+  });
+
   return (
     <div className="flex justify-end md:justify-center">
       <div className="md:w-[70%] flex gap-6 flex-wrap">
@@ -20,7 +42,9 @@ const users = () => {
           <Card>
             <CardHeader>
               <CardTitle>Faculties</CardTitle>
-              <CardDescription>no of Faculties</CardDescription>
+              <CardDescription>
+                {noOfFacultiesData?.count} {noOfFacultiesData && "Faculties"}
+              </CardDescription>
             </CardHeader>
           </Card>
         </Link>
@@ -31,7 +55,10 @@ const users = () => {
           <Card>
             <CardHeader>
               <CardTitle>Departments</CardTitle>
-              <CardDescription>no of Departments</CardDescription>
+              <CardDescription>
+                {noOfDepartmentsData?.count}{" "}
+                {noOfDepartmentsData && "Departments"}
+              </CardDescription>
             </CardHeader>
           </Card>
         </Link>
@@ -42,7 +69,10 @@ const users = () => {
           <Card>
             <CardHeader>
               <CardTitle>Degree programmes</CardTitle>
-              <CardDescription>no of Degree programmes</CardDescription>
+              <CardDescription>
+                {noOfDegreesData?.count}{" "}
+                {noOfDegreesData && "Degree programmes"}
+              </CardDescription>
             </CardHeader>
           </Card>
         </Link>

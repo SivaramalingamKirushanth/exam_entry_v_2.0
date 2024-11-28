@@ -1,6 +1,5 @@
 "use client";
 import { columns } from "./Columns";
-import { DataTable } from "./DataTable";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState, useRef } from "react";
 import { MdCancel } from "react-icons/md";
@@ -15,6 +14,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import Modal from "./Model";
 import { getAllDegreesWithExtraDetails } from "@/utils/apiRequests/course.api";
+import { DataTable } from "@/components/DataTable";
 
 const DegreeDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
@@ -118,6 +118,7 @@ const DegreeDetails = () => {
           data={filteredData}
           onEditClicked={onEditClicked}
           toggleModal={toggleModal}
+          btnText="Create degree programme"
         />
       </div>
     </>

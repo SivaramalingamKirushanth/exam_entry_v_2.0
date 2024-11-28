@@ -53,7 +53,11 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { FaExclamation } from "react-icons/fa";
-import { createBatch } from "@/utils/apiRequests/batch.api";
+import {
+  createBatch,
+  getBatchById,
+  updateBatch,
+} from "@/utils/apiRequests/batch.api";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({ status: "true" });
@@ -63,21 +67,22 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [comboBoxOpen, setComboBoxOpen] = useState({});
 
   const { status, mutate } = useMutation({
-    mutationFn: editId ? updateCurriculum : createBatch,
+    mutationFn: editId ? updateBatch : createBatch,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["batches"]);
-      setEditId("");
       toast(res.message);
+      setEditId("");
     },
     onError: (err) => {
       console.log(err);
+      setEditId("");
       toast("Operation failed");
     },
   });
 
   const { data, refetch } = useQuery({
-    queryFn: () => getCurriculumById(editId),
-    queryKey: ["curriculums", editId],
+    queryFn: () => getBatchById(editId),
+    queryKey: ["batches", editId],
     enabled: false,
   });
 
@@ -132,8 +137,16 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     queryFn: getAllActiveManagers,
     queryKey: ["activeManagers"],
   });
+
   useEffect(() => {
-    if (data) setFormData(data);
+    if (data) {
+      setFormData({
+        ...data,
+        old_batch_id: editId,
+        old_subjets: data.subjects,
+        old_status: data.status,
+      });
+    }
   }, [data]);
 
   const onFormDataChanged = (e) => {
@@ -191,21 +204,66 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const onFormSubmitted = () => {
-    const { batch_id, subjects, status } = formData;
-    mutate({ batch_id, subjects, status });
+    console.log(editId);
+    if (editId) {
+      const {
+        batch_id,
+        subjects,
+        status,
+        old_batch_id,
+        old_subjets,
+        old_status,
+      } = formData;
+      console.log(
+        batch_id,
+        subjects,
+        status,
+        old_batch_id,
+        old_subjets,
+        old_status
+      );
+      mutate({
+        batch_id,
+        subjects,
+        status,
+        old_batch_id,
+        old_subjets,
+        old_status,
+      });
+    } else {
+      const { batch_id, subjects, status } = formData;
+      mutate({ batch_id, subjects, status });
+    }
+
     setFormData({ status: "true" });
     setIsOpen(false);
   };
 
   const onFormReset = () => {
-    setFormData(data);
+    setFormData(
+      {
+        ...data,
+        old_batch_id: editId,
+        old_subjets: data.subjects,
+        old_status: data.status,
+      } || { status: "true" }
+    );
   };
 
   useEffect(() => {
-    setFormData((cur) => ({ ...cur, subjects: {} }));
+    if (
+      data?.sem_no == formData.sem_no &&
+      data?.level == formData.level &&
+      data?.deg_id == formData.deg_id
+    ) {
+      setFormData((cur) => ({ ...cur }));
+    } else {
+      setFormData((cur) => ({ ...cur, subjects: {} }));
+    }
   }, [formData.sem_no, formData.level, formData.deg_id]);
 
   useEffect(() => {
+    console.log(formData);
     let isFormValid =
       formData.academic_year &&
       formData.d_id &&
@@ -222,7 +280,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   }, [formData]);
 
   useEffect(() => {
-    console.log(formData);
     let isFormValid = true;
 
     if (sidePartEnable) {
@@ -243,6 +300,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         } else {
           isFormValid = false;
         }
+      } else {
+        isFormValid = false;
       }
 
       setBtnEnable(sidePartEnable && isFormValid);
@@ -250,6 +309,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   }, [formData]);
 
   useEffect(() => {
+    console.log(11);
     editId && refetch();
   }, [editId]);
 
@@ -297,7 +357,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
                 onClick={() => {
                   setIsOpen(false);
-                  onFormReset();
+                  setFormData({ status: "true" });
                   setEditId("");
                 }}
               />
@@ -419,15 +479,14 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     <Label className="text-right">Level</Label>
                     <div className="flex col-span-3 gap-4 flex-wrap">
                       {specificDegreeData?.levels.map((item) => (
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2" key={item}>
                           <input
-                            key={item}
                             type="radio"
                             value={item}
                             id={`l${item}`}
                             checked={formData.level == item}
                             name="level"
-                            onClick={(e) => onFormDataChanged(e)}
+                            onChange={(e) => onFormDataChanged(e)}
                             className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
                           />
                           <Label
@@ -448,15 +507,14 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     <Label className="text-right">Semester</Label>
                     <div className="flex col-span-3 gap-4 flex-wrap">
                       {[1, 2].map((item) => (
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2" key={item}>
                           <input
-                            key={item}
                             type="radio"
                             value={item}
                             id={`s${item}`}
                             checked={formData.sem_no == item}
                             name="sem_no"
-                            onClick={(e) => onFormDataChanged(e)}
+                            onChange={(e) => onFormDataChanged(e)}
                             className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
                           />
                           <Label
@@ -600,8 +658,16 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                           <sup>th</sup>
                         )}
                         &nbsp; year, {formData.sem_no}
-                        {formData.sem_no == "1" ? <sup>st</sup> : <sup>nd</sup>}
-                        &nbsp; semester, of {specificDegreeData?.deg_name}
+                        {formData.sem_no == "1" ? (
+                          <sup>st</sup>
+                        ) : formData.level == "2" ? (
+                          <sup>nd</sup>
+                        ) : formData.level == "3" ? (
+                          <sup>rd</sup>
+                        ) : (
+                          <sup>th</sup>
+                        )}
+                        &nbsp; semester of {specificDegreeData?.deg_name}
                       </p>
                     </div>
                   ))}

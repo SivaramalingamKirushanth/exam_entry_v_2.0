@@ -21,10 +21,6 @@ export const columns = [
     },
   },
   {
-    accessorKey: "manager_name",
-    header: "HOD",
-  },
-  {
     accessorKey: "faculty_name",
     header: "Faculty",
   },

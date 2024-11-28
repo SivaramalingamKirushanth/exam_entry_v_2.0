@@ -47,3 +47,13 @@ export const updateStudent = async (data) => {
   const response = await axiosInstance.put("/user/updateStudent", data);
   return response.data;
 };
+
+export const getNoOfManagers = async () => {
+  const response = await axiosInstance.get("/user/getNoOfManagers");
+  return response.data;
+};
+
+export const getNoOfStudents = async () => {
+  const response = await axiosInstance.get("/user/getNoOfStudents");
+  return response.data;
+};

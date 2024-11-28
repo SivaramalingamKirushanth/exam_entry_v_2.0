@@ -1,7 +1,6 @@
 "use client";
 
 import { columns } from "./Columns";
-import { DataTable } from "./DataTable";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { MdCancel } from "react-icons/md";
@@ -16,6 +15,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import Modal from "./Model";
 import { getAllFacultiesWithExtraDetails } from "@/utils/apiRequests/course.api";
+import { DataTable } from "@/components/DataTable";
 
 const FacultyDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
@@ -119,6 +119,7 @@ const FacultyDetails = () => {
           data={filteredData}
           onEditClicked={onEditClicked}
           toggleModal={toggleModal}
+          btnText="Create faculty"
         />
       </div>
     </>

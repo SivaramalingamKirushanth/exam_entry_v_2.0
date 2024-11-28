@@ -1,7 +1,7 @@
 import pool from "../config/db.js";
 import errorProvider from "../utils/errorProvider.js";
 import { parseString } from "../utils/functions.js";
-
+import lodash from "lodash";
 export const getAllBatches = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
@@ -33,20 +33,47 @@ export const getAllBatches = async (req, res, next) => {
 };
 
 export const getBatchById = async (req, res, next) => {
+  const { batch_id } = req.body;
+
   try {
     const conn = await pool.getConnection();
     try {
-      const [batches] = await conn.execute(`SELECT * FROM batch`);
+      const [batch] = await conn.execute(
+        `SELECT * FROM batch WHERE batch_id = ?`,
+        [batch_id]
+      );
 
-      if (!batches.length) {
+      if (!batch.length) {
         return next(errorProvider(404, "No Bathces found"));
       }
 
-      return res.status(200).json(batches);
+      let details = parseString(batch_id);
+
+      const [degFacDepResults] = await conn.execute(
+        `SELECT d.deg_id, dd.d_id, fd.f_id FROM degree d INNER JOIN dep_deg dd ON d.deg_id = dd.deg_id INNER JOIN fac_dep fd ON dd.d_id = fd.d_id WHERE d.short = ?`,
+        [details.degree_name_short]
+      );
+
+      const [batCurLecResult] = await conn.execute(
+        `SELECT * FROM batch_curriculum_lecturer WHERE batch_id = ?`,
+        [batch_id]
+      );
+
+      const subjects = {};
+      batCurLecResult.forEach((obj) => {
+        subjects[obj.sub_id] = obj.m_id.toString();
+      });
+
+      return res.status(200).json({
+        status: batch[0].status,
+        ...details,
+        ...degFacDepResults[0],
+        subjects,
+      });
     } catch (error) {
-      console.error("Error retrieving batches:", error);
+      console.error("Error retrieving batch:", error);
       return next(
-        errorProvider(500, "An error occurred while retrieving batches")
+        errorProvider(500, "An error occurred while retrieving batch")
       );
     } finally {
       conn.release();
@@ -73,7 +100,7 @@ export const createBatch = async (req, res, next) => {
       await conn.beginTransaction();
 
       const [batchExists] = await conn.execute(
-        "SELECT COUNT(*) AS count FROM batch WHERE batch_id = ? AND status = 'true'",
+        "SELECT COUNT(*) AS count FROM batch WHERE batch_id = ?",
         [batch_id]
       );
 
@@ -102,9 +129,9 @@ export const createBatch = async (req, res, next) => {
         [batch_id, description, status]
       );
 
-      if (subjects) {
+      if (Object.keys(subjects).length) {
         const [batchDetailsResult] = await conn.execute(
-          `INSERT INTO batch_curriculum_lecture(batch_id, sub_id, m_id) VALUES ${batchCurriculumLectureSqlValues}`,
+          `INSERT INTO batch_curriculum_lecturer(batch_id, sub_id, m_id) VALUES ${batchCurriculumLectureSqlValues}`,
           values
         );
 
@@ -135,6 +162,127 @@ export const createBatch = async (req, res, next) => {
         errorProvider(
           500,
           "An error occurred while creating the batch and details"
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const updateBatch = async (req, res, next) => {
+  const { old_subjets, subjects, old_batch_id, batch_id, old_status, status } =
+    req.body;
+
+  if (
+    lodash.isEqual(old_subjets, subjects) &&
+    old_batch_id == batch_id &&
+    old_status == status
+  ) {
+    return res.status(200).json({
+      message: "Nothing to update, same content",
+    });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      if (!batch_id || !status) {
+        return next(
+          errorProvider(400, "All fields (batch_id, status) are required")
+        );
+      }
+
+      await conn.beginTransaction();
+
+      const [batchExists] = await conn.execute(
+        "SELECT COUNT(*) AS count FROM batch WHERE batch_id = ?",
+        [old_batch_id]
+      );
+
+      if (batchExists[0].count == 0) {
+        conn.release();
+        return next(errorProvider(409, "Batch not found"));
+      }
+
+      let description = "";
+      let batchCurriculumLectureSqlValues = "";
+      let values = [];
+      if (subjects) {
+        Object.entries(subjects).forEach((arr, ind) => {
+          if (ind != 0) {
+            description += ",";
+            batchCurriculumLectureSqlValues += ",";
+          }
+          description += arr[0];
+          batchCurriculumLectureSqlValues += "(?, ?, ?)";
+          values.push(batch_id, arr[0], arr[1]);
+        });
+      }
+
+      const [batchResult] = await conn.execute(
+        "UPDATE batch SET batch_id=?,description=?,status=? WHERE batch_id = ?",
+        [batch_id, description, status, old_batch_id]
+      );
+
+      if (Object.keys(old_subjets).length) {
+        const [deleteOldBatCurLecRowsResult] = await conn.execute(
+          "DELETE FROM batch_curriculum_lecturer WHERE batch_id = ?",
+          [old_batch_id]
+        );
+
+        let deleteTablesSql = "DROP TABLE IF EXISTS ";
+        Object.keys(old_subjets).forEach((sub_id, ind) => {
+          if (ind != 0) {
+            deleteTablesSql += ",";
+          }
+          deleteTablesSql += `${old_batch_id}_${sub_id}`;
+        });
+        await conn.query(deleteTablesSql);
+        console.log(`\'${deleteTablesSql}\' deleted successfully`);
+      }
+
+      if (Object.keys(subjects).length) {
+        const [batchDetailsResult] = await conn.execute(
+          `INSERT INTO batch_curriculum_lecturer(batch_id, sub_id, m_id) VALUES ${batchCurriculumLectureSqlValues}`,
+          values
+        );
+
+        for (const sub_id of Object.keys(subjects)) {
+          const createTableQuery = `
+          CREATE TABLE ${batch_id}_${sub_id} (
+            s_id INT(11) NOT NULL,
+            eligibility VARCHAR(50) NOT NULL
+          )
+        `;
+          await conn.query(createTableQuery);
+          console.log(`Table ${batch_id}_${sub_id} created successfully`);
+        }
+      }
+
+      const [deleteTableForTheBatchStudentsResult] = await conn.execute(
+        `DROP TABLE IF EXISTS batch_${old_batch_id}`
+      );
+
+      const [createTableForTheBatchStudentsResult] = await conn.execute(
+        `CREATE TABLE batch_${batch_id} (s_id INT(11) NOT NULL,applied_to_exam VARCHAR(50) NOT NULL,admission_ready VARCHAR(50) NOT NULL)`
+      );
+
+      await conn.commit();
+      return res.status(201).json({
+        message: "Batch and batch subject details updated successfully",
+      });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error updating batch and details:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while updating the batch and details"
         )
       );
     } finally {
