@@ -3,6 +3,7 @@ import {
   addStudentsToTheBatchTable,
   createBatch,
   getAllBatches,
+  getBatchByFacultyId,
   getBatchById,
   getNoOfBatches,
   getStudentsByBatchId,
@@ -17,6 +18,7 @@ router.get("/getNoOfBatches", getNoOfBatches);
 router.post("/addStudentsToTheBatchTable", addStudentsToTheBatchTable);
 router.post("/getStudentsByBatchId", getStudentsByBatchId);
 router.post("/getBatchById", getBatchById);
+router.post("/getBatchByFacultyId", getBatchByFacultyId);
 router.put("/updateBatch", updateBatch);
 
 export default router;

@@ -38,3 +38,15 @@ export const updateBatch = async (data) => {
   const response = await axiosInstance.put("/batch/updateBatch", data);
   return response.data;
 };
+
+export const getNoOfBatches = async () => {
+  const response = await axiosInstance.get("/batch/getNoOfBatches");
+  return response.data;
+};
+
+export const getBatchByFacultyId = async (f_id) => {
+  const response = await axiosInstance.post("/batch/getBatchByFacultyId", {
+    f_id,
+  });
+  return response.data;
+};

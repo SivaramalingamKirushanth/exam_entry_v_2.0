@@ -25,7 +25,11 @@ import {
 } from "@/components/ui/select";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
-  const [formData, setFormData] = useState({ status: "true", levels: [] });
+  const [formData, setFormData] = useState({
+    status: "true",
+    levels: [],
+    no_of_sem_per_year: "2",
+  });
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
 
@@ -87,12 +91,29 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   const onFormSubmitted = () => {
     mutate(formData);
-    setFormData({ status: "true", levels: [] });
+    setFormData({ status: "true", levels: [], no_of_sem_per_year: "2" });
     setIsOpen(false);
   };
 
   const onFormReset = () => {
-    setFormData(data || { status: "true" });
+    setFormData(
+      data || { status: "true", levels: [], no_of_sem_per_year: "2" }
+    );
+  };
+
+  const onSemCountChanged = (e) => {
+    let value = +e.target.value;
+    if (value < +e.target.min) {
+      value = +e.target.min;
+    } else if (value > +e.target.max) {
+      value = +e.target.max;
+    }
+
+    setFormData((curData) => ({
+      ...curData,
+      no_of_sem_per_year: value,
+    }));
+    e.target.value = value;
   };
 
   useEffect(() => {
@@ -101,6 +122,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       formData.short &&
       formData.f_id &&
       formData.d_id &&
+      formData.no_of_sem_per_year &&
       formData.levels.length;
     setBtnEnable(isFormValid);
   }, [formData]);
@@ -128,7 +150,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
                 onClick={() => {
                   setIsOpen(false);
-                  setFormData({ status: "true", levels: [] });
+                  setFormData({
+                    status: "true",
+                    levels: [],
+                    no_of_sem_per_year: "2",
+                  });
                   setEditId("");
                 }}
               />
@@ -240,6 +266,23 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     </div>
                   ))}
                 </div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="no_of_sem_per_year" className="text-right">
+                  Semesters per year
+                </Label>
+                <input
+                  type="number"
+                  min="1"
+                  max="12"
+                  placeholder="Enter semesters count"
+                  className="flex h-9 col-span-3 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  name="no_of_sem_per_year"
+                  id="no_of_sem_per_year"
+                  onBlur={(e) => onSemCountChanged(e)}
+                  onChange={(e) => onFormDataChanged(e)}
+                  value={formData.no_of_sem_per_year || ""}
+                />
               </div>
               <div className="grid grid-cols-4 gap-4">
                 <Label className="text-right">Status</Label>

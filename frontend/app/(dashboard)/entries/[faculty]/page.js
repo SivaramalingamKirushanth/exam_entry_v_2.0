@@ -1,45 +1,52 @@
 "use client";
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { usePathname, useSearchParams } from "next/navigation";
+import { getBatchByFacultyId } from "@/utils/apiRequests/batch.api";
 
-const users = () => {
+const faculties = () => {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const f_id = searchParams.get("f_id");
+
+  const { data: batchesByFacultyData } = useQuery({
+    queryFn: () => getBatchByFacultyId(f_id),
+    queryKey: ["batchesByFaculty"],
+  });
+
   return (
     <div className="flex justify-end md:justify-center">
       <div className="md:w-[70%] flex gap-6 flex-wrap">
-        <Link
-          href={`${pathname}/physical science`}
-          className="w-[30%] hover:shadow-md rounded-xl"
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Physical Science</CardTitle>
-              <CardDescription>no of Courses</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-        <Link
-          href={`${pathname}/biological science`}
-          className="w-[30%] hover:shadow-md rounded-xl"
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Biological science</CardTitle>
-              <CardDescription>no of Courses</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
+        {batchesByFacultyData &&
+          batchesByFacultyData.map((obj) => (
+            <Link
+              href={{
+                pathname: `${pathname}/${obj.batch_code}`,
+                query: {
+                  batch_id: obj.batch_id,
+                },
+              }}
+              className="w-[30%] hover:shadow-md rounded-xl"
+              key={obj.batch_id}
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="capitalize">{obj.batch_code}</CardTitle>
+                  <CardDescription>{obj.batch_code}</CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
+          ))}
       </div>
     </div>
   );
 };
 
-export default users;
+export default faculties;

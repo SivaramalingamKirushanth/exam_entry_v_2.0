@@ -32,10 +32,6 @@ export const columns = [
     header: "Contact No",
   },
   {
-    accessorKey: "address",
-    header: "Address",
-  },
-  {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {

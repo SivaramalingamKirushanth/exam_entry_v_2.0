@@ -3,7 +3,6 @@ import DashboardHeader from "@/components/DashboardHeader";
 import Sidebar from "@/components/Sidebar";
 
 const RootLayout = ({ children }) => {
-  
   return (
     <div>
       <DashboardHeader />

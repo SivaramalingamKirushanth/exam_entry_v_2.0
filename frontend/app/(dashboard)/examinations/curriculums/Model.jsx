@@ -109,7 +109,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   useEffect(() => {
-    console.log(formData);
     const isFormValid =
       formData.sub_code &&
       formData.sub_name &&
@@ -146,7 +145,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
-              <h3 className="text-lg font-semibold">Curriculum</h3>
+              <h3 className="text-lg font-semibold">Subject</h3>
 
               <GiCancel
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
@@ -258,15 +257,14 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 <Label className="text-right">Level</Label>
                 <div className="flex col-span-3 gap-4 flex-wrap">
                   {degreeLevelsData?.levels.map((item) => (
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2" key={item}>
                       <input
                         type="radio"
                         value={item}
-                        key={item}
                         id={`l${item}`}
                         checked={formData.level == item}
                         name="level"
-                        onClick={(e) => onFormDataChanged(e)}
+                        onChange={(e) => onFormDataChanged(e)}
                         className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
                       />
                       <Label htmlFor={`l${item}`} className="cursor-pointer">
@@ -283,23 +281,30 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               >
                 <Label className="text-right">Semester</Label>
                 <div className="flex col-span-3 gap-4 flex-wrap">
-                  {[1, 2].map((item) => (
-                    <div className="flex items-center space-x-2">
-                      <input
-                        key={item}
-                        type="radio"
-                        value={item}
-                        id={`s${item}`}
-                        checked={formData.sem_no == item}
-                        name="sem_no"
-                        onClick={(e) => onFormDataChanged(e)}
-                        className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
-                      />
-                      <Label htmlFor={`s${item}`} className="cursor-pointer">
-                        {item}
-                      </Label>
-                    </div>
-                  ))}
+                  {Array(+degreeLevelsData?.no_of_sem_per_year || 0)
+                    .fill(1)
+                    .map((_, ind) => (
+                      <div
+                        className="flex items-center space-x-2"
+                        key={ind + 1}
+                      >
+                        <input
+                          type="radio"
+                          value={ind + 1}
+                          id={`s${ind + 1}`}
+                          checked={formData.sem_no == ind + 1}
+                          name="sem_no"
+                          onChange={(e) => onFormDataChanged(e)}
+                          className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
+                        />
+                        <Label
+                          htmlFor={`s${ind + 1}`}
+                          className="cursor-pointer"
+                        >
+                          {ind + 1}
+                        </Label>
+                      </div>
+                    ))}
                 </div>
               </div>
               <div className="grid grid-cols-4 gap-4">

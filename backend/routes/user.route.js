@@ -4,8 +4,6 @@ import {
   getAllManagers,
   updateStudent,
   updateManager,
-  getAllHods,
-  getAllDeans,
   getManagerById,
   deleteUser,
   getStudentById,
@@ -27,9 +25,6 @@ router.post("/getStudentById", getStudentById);
 
 router.put("/updateStudent", updateStudent);
 router.put("/updateManager", updateManager);
-
-router.get("/getAllHods", getAllHods);
-router.get("/getAllDeans", getAllDeans);
 
 router.delete("/deleteUser", deleteUser);
 

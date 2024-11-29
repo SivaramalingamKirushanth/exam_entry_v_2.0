@@ -7,19 +7,10 @@ import errorProvider from "../utils/errorProvider.js";
 const JWT_SECRET = process.env.JWT_SECRET || "abc123";
 
 export const studentRegister = async (req, res, next) => {
-  const { user_name, name, d_id, email, contact_no, address, status } =
-    req.body;
+  const { user_name, name, d_id, email, status } = req.body;
   const role_id = 5;
 
-  if (
-    !user_name ||
-    !name ||
-    !d_id ||
-    !email ||
-    !contact_no ||
-    !address ||
-    !status
-  ) {
+  if (!user_name || !name || !d_id || !email || !status) {
     return next(errorProvider(400, "Missing credentials"));
   }
 
@@ -35,8 +26,8 @@ export const studentRegister = async (req, res, next) => {
       await conn.beginTransaction();
 
       const [userExists] = await conn.execute(
-        "SELECT COUNT(*) AS count FROM user WHERE user_name = ?",
-        [user_name]
+        "SELECT COUNT(*) AS count FROM user WHERE user_name = ? OR email = ?",
+        [user_name, email]
       );
 
       if (userExists[0].count > 0) {
@@ -45,8 +36,8 @@ export const studentRegister = async (req, res, next) => {
       }
 
       const [userResult] = await conn.execute(
-        "INSERT INTO user(user_name, password, role_id) VALUES (?,?,?)",
-        [user_name, hashedPassword, role_id]
+        "INSERT INTO user(user_name, email, password, role_id) VALUES (?,?,?,?)",
+        [user_name, email, hashedPassword, role_id]
       );
       const user_id = userResult.insertId;
 
@@ -57,8 +48,8 @@ export const studentRegister = async (req, res, next) => {
       const s_id = studentResult.insertId;
 
       await conn.execute(
-        "INSERT INTO student_detail(s_id, name, d_id, email, contact_no, address, status) VALUES (?,?,?,?,?,?,?)",
-        [s_id, name, d_id, email, contact_no, address, status]
+        "INSERT INTO student_detail(s_id, name, d_id, status) VALUES (?,?,?,?)",
+        [s_id, name, d_id, status]
       );
 
       await conn.commit();
@@ -79,10 +70,10 @@ export const studentRegister = async (req, res, next) => {
 };
 
 export const managerRegister = async (req, res, next) => {
-  const { user_name, name, email, contact_no, address, status } = req.body;
+  const { user_name, name, email, contact_no, status } = req.body;
   const role_id = 4;
 
-  if (!user_name || !name || !email || !contact_no || !address || !status) {
+  if (!user_name || !name || !email || !contact_no || !status) {
     return next(errorProvider(400, "Missing credentials"));
   }
 
@@ -98,8 +89,8 @@ export const managerRegister = async (req, res, next) => {
       await conn.beginTransaction();
 
       const [userExists] = await conn.execute(
-        "SELECT COUNT(*) AS count FROM user WHERE user_name = ?",
-        [user_name]
+        "SELECT COUNT(*) AS count FROM user WHERE user_name = ? OR email = ?",
+        [user_name, email]
       );
 
       if (userExists[0].count > 0) {
@@ -108,8 +99,8 @@ export const managerRegister = async (req, res, next) => {
       }
 
       const [userResult] = await conn.execute(
-        "INSERT INTO user(user_name, password, role_id) VALUES (?,?,?)",
-        [user_name, hashedPassword, role_id]
+        "INSERT INTO user(user_name, email, password, role_id) VALUES (?,?,?,?)",
+        [user_name, email, hashedPassword, role_id]
       );
       const user_id = userResult.insertId;
 
@@ -120,8 +111,8 @@ export const managerRegister = async (req, res, next) => {
       const m_id = managerResult.insertId;
 
       await conn.execute(
-        "INSERT INTO manager_detail(m_id, name, email, contact_no, address, status) VALUES (?,?,?,?,?,?)",
-        [m_id, name, email, contact_no, address, status]
+        "INSERT INTO manager_detail(m_id, name, contact_no, status) VALUES (?,?,?,?)",
+        [m_id, name, contact_no, status]
       );
 
       await conn.commit();
@@ -142,9 +133,9 @@ export const managerRegister = async (req, res, next) => {
 };
 
 export const login = async (req, res, next) => {
-  const { user_name, password } = req.body;
+  const { user_name_or_email, password } = req.body;
 
-  if (!user_name || !password) {
+  if (!user_name_or_email || !password) {
     return next(errorProvider(400, "Missing credentials"));
   }
 
@@ -153,8 +144,8 @@ export const login = async (req, res, next) => {
 
     try {
       const [user] = await conn.execute(
-        "SELECT user_id, password, role_id FROM user WHERE user_name = ?",
-        [user_name]
+        "SELECT user_id, password, role_id FROM user WHERE user_name = ? OR email = ?",
+        [user_name_or_email, user_name_or_email]
       );
 
       if (user.length == 0) {

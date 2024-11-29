@@ -25,17 +25,13 @@ const DashboardHeader = () => {
               return (
                 <React.Fragment key={ind}>
                   <BreadcrumbItem>
-                    <BreadcrumbLink href={"./"}>
-                      <span
-                        className={`${
-                          regex.test(decodeURI(item))
-                            ? "uppercase"
-                            : "capitalize"
-                        } underline-offset-4 hover:underline`}
-                      >
-                        {decodeURI(item)}
-                      </span>
-                    </BreadcrumbLink>
+                    <span
+                      className={`${
+                        regex.test(decodeURI(item)) ? "uppercase" : "capitalize"
+                      } `}
+                    >
+                      {decodeURI(item)}
+                    </span>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator />
                 </React.Fragment>

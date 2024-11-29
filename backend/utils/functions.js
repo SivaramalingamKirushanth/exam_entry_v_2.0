@@ -34,7 +34,7 @@ export function parseString(input) {
       degree_name_short,
       level,
       sem_no,
-      batch_id: input,
+      batch_code: input,
     };
   } else {
     throw new Error("Invalid format");

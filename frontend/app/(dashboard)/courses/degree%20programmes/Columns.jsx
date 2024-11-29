@@ -33,6 +33,26 @@ export const columns = [
     header: "Department",
   },
   {
+    accessorKey: "levels",
+    header: "Levels",
+    cell: ({ row }) => {
+      return (
+        <div>
+          {row.original.levels.split(":").map((level) => (
+            <div key={level}>Level&nbsp;{level}</div>
+          ))}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "no_of_sem_per_year",
+    header: "Semesters per Level",
+    cell: ({ row }) => {
+      return <p className="text-right">{row.original.no_of_sem_per_year}</p>;
+    },
+  },
+  {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {

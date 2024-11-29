@@ -60,13 +60,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   useEffect(() => {
-    console.log(formData);
     const isFormValid =
       formData.name &&
       formData.user_name &&
       formData.email &&
-      formData.contact_no &&
-      formData.address;
+      formData.contact_no;
     setBtnEnable(isFormValid);
   }, [formData]);
 
@@ -142,18 +140,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
                   value={formData?.contact_no || ""}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="address" className="text-right">
-                  Address
-                </Label>
-                <Input
-                  id="address"
-                  name="address"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  value={formData?.address || ""}
                 />
               </div>
 

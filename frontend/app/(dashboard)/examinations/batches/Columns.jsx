@@ -6,8 +6,8 @@ import { FaPen, FaUserPlus } from "react-icons/fa6";
 
 export const columns = [
   {
-    accessorKey: "batch_id",
-    header: "Batch ID",
+    accessorKey: "batch_code",
+    header: "Batch code",
   },
   {
     accessorKey: "academic_year",

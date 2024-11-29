@@ -121,3 +121,26 @@ export const getNoOfDegrees = async () => {
   const response = await axiosInstance.get("/course/getNoOfDegrees");
   return response.data;
 };
+
+export const getActiveFacultiesWithDepartmentsCount = async () => {
+  const response = await axiosInstance.get(
+    "/course/getActiveFacultiesWithDepartmentsCount"
+  );
+  return response.data;
+};
+
+export const getActiveDepartmentsInAFacultyWithDegreesCount = async (f_id) => {
+  const response = await axiosInstance.post(
+    "/course/getActiveDepartmentsInAFacultyWithDegreesCount",
+    { f_id }
+  );
+  return response.data;
+};
+
+export const getActiveDegreesInADepartmentWithLevelsCount = async (d_id) => {
+  const response = await axiosInstance.post(
+    "/course/getActiveDegreesInADepartmentWithLevelsCount",
+    { d_id }
+  );
+  return response.data;
+};

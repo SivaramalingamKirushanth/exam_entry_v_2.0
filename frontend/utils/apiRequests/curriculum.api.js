@@ -55,6 +55,7 @@ export const updateCurriculum = async (data) => {
   );
   return response.data;
 };
+
 export const getNoOfCurriculums = async () => {
   const response = await axiosInstance.get("/curriculum/getNoOfCurriculums");
   return response.data;

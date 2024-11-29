@@ -97,8 +97,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       formData.name &&
       formData.user_name &&
       formData.email &&
-      formData.contact_no &&
-      formData.address &&
       formData.f_id &&
       formData.d_id;
     setBtnEnable(isFormValid);
@@ -164,30 +162,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
                   value={formData.email || ""}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="contact_no" className="text-right">
-                  Contact No
-                </Label>
-                <Input
-                  id="contact_no"
-                  name="contact_no"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  value={formData.contact_no || ""}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="address" className="text-right">
-                  Address
-                </Label>
-                <Input
-                  id="address"
-                  name="address"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  value={formData.address || ""}
                 />
               </div>
 

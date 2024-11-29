@@ -142,8 +142,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     if (data) {
       setFormData({
         ...data,
-        old_batch_id: editId,
-        old_subjets: data.subjects,
+        old_batch_code: data.batch_code,
+        old_subjects: data.subjects,
         old_status: data.status,
       });
     }
@@ -154,7 +154,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setFormData((curData) => ({
         ...curData,
         [e.target?.name]: e.target?.value,
-        batch_id: `${
+        batch_code: `${
           e.target?.name == "academic_year"
             ? e.target?.value
             : formData.academic_year || "XXXX"
@@ -170,7 +170,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setFormData((curData) => ({
         ...curData,
         [e.split(":")[0]]: e.split(":")[1],
-        batch_id: `${
+        batch_code: `${
           e.target?.name == "academic_year"
             ? e.target?.value
             : formData.academic_year || "XXXX"
@@ -194,7 +194,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     setFormData((curData) => ({
       ...curData,
       academic_year: value,
-      batch_id: `${value}${specificDegreeData?.short || "XX"}${
+      batch_code: `${value}${specificDegreeData?.short || "XX"}${
         e.target?.name == "level" ? e.target?.value : formData.level || "X"
       }${
         e.target?.name == "sem_no" ? e.target?.value : formData.sem_no || "X"
@@ -204,35 +204,28 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const onFormSubmitted = () => {
-    console.log(editId);
     if (editId) {
       const {
-        batch_id,
+        batch_code,
+        old_batch_code,
         subjects,
         status,
-        old_batch_id,
-        old_subjets,
+        old_subjects,
         old_status,
+        batch_id,
       } = formData;
-      console.log(
-        batch_id,
-        subjects,
-        status,
-        old_batch_id,
-        old_subjets,
-        old_status
-      );
       mutate({
-        batch_id,
+        batch_code,
+        old_batch_code,
         subjects,
         status,
-        old_batch_id,
-        old_subjets,
+        old_subjects,
         old_status,
+        batch_id,
       });
     } else {
-      const { batch_id, subjects, status } = formData;
-      mutate({ batch_id, subjects, status });
+      const { batch_code, subjects, status } = formData;
+      mutate({ batch_code, subjects, status });
     }
 
     setFormData({ status: "true" });
@@ -243,8 +236,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     setFormData(
       {
         ...data,
-        old_batch_id: editId,
-        old_subjets: data.subjects,
+        old_batch_code: data.batch_code,
+        old_subjects: data.subjects,
         old_status: data.status,
       } || { status: "true" }
     );
@@ -263,7 +256,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   }, [formData.sem_no, formData.level, formData.deg_id]);
 
   useEffect(() => {
-    console.log(formData);
     let isFormValid =
       formData.academic_year &&
       formData.d_id &&
@@ -309,7 +301,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   }, [formData]);
 
   useEffect(() => {
-    console.log(11);
     editId && refetch();
   }, [editId]);
 
@@ -331,7 +322,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     if (specificDegreeData) {
       setFormData((curData) => ({
         ...curData,
-        batch_id: `${formData.academic_year || "XXXX"}${
+        batch_code: `${formData.academic_year || "XXXX"}${
           specificDegreeData?.short || "XX"
         }${formData.level || "X"}${formData.sem_no || "X"}`,
       }));
@@ -368,15 +359,15 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   className={`flex flex-col justify-start gap-4 sm:max-w-[360px] w-[360px] shrink-0 `}
                 >
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="batch_id" className="text-right">
+                    <Label htmlFor="batch_code" className="text-right">
                       Batch ID
                     </Label>
                     <Input
-                      id="batch_id"
-                      name="batch_id"
+                      id="batch_code"
+                      name="batch_code"
                       className="col-span-3"
                       disabled={true}
-                      value={formData.batch_id || "XXXXXXXX"}
+                      value={formData.batch_code || "XXXXXXXX"}
                     />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">

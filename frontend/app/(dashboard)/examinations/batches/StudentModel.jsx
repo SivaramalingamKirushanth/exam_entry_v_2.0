@@ -57,6 +57,7 @@ const StudentModel = ({
   };
 
   useEffect(() => {
+    console.log(oldData);
     setSelectedStudents(oldData);
   }, [oldData]);
 

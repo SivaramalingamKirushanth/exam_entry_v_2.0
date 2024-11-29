@@ -252,10 +252,17 @@ export const updateDepartment = async (req, res, next) => {
 };
 
 export const createDegree = async (req, res, next) => {
-  const { deg_name, short, levels: levelsArr, status, d_id } = req.body;
-  const levels = levelsArr.join(":");
+  const {
+    deg_name,
+    short,
+    levels: levelsArr,
+    no_of_sem_per_year,
+    status,
+    d_id,
+  } = req.body;
+  const levels = levelsArr.sort((a, b) => a - b).join(":");
 
-  if (!deg_name || !short || !levels || !d_id) {
+  if (!deg_name || !short || !levels || !no_of_sem_per_year || !d_id) {
     return next(errorProvider(400, "Missing required fields"));
   }
   if (!status) {
@@ -281,8 +288,8 @@ export const createDegree = async (req, res, next) => {
 
       // Insert into degree table
       const [degreeResult] = await conn.execute(
-        "INSERT INTO degree (deg_name, short, levels, status) VALUES (?, ?, ?, ?)",
-        [deg_name, short, levels, status]
+        "INSERT INTO degree (deg_name, short, levels,no_of_sem_per_year, status) VALUES (?, ?,?, ?, ?)",
+        [deg_name, short, levels, no_of_sem_per_year, status]
       );
       const deg_id = degreeResult.insertId;
 
@@ -316,10 +323,17 @@ export const createDegree = async (req, res, next) => {
 export const updateDegree = async (req, res, next) => {
   const { deg_id } = req.body;
 
-  const { deg_name, short, levels: levelsArr, status, d_id } = req.body;
+  const {
+    deg_name,
+    short,
+    levels: levelsArr,
+    no_of_sem_per_year,
+    status,
+    d_id,
+  } = req.body;
   const levels = levelsArr.join(":");
 
-  if (!deg_name || !short || !levels || !d_id) {
+  if (!deg_name || !short || !levels || !no_of_sem_per_year || !d_id) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
@@ -342,8 +356,8 @@ export const updateDegree = async (req, res, next) => {
 
       // Update degree table
       await conn.execute(
-        "UPDATE degree SET deg_name = ?, short = ?, levels = ?, status = ? WHERE deg_id = ?",
-        [deg_name, short, levels, status, deg_id]
+        "UPDATE degree SET deg_name = ?, short = ?, levels = ?, no_of_sem_per_year = ?, status = ? WHERE deg_id = ?",
+        [deg_name, short, levels, no_of_sem_per_year, status, deg_id]
       );
 
       // Update dep_deg table
@@ -563,7 +577,7 @@ export const getAllDegreesWithExtraDetails = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const query = `SELECT dg.deg_id,dg.deg_name,dg.short,dg.status,d.d_id,d.d_name AS department_name,f.f_id,
+      const query = `SELECT dg.deg_id,dg.deg_name,dg.short,dg.levels,dg.no_of_sem_per_year,dg.status,d.d_id,d.d_name AS department_name,f.f_id,
     f.f_name AS faculty_name FROM degree dg LEFT JOIN dep_deg dd ON dg.deg_id = dd.deg_id LEFT JOIN department d ON dd.d_id = d.d_id LEFT JOIN fac_dep fd ON d.d_id = fd.d_id LEFT JOIN 
     faculty f ON fd.f_id = f.f_id`;
 
@@ -863,6 +877,132 @@ export const getNoOfDegreesByLevel = async (req, res, next) => {
     }
   } catch (error) {
     console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getActiveFacultiesWithDepartmentsCount = async (
+  req,
+  res,
+  next
+) => {
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const query = `SELECT f.f_id,f.f_name,COUNT(fd.d_id) AS departments_count FROM faculty f LEFT JOIN fac_dep fd ON f.f_id = fd.f_id where f.status = 'true' GROUP BY fd.f_id`;
+
+      const [results] = await conn.execute(query);
+
+      return res.status(200).json(results);
+    } catch (error) {
+      console.error(
+        "Error fetching active faculties with departments count:",
+        error
+      );
+      return next(
+        errorProvider(
+          500,
+          "Failed to fetching active faculties with departments count"
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getActiveDepartmentsInAFacultyWithDegreesCount = async (
+  req,
+  res,
+  next
+) => {
+  const { f_id } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const query = `SELECT d.d_id,d.d_name,COUNT(dd.deg_id) AS degrees_count FROM department d LEFT JOIN dep_deg dd ON d.d_id = dd.d_id LEFT JOIN fac_dep fd ON d.d_id = fd.d_id where fd.f_id = ? AND d.status = 'true' GROUP BY dd.d_id`;
+
+      const [results] = await conn.execute(query, [f_id]);
+
+      return res.status(200).json(results);
+    } catch (error) {
+      console.error(
+        "Error fetching active departments with degrees count:",
+        error
+      );
+      return next(
+        errorProvider(
+          500,
+          "Failed to fetching active departments with degrees count"
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getActiveDegreesInADepartmentWithLevelsCount = async (
+  req,
+  res,
+  next
+) => {
+  const { d_id } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const query = `SELECT deg.deg_id,deg.deg_name,deg.levels FROM degree deg LEFT JOIN  dep_deg dd ON deg.deg_id = dd.deg_id where dd.d_id = ? AND deg.status = 'true'`;
+
+      const [results] = await conn.execute(query, [d_id]);
+
+      return res.status(200).json(results);
+    } catch (error) {
+      console.error("Error fetching active degrees with level count:", error);
+      return next(
+        errorProvider(500, "Failed to fetching active degrees with level count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getAllLevelsInADegree = async (req, res, next) => {
+  const { deg_id } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const query = `SELECT deg.deg_id,deg.deg_name,deg.levels FROM degree deg LEFT JOIN  dep_deg dd ON deg.deg_id = dd.deg_id where dd.d_id = ? AND deg.status = 'true'`;
+
+      const [results] = await conn.execute(query, [deg_id]);
+
+      return res.status(200).json(results);
+    } catch (error) {
+      console.error("Error fetching active degrees with level count:", error);
+      return next(
+        errorProvider(500, "Failed to fetching active degrees with level count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
