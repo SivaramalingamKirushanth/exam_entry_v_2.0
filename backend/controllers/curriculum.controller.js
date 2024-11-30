@@ -78,9 +78,10 @@ export const getAllCurriculumsWithExtraDetails = async (req, res, next) => {
 };
 
 export const getCurriculumByDegLevSem = async (req, res, next) => {
+  const { deg_id, level, sem_no } = req.body;
+
   try {
     const conn = await pool.getConnection();
-    const { deg_id, level, sem_no } = req.body;
 
     try {
       const query = `
@@ -302,6 +303,31 @@ export const getNoOfCurriculums = async (req, res, next) => {
     }
   } catch (error) {
     console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getCurriculumBybatchId = async (req, res, next) => {
+  const { batch_id } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const query = `
+        SELECT c.sub_code, c.sub_name, c.sub_id FROM batch_curriculum_lecturer bcl INNER JOIN curriculum c ON bcl.sub_id = c.sub_id WHERE bcl.batch_id = ?`;
+
+      const [results] = await conn.execute(query, [batch_id]);
+
+      return res.status(200).json(results);
+    } catch (error) {
+      console.error("Error fetching curriculum details:", error);
+      return next(errorProvider(500, "Failed to fetch curriculum details"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };

@@ -37,9 +37,7 @@ const entries = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="capitalize">{obj.f_name}</CardTitle>
-                  <CardDescription>
-                    {obj.departments_count} Departments
-                  </CardDescription>
+                  <CardDescription></CardDescription>
                 </CardHeader>
               </Card>
             </Link>

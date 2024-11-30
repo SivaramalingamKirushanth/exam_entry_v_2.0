@@ -29,7 +29,7 @@ const departments = () => {
           curriculumsOfBatchData.map((obj) => (
             <Link
               href={{
-                pathname: `${pathname}/${obj.sub_code}`,
+                pathname: `${pathname}/${obj.sub_id}`,
                 query: {
                   sub_id: obj.sub_id,
                 },

@@ -9,6 +9,7 @@ import {
   getAllCurriculumsWithExtraDetails,
   getCurriculumById,
   getCurriculumByDegLevSem,
+  getCurriculumBybatchId,
 } from "../controllers/curriculum.controller.js";
 
 const router = express.Router();
@@ -23,6 +24,7 @@ router.post("/getCurriculumByDegLevSem", getCurriculumByDegLevSem);
 router.get("/getCurriculumsByLecId", getCurriculumsByLecId);
 router.get("/getCurriculumsByHod_id", getCurriculumsByHodId);
 router.post("/createCurriculum", createCurriculum);
+router.post("/getCurriculumBybatchId", getCurriculumBybatchId);
 router.put("/updateCurriculum", updateCurriculum);
 router.get("/getNoOfCurriculums", getNoOfCurriculums);
 

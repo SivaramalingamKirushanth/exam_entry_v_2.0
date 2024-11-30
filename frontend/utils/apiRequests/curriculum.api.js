@@ -60,3 +60,11 @@ export const getNoOfCurriculums = async () => {
   const response = await axiosInstance.get("/curriculum/getNoOfCurriculums");
   return response.data;
 };
+
+export const getCurriculumBybatchId = async (batch_id) => {
+  const response = await axiosInstance.post(
+    "/curriculum/getCurriculumBybatchId",
+    { batch_id }
+  );
+  return response.data;
+};
