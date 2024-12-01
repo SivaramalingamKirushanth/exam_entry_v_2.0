@@ -34,8 +34,9 @@ export const studentRegister = async (req, res, next) => {
       from: `"Examination Branch" <${process.env.EMAIL}>`,
       to: email,
       subject: "Registration succesfull",
-      text: "You are successfully registered for to examinations",
-      html: `<h3>User name : ${user_name}</h3><h3>User name : ${password}</h3>`,
+      html: `<h2>You are successfully registered for to examinations</h2>
+      <h4>User name : ${user_name}</h4>
+      <h4>User name : ${password}</h4>`,
     };
 
     transporter.sendMail(mailOptions, function (error, info) {

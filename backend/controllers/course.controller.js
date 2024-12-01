@@ -36,8 +36,8 @@ export const createFaculty = async (req, res, next) => {
       const hashedPassword = await hashPassword(password);
 
       const [userResult] = await conn.execute(
-        "INSERT INTO user(user_name, password, role_id) VALUES (?,?,?)",
-        [email, hashedPassword, "2"]
+        "INSERT INTO user(user_name,email, password, role_id) VALUES (?,?,?,?)",
+        [email, email, hashedPassword, "2"]
       );
       const user_id = userResult.insertId;
 
@@ -95,10 +95,10 @@ export const updateFaculty = async (req, res, next) => {
         [f_name, contact_no, status, f_id]
       );
 
-      await conn.execute("UPDATE user SET user_name = ? WHERE user_id = ?", [
-        email,
-        facultyExists[0].user_id,
-      ]);
+      await conn.execute(
+        "UPDATE user SET user_name = ?, email = ?  WHERE user_id = ?",
+        [email, email, facultyExists[0].user_id]
+      );
 
       await conn.commit();
 
@@ -137,8 +137,8 @@ export const createDepartment = async (req, res, next) => {
 
       // Check if department already exists
       const [departmentExists] = await conn.execute(
-        "SELECT COUNT(*) AS count FROM department d LEFT JOIN user u ON d.user_id = u.user_id WHERE d.d_name = ? OR u.user_name = ?",
-        [d_name, email]
+        "SELECT COUNT(*) AS count FROM department d LEFT JOIN user u ON d.user_id = u.user_id WHERE d.d_name = ? OR u.user_name = ? OR u.email = ?",
+        [d_name, email, email]
       );
 
       if (departmentExists[0].count > 0) {
@@ -152,8 +152,8 @@ export const createDepartment = async (req, res, next) => {
       const hashedPassword = await hashPassword(password);
 
       const [userResult] = await conn.execute(
-        "INSERT INTO user(user_name, password, role_id) VALUES (?,?,?)",
-        [email, hashedPassword, "3"]
+        "INSERT INTO user(user_name,email, password, role_id) VALUES (?,?,?,?)",
+        [email, email, hashedPassword, "3"]
       );
 
       const user_id = userResult.insertId;
@@ -220,10 +220,10 @@ export const updateDepartment = async (req, res, next) => {
         [d_name, contact_no, status, d_id]
       );
 
-      await conn.execute("UPDATE user SET user_name = ? WHERE user_id = ?", [
-        email,
-        departmentExists[0].user_id,
-      ]);
+      await conn.execute(
+        "UPDATE user SET user_name = ?, email=? WHERE user_id = ?",
+        [email, email, departmentExists[0].user_id]
+      );
 
       // // Update fac_dep table
       await conn.execute("UPDATE fac_dep SET f_id = ? WHERE d_id = ?", [
