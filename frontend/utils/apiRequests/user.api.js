@@ -30,11 +30,9 @@ export const getStudentById = async (user_id) => {
 };
 
 export const getStudentByDegShort = async (short) => {
-  console.log(short);
   const response = await axiosInstance.post("/user/getStudentByDegShort", {
     short,
   });
-  console.log(response.data);
   return response.data;
 };
 

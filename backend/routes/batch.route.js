@@ -5,20 +5,27 @@ import {
   getAllBatches,
   getBatchByFacultyId,
   getBatchById,
+  getBathchesByStudent,
   getNoOfBatches,
   getStudentsByBatchId,
   updateBatch,
 } from "../controllers/batch.controller.js";
+import { verifyUser } from "../utils/verifyUsers.js";
 
 const router = express.Router();
 
-router.get("/getAllBatches", getAllBatches);
-router.post("/createBatch", createBatch);
+router.get("/getAllBatches", verifyUser(["1"]), getAllBatches);
+router.post("/createBatch", verifyUser(["1"]), createBatch);
 router.get("/getNoOfBatches", getNoOfBatches);
-router.post("/addStudentsToTheBatchTable", addStudentsToTheBatchTable);
-router.post("/getStudentsByBatchId", getStudentsByBatchId);
-router.post("/getBatchById", getBatchById);
-router.post("/getBatchByFacultyId", getBatchByFacultyId);
-router.put("/updateBatch", updateBatch);
+router.get("/getBathchesByStudent", verifyUser(["5"]), getBathchesByStudent);
+router.post(
+  "/addStudentsToTheBatchTable",
+  verifyUser(["1"]),
+  addStudentsToTheBatchTable
+);
+router.post("/getStudentsByBatchId", verifyUser(["1"]), getStudentsByBatchId);
+router.post("/getBatchById", verifyUser(["1"]), getBatchById);
+router.post("/getBatchByFacultyId", verifyUser(["1,2"]), getBatchByFacultyId);
+router.put("/updateBatch", verifyUser(["1"]), updateBatch);
 
 export default router;

@@ -321,9 +321,8 @@ export const createDegree = async (req, res, next) => {
 };
 
 export const updateDegree = async (req, res, next) => {
-  const { deg_id } = req.body;
-
   const {
+    deg_id,
     deg_name,
     short,
     levels: levelsArr,
@@ -333,7 +332,14 @@ export const updateDegree = async (req, res, next) => {
   } = req.body;
   const levels = levelsArr.join(":");
 
-  if (!deg_name || !short || !levels || !no_of_sem_per_year || !d_id) {
+  if (
+    !deg_id ||
+    !deg_name ||
+    !short ||
+    !levels ||
+    !no_of_sem_per_year ||
+    !d_id
+  ) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
@@ -352,6 +358,17 @@ export const updateDegree = async (req, res, next) => {
       if (degreeExists[0].count === 0) {
         conn.release();
         return next(errorProvider(404, "Degree not found"));
+      }
+
+      // Check if degree already exists
+      const [degreeNameOrShortExists] = await conn.execute(
+        "SELECT COUNT(*) AS count FROM degree WHERE deg_name = ? OR short = ? AND deg_id != ?",
+        [deg_name, short, deg_id]
+      );
+
+      if (degreeNameOrShortExists[0].count > 0) {
+        conn.release();
+        return next(errorProvider(409, "Degree already exists"));
       }
 
       // Update degree table
@@ -622,6 +639,39 @@ export const getDegreeById = async (req, res, next) => {
     } catch (error) {
       console.error("Error fetching degree by ID:", error);
       return next(errorProvider(500, "Failed to fetch degree by ID"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getDegreeByShort = async (req, res, next) => {
+  const { short } = req.body;
+  console.log(short);
+  if (!short) {
+    return next(errorProvider(400, "Missing short."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const query = `SELECT deg_name FROM degree where short = ?`;
+      const [results] = await conn.execute(query, [short]);
+
+      if (results.length === 0) {
+        return next(
+          errorProvider(404, `No degree found for degree short: ${short}`)
+        );
+      }
+
+      return res.status(200).json(results[0]);
+    } catch (error) {
+      console.error("Error fetching degree by short:", error);
+      return next(errorProvider(500, "Failed to fetch degree by short"));
     } finally {
       conn.release();
     }

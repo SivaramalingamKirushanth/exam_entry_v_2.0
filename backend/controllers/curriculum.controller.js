@@ -331,3 +331,117 @@ export const getCurriculumBybatchId = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const getStudentApplicationDetails = async (req, res, next) => {
+  const { user_id } = req.user;
+
+  if (!user_id) {
+    return next(errorProvider(400, "User ID  required"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      await conn.beginTransaction();
+
+      const [batchIdsResults] = await conn.execute(
+        "SELECT sd.batch_ids from student_detail sd INNER JOIN student s ON sd.s_id = s.s_id WHERE s.user_id = ?",
+        [user_id]
+      );
+
+      const batch_idS_Arr = batchIdsResults[0].batch_ids.split(",");
+      const batch_id = batch_idS_Arr[batch_idS_Arr.length - 1];
+
+      if (!batch_id) {
+        return next(errorProvider(400, "Batch ID required"));
+      }
+
+      const [studentDetails] = await conn.execute(
+        `SELECT 
+          sd.name, 
+          sd.index_num, 
+          s.s_id, 
+          u.user_name,
+          f.f_name 
+        FROM faculty f INNER JOIN fac_dep fd ON f.f_id = fd.f_id INNER JOIN student_detail sd ON 
+        fd.d_id = sd.d_id
+        INNER JOIN student s ON sd.s_id = s.s_id
+        INNER JOIN user u ON s.user_id = u.user_id
+        WHERE u.user_id = ?`,
+        [user_id]
+      );
+
+      if (!studentDetails.length) {
+        return next(errorProvider(404, "Student not found"));
+      }
+
+      const { name, index_num, s_id, user_name, f_name } = studentDetails[0];
+
+      // Step 2: Get the subject codes and names for the batch
+      const [subjects] = await conn.execute(
+        `SELECT c.sub_code, c.sub_name ,c.sub_id
+         FROM curriculum c
+         INNER JOIN batch_curriculum_lecturer bcl ON c.sub_id = bcl.sub_id
+         WHERE bcl.batch_id = ?`,
+        [batch_id]
+      );
+
+      if (!subjects.length) {
+        return next(errorProvider(404, "No subjects found for this batch"));
+      }
+
+      // Step 3: Dynamically query attendance from batch_<batch_id>_students
+      const subjectColumns = subjects
+        .map((subject) => `sub_${subject.sub_id}`)
+        .join(", ");
+      const attendanceQuery = `
+        SELECT ${subjectColumns}
+        FROM batch_${batch_id}_students
+        WHERE s_id = ?
+      `;
+
+      const [attendanceResult] = await conn.execute(attendanceQuery, [s_id]);
+
+      if (!attendanceResult.length) {
+        return next(
+          errorProvider(
+            404,
+            "No attendance found for this student in the batch"
+          )
+        );
+      }
+
+      // Step 4: Format the response
+      const attendance = attendanceResult[0];
+      const response = {
+        name,
+        index_num,
+        user_name,
+        f_name,
+        subjects: subjects.map((subject) => ({
+          sub_code: subject.sub_code,
+          sub_name: subject.sub_name,
+          attendance: attendance[`sub_${subject.sub_id}`] || "N/A", // Handle missing data
+        })),
+      };
+
+      await conn.commit();
+      res.status(200).json(response);
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error fetching student batch details:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while fetching student batch details"
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};

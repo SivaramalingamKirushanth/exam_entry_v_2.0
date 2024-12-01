@@ -1,10 +1,21 @@
 import pool from "../config/db.js";
 import { generatePassword, hashPassword } from "../utils/functions.js";
-
+import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import { verifyPassword } from "../utils/functions.js";
 import errorProvider from "../utils/errorProvider.js";
 const JWT_SECRET = process.env.JWT_SECRET || "abc123";
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.ethereal.email",
+  port: 587,
+  secure: false, // true for port 465, false for other ports
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 export const studentRegister = async (req, res, next) => {
   const { user_name, name, d_id, email, status } = req.body;
@@ -18,6 +29,23 @@ export const studentRegister = async (req, res, next) => {
     const password = await generatePassword();
     // show the generated password for only login testing
     console.log("Generated password:", password);
+
+    let mailOptions = {
+      from: `"Examination Branch" <${process.env.EMAIL}>`,
+      to: email,
+      subject: "Registration succesfull",
+      text: "You are successfully registered for to examinations",
+      html: `<h3>User name : ${user_name}</h3><h3>User name : ${password}</h3>`,
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("Email sent: " + info.response);
+      }
+    });
+
     const hashedPassword = await hashPassword(password);
 
     const conn = await pool.getConnection();
@@ -133,7 +161,7 @@ export const managerRegister = async (req, res, next) => {
 };
 
 export const login = async (req, res, next) => {
-  const { user_name_or_email, password } = req.body;
+  const { user_name_or_email, password, remember_me } = req.body;
 
   if (!user_name_or_email || !password) {
     return next(errorProvider(400, "Missing credentials"));
@@ -162,7 +190,7 @@ export const login = async (req, res, next) => {
       }
 
       const token = jwt.sign({ user_id, role_id }, JWT_SECRET, {
-        expiresIn: "1h",
+        expiresIn: remember_me ? "2 days" : "1h",
       });
 
       return res
@@ -178,5 +206,72 @@ export const login = async (req, res, next) => {
   } catch (error) {
     console.error("Database connection error:", error);
     return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const me = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+  const conn = await pool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    let query;
+    let params;
+
+    if (role_id == "5") {
+      query =
+        "SELECT u.email, u.user_name, sd.name, u.role_id FROM user u INNER JOIN student s ON u.user_id = s.user_id INNER JOIN student_detail sd ON s.s_id = sd.s_id WHERE u.user_id = ?";
+      params = [user_id];
+    } else if (role_id == "4") {
+      query =
+        "SELECT u.email, u.user_name, md.name, u.role_id FROM user u INNER JOIN manager m ON u.user_id = m.user_id INNER JOIN manager_detail md ON m.m_id = md.m_id WHERE u.user_id = ?";
+      params = [user_id];
+    } else if (role_id == "3") {
+      query =
+        "SELECT u.email, u.user_name, d.d_name as name, u.role_id FROM user u INNER JOIN department d ON u.user_id = d.user_id WHERE u.user_id = ?";
+      params = [user_id];
+    } else if (role_id == "2") {
+      query =
+        "SELECT u.email, u.user_name, f.f_name as name, u.role_id FROM user u INNER JOIN faculty f ON u.user_id = f.user_id WHERE u.user_id = ?";
+      params = [user_id];
+    } else if (role_id == "1") {
+      query = "SELECT email, user_name, role_id FROM user WHERE user_id = ?";
+      params = [user_id];
+    }
+
+    const [userDetails] = await conn.execute(query, params);
+    await conn.commit();
+
+    return res.status(200).json(userDetails[0]);
+  } catch (error) {
+    // Rollback only if transaction was started
+    if (
+      conn &&
+      conn.connection &&
+      conn.connection._protocol._queue.length > 0
+    ) {
+      await conn.rollback();
+    }
+    return next(
+      errorProvider(500, "An error occurred while fetching user details")
+    );
+  } finally {
+    // Release the connection
+    if (conn) conn.release();
+  }
+};
+
+export const logout = (req, res) => {
+  try {
+    res.cookie("access-token", "", {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Error during logout:", error);
+    res.status(500).json({ message: "Error during logout" });
   }
 };

@@ -21,7 +21,6 @@ export const getStudentsByBatchId = async (batch_id) => {
 };
 
 export const createBatch = async (data) => {
-  console.log("hiiioo");
   const response = await axiosInstance.post("/batch/createBatch", data);
   return response.data;
 };
@@ -48,5 +47,10 @@ export const getBatchByFacultyId = async (f_id) => {
   const response = await axiosInstance.post("/batch/getBatchByFacultyId", {
     f_id,
   });
+  return response.data;
+};
+
+export const getBathchesByStudent = async () => {
+  const response = await axiosInstance.get("/batch/getBathchesByStudent");
   return response.data;
 };

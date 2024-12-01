@@ -409,13 +409,28 @@ export const addStudentsToTheBatchTable = async (req, res, next) => {
       );
 
       if (removedSelections.length) {
-        let removeQuery = "s_id = ?";
-        removedSelections.forEach((s_id, ind) => {
-          if (ind != 0) {
-            removeQuery += " OR s_id = ?";
-          }
-        });
+        // Remove batch ID from student details for each removed selection
+        for (const s_id of removedSelections) {
+          const removeBatchIdFromStudentDetailsSql = `
+            UPDATE student_detail 
+            SET batch_ids = 
+              CASE 
+                WHEN TRIM(BOTH ',' FROM REPLACE(CONCAT(',', batch_ids, ','), CONCAT(',', ?, ','), ',')) = '' THEN '' 
+                ELSE TRIM(BOTH ',' FROM REPLACE(CONCAT(',', batch_ids, ','), CONCAT(',', ?, ','), ',')) 
+              END 
+            WHERE s_id = ?`;
 
+          await conn.execute(removeBatchIdFromStudentDetailsSql, [
+            batch_id,
+            batch_id,
+            s_id,
+          ]);
+        }
+
+        // Remove students from the batch
+        const removeQuery = removedSelections
+          .map(() => `s_id = ?`)
+          .join(" OR ");
         const [removeStudentsResults] = await conn.execute(
           `DELETE FROM batch_${batch_id}_students WHERE ${removeQuery}`,
           removedSelections
@@ -423,15 +438,30 @@ export const addStudentsToTheBatchTable = async (req, res, next) => {
       }
 
       if (newSelections.length) {
-        let addQuery = "(?,'false','false')";
-        newSelections.forEach((s_id, ind) => {
-          if (ind != 0) {
-            addQuery += ",(?,'false','false')";
-          }
-        });
+        // Add batch ID to student details for each new selection
+        for (const s_id of newSelections) {
+          const addBatchIdToStudentDetailsSql = `
+            UPDATE student_detail 
+            SET batch_ids = 
+              CASE 
+                WHEN batch_ids IS NULL OR batch_ids = '' THEN ? 
+                ELSE CONCAT(batch_ids, ',', ?) 
+              END 
+            WHERE s_id = ?`;
 
+          await conn.execute(addBatchIdToStudentDetailsSql, [
+            batch_id,
+            batch_id,
+            s_id,
+          ]);
+        }
+
+        // Add new students to the batch
+        const addQuery = newSelections
+          .map(() => "(?,'false','false')")
+          .join(",");
         const [addStudentsResults] = await conn.execute(
-          `INSERT INTO batch_${batch_id}_students(s_id,applied_to_exam,admission_ready) VALUES ${addQuery}`,
+          `INSERT INTO batch_${batch_id}_students(s_id, applied_to_exam, admission_ready) VALUES ${addQuery}`,
           newSelections
         );
       }
@@ -491,7 +521,7 @@ export const getBatchByFacultyId = async (req, res, next) => {
     const conn = await pool.getConnection();
     try {
       const [result] = await conn.execute(
-        "SELECT b.batch_id, b.batch_code, d.deg_name FROM fac_dep fd JOIN dep_deg dd ON fd.d_id = dd.d_id JOIN degree d ON dd.deg_id = d.deg_id JOIN batch b ON b.batch_code LIKE CONCAT('%', d.short, '%') WHERE fd.f_id = ? AND b.status = 'true'",
+        "SELECT b.batch_id, b.batch_code, d.deg_name FROM fac_dep fd JOIN dep_deg dd ON fd.d_id = dd.d_id JOIN degree d ON dd.deg_id = d.deg_id JOIN batch b ON b.batch_code LIKE CONCAT('%', d.short, '%') WHERE fd.f_id = ? AND b.status = 'true' ORDER BY LENGTH(d.short) DESC LIMIT 1",
         [f_id]
       );
 
@@ -503,6 +533,65 @@ export const getBatchByFacultyId = async (req, res, next) => {
           500,
           "An error occurred while retrieving batches by faculty id"
         )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getBathchesByStudent = async (req, res, next) => {
+  const { user_id } = req.user;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [studentDetails] = await conn.execute(
+        `SELECT 
+            sd.batch_ids,
+            s.s_id 
+          FROM user u
+          INNER JOIN student s ON u.user_id = s.user_id
+          INNER JOIN student_detail sd ON s.s_id = sd.s_id 
+          WHERE u.user_id = ?`,
+        [user_id]
+      );
+
+      if (!studentDetails.length || !studentDetails[0].batch_ids) {
+        return res.status(404).json({ message: "No batches found" });
+      }
+
+      const batchIds = studentDetails[0].batch_ids.split(",");
+      const s_id = studentDetails[0].s_id;
+
+      const queries = batchIds.map(
+        (batchId) => `
+        SELECT 
+  b.batch_id,
+  b.batch_code, 
+  s.applied_to_exam,
+  d.deg_name,s.admission_ready 
+FROM batch_${batchId}_students s
+JOIN batch b ON b.batch_id = ${batchId}
+JOIN degree d ON b.batch_code LIKE CONCAT('%', d.short, '%')
+WHERE s.s_id = ${s_id}
+ORDER BY LENGTH(d.short) DESC
+LIMIT 1
+      `
+      );
+
+      const finalQuery = queries.join(" UNION ");
+
+      const [results] = await conn.query(finalQuery);
+
+      return res.status(200).json(results);
+    } catch (error) {
+      console.error("Error retrieving student:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving student")
       );
     } finally {
       conn.release();

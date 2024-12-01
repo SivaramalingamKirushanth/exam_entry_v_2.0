@@ -20,7 +20,6 @@ export const getCurriculumById = async (sub_id) => {
 };
 
 export const getCurriculumByDegLevSem = async (deg_id, level, sem_no) => {
-  console.log(deg_id, level, sem_no);
   const response = await axiosInstance.post(
     "/curriculum/getCurriculumByDegLevSem",
     {
@@ -29,7 +28,6 @@ export const getCurriculumByDegLevSem = async (deg_id, level, sem_no) => {
       sem_no,
     }
   );
-  console.log(response.data);
   return response.data;
 };
 
@@ -66,5 +64,13 @@ export const getCurriculumBybatchId = async (batch_id) => {
     "/curriculum/getCurriculumBybatchId",
     { batch_id }
   );
+  return response.data;
+};
+
+export const getStudentApplicationDetails = async () => {
+  const response = await axiosInstance.get(
+    "/curriculum/getStudentApplicationDetails"
+  );
+  console.log(response.data);
   return response.data;
 };
