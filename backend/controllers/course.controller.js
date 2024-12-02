@@ -1,6 +1,7 @@
 import pool from "../config/db.js";
 import errorProvider from "../utils/errorProvider.js";
 import { generatePassword, hashPassword } from "../utils/functions.js";
+import mailer from "../utils/mailer.js";
 
 export const createFaculty = async (req, res, next) => {
   let { f_name, email, contact_no, status } = req.body;
