@@ -9,48 +9,42 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { getActiveFacultiesWithDepartmentsCount } from "@/utils/apiRequests/course.api";
 
-const users = () => {
+const entries = () => {
   const pathname = usePathname();
+  const { data: noOfDepartmentsWithFacultyData } = useQuery({
+    queryFn: getActiveFacultiesWithDepartmentsCount,
+    queryKey: ["noOfDepartmentsWithFaculty"],
+  });
+
   return (
     <div className="flex justify-end md:justify-center">
       <div className="md:w-[70%] flex gap-6 flex-wrap">
-        <Link
-          href={`${pathname}/applied science`}
-          className="w-[30%] hover:shadow-md rounded-xl"
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Applied Science</CardTitle>
-              <CardDescription>no of Departments</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-        <Link
-          href={`${pathname}/applied science`}
-          className="w-[30%] hover:shadow-md rounded-xl"
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Bussiness Studies</CardTitle>
-              <CardDescription>no of Departments</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-        <Link
-          href={`${pathname}/applied science`}
-          className="w-[30%] hover:shadow-md rounded-xl"
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Technology</CardTitle>
-              <CardDescription>no of Departments</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
+        {noOfDepartmentsWithFacultyData &&
+          noOfDepartmentsWithFacultyData.map((obj) => (
+            <Link
+              href={{
+                pathname: `${pathname}/${obj.f_name}`,
+                query: {
+                  f_id: obj.f_id,
+                },
+              }}
+              className="w-[30%] hover:shadow-md rounded-xl"
+              key={obj.f_id}
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="capitalize">{obj.f_name}</CardTitle>
+                  <CardDescription></CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
+          ))}
       </div>
     </div>
   );
 };
 
-export default users;
+export default entries;

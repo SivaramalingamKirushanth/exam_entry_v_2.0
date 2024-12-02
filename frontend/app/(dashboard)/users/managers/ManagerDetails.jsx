@@ -1,7 +1,6 @@
 "use client";
 
 import { columns } from "./Columns";
-import { DataTable } from "./DataTable";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { MdCancel } from "react-icons/md";
@@ -16,11 +15,11 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { getAllManagers } from "@/utils/apiRequests/user.api";
 import Modal from "./Model";
+import { DataTable } from "@/components/DataTable";
 
 const ManagerDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
-  const [role, setRole] = useState("all");
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
   const modalRef = useRef(null);
@@ -35,10 +34,6 @@ const ManagerDetails = () => {
 
   const onSearchChange = (e) => {
     setSearchValue(e.target.value);
-  };
-
-  const onRoleOptionClicked = (e) => {
-    setRole(e);
   };
 
   const onStatusOptionClicked = (e) => {
@@ -66,15 +61,13 @@ const ManagerDetails = () => {
               item.user_name.toLowerCase().includes(searchValue.toLowerCase())
           )
         : data;
+
       let filtData2 = filtData1.filter((item) => {
-        return role == "all" ? true : item.role_id == role;
-      });
-      let filtData3 = filtData2.filter((item) => {
         return status == "all" ? true : item.status == status;
       });
-      setFilteredData(filtData3);
+      setFilteredData(filtData2);
     }
-  }, [searchValue, role, status, data]);
+  }, [searchValue, status, data]);
 
   return (
     <>
@@ -96,25 +89,6 @@ const ManagerDetails = () => {
           </span>
         </div>
         <div className="flex items-center gap-5">
-          <div className="flex gap-1 items-center">
-            <p className="text-sm font-semibold">Role &nbsp;</p>
-            <Select
-              onValueChange={(e) => onRoleOptionClicked(e)}
-              defaultValue="all"
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="2">Dean</SelectItem>
-                  <SelectItem value="3">Hod</SelectItem>
-                  <SelectItem value="4">Lecturer</SelectItem>
-                  <SelectItem value="all">All</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
           <div className="flex gap-1 items-center">
             <p className="text-sm font-semibold">Status &nbsp;</p>
             <Select
@@ -149,6 +123,7 @@ const ManagerDetails = () => {
           data={filteredData}
           onEditClicked={onEditClicked}
           toggleModal={toggleModal}
+          btnText="Create manager"
         />
       </div>
     </>

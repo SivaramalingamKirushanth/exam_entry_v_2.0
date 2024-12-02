@@ -19,5 +19,37 @@ export const verifyPassword = async (password, hashedPassword) => {
   }
 };
 
+export function parseString(input) {
+  const regex = /^(\d{4})([A-Za-z()]+)(\d)(\d)$/;
+  const match = input.match(regex);
 
+  if (match) {
+    const academic_year = match[1];
+    const degree_name_short = match[2];
+    const level = match[3];
+    const sem_no = match[4];
 
+    return {
+      academic_year,
+      degree_name_short,
+      level,
+      sem_no,
+      batch_code: input,
+    };
+  } else {
+    throw new Error("Invalid format");
+  }
+}
+
+export function shallowCompare(obj1, obj2) {
+  if (Object.keys(obj1).length !== Object.keys(obj2).length) {
+    return false;
+  }
+
+  for (let key in obj1) {
+    if (obj1[key] !== obj2[key]) {
+      return false;
+    }
+  }
+  return true;
+}

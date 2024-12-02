@@ -1,16 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ArrowUpDown } from "lucide-react";
+
 import { FaPen } from "react-icons/fa6";
 
 export const columns = [
@@ -27,10 +19,6 @@ export const columns = [
         </Button>
       );
     },
-  },
-  {
-    accessorKey: "manager_name",
-    header: "HOD",
   },
   {
     accessorKey: "faculty_name",

@@ -23,10 +23,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
-import DialogBox from "./DialogBox";
 import { FaPlus } from "react-icons/fa6";
 
-export function DataTable({ columns, data, onEditClicked, toggleModal }) {
+export function DataTable({
+  columns,
+  data,
+  onEditClicked,
+  toggleModal,
+  btnText,
+}) {
   const [sorting, setSorting] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
 
@@ -53,7 +58,7 @@ export function DataTable({ columns, data, onEditClicked, toggleModal }) {
           className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm"
         >
           <FaPlus />
-          &nbsp;Create faculty
+          &nbsp;{btnText}
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

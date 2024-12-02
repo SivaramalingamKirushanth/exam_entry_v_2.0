@@ -10,11 +10,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GiCancel } from "react-icons/gi";
 
 import {
-  createDegree,
   getAllFaculties,
   getDegreeById,
+  getDegreesByDepartmentId,
   getDepartmentsByFacultyId,
-  updateDegree,
 } from "@/utils/apiRequests/course.api";
 import {
   Select,
@@ -23,20 +22,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  createCurriculum,
+  getCurriculumById,
+  updateCurriculum,
+} from "@/utils/apiRequests/curriculum.api";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
-  const [formData, setFormData] = useState({
-    status: "true",
-    levels: [],
-    no_of_sem_per_year: "2",
-  });
+  const [formData, setFormData] = useState({ status: "true" });
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
 
   const { status, mutate } = useMutation({
-    mutationFn: editId ? updateDegree : createDegree,
+    mutationFn: editId ? updateCurriculum : createCurriculum,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["degreesExtra"]);
+      queryClient.invalidateQueries(["curriculumsExtra"]);
       setEditId("");
       toast(res.message);
     },
@@ -48,8 +48,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   });
 
   const { data, refetch } = useQuery({
-    queryFn: () => getDegreeById(editId),
-    queryKey: ["degrees", editId],
+    queryFn: () => getCurriculumById(editId),
+    queryKey: ["curriculums", editId],
     enabled: false,
   });
 
@@ -64,17 +64,26 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     enabled: false,
   });
 
+  const { data: degreeData, refetch: degreeDataRefetch } = useQuery({
+    queryFn: () => getDegreesByDepartmentId(formData.d_id),
+    queryKey: ["activeDegrees", "department", formData.d_id],
+    enabled: false,
+  });
+
+  const { data: degreeLevelsData, refetch: degreeLevelsDataRefetch } = useQuery(
+    {
+      queryFn: () => getDegreeById(formData.deg_id),
+      queryKey: ["degrees", formData.deg_id],
+      enabled: false,
+    }
+  );
+
   useEffect(() => {
     if (data) setFormData(data);
   }, [data]);
 
   const onFormDataChanged = (e) => {
-    if (typeof e == "string" && e.startsWith("level")) {
-      setFormData((curData) => ({
-        ...curData,
-        levels: [...curData.levels, e.split(":")[1]],
-      }));
-    } else if (e?.target) {
+    if (e?.target) {
       setFormData((curData) => ({
         ...curData,
         [e.target?.name]: e.target?.value,
@@ -91,39 +100,23 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   const onFormSubmitted = () => {
     mutate(formData);
-    setFormData({ status: "true", levels: [], no_of_sem_per_year: "2" });
+    setFormData({ status: "true" });
     setIsOpen(false);
   };
 
   const onFormReset = () => {
-    setFormData(
-      data || { status: "true", levels: [], no_of_sem_per_year: "2" }
-    );
-  };
-
-  const onSemCountChanged = (e) => {
-    let value = +e.target.value;
-    if (value < +e.target.min) {
-      value = +e.target.min;
-    } else if (value > +e.target.max) {
-      value = +e.target.max;
-    }
-
-    setFormData((curData) => ({
-      ...curData,
-      no_of_sem_per_year: value,
-    }));
-    e.target.value = value;
+    setFormData(data || { status: "true" });
   };
 
   useEffect(() => {
     const isFormValid =
-      formData.deg_name &&
-      formData.short &&
+      formData.sub_code &&
+      formData.sub_name &&
       formData.f_id &&
       formData.d_id &&
-      formData.no_of_sem_per_year &&
-      formData.levels.length;
+      formData.deg_id &&
+      formData.sem_no &&
+      formData.level;
     setBtnEnable(isFormValid);
   }, [formData]);
 
@@ -135,6 +128,14 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     if (formData?.f_id) departmentDataRefetch();
   }, [formData?.f_id]);
 
+  useEffect(() => {
+    if (formData?.d_id) degreeDataRefetch();
+  }, [formData?.d_id]);
+
+  useEffect(() => {
+    if (formData?.deg_id) degreeLevelsDataRefetch();
+  }, [formData?.deg_id]);
+
   return (
     <>
       {isOpen && (
@@ -144,48 +145,40 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
-              <h3 className="text-lg font-semibold">Degree</h3>
+              <h3 className="text-lg font-semibold">Subject</h3>
 
               <GiCancel
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
                 onClick={() => {
                   setIsOpen(false);
-                  setFormData({
-                    status: "true",
-                    levels: [],
-                    no_of_sem_per_year: "2",
-                  });
+                  setFormData({ status: "true" });
                   setEditId("");
                 }}
               />
             </div>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="deg_name" className="text-right">
-                  Name
+                <Label htmlFor="sub_code" className="text-right">
+                  Subject Code
                 </Label>
                 <Input
-                  id="deg_name"
-                  name="deg_name"
+                  id="sub_code"
+                  name="sub_code"
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
-                  value={formData.deg_name || ""}
+                  value={formData.sub_code || ""}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="short" className="text-right">
-                  Short name
+                <Label htmlFor="sub_name" className="text-right">
+                  Subject name
                 </Label>
                 <Input
-                  id="short"
-                  name="short"
-                  className="col-span-3 uppercase"
-                  onChange={(e) => {
-                    let ele = e;
-                    ele.target.value = ele.target.value.toUpperCase();
-                    onFormDataChanged(ele);
-                  }}
-                  value={formData.short || ""}
+                  id="sub_name"
+                  name="sub_name"
+                  className="col-span-3"
+                  onChange={(e) => onFormDataChanged(e)}
+                  value={formData.sub_name || ""}
                 />
               </div>
               <div className={`grid grid-cols-4 items-center gap-4`}>
@@ -202,7 +195,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectTrigger>
                   <SelectContent>
                     {facultyData?.map((item) => (
-                      <SelectItem key={item.f_id} value={`f_id:${item.f_id}`}>
+                      <SelectItem value={`f_id:${item.f_id}`} key={item.f_id}>
                         {item.f_name}
                       </SelectItem>
                     ))}
@@ -213,6 +206,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 <Label className="text-right">Department</Label>
                 <Select
                   onValueChange={(e) => {
+                    setFormData((cur) => ({ ...cur, deg_id: "" }));
                     onFormDataChanged(e);
                   }}
                   value={formData.d_id ? "d_id:" + formData.d_id : ""}
@@ -230,59 +224,88 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className={`grid grid-cols-4 items-center gap-4`}>
+                <Label className="text-right">Degree programme</Label>
+                <Select
+                  onValueChange={(e) => {
+                    onFormDataChanged(e);
+                  }}
+                  value={formData.deg_id ? "deg_id:" + formData.deg_id : ""}
+                  disabled={!formData.d_id}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Degree programme" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {degreeData?.map((item) => (
+                      <SelectItem
+                        key={item.deg_id}
+                        value={`deg_id:${item.deg_id}`}
+                      >
+                        {item.deg_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <div className="grid grid-cols-4 gap-4">
-                <Label className="text-right">Levels</Label>
-                <div className="items-top flex col-span-3 items-center gap-4">
-                  {[1, 2, 3, 4, 5].map((item) => (
-                    <div
-                      className="items-top flex space-x-2 items-center"
-                      key={item}
-                    >
-                      <Checkbox
-                        id={`level${item}`}
-                        onCheckedChange={(e) => {
-                          e
-                            ? onFormDataChanged(`level:${item}`)
-                            : setFormData((curData) => ({
-                                ...curData,
-                                levels: curData.levels.filter(
-                                  (ele) => ele != item
-                                ),
-                              }));
-                        }}
-                        checked={
-                          formData.levels?.includes(item.toString()) || ""
-                        }
+              <div
+                className={`${
+                  degreeLevelsData ? "grid" : "hidden"
+                }  grid-cols-4 gap-4`}
+              >
+                <Label className="text-right">Level</Label>
+                <div className="flex col-span-3 gap-4 flex-wrap">
+                  {degreeLevelsData?.levels.map((item) => (
+                    <div className="flex items-center space-x-2" key={item}>
+                      <input
+                        type="radio"
+                        value={item}
+                        id={`l${item}`}
+                        checked={formData.level == item}
+                        name="level"
+                        onChange={(e) => onFormDataChanged(e)}
+                        className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
                       />
-                      <div className="grid gap-1.5 leading-none">
-                        <label
-                          htmlFor={`level${item}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                        >
-                          {item}
-                        </label>
-                      </div>
+                      <Label htmlFor={`l${item}`} className="cursor-pointer">
+                        {item}
+                      </Label>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="no_of_sem_per_year" className="text-right">
-                  Semesters per year
-                </Label>
-                <input
-                  type="number"
-                  min="1"
-                  max="12"
-                  placeholder="Enter semesters count"
-                  className="flex h-9 col-span-3 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  name="no_of_sem_per_year"
-                  id="no_of_sem_per_year"
-                  onBlur={(e) => onSemCountChanged(e)}
-                  onChange={(e) => onFormDataChanged(e)}
-                  value={formData.no_of_sem_per_year || ""}
-                />
+              <div
+                className={`${
+                  degreeLevelsData ? "grid" : "hidden"
+                }  grid-cols-4 gap-4`}
+              >
+                <Label className="text-right">Semester</Label>
+                <div className="flex col-span-3 gap-4 flex-wrap">
+                  {Array(+degreeLevelsData?.no_of_sem_per_year || 0)
+                    .fill(1)
+                    .map((_, ind) => (
+                      <div
+                        className="flex items-center space-x-2"
+                        key={ind + 1}
+                      >
+                        <input
+                          type="radio"
+                          value={ind + 1}
+                          id={`s${ind + 1}`}
+                          checked={formData.sem_no == ind + 1}
+                          name="sem_no"
+                          onChange={(e) => onFormDataChanged(e)}
+                          className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
+                        />
+                        <Label
+                          htmlFor={`s${ind + 1}`}
+                          className="cursor-pointer"
+                        >
+                          {ind + 1}
+                        </Label>
+                      </div>
+                    ))}
+                </div>
               </div>
               <div className="grid grid-cols-4 gap-4">
                 <Label className="text-right">Status</Label>

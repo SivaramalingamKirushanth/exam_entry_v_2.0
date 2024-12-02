@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 13, 2024 at 07:16 AM
+-- Generation Time: Nov 30, 2024 at 11:40 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -29,22 +29,22 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `batch` (
   `batch_id` int(11) NOT NULL,
-  `description` varchar(300) NOT NULL,
-  `degree_name` varchar(100) NOT NULL,
-  `level` varchar(50) NOT NULL,
-  `semester` varchar(50) NOT NULL
+  `batch_code` varchar(100) NOT NULL,
+  `description` varchar(500) NOT NULL,
+  `status` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `batch_curriculum_lecture`
+-- Table structure for table `batch_curriculum_lecturer`
 --
 
-CREATE TABLE `batch_curriculum_lecture` (
+CREATE TABLE `batch_curriculum_lecturer` (
+  `id` int(11) NOT NULL,
   `batch_id` varchar(50) NOT NULL,
   `sub_id` int(11) NOT NULL,
-  `manager_id` int(11) NOT NULL
+  `m_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -54,12 +54,28 @@ CREATE TABLE `batch_curriculum_lecture` (
 --
 
 CREATE TABLE `curriculum` (
-  `sub_id` varchar(50) NOT NULL,
+  `sub_id` int(11) NOT NULL,
+  `sub_code` varchar(100) NOT NULL,
   `sub_name` varchar(150) NOT NULL,
   `sem_no` int(2) NOT NULL,
-  `d_id` varchar(50) NOT NULL,
-  `degree_name` varchar(250) NOT NULL,
-  `level` int(3) NOT NULL
+  `deg_id` int(11) NOT NULL,
+  `level` int(3) NOT NULL,
+  `status` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `degree`
+--
+
+CREATE TABLE `degree` (
+  `deg_id` int(11) NOT NULL,
+  `deg_name` varchar(500) NOT NULL,
+  `short` varchar(50) NOT NULL,
+  `levels` varchar(100) NOT NULL,
+  `no_of_sem_per_year` varchar(10) NOT NULL,
+  `status` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -70,18 +86,21 @@ CREATE TABLE `curriculum` (
 
 CREATE TABLE `department` (
   `d_id` int(11) NOT NULL,
-  `d_name` varchar(250) NOT NULL
+  `d_name` varchar(250) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `contact_no` varchar(50) NOT NULL,
+  `status` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `dep_hod`
+-- Table structure for table `dep_deg`
 --
 
-CREATE TABLE `dep_hod` (
+CREATE TABLE `dep_deg` (
   `d_id` int(11) NOT NULL,
-  `m_id` int(11) NOT NULL
+  `deg_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -92,18 +111,10 @@ CREATE TABLE `dep_hod` (
 
 CREATE TABLE `faculty` (
   `f_id` int(11) NOT NULL,
-  `f_name` varchar(250) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `fac_deen`
---
-
-CREATE TABLE `fac_deen` (
-  `f_id` int(11) NOT NULL,
-  `m_id` int(11) NOT NULL
+  `f_name` varchar(250) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `contact_no` varchar(50) NOT NULL,
+  `status` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -138,9 +149,7 @@ CREATE TABLE `manager_detail` (
   `id` int(11) NOT NULL,
   `m_id` int(11) NOT NULL,
   `name` varchar(500) NOT NULL,
-  `email` varchar(250) NOT NULL,
   `contact_no` varchar(100) NOT NULL,
-  `address` varchar(500) NOT NULL,
   `status` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -190,8 +199,6 @@ CREATE TABLE `student_detail` (
   `batch_ids` varchar(150) NOT NULL,
   `d_id` int(11) NOT NULL,
   `email` varchar(100) NOT NULL,
-  `contact_no` varchar(50) NOT NULL,
-  `address` varchar(100) NOT NULL,
   `status` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -204,7 +211,8 @@ CREATE TABLE `student_detail` (
 CREATE TABLE `user` (
   `user_id` int(11) NOT NULL,
   `user_name` varchar(250) NOT NULL,
-  `password` varchar(50) NOT NULL,
+  `email` varchar(500) NOT NULL,
+  `password` varchar(250) NOT NULL,
   `role_id` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -219,10 +227,10 @@ ALTER TABLE `batch`
   ADD PRIMARY KEY (`batch_id`);
 
 --
--- Indexes for table `batch_curriculum_lecture`
+-- Indexes for table `batch_curriculum_lecturer`
 --
-ALTER TABLE `batch_curriculum_lecture`
-  ADD PRIMARY KEY (`batch_id`);
+ALTER TABLE `batch_curriculum_lecturer`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `curriculum`
@@ -231,10 +239,22 @@ ALTER TABLE `curriculum`
   ADD PRIMARY KEY (`sub_id`);
 
 --
+-- Indexes for table `degree`
+--
+ALTER TABLE `degree`
+  ADD PRIMARY KEY (`deg_id`);
+
+--
 -- Indexes for table `department`
 --
 ALTER TABLE `department`
   ADD PRIMARY KEY (`d_id`);
+
+--
+-- Indexes for table `dep_deg`
+--
+ALTER TABLE `dep_deg`
+  ADD PRIMARY KEY (`d_id`,`deg_id`);
 
 --
 -- Indexes for table `faculty`
@@ -292,49 +312,67 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `batch`
 --
 ALTER TABLE `batch`
-  MODIFY `batch_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `batch_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `batch_curriculum_lecturer`
+--
+ALTER TABLE `batch_curriculum_lecturer`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `curriculum`
+--
+ALTER TABLE `curriculum`
+  MODIFY `sub_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `degree`
+--
+ALTER TABLE `degree`
+  MODIFY `deg_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `department`
 --
 ALTER TABLE `department`
-  MODIFY `d_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `d_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `faculty`
 --
 ALTER TABLE `faculty`
-  MODIFY `f_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `f_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `manager`
 --
 ALTER TABLE `manager`
-  MODIFY `m_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `m_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `manager_detail`
 --
 ALTER TABLE `manager_detail`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `student`
 --
 ALTER TABLE `student`
-  MODIFY `s_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `s_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `student_detail`
 --
 ALTER TABLE `student_detail`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -23,7 +23,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setEditId("");
       toast(res.message);
     },
-    onError: (err) => toast("Operation failed"),
+    onError: (err) => {
+      console.log(err);
+      setEditId("");
+      toast("Operation failed");
+    },
   });
 
   const { data, refetch } = useQuery({
@@ -52,7 +56,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const onFormReset = () => {
-    setFormData({ status: "true" });
+    setFormData(data || { status: "true" });
   };
 
   useEffect(() => {
@@ -60,8 +64,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       formData.name &&
       formData.user_name &&
       formData.email &&
-      formData.contact_no &&
-      formData.address;
+      formData.contact_no;
     setBtnEnable(isFormValid);
   }, [formData]);
 
@@ -84,7 +87,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
                 onClick={() => {
                   setIsOpen(false);
-                  onFormReset();
+                  setFormData({ status: "true" });
                   setEditId("");
                 }}
               />
@@ -139,18 +142,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   value={formData?.contact_no || ""}
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="address" className="text-right">
-                  Address
-                </Label>
-                <Input
-                  id="address"
-                  name="address"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  value={formData?.address || ""}
-                />
-              </div>
 
               <div className="grid grid-cols-4 gap-4">
                 <Label className="text-right">Status</Label>
@@ -176,10 +167,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               <Button
                 type="button"
                 variant="warning"
-                onClick={() => {
-                  onFormReset();
-                  editId && setFormData((cur) => ({ ...cur, m_id: data.m_id }));
-                }}
+                onClick={() => onFormReset()}
               >
                 Reset
               </Button>

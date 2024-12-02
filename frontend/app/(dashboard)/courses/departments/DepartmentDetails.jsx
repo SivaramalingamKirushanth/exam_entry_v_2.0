@@ -1,7 +1,6 @@
 "use client";
 
 import { columns } from "./Columns";
-import { DataTable } from "./DataTable";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { MdCancel } from "react-icons/md";
@@ -16,6 +15,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import Modal from "./Model";
 import { getAllDepartmentsWithExtraDetails } from "@/utils/apiRequests/course.api";
+import { DataTable } from "@/components/DataTable";
 
 const DepartmentDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
@@ -27,7 +27,7 @@ const DepartmentDetails = () => {
 
   const { data, isLoading, error } = useQuery({
     queryFn: getAllDepartmentsWithExtraDetails,
-    queryKey: ["DepartmentsExtra"],
+    queryKey: ["departmentsExtra"],
   });
 
   const onClearClicked = () => setSearchValue("");
@@ -119,6 +119,7 @@ const DepartmentDetails = () => {
           data={filteredData}
           onEditClicked={onEditClicked}
           toggleModal={toggleModal}
+          btnText="Create department"
         />
       </div>
     </>

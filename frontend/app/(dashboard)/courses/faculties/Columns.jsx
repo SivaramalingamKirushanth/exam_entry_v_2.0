@@ -22,10 +22,6 @@ export const columns = [
     },
   },
   {
-    accessorKey: "manager_name",
-    header: "Dean",
-  },
-  {
     accessorKey: "department_count",
     header: "No of departments",
   },

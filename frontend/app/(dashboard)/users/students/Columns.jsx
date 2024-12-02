@@ -36,14 +36,6 @@ export const columns = [
     header: "Email",
   },
   {
-    accessorKey: "contact_no",
-    header: "Contact No",
-  },
-  {
-    accessorKey: "address",
-    header: "Address",
-  },
-  {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {

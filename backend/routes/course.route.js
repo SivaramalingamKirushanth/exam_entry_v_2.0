@@ -22,6 +22,11 @@ import {
   getNoOfDegreesByLevel,
   getAllFacultiesWithExtraDetails,
   getAllDepartmentsWithExtraDetails,
+  getAllDegreesWithExtraDetails,
+  getActiveFacultiesWithDepartmentsCount,
+  getActiveDepartmentsInAFacultyWithDegreesCount,
+  getActiveDegreesInADepartmentWithLevelsCount,
+  getDegreeByShort,
 } from "../controllers/course.controller.js";
 
 const router = express.Router();
@@ -34,6 +39,10 @@ router.post("/getFacultyById", getFacultyById);
 router.get("/getNoOfFaculty", getNoOfFaculty);
 router.post("/getNoOfDepartmentsByFaculty/:f_id", getNoOfDepartmentsByFaculty);
 router.get("/getAllFacultiesWithExtraDetails", getAllFacultiesWithExtraDetails);
+router.get(
+  "/getActiveFacultiesWithDepartmentsCount",
+  getActiveFacultiesWithDepartmentsCount
+);
 
 ////////DEPARTMENT
 router.post("/createDepartment", createDepartment);
@@ -47,6 +56,14 @@ router.get(
   "/getAllDepartmentsWithExtraDetails",
   getAllDepartmentsWithExtraDetails
 );
+router.post(
+  "/getActiveDepartmentsInAFacultyWithDegreesCount",
+  getActiveDepartmentsInAFacultyWithDegreesCount
+);
+router.post(
+  "/getActiveDegreesInADepartmentWithLevelsCount",
+  getActiveDegreesInADepartmentWithLevelsCount
+);
 
 ////////DEGREE
 router.post("/createDegree", createDegree);
@@ -56,5 +73,6 @@ router.post("/getDegreeById", getDegreeById);
 router.post("/getDegreesByDepartmentId", getDegreesByDepartmentId);
 router.get("/getNoOfDegrees", getNoOfDegrees);
 router.post("/getNoOfDegreesByLevel/:levels", getNoOfDegreesByLevel);
-
+router.post("/getDegreeByShort", getDegreeByShort);
+router.get("/getAllDegreesWithExtraDetails", getAllDegreesWithExtraDetails);
 export default router;

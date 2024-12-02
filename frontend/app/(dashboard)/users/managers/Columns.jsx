@@ -32,25 +32,6 @@ export const columns = [
     header: "Contact No",
   },
   {
-    accessorKey: "address",
-    header: "Address",
-  },
-  {
-    accessorKey: "role_id",
-    header: "Role",
-    cell: ({ row }) => {
-      return (
-        <p>
-          {row.original.role_id == 2
-            ? "Dean"
-            : row.original.role_id == 3
-            ? "Hod"
-            : "Lecturer"}
-        </p>
-      );
-    },
-  },
-  {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {

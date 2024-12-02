@@ -1,10 +1,6 @@
 "use client";
 
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -34,120 +30,107 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getStudentByDegShort } from "@/utils/apiRequests/user.api";
 
-async function getData() {
-  // Fetch data from your API here.
-  return [
-    { s_id: 1, name: "John Doe" },
-    { s_id: 2, name: "Jane Smith" },
-    { s_id: 3, name: "Alice Johnson" },
-    { s_id: 4, name: "Bob Brown" },
-    { s_id: 1, name: "John Doe" },
-    { s_id: 2, name: "Jane Smith" },
-    { s_id: 3, name: "Alice Johnson" },
-    { s_id: 4, name: "Bob Brown" },
-    { s_id: 1, name: "John Doe" },
-    { s_id: 2, name: "Jane Smith" },
-    { s_id: 3, name: "Alice Johnson" },
-    { s_id: 4, name: "Bob Brown" },
-    { s_id: 1, name: "John Doe" },
-    { s_id: 2, name: "Jane Smith" },
-    { s_id: 3, name: "Alice Johnson" },
-    { s_id: 4, name: "Bob Brown" },
-    { s_id: 1, name: "John Doe" },
-    { s_id: 2, name: "Jane Smith" },
-    { s_id: 3, name: "Alice Johnson" },
-    { s_id: 4, name: "Bob Brown" },
-    { s_id: 1, name: "John Doe" },
-    { s_id: 2, name: "Jane Smith" },
-    { s_id: 3, name: "Alice Johnson" },
-    { s_id: 4, name: "Bob Brown" },
-  ];
-}
-
-const columns = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "s_id",
-    header: "Student ID",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("s_id")}</div>,
-  },
-  {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="">{row.getValue("name")}</div>,
-  },
-];
-
-const StudentSelection = ({ setData, btnEnable }) => {
+const StudentSelection = ({
+  feedDegShort,
+  selectedStudents,
+  setSelectedStudents,
+  feedId,
+  oldDataRefetch,
+}) => {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [filteredStuData, setFilteredStuData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
-  const [stuData, setStuData] = useState([]);
-  const [selectedStudents, setSelectedStudents] = useState([]);
 
-  useEffect(() => {
-    const load = async () => {
-      const data = await getData();
-      setStuData(data);
-      setFilteredStuData(data);
-    };
+  const { data: stuData, refetch } = useQuery({
+    queryFn: () => getStudentByDegShort(feedDegShort),
+    queryKey: ["students", "department", "short", feedDegShort],
+    enabled: false,
+  });
 
-    load();
-  }, []);
+  const columns = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={selectedStudents?.includes(row.original.s_id)}
+          onCheckedChange={(value) =>
+            setSelectedStudents((cur) => {
+              const temp = [...cur];
+              if (cur.includes(row.original.s_id)) {
+                let ind = cur.indexOf(row.original.s_id);
+                temp.splice(ind, 1);
+              } else {
+                temp.push(row.original.s_id);
+              }
+              return temp;
+            })
+          }
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "s_id",
+      header: "Student ID",
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("s_id")}</div>
+      ),
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Name
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div className="">{row.getValue("name")}</div>,
+    },
+  ];
 
   const onSearchChange = (e) => {
     setSearchValue(e.target.value);
   };
 
   useEffect(() => {
-    let filtData = searchValue
-      ? stuData.filter(
-          (item) =>
-            item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-            item.s_id
-              .toString()
-              .toLowerCase()
-              .includes(searchValue.toLowerCase())
-        )
-      : stuData;
+    if (stuData) {
+      let filtData = searchValue
+        ? stuData.filter(
+            (item) =>
+              item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+              item.s_id
+                .toString()
+                .toLowerCase()
+                .includes(searchValue.toLowerCase())
+          )
+        : stuData;
 
-    setFilteredStuData(filtData);
-  }, [searchValue]);
+      setFilteredStuData(filtData);
+    }
+  }, [searchValue, stuData]);
 
   const table = useReactTable({
     data: filteredStuData,
@@ -168,22 +151,22 @@ const StudentSelection = ({ setData, btnEnable }) => {
   });
 
   useEffect(() => {
-    setSelectedStudents(
-      table.getFilteredSelectedRowModel().rows.map((obj) => obj.original.s_id)
-    );
-  }, [table.getFilteredSelectedRowModel().rows]);
+    if (feedId) {
+      console.log(11111);
+      refetch();
+    }
+  }, [feedId]);
 
   useEffect(() => {
-    setData((cur) => ({ ...cur, students: selectedStudents }));
-  }, [selectedStudents]);
-
-  useEffect(() => {
-    table.getFilteredSelectedRowModel().rows = [];
-  }, [btnEnable]);
+    if (feedId) {
+      console.log(22222);
+      oldDataRefetch();
+    }
+  }, [feedId]);
 
   return (
-    <div className="w-full">
-      <div className="flex items-center py-2 mx-8">
+    <div className="w-full h-[60vh] mb-2">
+      <div className="flex items-center py-2 px-1">
         <Input
           placeholder="Search by student id or name"
           onChange={(e) => onSearchChange(e)}
@@ -217,7 +200,7 @@ const StudentSelection = ({ setData, btnEnable }) => {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="rounded-md border max-h-[370px] min-h-[370px] mx-8 overflow-y-scroll">
+      <div className="rounded-md border max-h-[370px] h-[350px] overflow-y-scroll">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -269,7 +252,7 @@ const StudentSelection = ({ setData, btnEnable }) => {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4 mx-8">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {selectedStudents?.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
       </div>

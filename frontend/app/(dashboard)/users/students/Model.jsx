@@ -34,7 +34,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setEditId("");
       toast(res.message);
     },
-    onError: (err) => toast("Operation failed"),
+    onError: (err) => {
+      console.log(err);
+      setEditId("");
+      toast("Operation failed");
+    },
   });
 
   const { data, refetch } = useQuery({
@@ -50,7 +54,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   const { data: departmentData, refetch: departmentRefetch } = useQuery({
     queryFn: () => formData.f_id && getDepartmentsByFacultyId(formData?.f_id),
-    queryKey: ["departments", "faculties", formData?.f_id],
+    queryKey: ["departments", "faculty", formData?.f_id],
     enabled: false,
   });
 
@@ -61,10 +65,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   useEffect(() => {
     if (data) setFormData(data);
   }, [data]);
-
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
 
   const onFormDataChanged = (e) => {
     if (e.target) {
@@ -89,7 +89,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const onFormReset = () => {
-    setFormData({ status: "true" });
+    setFormData(data || { status: "true" });
   };
 
   useEffect(() => {
@@ -97,15 +97,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       formData.name &&
       formData.user_name &&
       formData.email &&
-      formData.contact_no &&
-      formData.address &&
       formData.f_id &&
       formData.d_id;
     setBtnEnable(isFormValid);
   }, [formData]);
 
   useEffect(() => {
-    console.log(formData);
     editId && refetch();
   }, [editId]);
 
@@ -124,7 +121,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
                 onClick={() => {
                   setIsOpen(false);
-                  onFormReset();
+                  setFormData({ status: "true" });
                   setEditId("");
                 }}
               />
@@ -167,30 +164,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   value={formData.email || ""}
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="contact_no" className="text-right">
-                  Contact No
-                </Label>
-                <Input
-                  id="contact_no"
-                  name="contact_no"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  value={formData.contact_no || ""}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="address" className="text-right">
-                  Address
-                </Label>
-                <Input
-                  id="address"
-                  name="address"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  value={formData.address || ""}
-                />
-              </div>
 
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Faculty</Label>
@@ -206,7 +179,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectTrigger>
                   <SelectContent>
                     {facultyData?.map((item) => (
-                      <SelectItem value={`f_id:${item.f_id}`}>
+                      <SelectItem key={item.f_id} value={`f_id:${item.f_id}`}>
                         {item.f_name}
                       </SelectItem>
                     ))}
@@ -225,7 +198,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 >
                   <SelectTrigger
                     disabled={!formData.f_id}
-                    className={`w-[180px]`}
+                    className="col-span-3"
                   >
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
@@ -262,10 +235,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               <Button
                 type="button"
                 variant="warning"
-                onClick={() => {
-                  onFormReset();
-                  editId && setFormData((cur) => ({ ...cur, s_id: data.s_id }));
-                }}
+                onClick={() => onFormReset()}
               >
                 Reset
               </Button>

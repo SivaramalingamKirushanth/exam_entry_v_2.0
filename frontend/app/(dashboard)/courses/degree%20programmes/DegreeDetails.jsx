@@ -1,69 +1,33 @@
 "use client";
 import { columns } from "./Columns";
-import { DataTable } from "./DataTable";
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { MdCancel } from "react-icons/md";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import departments from "./page";
-
-async function getData() {
-  // Fetch data from your API here.
-  return [
-    {
-      name: "Information Technology",
-      shortname: "IT",
-      faculty: "Applied Science",
-      department: "Physical Science",
-      status: "active",
-    },
-    {
-      name: "Information Technology (Hons)",
-      shortname: "IT(Hons)",
-      faculty: "Applied Science",
-      department: "Physical Science",
-      status: "active",
-    },
-    {
-      name: "Applied Mathematics and Computing",
-      shortname: "AMC",
-      faculty: "Applied Science",
-      department: "Physical Science",
-      status: "active",
-    },
-    {
-      name: "Computer Science (Hons)",
-      shortname: "CS(Hons)",
-      faculty: "Applied Science",
-      department: "Physical Science",
-      status: "active",
-    },
-  ];
-}
+import { useQuery } from "@tanstack/react-query";
+import Modal from "./Model";
+import { getAllDegreesWithExtraDetails } from "@/utils/apiRequests/course.api";
+import { DataTable } from "@/components/DataTable";
 
 const DegreeDetails = () => {
-  const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
+  const [isOpen, setIsOpen] = useState(false);
+  const modalRef = useRef(null);
+  const [editId, setEditId] = useState("");
 
-  useEffect(() => {
-    const load = async () => {
-      const data = await getData();
-      setData(data);
-      setFilteredData(data);
-    };
-
-    load();
-  }, []);
+  const { data, isLoading, error } = useQuery({
+    queryFn: getAllDegreesWithExtraDetails,
+    queryKey: ["degreesExtra"],
+  });
 
   const onClearClicked = () => setSearchValue("");
 
@@ -75,19 +39,31 @@ const DegreeDetails = () => {
     setStatus(e);
   };
 
+  const toggleModal = () => {
+    isOpen && setEditId("");
+    setIsOpen((prev) => !prev);
+  };
+
+  const onEditClicked = (e) => {
+    if (e.target.classList.contains("editBtn")) {
+      setEditId(e.target.id);
+      toggleModal();
+    }
+  };
+
   useEffect(() => {
-    let filtData1 = searchValue
-      ? data.filter((item) =>
-          item.name.toLowerCase().includes(searchValue.toLowerCase())
-        )
-      : data;
-    let filtData2 = filtData1.filter((item) => {
-      return status == "all"
-        ? true
-        : item.status == status.split("-").join(" ");
-    });
-    setFilteredData(filtData2);
-  }, [searchValue, status]);
+    if (data) {
+      let filtData1 = searchValue
+        ? data.filter((item) =>
+            item.deg_name.toLowerCase().includes(searchValue.toLowerCase())
+          )
+        : data;
+      let filtData2 = filtData1.filter((item) => {
+        return status == "all" ? true : item.status == status;
+      });
+      setFilteredData(filtData2);
+    }
+  }, [searchValue, status, data]);
 
   return (
     <>
@@ -120,8 +96,8 @@ const DegreeDetails = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="not-active">Not active</SelectItem>
+                  <SelectItem value="true">Active</SelectItem>
+                  <SelectItem value="false">Not active</SelectItem>
                   <SelectItem value="all">All</SelectItem>
                 </SelectGroup>
               </SelectContent>
@@ -129,8 +105,21 @@ const DegreeDetails = () => {
           </div>
         </div>
       </div>
+      <Modal
+        editId={editId}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        modalRef={modalRef}
+        setEditId={setEditId}
+      />
       <div className="container mx-auto">
-        <DataTable columns={columns} data={filteredData} />
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          onEditClicked={onEditClicked}
+          toggleModal={toggleModal}
+          btnText="Create degree programme"
+        />
       </div>
     </>
   );
