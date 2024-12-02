@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "./ui/button";
-
+import user_avatar from "./../images/user_avatar.jpg";
 const regex = /^[a-zA-Z]+\d+$/;
 
 const DashboardHeader = ({ logoutHandler }) => {
@@ -69,7 +69,7 @@ const DashboardHeader = ({ logoutHandler }) => {
           <div className="flex items-center gap-3">
             <h1 className="capitalize">{user?.name || user?.user_name}</h1>
             <Avatar>
-              <AvatarImage src="/images/user_avatar.jpg" />
+              <AvatarImage src={user_avatar.src} />
               <AvatarFallback>
                 <span className="inline-block capitalize">
                   {user?.name?.slice(0, 2) || user?.user_name?.slice(0, 2)}

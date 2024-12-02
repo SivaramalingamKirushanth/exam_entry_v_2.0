@@ -48,6 +48,7 @@ export const createFaculty = async (req, res, next) => {
       );
 
       await conn.commit();
+      await mailer(email, email, password);
 
       return res.status(201).json({ message: "Faculty created successfully" });
     } catch (error) {
@@ -172,6 +173,7 @@ export const createDepartment = async (req, res, next) => {
       ]);
 
       await conn.commit();
+      await mailer(email, email, password);
 
       res.status(201).json({
         message: "Department created successfully",
