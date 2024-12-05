@@ -1,21 +1,10 @@
 import pool from "../config/db.js";
 import { generatePassword, hashPassword } from "../utils/functions.js";
-import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import { verifyPassword } from "../utils/functions.js";
 import errorProvider from "../utils/errorProvider.js";
+import mailer from "../utils/mailer.js";
 const JWT_SECRET = process.env.JWT_SECRET || "abc123";
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email",
-  port: 587,
-  secure: false, // true for port 465, false for other ports
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 export const studentRegister = async (req, res, next) => {
   const { user_name, name, d_id, email, status } = req.body;
@@ -29,23 +18,6 @@ export const studentRegister = async (req, res, next) => {
     const password = await generatePassword();
     // show the generated password for only login testing
     console.log("Generated password:", password);
-
-    let mailOptions = {
-      from: `"Examination Branch" <${process.env.EMAIL}>`,
-      to: email,
-      subject: "Registration succesfull",
-      html: `<h2>You are successfully registered for to examinations</h2>
-      <h4>User name : ${user_name}</h4>
-      <h4>User name : ${password}</h4>`,
-    };
-
-    transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log("Email sent: " + info.response);
-      }
-    });
 
     const hashedPassword = await hashPassword(password);
 
@@ -82,6 +54,7 @@ export const studentRegister = async (req, res, next) => {
       );
 
       await conn.commit();
+      await mailer(email, user_name, password);
 
       return res
         .status(201)
@@ -145,6 +118,7 @@ export const managerRegister = async (req, res, next) => {
       );
 
       await conn.commit();
+      await mailer(email, user_name, password);
 
       res.status(201).json({ message: "Manger registered successfully" });
     } catch (error) {

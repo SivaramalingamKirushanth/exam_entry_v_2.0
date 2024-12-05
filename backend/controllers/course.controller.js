@@ -1,6 +1,7 @@
 import pool from "../config/db.js";
 import errorProvider from "../utils/errorProvider.js";
 import { generatePassword, hashPassword } from "../utils/functions.js";
+import mailer from "../utils/mailer.js";
 
 export const createFaculty = async (req, res, next) => {
   let { f_name, email, contact_no, status } = req.body;
@@ -48,6 +49,7 @@ export const createFaculty = async (req, res, next) => {
       );
 
       await conn.commit();
+      await mailer(email, email, password);
 
       return res.status(201).json({ message: "Faculty created successfully" });
     } catch (error) {
@@ -172,6 +174,7 @@ export const createDepartment = async (req, res, next) => {
       ]);
 
       await conn.commit();
+      await mailer(email, email, password);
 
       res.status(201).json({
         message: "Department created successfully",
