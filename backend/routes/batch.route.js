@@ -25,7 +25,11 @@ router.post(
 );
 router.post("/getStudentsByBatchId", verifyUser(["1"]), getStudentsByBatchId);
 router.post("/getBatchById", verifyUser(["1"]), getBatchById);
-router.post("/getBatchByFacultyId", verifyUser(["1,2"]), getBatchByFacultyId);
+router.post(
+  "/getBatchByFacultyId",
+  verifyUser(["1", "2"]),
+  getBatchByFacultyId
+);
 router.put("/updateBatch", verifyUser(["1"]), updateBatch);
 
 export default router;

@@ -3,7 +3,6 @@ import errorProvider from "./errorProvider.js";
 
 export const verifyUser = (allowedRoles) => (req, res, next) => {
   const token = req.cookies["access-token"];
-
   //check is there any token exists
   if (!token) return next(errorProvider(401, "Unauthorized"));
   try {
@@ -14,6 +13,9 @@ export const verifyUser = (allowedRoles) => (req, res, next) => {
       }
 
       if (!allowedRoles.includes(user.role_id)) {
+        console.log(allowedRoles);
+        console.log(user);
+        console.log(allowedRoles.includes(user.role_id));
         return res.status(403).json({ message: "Forbidden" });
       }
 

@@ -360,7 +360,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 >
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="batch_code" className="text-right">
-                      Batch ID
+                      Batch Code
                     </Label>
                     <Input
                       id="batch_code"
@@ -573,8 +573,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                     <ChevronsUpDown className="opacity-50 size-[17px] " />
                                   </button>
                                 </PopoverTrigger>
-                                <PopoverContent className="py-0 px-1 border-none shadow-none">
-                                  <Command className="border shadow-md">
+                                <PopoverContent className="py-0 px-1 border-none shadow-none w-full">
+                                  <Command className="border shadow-md w-full">
                                     <CommandInput placeholder="Search manager" />
                                     <CommandList>
                                       <CommandEmpty>
@@ -651,9 +651,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                         &nbsp; year, {formData.sem_no}
                         {formData.sem_no == "1" ? (
                           <sup>st</sup>
-                        ) : formData.level == "2" ? (
+                        ) : formData.sem_no == "2" ? (
                           <sup>nd</sup>
-                        ) : formData.level == "3" ? (
+                        ) : formData.sem_no == "3" ? (
                           <sup>rd</sup>
                         ) : (
                           <sup>th</sup>

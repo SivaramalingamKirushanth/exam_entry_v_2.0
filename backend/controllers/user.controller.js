@@ -10,7 +10,7 @@ export const getAllStudents = async (req, res, next) => {
             u.user_id, 
             u.user_name, 
             sd.name, 
-            sd.d_id, 
+            sd.f_id, 
             u.email, 
             sd.status 
           FROM user u
@@ -157,12 +157,10 @@ export const getStudentById = async (req, res, next) => {
             u.email, 
             sd.status,
             sd.s_id,
-            sd.d_id,
-            fd.f_id
+            sd.f_id
           FROM user u
           INNER JOIN student s ON u.user_id = s.user_id
-          INNER JOIN student_detail sd ON s.s_id = sd.s_id
-          INNER JOIN fac_dep fd ON fd.d_id = sd.d_id 
+          INNER JOIN student_detail sd ON s.s_id = sd.s_id 
           WHERE u.user_id = ?`,
         [user_id]
       );
@@ -193,17 +191,15 @@ export const getStudentByDegShort = async (req, res, next) => {
     const conn = await pool.getConnection();
     try {
       const [students] = await conn.execute(
-        `SELECT sd.s_id,sd.name FROM student_detail sd INNER JOIN dep_deg dd ON sd.d_id = dd.d_id INNER JOIN degree d ON dd.deg_id = d.deg_id WHERE d.short = ? AND sd.status = 'true'`,
+        `SELECT sd.s_id,sd.name,u.user_name FROM student_detail sd INNER JOIN fac_dep fd ON sd.f_id = fd.f_id INNER JOIN dep_deg dd ON fd.d_id = dd.d_id INNER JOIN degree d ON dd.deg_id = d.deg_id INNER JOIN student s ON sd.s_id = s.s_id INNER JOIN user u ON s.user_id = u.user_id WHERE d.short = ? AND sd.status = 'true'`,
         [short]
       );
 
       if (!students.length) {
         return res
           .status(404)
-          .json({ message: "No students found in current department" });
+          .json({ message: "No students found in current faculty" });
       }
-
-      console.log(students);
 
       return res.status(200).json(students);
     } catch (error) {
@@ -224,16 +220,16 @@ export const updateStudent = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
-      const { name, d_id, email, status, s_id } = req.body;
+      const { name, f_id, email, status, s_id } = req.body;
 
       const [result] = await conn.execute(
         `UPDATE student_detail 
           SET 
             name = ?, 
-            d_id = ?, 
+            f_id = ?, 
             status = ? 
           WHERE s_id = ?`,
-        [name, d_id, status, s_id]
+        [name, f_id, status, s_id]
       );
 
       const [emailResult] = await conn.execute(
