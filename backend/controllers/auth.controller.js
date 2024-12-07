@@ -30,7 +30,7 @@ export const studentRegister = async (req, res, next) => {
         "CALL CheckUserExists(?, ?, @userExists); SELECT @userExists AS userExists;",
         [user_name, email]
       );
-      console.log(userExistsResult);
+
       const userExists = userExistsResult[1][0].userExists;
 
       if (userExists) {
@@ -212,7 +212,6 @@ export const login = async (req, res, next) => {
 
 export const me = async (req, res, next) => {
   const { user_id, role_id } = req.user;
-  console.log(user_id, role_id);
   const conn = await pool.getConnection();
 
   try {

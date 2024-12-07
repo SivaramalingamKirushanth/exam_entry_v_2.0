@@ -478,6 +478,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             checked={formData.level == item}
                             name="level"
                             onChange={(e) => onFormDataChanged(e)}
+                            onBlur={(e) => {
+                              e.target.value = e.target.value.trim();
+                              onFormDataChanged(e);
+                            }}
                             className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
                           />
                           <Label
@@ -506,6 +510,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             checked={formData.sem_no == item}
                             name="sem_no"
                             onChange={(e) => onFormDataChanged(e)}
+                            onBlur={(e) => {
+                              e.target.value = e.target.value.trim();
+                              onFormDataChanged(e);
+                            }}
                             className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
                           />
                           <Label

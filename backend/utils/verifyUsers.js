@@ -13,9 +13,6 @@ export const verifyUser = (allowedRoles) => (req, res, next) => {
       }
 
       if (!allowedRoles.includes(user.role_id)) {
-        console.log(allowedRoles);
-        console.log(user);
-        console.log(allowedRoles.includes(user.role_id));
         return res.status(403).json({ message: "Forbidden" });
       }
 

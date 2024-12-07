@@ -166,6 +166,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   name="sub_code"
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
+                  onBlur={(e) => {
+                    e.target.value = e.target.value.trim();
+                    onFormDataChanged(e);
+                  }}
                   value={formData.sub_code || ""}
                 />
               </div>
@@ -178,6 +182,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   name="sub_name"
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
+                  onBlur={(e) => {
+                    e.target.value = e.target.value.trim();
+                    onFormDataChanged(e);
+                  }}
                   value={formData.sub_name || ""}
                 />
               </div>

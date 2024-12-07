@@ -169,6 +169,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   name="deg_name"
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
+                  onBlur={(e) => {
+                    e.target.value = e.target.value.trim();
+                    onFormDataChanged(e);
+                  }}
                   value={formData.deg_name || ""}
                 />
               </div>
@@ -181,6 +185,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   name="short"
                   className="col-span-3 uppercase"
                   onChange={(e) => {
+                    let ele = e;
+                    ele.target.value = ele.target.value.toUpperCase();
+                    onFormDataChanged(ele);
+                  }}
+                  onBlur={(e) => {
+                    e.target.value = e.target.value.trim();
                     let ele = e;
                     ele.target.value = ele.target.value.toUpperCase();
                     onFormDataChanged(ele);

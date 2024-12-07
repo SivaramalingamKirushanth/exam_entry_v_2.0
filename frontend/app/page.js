@@ -6,23 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GiCancel } from "react-icons/gi";
 
-import {
-  createDegree,
-  getAllFaculties,
-  getDegreeById,
-  getDepartmentsByFacultyId,
-  updateDegree,
-} from "@/utils/apiRequests/course.api";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import Link from "next/link";
 import axiosInstance from "@/lib/axiosInstance";
 import { useRouter } from "next/navigation";
@@ -47,6 +31,7 @@ const Login = () => {
 
   const onFormSubmitted = async () => {
     try {
+      console.log(formData);
       const { data } = await axiosInstance.post("/auth/login", formData);
 
       router.push("/home");
@@ -78,6 +63,10 @@ const Login = () => {
               name="user_name_or_email"
               className="col-span-3"
               onChange={(e) => onFormDataChanged(e)}
+              onBlur={(e) => {
+                e.target.value = e.target.value.trim();
+                onFormDataChanged(e);
+              }}
               value={formData.user_name_or_email || ""}
               placeholder="Enter your user name or email"
             />
@@ -92,6 +81,10 @@ const Login = () => {
               // type="password"
               className="col-span-3"
               onChange={(e) => onFormDataChanged(e)}
+              onBlur={(e) => {
+                e.target.value = e.target.value.trim();
+                onFormDataChanged(e);
+              }}
               value={formData.password || ""}
               placeholder="Enter your password"
             />
