@@ -112,6 +112,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   name="f_name"
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
+                  onBlur={(e) => {
+                    e.target.value = e.target.value.trim();
+                    onFormDataChanged(e);
+                  }}
                   value={formData.f_name || ""}
                 />
               </div>
@@ -125,6 +129,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   name="email"
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
+                  onBlur={(e) => {
+                    e.target.value = e.target.value.trim();
+                    onFormDataChanged(e);
+                  }}
                   value={formData.email || ""}
                 />
               </div>
@@ -137,6 +145,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   name="contact_no"
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
+                  onBlur={(e) => {
+                    e.target.value = e.target.value.trim();
+                    onFormDataChanged(e);
+                  }}
                   value={formData.contact_no || ""}
                 />
               </div>

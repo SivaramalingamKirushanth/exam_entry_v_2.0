@@ -3,7 +3,6 @@ import errorProvider from "./errorProvider.js";
 
 export const verifyUser = (allowedRoles) => (req, res, next) => {
   const token = req.cookies["access-token"];
-
   //check is there any token exists
   if (!token) return next(errorProvider(401, "Unauthorized"));
   try {

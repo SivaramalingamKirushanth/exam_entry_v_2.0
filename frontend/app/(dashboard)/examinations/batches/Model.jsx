@@ -360,7 +360,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 >
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="batch_code" className="text-right">
-                      Batch ID
+                      Batch Code
                     </Label>
                     <Input
                       id="batch_code"
@@ -478,6 +478,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             checked={formData.level == item}
                             name="level"
                             onChange={(e) => onFormDataChanged(e)}
+                            onBlur={(e) => {
+                              e.target.value = e.target.value.trim();
+                              onFormDataChanged(e);
+                            }}
                             className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
                           />
                           <Label
@@ -506,6 +510,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             checked={formData.sem_no == item}
                             name="sem_no"
                             onChange={(e) => onFormDataChanged(e)}
+                            onBlur={(e) => {
+                              e.target.value = e.target.value.trim();
+                              onFormDataChanged(e);
+                            }}
                             className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
                           />
                           <Label
@@ -573,8 +581,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                     <ChevronsUpDown className="opacity-50 size-[17px] " />
                                   </button>
                                 </PopoverTrigger>
-                                <PopoverContent className="py-0 px-1 border-none shadow-none">
-                                  <Command className="border shadow-md">
+                                <PopoverContent className="py-0 px-1 border-none shadow-none w-full">
+                                  <Command className="border shadow-md w-full">
                                     <CommandInput placeholder="Search manager" />
                                     <CommandList>
                                       <CommandEmpty>
@@ -651,9 +659,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                         &nbsp; year, {formData.sem_no}
                         {formData.sem_no == "1" ? (
                           <sup>st</sup>
-                        ) : formData.level == "2" ? (
+                        ) : formData.sem_no == "2" ? (
                           <sup>nd</sup>
-                        ) : formData.level == "3" ? (
+                        ) : formData.sem_no == "3" ? (
                           <sup>rd</sup>
                         ) : (
                           <sup>th</sup>

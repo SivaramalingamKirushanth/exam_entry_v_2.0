@@ -1,7 +1,6 @@
 import express from "express";
 import {
   getCurriculumsByLecId,
-  getCurriculumsByHodId,
   createCurriculum,
   updateCurriculum,
   getNoOfCurriculums,
@@ -11,6 +10,7 @@ import {
   getCurriculumByDegLevSem,
   getCurriculumBybatchId,
   getStudentApplicationDetails,
+  getCurriculumsByDid,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -24,7 +24,7 @@ router.get(
 router.post("/getCurriculumById", getCurriculumById);
 router.post("/getCurriculumByDegLevSem", getCurriculumByDegLevSem);
 router.get("/getCurriculumsByLecId", getCurriculumsByLecId);
-router.get("/getCurriculumsByHod_id", getCurriculumsByHodId);
+router.get("/getCurriculumsByHod_id", getCurriculumsByDid);
 router.post("/createCurriculum", createCurriculum);
 router.get(
   "/getStudentApplicationDetails",

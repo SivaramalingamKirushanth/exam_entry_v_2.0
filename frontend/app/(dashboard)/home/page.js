@@ -129,8 +129,8 @@ const dashboard = () => {
                     <TableRow key={batch.batch_id}>
                       <TableCell className="font-medium uppercase">
                         {level_ordinal} examination in {batch.deg_name} -{" "}
-                        {decodeBatchCode.academic_year}
-                        {sem_ordinal} semester
+                        {decodeBatchCode.academic_year} {sem_ordinal}
+                        &nbsp;semester
                       </TableCell>
                       <TableCell>
                         <Badge
