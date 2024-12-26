@@ -101,3 +101,43 @@ export const applyExam = async (req, res, next) => {
       return next(errorProvider(500, "Failed to establish database connection."));
     }
   };
+
+
+  export const getStudentsWithoutIndexNumber = async (req, res, next) => {
+    const { batch_id } = req.body;
+  
+    if (!batch_id) {
+      return res.status(400).json({ message: "Batch ID is required." });
+    }
+  
+    try {
+      const conn = await pool.getConnection();
+  
+      try {
+        const [results] = await conn.query(
+          "CALL GetStudentsWithoutIndexNumber(?);",
+          [batch_id]
+        );
+  
+        const count = results[0]?.students_without_index || 0;
+  
+        return res.status(200).json({
+          studentsWithoutIndex: count,
+        });
+      } catch (error) {
+        console.error("Error fetching students without index number:", error);
+        return next(
+          errorProvider(
+            500,
+            "An error occurred while checking students without index numbers."
+          )
+        );
+      } finally {
+        conn.release();
+      }
+    } catch (error) {
+      console.error("Database connection error:", error);
+      return next(errorProvider(500, "Failed to establish database connection."));
+    }
+  };
+  
