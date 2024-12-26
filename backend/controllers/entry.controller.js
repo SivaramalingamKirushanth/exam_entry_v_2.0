@@ -76,3 +76,28 @@ export const applyExam = async (req, res, next) => {
     }
   };
   
+  export const getStudentSubjects = async (req, res, next) => {
+    const { batch_id, s_id } = req.body;
+    console.log(batch_id, s_id);
+    try {
+      const conn = await pool.getConnection();
+      try {
+        const [results] = await conn.query("CALL GetStudentSubjects(?, ?);", [
+          batch_id,
+          s_id,
+        ]);
+        console.log(results);
+        return res.status(200).json(results[0]); 
+      } catch (error) {
+        console.error("Error fetching student subjects:", error);
+        return next(
+          errorProvider(500, "An error occurred while fetching student subjects.")
+        );
+      } finally {
+        conn.release();
+      }
+    } catch (error) {
+      console.error("Database connection error:", error);
+      return next(errorProvider(500, "Failed to establish database connection."));
+    }
+  };
