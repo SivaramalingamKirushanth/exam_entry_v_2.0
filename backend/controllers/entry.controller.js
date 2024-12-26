@@ -35,3 +35,44 @@ export const applyExam = async (req, res, next) => {
     }
   };
   
+  export const addMedicalResitStudents = async (req, res, next) => {
+    const { data, batch_id } = req.body;
+  
+    if (!data || !batch_id) {
+      return res
+        .status(400)
+        .json({ message: "Transformed data and batch_id are required." });
+    }
+  
+    try {
+      const conn = await pool.getConnection();
+      try {
+        for (const [sub_id, students] of Object.entries(data)) {
+          for (const { s_id, type } of students) {
+            await conn.query("CALL AddMedicalResitStudents(?, ?, ?, ?)", [
+              batch_id,
+              sub_id,
+              s_id,
+              type,
+            ]);
+          }
+        }
+  
+        return res.status(200).json({ message: "Students added successfully." });
+      } catch (error) {
+        console.error("Error adding medical/resit students:", error);
+        return next(
+          errorProvider(
+            500,
+            "An error occurred while adding medical/resit students."
+          )
+        );
+      } finally {
+        conn.release();
+      }
+    } catch (error) {
+      console.error("Database connection error:", error);
+      return next(errorProvider(500, "Failed to establish database connection."));
+    }
+  };
+  
