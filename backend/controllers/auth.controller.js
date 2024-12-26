@@ -1,3 +1,5 @@
+import csv from "csv-parser";
+import streamifier from "streamifier";
 import pool from "../config/db.js";
 import { generatePassword, hashPassword } from "../utils/functions.js";
 import jwt from "jsonwebtoken";
@@ -7,10 +9,18 @@ import mailer from "../utils/mailer.js";
 const JWT_SECRET = process.env.JWT_SECRET || "abc123";
 
 export const studentRegister = async (req, res, next) => {
-  const { user_name, name, f_id, email, status } = req.body;
+  const {
+    user_name,
+    name,
+    f_id,
+    email,
+    contact_no,
+    index_num = "",
+    status = "true",
+  } = req.body;
   const role_id = 5;
 
-  if (!user_name || !name || !f_id || !email || !status) {
+  if (!user_name || !name || !f_id || !email || !status || !contact_no) {
     return next(errorProvider(400, "Missing credentials"));
   }
 
@@ -38,14 +48,12 @@ export const studentRegister = async (req, res, next) => {
         return next(errorProvider(409, "User already exists"));
       }
 
-      // Insert user
       const [userResult] = await conn.query(
         "CALL InsertUser(?, ?, ?, ?, @userId); SELECT @userId AS userId;",
         [user_name, email, hashedPassword, role_id]
       );
       const user_id = userResult[1][0].userId;
 
-      // Insert student
       const [studentResult] = await conn.query(
         "CALL InsertStudent(?, @studentId); SELECT @studentId AS studentId;",
         [user_id]
@@ -53,11 +61,13 @@ export const studentRegister = async (req, res, next) => {
       const s_id = studentResult[1][0].studentId;
 
       // Insert student details
-      await conn.query("CALL InsertStudentDetail(?, ?, ?, ?);", [
+      await conn.query("CALL InsertStudentDetail(?, ?, ?, ?,? ,?);", [
         s_id,
         name,
         f_id,
         status,
+        index_num,
+        contact_no,
       ]);
 
       await conn.commit();
@@ -79,8 +89,120 @@ export const studentRegister = async (req, res, next) => {
   }
 };
 
+export const MultipleStudentsRegister = async (req, res, next) => {
+  const results = [];
+  const failedRecords = [];
+  console.log(req.file);
+
+  try {
+    // Check if file exists
+    if (!req.file || !req.file.buffer) {
+      return next(errorProvider(400, "No file uploaded"));
+    }
+
+    const buffer = req.file.buffer; // Access the file buffer
+    const stream = streamifier.createReadStream(buffer); // Convert buffer to readable stream
+
+    // Parse CSV data
+    stream
+      .pipe(csv({ headers: true, skipLines: 1 })) // Read the file
+      .on("data", (row) => {
+        results.push(row); // Collect all rows
+      })
+      .on("end", async () => {
+        console.log(results[0]._0.split(";"));
+        const conn = await pool.getConnection();
+
+        try {
+          await conn.beginTransaction();
+
+          for (const record of results) {
+            const { name, user_name, f_id, email, status, contact_no } =
+              record._0.split(";");
+
+            // Validate fields
+            if (
+              !user_name ||
+              !name ||
+              !f_id ||
+              !email ||
+              !status ||
+              !contact_no
+            ) {
+              failedRecords.push({ record, error: "Missing credentials" });
+              continue;
+            }
+
+            const password = await generatePassword();
+            const hashedPassword = await hashPassword(password);
+
+            // Check if user exists
+            const [userExistsResult] = await conn.query(
+              "CALL CheckUserExists(?, ?, @userExists); SELECT @userExists AS userExists;",
+              [user_name, email]
+            );
+
+            const userExists = userExistsResult[1][0].userExists;
+
+            if (userExists) {
+              failedRecords.push({ record, error: "User already exists" });
+              continue;
+            }
+
+            // Insert user
+            const [userResult] = await conn.query(
+              "CALL InsertUser(?, ?, ?, ?, @userId); SELECT @userId AS userId;",
+              [user_name, email, hashedPassword, 5]
+            );
+            const user_id = userResult[1][0].userId;
+
+            // Insert student
+            const [studentResult] = await conn.query(
+              "CALL InsertStudent(?, @studentId); SELECT @studentId AS studentId;",
+              [user_id]
+            );
+            const s_id = studentResult[1][0].studentId;
+
+            // Insert student details
+            await conn.query("CALL InsertStudentDetail(?, ?, ?, ?,? ,?);", [
+              s_id,
+              name,
+              f_id,
+              status,
+              index_num,
+              contact_no,
+            ]);
+
+            // Send email
+            await mailer(email, user_name, password);
+          }
+          // console.log(failedRecords);
+
+          await conn.commit();
+          return res.status(201).json({
+            message: "Students registered successfully",
+            failedRecords,
+          });
+        } catch (error) {
+          await conn.rollback();
+          console.error("Error during transaction:", error);
+          return next(errorProvider(500, "Failed to register students"));
+        } finally {
+          conn.release();
+        }
+      })
+      .on("error", (err) => {
+        console.error("Error processing CSV:", err);
+        return next(errorProvider(500, "Error processing CSV file"));
+      });
+  } catch (error) {
+    console.error("Error handling upload:", error);
+    return next(errorProvider(500, "Failed to handle uploaded file"));
+  }
+};
+
 export const managerRegister = async (req, res, next) => {
-  const { user_name, name, email, contact_no, status } = req.body;
+  const { user_name, name, email, contact_no, status = "true" } = req.body;
   const role_id = 4;
 
   if (!user_name || !name || !email || !contact_no || !status) {

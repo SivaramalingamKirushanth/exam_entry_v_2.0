@@ -8,6 +8,8 @@ import userRoutes from "./routes/user.route.js";
 import curriculumRouter from "./routes/curriculum.route.js";
 import courseRouter from "./routes/course.route.js";
 import batchRouter from "./routes/batch.route.js";
+import entryRouter from "./routes/entry.route.js";
+
 import { generatePassword, hashPassword } from "./utils/functions.js";
 import pool from "./config/db.js";
 
@@ -68,6 +70,7 @@ app.use("/api1/user", userRoutes);
 app.use("/api1/curriculum", curriculumRouter);
 app.use("/api1/course", courseRouter);
 app.use("/api1/batch", batchRouter);
+app.use("/api1/entry", entryRouter);
 ///////////////////////////////////////////////////////////
 
 app.use((err, req, res, next) => {

@@ -36,8 +36,8 @@ const users = () => {
     <div className="flex justify-end md:justify-center">
       <div className="md:w-[70%] flex gap-6 flex-wrap">
         <Link
-          href={`${pathname}/faculties`}
-          className="w-[30%] hover:shadow-md rounded-xl"
+          href={`${pathname}/managers`}
+          className="min-w-[30%] hover:shadow-md rounded-xl"
         >
           <Card>
             <CardHeader>
@@ -50,7 +50,7 @@ const users = () => {
         </Link>
         <Link
           href={`${pathname}/departments`}
-          className="w-[30%] hover:shadow-md rounded-xl"
+          className="min-w-[30%] hover:shadow-md rounded-xl"
         >
           <Card>
             <CardHeader>
@@ -64,7 +64,7 @@ const users = () => {
         </Link>
         <Link
           href={`${pathname}/degree programmes`}
-          className="w-[30%] hover:shadow-md rounded-xl"
+          className="min-w-[30%]  hover:shadow-md rounded-xl"
         >
           <Card>
             <CardHeader>

@@ -3,11 +3,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getStudentApplicationDetails } from "@/utils/apiRequests/curriculum.api";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import CryptoJS from "crypto-js";
 import { useRouter } from "next/navigation";
+import { applyExam } from "@/utils/apiRequests/entry.api";
+import { toast } from "sonner";
 
 const Form = (request) => {
   const router = useRouter();
@@ -15,6 +17,8 @@ const Form = (request) => {
   const [semNo, setSemNo] = useState(null);
   const deg = request.searchParams.deg;
   const sem = request.searchParams.sem;
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     if (deg && sem) {
       const secretKey = process.env.NEXT_PUBLIC_CRYPTO_SECRET;
@@ -32,19 +36,38 @@ const Form = (request) => {
     queryKey: ["studentApplicationDetails"],
   });
 
-  if (error) return (window.location.href = "/home");
+  const { status, mutate } = useMutation({
+    mutationFn: applyExam,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries(["batchesOfStudent"]);
+      toast(res.message);
+    },
+    onError: (err) => {
+      console.log(err);
+      toast("Operation failed");
+    },
+  });
+
+  const onSubmit = () => {
+    mutate();
+    router.push("/home");
+  };
+
+  if (error) return router.push("/home");
 
   return (
     <>
       {applicationData && Object.keys(applicationData).length && (
         <div className="flex justify-end md:justify-center">
-          <div className="md:w-[60%]">
-            <div className="text-center capitalize font-bold">
-              <h1>Faculty of {applicationData?.f_name}</h1>
+          <div className="md:w-[60%] w-full">
+            <div className="text-center uppercase font-bold">
+              <h1 className="font-extrabold tracking-wide text-lg">
+                Faculty of {applicationData?.f_name}
+              </h1>
               <h1>{examName}</h1>
               <h1>{semNo}</h1>
             </div>
-            <div className="mt-12 flex justify-between text-sm font-semibold">
+            <div className="mt-12 flex justify-between text-sm font-semibold w-full px-2">
               <p>
                 <span className="uppercase w-20 inline-block">Reg No</span>
                 <span className="uppercase p-2 ">
@@ -60,16 +83,19 @@ const Form = (request) => {
                 </p>
               )}
             </div>
-            <div className="mt-3 flex  text-sm font-semibold">
+            <div className="mt-3 flex  text-sm font-semibold  px-2">
               <p>
                 <span className="uppercase w-20 inline-block">Name</span>
                 <span className="uppercase p-2 ">{applicationData?.name}</span>
               </p>
             </div>
-            <div className="my-10 flex flex-col items-center gap-2">
+            <div className="my-10 flex flex-col gap-2">
               {applicationData?.subjects?.length &&
-                applicationData?.subjects?.map((obj) => (
-                  <div className="flex px-3 py-4 bg-white rounded-lg justify-between w-full md:w-[80%]">
+                applicationData?.subjects?.map((obj, ind) => (
+                  <div
+                    key={ind}
+                    className="flex px-3 py-4 bg-white rounded-lg justify-between w-full"
+                  >
                     <h1 className="uppercase w-1/6 shrink-0">{obj.sub_code}</h1>
                     <h1 className="capitalize w-4/6 shrink-0">
                       {obj.sub_name}
@@ -90,9 +116,7 @@ const Form = (request) => {
                 ))}
             </div>
             <div className="flex justify-end">
-              <Link href="/home">
-                <Button>Submit</Button>
-              </Link>
+              <Button onClick={onSubmit}>Submit</Button>
             </div>
           </div>
         </div>

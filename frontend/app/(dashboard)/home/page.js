@@ -22,9 +22,10 @@ import { useUser } from "@/utils/useUser";
 import { useQuery } from "@tanstack/react-query";
 import { getBathchesByStudent } from "@/utils/apiRequests/batch.api";
 import { useEffect, useState } from "react";
-import { numberToOrdinalWord, parseString } from "@/utils/functions";
+import { numberToOrdinalWord, parseString, titleCase } from "@/utils/functions";
 import { getDegreeByShort } from "@/utils/apiRequests/course.api";
 import CryptoJS from "crypto-js";
+import { getAllSubjectsForManager } from "@/utils/apiRequests/curriculum.api";
 
 const dashboard = () => {
   const pathname = usePathname();
@@ -37,7 +38,12 @@ const dashboard = () => {
     enabled: false,
   });
 
-  const handleNavigate = () => {};
+  const { data: subjectsOfManagerData, refetch: subjectsOfManagerRefetch } =
+    useQuery({
+      queryFn: getAllSubjectsForManager,
+      queryKey: ["subjectsOfManager"],
+      enabled: false,
+    });
 
   const onApplyClick = (e) => {
     e.preventDefault();
@@ -70,31 +76,32 @@ const dashboard = () => {
     return;
   }
   if (user?.role_id == "4") {
+    subjectsOfManagerRefetch();
     return (
       <div className="flex justify-end md:justify-center">
         <div className="md:w-[70%] flex gap-6 flex-wrap">
-          <Link
-            href={`${pathname}/it3113`}
-            className="w-[30%] hover:shadow-md rounded-xl"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle>IT3213</CardTitle>
-                <CardDescription>56 Entries</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
-          <Link
-            href={`${pathname}/it1242`}
-            className="w-[30%] hover:shadow-md rounded-xl"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle>IT1242</CardTitle>
-                <CardDescription>80 Entries</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
+          {subjectsOfManagerData &&
+            subjectsOfManagerData.map((obj) => (
+              <Link
+                href={{
+                  pathname: `${pathname}/${obj.sub_code}`,
+                  query: {
+                    sub_id: obj.sub_id,
+                    batch_id: obj.batch_id,
+                    deadline: obj.deadline,
+                  },
+                }}
+                className="w-[30%] max-w-[30%] hover:shadow-md rounded-xl"
+                key={obj.sub_id}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{titleCase(obj.sub_name)}</CardTitle>
+                    <CardDescription>{obj.sub_code}</CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
+            ))}
         </div>
       </div>
     );
@@ -112,6 +119,7 @@ const dashboard = () => {
                 <TableHead>Examination</TableHead>
                 <TableHead className="w-[150px]">Status</TableHead>
                 <TableHead className="w-[230px] text-center">Actions</TableHead>
+                <TableHead className="w-[150px]">Deadline</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -135,37 +143,40 @@ const dashboard = () => {
                       <TableCell>
                         <Badge
                           variant={
-                            batch.applied_to_exam == "true" &&
-                            batch.admission_ready == "true"
+                            batch.status === "done"
                               ? "success"
-                              : batch.applied_to_exam == "true" &&
-                                batch.admission_ready == "false"
+                              : batch.status === "pending"
                               ? "pending"
+                              : batch.status === "expired"
+                              ? "failure"
                               : "active"
                           }
                           className="uppercase"
                         >
-                          {batch.applied_to_exam == "true" &&
-                          batch.admission_ready == "true"
-                            ? "done"
-                            : batch.applied_to_exam == "true" &&
-                              batch.admission_ready == "false"
-                            ? "pending"
-                            : "active"}
+                          {batch.status}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-around items-center h-full">
-                          <Button
-                            variant="outline"
-                            className="uppercase"
-                            disabled={batch.applied_to_exam == "true"}
-                            data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${decodeBatchCode.academic_year}`}
-                            data-sem={`${sem_ordinal} semester`}
-                            onClick={(e) => onApplyClick(e)}
-                          >
-                            apply
-                          </Button>
+                          {batch.status == "active" ? (
+                            <Button
+                              variant="outline"
+                              className="uppercase"
+                              data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${decodeBatchCode.academic_year}`}
+                              data-sem={`${sem_ordinal} semester`}
+                              onClick={(e) => onApplyClick(e)}
+                            >
+                              apply
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              className="uppercase"
+                              disabled={true}
+                            >
+                              apply
+                            </Button>
+                          )}
                           <Link href="#">
                             <Button
                               variant="outline"
@@ -176,6 +187,14 @@ const dashboard = () => {
                             </Button>
                           </Link>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(batch.deadline)
+                          .toString()
+                          .slice(
+                            4,
+                            new Date(batch.deadline).toString().indexOf("GMT")
+                          )}
                       </TableCell>
                     </TableRow>
                   );

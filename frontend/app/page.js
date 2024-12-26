@@ -31,7 +31,6 @@ const Login = () => {
 
   const onFormSubmitted = async () => {
     try {
-      console.log(formData);
       const { data } = await axiosInstance.post("/auth/login", formData);
 
       router.push("/home");

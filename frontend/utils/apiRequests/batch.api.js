@@ -5,6 +5,11 @@ export const getAllBatches = async () => {
   return response.data;
 };
 
+export const getAllBatchDetails = async () => {
+  const response = await axiosInstance.get("/batch/getAllBatchDetails");
+  return response.data;
+};
+
 export const getBatchById = async (batch_id) => {
   const response = await axiosInstance.post("/batch/getBatchById", {
     batch_id,
@@ -38,6 +43,11 @@ export const updateBatch = async (data) => {
   return response.data;
 };
 
+export const updateBatchStatus = async (data) => {
+  const response = await axiosInstance.put("/batch/updateBatchStatus", data);
+  return response.data;
+};
+
 export const getNoOfBatches = async () => {
   const response = await axiosInstance.get("/batch/getNoOfBatches");
   return response.data;
@@ -52,5 +62,25 @@ export const getBatchByFacultyId = async (f_id) => {
 
 export const getBathchesByStudent = async () => {
   const response = await axiosInstance.get("/batch/getBathchesByStudent");
+  console.log(response.data);
+  return response.data;
+};
+
+export const setBatchTimePeriod = async (data) => {
+  const response = await axiosInstance.put("/batch/setBatchTimePeriod", data);
+  return response.data;
+};
+
+export const getBatchTimePeriod = async (batch_id) => {
+  const response = await axiosInstance.post("/batch/getBatchTimePeriod", {
+    batch_id,
+  });
+  return response.data;
+};
+
+export const getNonBatchStudents = async (batch_id) => {
+  const response = await axiosInstance.post("/batch/getNonBatchStudents", {
+    batch_id,
+  });
   return response.data;
 };

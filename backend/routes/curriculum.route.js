@@ -11,6 +11,10 @@ import {
   getCurriculumBybatchId,
   getStudentApplicationDetails,
   getCurriculumsByDid,
+  getAllSubjectsForManager,
+  getAppliedStudentsForSubject,
+  updateEligibility,
+  updateCurriculumStatus,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -33,6 +37,18 @@ router.get(
 );
 router.post("/getCurriculumBybatchId", getCurriculumBybatchId);
 router.put("/updateCurriculum", updateCurriculum);
+router.put("/updateCurriculumStatus", updateCurriculumStatus);
 router.get("/getNoOfCurriculums", getNoOfCurriculums);
+router.get(
+  "/getAllSubjectsForManager",
+  verifyUser(["4"]),
+  getAllSubjectsForManager
+);
+router.post(
+  "/getAppliedStudentsForSubject",
+  verifyUser(["1", "4"]),
+  getAppliedStudentsForSubject
+);
+router.put("/updateEligibility", verifyUser(["1", "4"]), updateEligibility);
 
 export default router;

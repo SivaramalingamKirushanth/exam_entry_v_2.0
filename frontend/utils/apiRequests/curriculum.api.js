@@ -46,9 +46,18 @@ export const createCurriculum = async (data) => {
   );
   return response.data;
 };
+
 export const updateCurriculum = async (data) => {
   const response = await axiosInstance.put(
     "/curriculum/updateCurriculum",
+    data
+  );
+  return response.data;
+};
+
+export const updateCurriculumStatus = async (data) => {
+  const response = await axiosInstance.put(
+    "/curriculum/updateCurriculumStatus",
     data
   );
   return response.data;
@@ -71,6 +80,28 @@ export const getStudentApplicationDetails = async () => {
   const response = await axiosInstance.get(
     "/curriculum/getStudentApplicationDetails"
   );
-  console.log(response.data);
+  return response.data;
+};
+
+export const getAllSubjectsForManager = async () => {
+  const response = await axiosInstance.get(
+    "/curriculum/getAllSubjectsForManager"
+  );
+  return response.data;
+};
+
+export const getAppliedStudentsForSubject = async (batch_id, sub_id) => {
+  const response = await axiosInstance.post(
+    "/curriculum/getAppliedStudentsForSubject",
+    { batch_id, sub_id }
+  );
+  return response.data;
+};
+
+export const updateEligibility = async (data) => {
+  const response = await axiosInstance.put(
+    "/curriculum/updateEligibility",
+    data
+  );
   return response.data;
 };
