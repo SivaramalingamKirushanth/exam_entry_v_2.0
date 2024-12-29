@@ -6,6 +6,7 @@ import {
   getAllBatches,
   getBatchByFacultyId,
   getBatchById,
+  getBatchFullDetails,
   getBatchTimePeriod,
   getBathchesByStudent,
   getNonBatchStudents,
@@ -41,5 +42,6 @@ router.put("/updateBatchStatus", verifyUser(["1"]), updateBatchStatus);
 router.put("/setBatchTimePeriod", verifyUser(["1"]), setBatchTimePeriod);
 router.post("/getBatchTimePeriod", verifyUser(["1"]), getBatchTimePeriod);
 router.post("/getNonBatchStudents", verifyUser(["1"]), getNonBatchStudents);
+router.post("/getBatchFullDetails", verifyUser(["1"]), getBatchFullDetails);
 
 export default router;

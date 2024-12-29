@@ -484,45 +484,6 @@ export const getBatchByFacultyId = async (req, res, next) => {
   }
 };
 
-// export const getBathchesByStudent = async (req, res, next) => {
-//   const { user_id } = req.user;
-
-//   try {
-//     const conn = await pool.getConnection();
-//     try {
-//       // Step 1: Get batch IDs and student ID
-//       const [studentDetails] = await conn.query("CALL GetStudentBatchIds(?);", [
-//         user_id,
-//       ]);
-
-//       if (!studentDetails[0].length || !studentDetails[0][0].batch_ids) {
-//         return res.status(404).json({ message: "No batches found" });
-//       }
-
-//       const batchIds = studentDetails[0][0].batch_ids;
-//       const s_id = studentDetails[0][0].s_id;
-
-//       // Step 2: Fetch batch details dynamically
-//       const [results] = await conn.query("CALL GetStudentBatchDetails(?, ?);", [
-//         batchIds,
-//         s_id,
-//       ]);
-
-//       return res.status(200).json(results[0]); // First result set contains the data
-//     } catch (error) {
-//       console.error("Error retrieving student:", error);
-//       return next(
-//         errorProvider(500, "An error occurred while retrieving student batches")
-//       );
-//     } finally {
-//       conn.release();
-//     }
-//   } catch (error) {
-//     console.error("Database connection error:", error);
-//     return next(errorProvider(500, "Failed to establish database connection"));
-//   }
-// };
-
 export const getBathchesByStudent = async (req, res, next) => {
   const { user_id } = req.user;
 
@@ -696,6 +657,44 @@ export const getNonBatchStudents = async (req, res, next) => {
         errorProvider(
           500,
           "An error occurred while fetching non-batch students by faculty."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getBatchFullDetails = async (req, res, next) => {
+  const { batch_id } = req.body;
+
+  if (!batch_id) {
+    return next(errorProvider(400, "Batch ID is required."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [results] = await conn.query("CALL GetBatchFullDetails(?);", [
+        batch_id,
+      ]);
+
+      if (!results[0]?.length) {
+        return res
+          .status(404)
+          .json({ message: "No details found for the provided batch ID." });
+      }
+
+      return res.status(200).json(results[0][0]); // Return the first result set
+    } catch (error) {
+      console.error("Error fetching batch full details:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while fetching batch full details."
         )
       );
     } finally {

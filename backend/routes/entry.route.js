@@ -1,7 +1,10 @@
 import express from "express";
 import {
+  addAdmissionData,
   addMedicalResitStudents,
   applyExam,
+  generateIndexNumbers,
+  getLastAssignedIndexNumber,
   getStudentSubjects,
   getStudentsWithoutIndexNumber,
 } from "../controllers/entry.controller.js";
@@ -21,4 +24,11 @@ router.post(
   verifyUser(["1"]),
   getStudentsWithoutIndexNumber
 );
+router.post("/generateIndexNumbers", verifyUser(["1"]), generateIndexNumbers);
+router.post(
+  "/getLastAssignedIndexNumber",
+  verifyUser(["1"]),
+  getLastAssignedIndexNumber
+);
+router.post("/addAdmissionData", verifyUser(["1"]), addAdmissionData);
 export default router;

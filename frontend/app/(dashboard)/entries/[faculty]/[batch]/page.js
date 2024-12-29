@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { getCurriculumBybatchId } from "@/utils/apiRequests/curriculum.api";
 import { Button } from "@/components/ui/button";
 import { FaGear, FaPlus } from "react-icons/fa6";
+import { TiWarning } from "react-icons/ti";
 import Modal from "./Model";
 import IndexModel from "./IndexModel";
 import { getStudentsWithoutIndexNumber } from "@/utils/apiRequests/entry.api";
@@ -43,8 +44,6 @@ const batches = () => {
   const toggleIndexModal = () => {
     if (studentsWithoutIndexNumberData?.count) {
       setIsIndexOpen((prev) => !prev);
-    } else {
-      console.log("you can generate now");
     }
   };
 
@@ -55,10 +54,38 @@ const batches = () => {
           <FaPlus />
           &nbsp;Insert Medical/Resit
         </Button>
-        <Button onClick={toggleIndexModal}>
-          Finish &nbsp;
-          <FaGear />
-        </Button>
+
+        {studentsWithoutIndexNumberData?.count ? (
+          <Button onClick={toggleIndexModal} variant="warning">
+            Index Number Missing &nbsp;
+            <TiWarning />
+          </Button>
+        ) : (
+          <div className="flex space-x-3">
+            <Link
+              href={{
+                pathname: `${pathname}/admission`,
+                query: {
+                  batch_id: batch_id,
+                },
+              }}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+            >
+              Generate admission
+            </Link>
+            <Link
+              href={{
+                pathname: `${pathname}/attendance`,
+                query: {
+                  batch_id: batch_id,
+                },
+              }}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+            >
+              Generate attendance
+            </Link>
+          </div>
+        )}
       </div>
       <div className="md:w-[70%] flex gap-6 flex-wrap">
         {curriculumsOfBatchData &&

@@ -30,3 +30,24 @@ export const getStudentsWithoutIndexNumber = async (batch_id) => {
   );
   return response.data;
 };
+
+export const generateIndexNumbers = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/generateIndexNumbers",
+    data
+  );
+  return response.data;
+};
+
+export const getLastAssignedIndexNumber = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getLastAssignedIndexNumber",
+    data
+  );
+  return response.data;
+};
+
+export const addAdmissionData = async (data) => {
+  const response = await axiosInstance.post("/entry/addAdmissionData", data);
+  return response.data;
+};

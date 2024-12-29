@@ -84,3 +84,10 @@ export const getNonBatchStudents = async (batch_id) => {
   });
   return response.data;
 };
+
+export const getBatchFullDetails = async (batch_id) => {
+  const response = await axiosInstance.post("/batch/getBatchFullDetails", {
+    batch_id,
+  });
+  return response.data;
+};
