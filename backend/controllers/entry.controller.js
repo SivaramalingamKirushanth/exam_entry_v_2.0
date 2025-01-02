@@ -215,8 +215,15 @@ export const getLastAssignedIndexNumber = async (req, res, next) => {
   }
 };
 
-export const addAdmissionData = async (req, res, next) => {
-  const { batch_id, generated_date, subjects, date } = req.body;
+export const createOrUpdateAdmission = async (req, res, next) => {
+  const {
+    batch_id,
+    generated_date,
+    subjects,
+    date,
+    description,
+    instructions,
+  } = req.body;
 
   try {
     // Transform `subjects` array
@@ -232,21 +239,122 @@ export const addAdmissionData = async (req, res, next) => {
     // Database connection and procedure execution
     const conn = await pool.getConnection();
     try {
-      await conn.query("CALL AddAdmissionData(?, ?, ?, ?)", [
+      await conn.query("CALL updateAdmissionData(?, ?, ?, ?, ?, ?)", [
         batch_id,
         generated_date,
         transformedSubjects,
         transformedDate,
+        description,
+        instructions,
       ]);
 
       return res.status(200).json({
-        success: true,
-        message: "Admission data added successfully.",
+        message: "Admission data added or updated successfully.",
       });
     } catch (error) {
-      console.error("Error inserting admission data:", error);
+      console.error("Error adding or updating admission data:", error);
       return next(
-        errorProvider(500, "An error occurred while adding admission data.")
+        errorProvider(
+          500,
+          "An error occurred while adding or updating admission data."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getLatestAdmissionTemplate = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+
+    // Call the stored procedure
+    const [rows] = await conn.query("CALL getLatestAdmissionTemplate()");
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "No admission template found.",
+      });
+    }
+
+    // Respond with the description and instructions
+    const { description, instructions } = rows[0][0];
+    return res.status(200).json({
+      description,
+      instructions,
+    });
+  } catch (error) {
+    console.error("Error fetching latest admission template:", error);
+    return next(
+      errorProvider(
+        500,
+        "An error occurred while fetching the latest admission template."
+      )
+    );
+  }
+};
+
+export const fetchStudentsWithSubjects = async (req, res, next) => {
+  const { batch_id } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [results] = await conn.query("CALL FetchStudentsWithSubjects(?);", [
+        batch_id,
+      ]);
+
+      // Format the result as an object with P, M, and R groups
+      const groupedResults = { P: [], M: [], R: [] };
+
+      results[0].forEach((row) => {
+        const {
+          s_id,
+          name,
+          index_num,
+          user_name,
+          exam_type,
+          sub_id,
+          eligibility,
+        } = row;
+
+        // Determine the group based on exam_type
+        const group = groupedResults[exam_type];
+
+        // Check if student already exists in the group
+        let student = group.find((student) => student.s_id === s_id);
+
+        if (!student) {
+          student = {
+            s_id,
+            name,
+            index_num,
+            user_name,
+            subjects: [],
+          };
+          group.push(student);
+        }
+
+        // Add subject to the student's subjects array
+        student.subjects.push({ sub_id, eligibility });
+      });
+
+      // Sort each group by lexicographical order of index_num
+      Object.keys(groupedResults).forEach((key) => {
+        groupedResults[key].sort((a, b) =>
+          a.index_num.localeCompare(b.index_num)
+        );
+      });
+
+      res.status(200).json(groupedResults);
+    } catch (error) {
+      console.error("Error fetching students with subjects:", error);
+      return next(
+        errorProvider(500, "An error occurred while fetching students.")
       );
     } finally {
       conn.release();
