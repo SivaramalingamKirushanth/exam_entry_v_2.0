@@ -73,6 +73,7 @@ export const getCurriculumBybatchId = async (batch_id) => {
     "/curriculum/getCurriculumBybatchId",
     { batch_id }
   );
+  console.log(response.data);
   return response.data;
 };
 

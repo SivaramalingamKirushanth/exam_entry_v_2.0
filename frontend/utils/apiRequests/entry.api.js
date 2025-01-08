@@ -55,8 +55,11 @@ export const createOrUpdateAdmission = async (data) => {
   return response.data;
 };
 
-export const getLatestAdmissionTemplate = async () => {
-  const response = await axiosInstance.get("/entry/getLatestAdmissionTemplate");
+export const getLatestAdmissionTemplate = async (batch_id) => {
+  const response = await axiosInstance.post(
+    "/entry/getLatestAdmissionTemplate",
+    { batch_id }
+  );
   return response.data;
 };
 
@@ -64,6 +67,23 @@ export const fetchStudentsWithSubjects = async (batch_id) => {
   const response = await axiosInstance.post(
     "/entry/fetchStudentsWithSubjects",
     { batch_id }
+  );
+  return response.data;
+};
+
+export const getBatchAdmissionDetails = async (batch_id) => {
+  const response = await axiosInstance.post("/entry/getBatchAdmissionDetails", {
+    batch_id,
+  });
+  return response.data;
+};
+
+export const fetchStudentWithSubjectsByUserId = async (batch_id) => {
+  const response = await axiosInstance.post(
+    "/entry/fetchStudentWithSubjectsByUserId",
+    {
+      batch_id,
+    }
   );
   return response.data;
 };

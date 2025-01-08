@@ -8,7 +8,7 @@ import {
   getBatchById,
   getBatchFullDetails,
   getBatchTimePeriod,
-  getBathchesByStudent,
+  getBatchesByStudent,
   getNonBatchStudents,
   getNoOfBatches,
   getStudentsByBatchId,
@@ -24,7 +24,7 @@ router.get("/getAllBatches", verifyUser(["1"]), getAllBatches);
 router.get("/getAllBatchDetails", verifyUser(["1"]), getAllBatchDetails);
 router.post("/createBatch", verifyUser(["1"]), createBatch);
 router.get("/getNoOfBatches", getNoOfBatches);
-router.get("/getBathchesByStudent", verifyUser(["5"]), getBathchesByStudent);
+router.get("/getBatchesByStudent", verifyUser(["5"]), getBatchesByStudent);
 router.post(
   "/addStudentsToTheBatchTable",
   verifyUser(["1"]),
@@ -42,6 +42,10 @@ router.put("/updateBatchStatus", verifyUser(["1"]), updateBatchStatus);
 router.put("/setBatchTimePeriod", verifyUser(["1"]), setBatchTimePeriod);
 router.post("/getBatchTimePeriod", verifyUser(["1"]), getBatchTimePeriod);
 router.post("/getNonBatchStudents", verifyUser(["1"]), getNonBatchStudents);
-router.post("/getBatchFullDetails", verifyUser(["1"]), getBatchFullDetails);
+router.post(
+  "/getBatchFullDetails",
+  verifyUser(["1", "5"]),
+  getBatchFullDetails
+);
 
 export default router;

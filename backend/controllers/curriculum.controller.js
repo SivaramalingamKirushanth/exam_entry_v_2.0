@@ -332,6 +332,7 @@ export const getNoOfCurriculums = async (req, res, next) => {
 
 export const getCurriculumBybatchId = async (req, res, next) => {
   const { batch_id } = req.body;
+  console.log(batch_id);
 
   if (!batch_id) {
     return next(errorProvider(400, "Batch ID is required."));
@@ -343,7 +344,7 @@ export const getCurriculumBybatchId = async (req, res, next) => {
       const [results] = await conn.query("CALL GetCurriculumByBatchId(?);", [
         batch_id,
       ]);
-      console.log(results[0]);
+
       return res.status(200).json(results[0]);
     } catch (error) {
       console.error("Error fetching curriculum details:", error);

@@ -4,7 +4,9 @@ import {
   applyExam,
   createOrUpdateAdmission,
   fetchStudentsWithSubjects,
+  fetchStudentWithSubjectsByUserId,
   generateIndexNumbers,
+  getBatchAdmissionDetails,
   getLastAssignedIndexNumber,
   getLatestAdmissionTemplate,
   getStudentSubjects,
@@ -37,14 +39,25 @@ router.post(
   verifyUser(["1"]),
   createOrUpdateAdmission
 );
-router.get(
+router.post(
   "/getLatestAdmissionTemplate",
   verifyUser(["1"]),
   getLatestAdmissionTemplate
 );
 router.post(
   "/fetchStudentsWithSubjects",
-
+  verifyUser(["1"]),
   fetchStudentsWithSubjects
 );
+router.post(
+  "/getBatchAdmissionDetails",
+  verifyUser(["1", "5"]),
+  getBatchAdmissionDetails
+);
+router.post(
+  "/fetchStudentWithSubjectsByUserId",
+  verifyUser(["5"]),
+  fetchStudentWithSubjectsByUserId
+);
+
 export default router;

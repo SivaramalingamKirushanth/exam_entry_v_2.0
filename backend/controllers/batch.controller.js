@@ -484,7 +484,7 @@ export const getBatchByFacultyId = async (req, res, next) => {
   }
 };
 
-export const getBathchesByStudent = async (req, res, next) => {
+export const getBatchesByStudent = async (req, res, next) => {
   const { user_id } = req.user;
 
   try {

@@ -60,8 +60,8 @@ export const getBatchByFacultyId = async (f_id) => {
   return response.data;
 };
 
-export const getBathchesByStudent = async () => {
-  const response = await axiosInstance.get("/batch/getBathchesByStudent");
+export const getBatchesByStudent = async () => {
+  const response = await axiosInstance.get("/batch/getBatchesByStudent");
   console.log(response.data);
   return response.data;
 };

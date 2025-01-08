@@ -179,7 +179,7 @@ export const generateIndexNumbers = async (req, res, next) => {
 
 export const getLastAssignedIndexNumber = async (req, res, next) => {
   const { course, batch } = req.body;
-  console.log(req.body);
+
   if (!course || !batch) {
     return next(errorProvider(400, "Course and batch are required."));
   }
@@ -223,6 +223,7 @@ export const createOrUpdateAdmission = async (req, res, next) => {
     date,
     description,
     instructions,
+    provider,
   } = req.body;
 
   try {
@@ -239,13 +240,14 @@ export const createOrUpdateAdmission = async (req, res, next) => {
     // Database connection and procedure execution
     const conn = await pool.getConnection();
     try {
-      await conn.query("CALL updateAdmissionData(?, ?, ?, ?, ?, ?)", [
+      await conn.query("CALL UpdateAdmissionData(?, ?, ?, ?, ?, ?, ?)", [
         batch_id,
         generated_date,
         transformedSubjects,
         transformedDate,
         description,
         instructions,
+        provider,
       ]);
 
       return res.status(200).json({
@@ -269,11 +271,15 @@ export const createOrUpdateAdmission = async (req, res, next) => {
 };
 
 export const getLatestAdmissionTemplate = async (req, res, next) => {
+  const { batch_id } = req.body;
+
   try {
     const conn = await pool.getConnection();
 
     // Call the stored procedure
-    const [rows] = await conn.query("CALL getLatestAdmissionTemplate()");
+    const [rows] = await conn.query("CALL GetLatestAdmissionTemplate(?)", [
+      batch_id,
+    ]);
 
     if (rows.length === 0) {
       return res.status(404).json({
@@ -281,12 +287,13 @@ export const getLatestAdmissionTemplate = async (req, res, next) => {
       });
     }
 
-    // Respond with the description and instructions
-    const { description, instructions } = rows[0][0];
-    return res.status(200).json({
-      description,
-      instructions,
-    });
+    const response = rows[0][0];
+
+    if (response.data) {
+      response.data = JSON.parse(response.data);
+    }
+
+    return res.status(200).json(response);
   } catch (error) {
     console.error("Error fetching latest admission template:", error);
     return next(
@@ -355,6 +362,85 @@ export const fetchStudentsWithSubjects = async (req, res, next) => {
       console.error("Error fetching students with subjects:", error);
       return next(
         errorProvider(500, "An error occurred while fetching students.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getBatchAdmissionDetails = async (req, res, next) => {
+  const { batch_id } = req.body;
+  console.log(batch_id);
+  // Validate input
+  if (!batch_id) {
+    return next(errorProvider(400, "Batch ID is required."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      // Execute the stored procedure
+      const [results] = await conn.query("CALL GetBatchAdmissionDetails(?);", [
+        batch_id,
+      ]);
+
+      // Return the first result set
+      return res.status(200).json(results[0][0]);
+    } catch (error) {
+      console.error("Error fetching batch admission details:", error);
+      return next(
+        errorProvider(500, "Failed to fetch batch admission details")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const fetchStudentWithSubjectsByUserId = async (req, res, next) => {
+  const { batch_id } = req.body;
+
+  if (!batch_id) {
+    return next(errorProvider(400, "Batch ID is required."));
+  }
+
+  const { user_id } = req.user;
+
+  if (!user_id) {
+    return next(errorProvider(401, "Unauthorized: User ID not found."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [results] = await conn.query(
+        "CALL GetStudentDetailsWithSubjects(?, ?);",
+        [batch_id, user_id]
+      );
+
+      const studentDetails = {
+        s_id: results[0][0].s_id,
+        name: results[0][0].name,
+        index_num: results[0][0].index_num,
+        user_name: results[0][0].user_name,
+        subjects: results[0].map((subject) => ({
+          sub_id: subject.sub_id,
+          eligibility: subject.eligibility,
+        })),
+      };
+
+      return res.status(200).json(studentDetails);
+    } catch (error) {
+      console.error("Error fetching student details with subjects:", error);
+      return next(
+        errorProvider(500, "Failed to fetch student details with subjects.")
       );
     } finally {
       conn.release();

@@ -138,3 +138,13 @@ export function getModifiedDate(date) {
 
   return `${day}.${month}.${year}`;
 }
+
+export const createSubjectObject = (subjects) => {
+  const subjectMap = {};
+
+  subjects?.forEach((subject) => {
+    subjectMap[subject.sub_id] = subject;
+  });
+
+  return subjectMap;
+};
