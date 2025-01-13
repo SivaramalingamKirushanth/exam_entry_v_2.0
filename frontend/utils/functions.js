@@ -78,7 +78,6 @@ export const numberToOrdinalWord = (numStr) => {
 };
 
 export function titleCase(str) {
-  console.log(str);
   const excludedWords = [
     "and",
     "or",
@@ -178,6 +177,13 @@ export const createSubjectObject = (subjects) => {
 };
 
 export function sortByExamType(array) {
-  const examOrder = { P: 1, M: 2, R: 3 }; // Define the order
-  return array.sort((a, b) => examOrder[a.exam_type] - examOrder[b.exam_type]);
+  const examOrder = { P: 1, M: 2, R: 3 }; // Define the order of exam types
+  return array.sort((a, b) => {
+    // First, sort by exam_type order
+    const examComparison = examOrder[a.exam_type] - examOrder[b.exam_type];
+    if (examComparison !== 0) return examComparison;
+
+    // If exam_type is the same, sort by index_num lexicographically
+    return a.index_num.localeCompare(b.index_num);
+  });
 }

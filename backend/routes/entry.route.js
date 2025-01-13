@@ -7,6 +7,7 @@ import {
   fetchStudentWithSubjectsByUserId,
   generateIndexNumbers,
   getBatchAdmissionDetails,
+  getEligibleStudentsBySub,
   getLastAssignedIndexNumber,
   getLatestAdmissionTemplate,
   getStudentSubjects,
@@ -59,5 +60,9 @@ router.post(
   verifyUser(["5"]),
   fetchStudentWithSubjectsByUserId
 );
-
+router.post(
+  "/getEligibleStudentsBySub",
+  verifyUser(["1"]),
+  getEligibleStudentsBySub
+);
 export default router;

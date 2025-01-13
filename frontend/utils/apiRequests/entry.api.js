@@ -89,3 +89,11 @@ export const fetchStudentWithSubjectsByUserId = async (batch_id) => {
   );
   return response.data;
 };
+
+export const getEligibleStudentsBySub = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getEligibleStudentsBySub",
+    data
+  );
+  return response.data;
+};

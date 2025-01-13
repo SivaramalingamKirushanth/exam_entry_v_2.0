@@ -39,7 +39,7 @@ const AdmissionCard = ({
   }, [onRenderComplete]);
 
   return (
-    <div className="p-4 max-w-4xl mx-auto font-serif bg-white">
+    <div className="p-4 pt-0 max-w-4xl mx-auto font-serif bg-white">
       <div className="text-center mb-2">
         <Image
           src={UoV_Logo}
@@ -52,7 +52,7 @@ const AdmissionCard = ({
           University of Vavuniya
         </h1>
         <h2 className="text-md uppercase text-lg font-extrabold">
-          Faculty of Applied Science
+          {batchFullDetailsData?.f_name}
         </h2>
         <h3 className="text-lg mt-2 uppercase">
           {level_ordinal} examination in {batchFullDetailsData?.deg_name} -

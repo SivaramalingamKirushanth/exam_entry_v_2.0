@@ -9,7 +9,7 @@ const Sidebar = () => {
 
   return (
     user?.role_id == "1" && (
-      <div className="w-12 hover:w-48 transition-all duration-300 overflow-hidden rounded-xl fixed top-[50%] left-2 -translate-y-1/2 shadow-xl bg-white py-3 flex flex-col items-start bg-background/95 supports-[backdrop-filter]:bg-background/95 z-50">
+      <div className="w-12 hover:w-48 transition-all duration-300 overflow-hidden rounded-xl fixed top-[50%] left-2 -translate-y-1/2 shadow-2xl bg-white py-3 flex flex-col items-start bg-background supports-[backdrop-filter]:bg-background z-50">
         <Link
           href="/home"
           className="flex gap-3 uppercase items-center p-3 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150"

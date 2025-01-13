@@ -61,20 +61,29 @@ function arrayPadEnd(array) {
 }
 
 const makePagination = (sortedArray) => {
+  let examTypesRemoved = sortedArray.slice();
+
+  let examTypeMExist = examTypesRemoved.findIndex((obj) => obj == "M");
+  if (examTypeMExist >= 0) examTypesRemoved.splice(examTypeMExist, 1);
+
+  let examTypeRExist = examTypesRemoved.findIndex((obj) => obj == "R");
+  if (examTypeRExist >= 0) examTypesRemoved.splice(examTypeRExist, 1);
+
   let exam_type = "P";
   let grpArr = [];
   let pageArr = [];
   let pageArrInd = 0;
-  for (let j = 0; j < sortedArray.length; j++) {
-    if (sortedArray[j].exam_type != exam_type) {
-      pageArr.push(sortedArray[j].exam_type);
-      exam_type = sortedArray[j].exam_type;
+
+  for (let j = 0; j < examTypesRemoved.length; j++) {
+    if (examTypesRemoved[j].exam_type != exam_type) {
+      pageArr.push(examTypesRemoved[j].exam_type);
+      exam_type = examTypesRemoved[j].exam_type;
       pageArrInd++;
     }
 
-    pageArr.push(sortedArray[j]);
+    pageArr.push(examTypesRemoved[j]);
 
-    if (pageArrInd == 79 || j == sortedArray.length - 1) {
+    if (pageArrInd == 79 || j == examTypesRemoved.length - 1) {
       grpArr.push(pageArr);
       pageArr = [];
       pageArrInd = 0;
@@ -82,7 +91,7 @@ const makePagination = (sortedArray) => {
       pageArrInd++;
     }
 
-    if (j == sortedArray.length - 1) {
+    if (j == examTypesRemoved.length - 1) {
       break;
     }
   }
@@ -93,12 +102,9 @@ const AttendanceSheetTemplate = ({
   setFormData,
   formData,
   batchFullDetailsData,
-  latestAdmissionTemplateData,
-  batchCurriculumData,
   level_ordinal,
   sem_ordinal,
   decodeBatchCode,
-  subjectObject,
   sub_name,
   sub_code,
   pageArr,
@@ -108,6 +114,8 @@ const AttendanceSheetTemplate = ({
   totalGroups,
   setFinalNameList,
   finalNameList,
+  totalStudents,
+  studentsInTheGroup,
 }) => {
   const [splittedArray, setSplittedArray] = useState([]);
 
@@ -132,11 +140,12 @@ const AttendanceSheetTemplate = ({
     let finalFromGroup = makePagination(sortedFromGroup);
     let finalToGroup = makePagination(sortedToGroup);
 
-    setFinalNameList((cur) => ({
-      ...cur,
-      [from]: finalFromGroup,
-      [to]: finalToGroup,
-    }));
+    setFinalNameList((cur) => {
+      const obj = { ...cur, [from]: finalFromGroup, [to]: finalToGroup };
+      if (finalFromGroup.length == 0) delete obj[from];
+
+      return obj;
+    });
   };
 
   const handleMonthChange = (month, yearIndex, monthIndex) => {
@@ -219,48 +228,7 @@ const AttendanceSheetTemplate = ({
   };
 
   useEffect(() => {
-    if (latestAdmissionTemplateData) {
-      console.log(latestAdmissionTemplateData);
-      let obj = {};
-      if (latestAdmissionTemplateData.exist) {
-        obj.generated_date = latestAdmissionTemplateData?.data?.generated_date;
-        obj.date = latestAdmissionTemplateData?.data?.exam_date;
-        obj.description = latestAdmissionTemplateData?.data?.description;
-        obj.instructions = latestAdmissionTemplateData?.data?.instructions;
-        obj.provider = latestAdmissionTemplateData?.data?.provider;
-
-        const transformedSubjects =
-          latestAdmissionTemplateData?.data?.subject_list
-            ?.split(",")
-            .map((comSubs) => comSubs.split(":"));
-        const transformedDate = latestAdmissionTemplateData?.data?.exam_date
-          ?.split(",")
-          .map((item) => {
-            const [year, months] = item.split(":");
-            return {
-              year: parseInt(year),
-              months: months.split(";").map((mon) => +mon),
-            };
-          });
-
-        obj.subjects = transformedSubjects;
-        obj.date = transformedDate;
-      } else {
-        obj.description = latestAdmissionTemplateData?.data?.description;
-        obj.instructions = latestAdmissionTemplateData?.data?.instructions;
-        obj.provider = latestAdmissionTemplateData?.data?.provider;
-      }
-
-      setFormData((cur) => ({
-        ...cur,
-        ...obj,
-      }));
-    }
-  }, [latestAdmissionTemplateData]);
-
-  useEffect(() => {
     if (pageArr.length) {
-      console.log(pageArr);
       let arr = arrayPadEnd(pageArr);
 
       let final = [
@@ -275,10 +243,6 @@ const AttendanceSheetTemplate = ({
     }
   }, [pageArr]);
 
-  useEffect(() => {
-    console.log(splittedArray);
-  }, [splittedArray]);
-
   return (
     <div className="border-2 border-black p-8 max-w-4xl mx-auto font-serif bg-white mb-2">
       {/* <div className="text-center mb-4"> */}
@@ -288,7 +252,18 @@ const AttendanceSheetTemplate = ({
         </div>
         <div className="flex items-center">
           <span>Hall&nbsp;No&nbsp;:&nbsp;</span>
-          <Input />
+          <Input
+            onChange={(e) =>
+              setFormData((cur) => ({
+                ...cur,
+                [groupNo]: {
+                  ...cur[groupNo],
+                  hallNo: e.target.value,
+                },
+              }))
+            }
+            value={formData[groupNo]?.hallNo}
+          />
         </div>
       </div>
       <h1 className="font-bold text-lg uppercase text-center mb-2">
@@ -447,7 +422,18 @@ const AttendanceSheetTemplate = ({
             <div className="w-36 flex justify-between shrink-0">
               Center <span>:&nbsp;</span>
             </div>
-            <Input />
+            <Input
+              onChange={(e) =>
+                setFormData((cur) => ({
+                  ...cur,
+                  [groupNo]: {
+                    ...cur[groupNo],
+                    center: e.target.value,
+                  },
+                }))
+              }
+              value={formData[groupNo]?.center}
+            />
           </div>
           <div className="flex">
             <div className="w-36 flex justify-between shrink-0">
@@ -469,26 +455,26 @@ const AttendanceSheetTemplate = ({
                   variant={"outline"}
                   className={cn(
                     "w-[200px] justify-between text-left font-normal",
-                    !formData.generated_date && "text-muted-foreground"
+                    !formData[groupNo]?.actual_date && "text-muted-foreground"
                   )}
                 >
-                  {formData.generated_date || <span>Pick a date</span>}{" "}
+                  {formData[groupNo]?.actual_date || <span>Pick a date</span>}{" "}
                   <CalendarIcon className="mr-2 h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
-                  selected={formData.generated_date}
+                  selected={formData[groupNo]?.actual_date}
                   onSelect={(e) =>
                     setFormData((cur) => ({
                       ...cur,
-                      generated_date: `${getModifiedDate(e)} (${getDayName(
-                        e
-                      )})`,
+                      [groupNo]: {
+                        ...cur[groupNo],
+                        actual_date: `${getModifiedDate(e)} (${getDayName(e)})`,
+                      },
                     }))
                   }
-                  initialFocus
                 />
               </PopoverContent>
             </Popover>
@@ -497,13 +483,48 @@ const AttendanceSheetTemplate = ({
             <div className="w-36 flex justify-between shrink-0">
               Time <span>:&nbsp;</span>
             </div>
-            <Input />
+            <div className="flex items-center space-x-2">
+              <Input
+                type="time"
+                aria-label="Time"
+                onChange={(e) =>
+                  setFormData((cur) => ({
+                    ...cur,
+                    [groupNo]: {
+                      ...cur[groupNo],
+                      fromTime: e.target.value,
+                    },
+                  }))
+                }
+                value={formData[groupNo]?.fromTime}
+              />
+              <span>&ndash;</span>
+
+              <Input
+                type="time"
+                aria-label="Time"
+                onChange={(e) =>
+                  setFormData((cur) => ({
+                    ...cur,
+                    [groupNo]: {
+                      ...cur[groupNo],
+                      toTime: e.target.value,
+                    },
+                  }))
+                }
+                value={formData[groupNo]?.toTime}
+              />
+            </div>
+
+            {/* <TimePicker /> */}
           </div>
           <div className="flex">
             <div className="w-36 flex justify-between shrink-0">
               Students count <span>:&nbsp;</span>
             </div>
-            <div></div>
+            <div>
+              {studentsInTheGroup} of {totalStudents}
+            </div>
           </div>
         </div>
       </div>
@@ -542,7 +563,13 @@ const AttendanceSheetTemplate = ({
                         <h1 className="font-semibold text-center">Medical</h1>
                       )
                     ) : (
-                      <h1 className="text-center">{obj.index_num}</h1>
+                      <h1
+                        className={`text-center text-wrap ${
+                          obj.index_num ? "" : "bg-red-500"
+                        }`}
+                      >
+                        {obj.index_num || "Index no missing"}
+                      </h1>
                     )
                   ) : (
                     ""
@@ -550,7 +577,6 @@ const AttendanceSheetTemplate = ({
                 </td>
                 <td className="border border-black ">
                   <h1 className="text-center">
-                    {" "}
                     {obj && typeof obj != "string" && totalGroups > 1 ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -606,13 +632,50 @@ const AttendanceSheetTemplate = ({
                         <h1 className="font-semibold text-center">Medical</h1>
                       )
                     ) : (
-                      <h1 className="text-center">{obj.index_num}</h1>
+                      <h1
+                        className={`text-center text-wrap ${
+                          obj.index_num ? "" : "bg-red-500"
+                        }`}
+                      >
+                        {obj.index_num || "Index no missing"}
+                      </h1>
                     )
                   ) : (
                     ""
                   )}
                 </td>
-                <td className="border border-black"></td>
+                <td className="border border-black ">
+                  <h1 className="text-center">
+                    {obj && typeof obj != "string" && totalGroups > 1 ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline">Move to</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56">
+                          <DropdownMenuLabel>Groups</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuRadioGroup
+                            onValueChange={(to) =>
+                              onGroupMoved(groupNo, to, obj.s_id)
+                            }
+                          >
+                            {new Array(totalGroups)
+                              .fill(0)
+                              .map((_, i) => i + 1)
+                              .filter((ele) => ele != groupNo)
+                              .map((ele) => (
+                                <DropdownMenuRadioItem value={ele}>
+                                  {ele}
+                                </DropdownMenuRadioItem>
+                              ))}
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      ""
+                    )}
+                  </h1>
+                </td>{" "}
               </tr>
             ))}
           </tbody>
@@ -638,13 +701,50 @@ const AttendanceSheetTemplate = ({
                         <h1 className="font-semibold text-center">Medical</h1>
                       )
                     ) : (
-                      <h1 className="text-center">{obj.index_num}</h1>
+                      <h1
+                        className={`text-center text-wrap ${
+                          obj.index_num ? "" : "bg-red-500"
+                        }`}
+                      >
+                        {obj.index_num || "Index no missing"}
+                      </h1>
                     )
                   ) : (
                     ""
                   )}
                 </td>
-                <td className="border border-black"></td>
+                <td className="border border-black ">
+                  <h1 className="text-center">
+                    {obj && typeof obj != "string" && totalGroups > 1 ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline">Move to</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56">
+                          <DropdownMenuLabel>Groups</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuRadioGroup
+                            onValueChange={(to) =>
+                              onGroupMoved(groupNo, to, obj.s_id)
+                            }
+                          >
+                            {new Array(totalGroups)
+                              .fill(0)
+                              .map((_, i) => i + 1)
+                              .filter((ele) => ele != groupNo)
+                              .map((ele) => (
+                                <DropdownMenuRadioItem value={ele}>
+                                  {ele}
+                                </DropdownMenuRadioItem>
+                              ))}
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      ""
+                    )}
+                  </h1>
+                </td>{" "}
               </tr>
             ))}
           </tbody>
@@ -670,13 +770,50 @@ const AttendanceSheetTemplate = ({
                         <h1 className="font-semibold text-center">Medical</h1>
                       )
                     ) : (
-                      <h1 className="text-center">{obj.index_num}</h1>
+                      <h1
+                        className={`text-center text-wrap ${
+                          obj.index_num ? "" : "bg-red-500"
+                        }`}
+                      >
+                        {obj.index_num || "Index no missing"}
+                      </h1>
                     )
                   ) : (
                     ""
                   )}
                 </td>
-                <td className="border border-black"></td>
+                <td className="border border-black ">
+                  <h1 className="text-center">
+                    {obj && typeof obj != "string" && totalGroups > 1 ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline">Move to</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56">
+                          <DropdownMenuLabel>Groups</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuRadioGroup
+                            onValueChange={(to) =>
+                              onGroupMoved(groupNo, to, obj.s_id)
+                            }
+                          >
+                            {new Array(totalGroups)
+                              .fill(0)
+                              .map((_, i) => i + 1)
+                              .filter((ele) => ele != groupNo)
+                              .map((ele) => (
+                                <DropdownMenuRadioItem value={ele}>
+                                  {ele}
+                                </DropdownMenuRadioItem>
+                              ))}
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      ""
+                    )}
+                  </h1>
+                </td>{" "}
               </tr>
             ))}
           </tbody>
@@ -702,13 +839,50 @@ const AttendanceSheetTemplate = ({
                         <h1 className="font-semibold text-center">Medical</h1>
                       )
                     ) : (
-                      <h1 className="text-center">{obj.index_num}</h1>
+                      <h1
+                        className={`text-center text-wrap ${
+                          obj.index_num ? "" : "bg-red-500"
+                        }`}
+                      >
+                        {obj.index_num || "Index no missing"}
+                      </h1>
                     )
                   ) : (
                     ""
                   )}
                 </td>
-                <td className="border border-black"></td>
+                <td className="border border-black ">
+                  <h1 className="text-center">
+                    {obj && typeof obj != "string" && totalGroups > 1 ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline">Move to</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56">
+                          <DropdownMenuLabel>Groups</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuRadioGroup
+                            onValueChange={(to) =>
+                              onGroupMoved(groupNo, to, obj.s_id)
+                            }
+                          >
+                            {new Array(totalGroups)
+                              .fill(0)
+                              .map((_, i) => i + 1)
+                              .filter((ele) => ele != groupNo)
+                              .map((ele) => (
+                                <DropdownMenuRadioItem value={ele}>
+                                  {ele}
+                                </DropdownMenuRadioItem>
+                              ))}
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      ""
+                    )}
+                  </h1>
+                </td>{" "}
               </tr>
             ))}
           </tbody>
@@ -716,7 +890,28 @@ const AttendanceSheetTemplate = ({
       </div>
 
       {/* Footer */}
-      <div className="flex justify-end"></div>
+      <div className="flex justify-between mt-4">
+        <div className="flex flex-col space-y-2">
+          <div className="flex">
+            <span className="inline-block w-28">Center</span>
+            &#58;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;
+          </div>
+          <div className="flex">
+            <span className="inline-block w-28">Date</span>
+            &#58;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;
+          </div>
+        </div>{" "}
+        <div className="flex flex-col space-y-2">
+          <div className="flex">
+            <span className="inline-block w-28">Supervisor</span>
+            &#58;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;
+          </div>
+          <div className="flex">
+            <span className="inline-block w-28">Invigilators</span>
+            &#58;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

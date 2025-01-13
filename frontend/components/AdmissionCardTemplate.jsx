@@ -186,7 +186,7 @@ const AdmissionCardTemplate = ({
           University of Vavuniya
         </h1>
         <h2 className="uppercase text-xl font-extrabold">
-          Faculty of Applied Science
+          {batchFullDetailsData?.f_name}
         </h2>
         <h3 className="font-bold text-lg mt-2 uppercase">
           {level_ordinal} examination in {batchFullDetailsData?.deg_name} -

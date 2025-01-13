@@ -16,6 +16,7 @@ import {
 import {
   createOrUpdateAdmission,
   fetchStudentsWithSubjects,
+  getEligibleStudentsBySub,
   getLatestAdmissionTemplate,
 } from "@/utils/apiRequests/entry.api";
 import {
@@ -38,6 +39,7 @@ import AdmissionCard from "@/components/AdmissionCard";
 import { createRoot } from "react-dom/client";
 import AttendanceSheetTemplate from "@/components/AttendanceSheetTemplate";
 import { students } from "./students";
+import AttendanceSheet from "@/components/AttendanceSheet";
 
 function divideStudents(totalStudents, noOfGroups) {
   const groupSize = Math.ceil(totalStudents / noOfGroups);
@@ -54,16 +56,13 @@ const Page = () => {
   const [level_ordinal, setLevel_ordinal] = useState("");
   const [sem_ordinal, setSem_ordinal] = useState("");
   const [decodeBatchCode, setDecodeBatchCode] = useState({});
-  const [subjectObject, setSubjectObject] = useState({});
+
   const [generating, setGenerating] = useState(false);
   const [groupsCount, setGroupsCount] = useState(1);
   const [avgStuCountPerGroup, setAvgStuCountPerGroup] = useState(0);
   const [finalNameList, setFinalNameList] = useState({});
   const [formData, setFormData] = useState({
     batch_id,
-    generated_date: `${getModifiedDate(new Date())} (${getDayName(
-      new Date()
-    )})`,
     subjects: [],
     date: [{ year: new Date().getFullYear(), months: [new Date().getMonth()] }],
     description:
@@ -87,44 +86,49 @@ const Page = () => {
     e.target.value = value;
   };
 
-  const generateAdmissionCardPDFs = async (studentsData) => {
+  const generateAttendanceSheetPDFs = async () => {
     if (typeof document === "undefined") {
       console.error("This function can only run in a browser environment.");
       return;
     }
 
-    const margin = 10; // Top and bottom margin in mm
+    const margin = 5; // Top and bottom margin in mm
 
-    for (const [type, students] of Object.entries(studentsData)) {
-      if (students.length === 0) continue;
+    const pdf = new jsPDF("p", "mm", "a4");
+    setGenerating(true);
 
-      const pdf = new jsPDF("p", "mm", "a4");
-      setGenerating(true);
+    for (const [grpNo, grpArr] of Object.entries(finalNameList)) {
+      for (let pageInd = 0; pageInd < grpArr.length; pageInd++) {
+        const pageArr = grpArr[pageInd];
 
-      for (let i = 0; i < students.length; i++) {
-        const student = students[i];
-
-        // Create a div element to render the admission card
         const container = document.createElement("div");
         container.style.width = "210mm"; // A4 width
         container.style.padding = "20px";
         container.style.backgroundColor = "#fff";
-        container.id = `admission-card-${type}-${i}`;
+        container.id = `AttendanceSheet-G${grpNo}-P${pageInd + 1}`;
         document.body.appendChild(container);
 
         const root = createRoot(container);
         const renderComplete = new Promise((resolve) => {
           root.render(
-            <AdmissionCard
-              student={student}
-              type={type}
+            <AttendanceSheet
               level_ordinal={level_ordinal}
               batchFullDetailsData={batchFullDetailsData}
               decodeBatchCode={decodeBatchCode}
               formData={formData}
               sem_ordinal={sem_ordinal}
-              subjectObject={subjectObject}
               onRenderComplete={resolve}
+              sub_name={sub_name}
+              sub_code={sub_code}
+              pageArr={pageArr}
+              pageNo={pageInd + 1}
+              groupNo={grpNo}
+              totalPages={grpArr.length}
+              totalGroups={Object.keys(finalNameList).length}
+              totalStudents={eligibleStudentsForASubjectData.length}
+              studentsInTheGroup={
+                grpArr.flat().filter((obj) => typeof obj != "string").length
+              }
             />
           );
         });
@@ -154,8 +158,7 @@ const Page = () => {
           const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
           // Calculate the image height and position considering margins
-          const availableHeight =
-            pdf.internal.pageSize.getHeight() - margin * 2;
+          const availableHeight = pdf.internal.pageSize.getHeight() - margin;
           const scaledHeight = Math.min(pdfHeight, availableHeight);
           const yPosition = margin;
 
@@ -173,68 +176,79 @@ const Page = () => {
         document.body.removeChild(container);
 
         // Add a new page for the next student, except the last one
-        if (i < students.length - 1) {
+        if (pageInd < grpArr.length - 1) {
           pdf.addPage();
         }
       }
-
-      // Save the PDF for the current exam type
-      pdf.save(
-        `${batchFullDetailsData.batch_code}_${type}_admission_cards.pdf`
-      );
+      if (grpNo - 1 < Object.entries(finalNameList).length - 1) {
+        pdf.addPage();
+      }
     }
+
+    pdf.save(`${batchFullDetailsData.batch_code}attendance_sheet.pdf`);
+
     setGenerating(false);
   };
 
+  const { data: eligibleStudentsForASubjectData } = useQuery({
+    queryFn: () => getEligibleStudentsBySub({ batch_id, sub_id }),
+    queryKey: ["eligibleStudentsForASubject", batch_id, sub_id],
+  });
+
   useEffect(() => {
-    // if (AppliedStudentsData?.length) {
-    let stuCountPerGroup = divideStudents(students.length, groupsCount);
-    setAvgStuCountPerGroup(stuCountPerGroup);
-    let obj = {};
-    let exam_type = "P";
-    let sortedArray = sortByExamType(students);
+    if (eligibleStudentsForASubjectData?.length) {
+      console.log(eligibleStudentsForASubjectData);
+      let stuCountPerGroup = divideStudents(
+        eligibleStudentsForASubjectData.length,
+        groupsCount
+      );
+      setAvgStuCountPerGroup(stuCountPerGroup);
+      let obj = {};
+      let sortedArray = sortByExamType(eligibleStudentsForASubjectData);
 
-    for (let i = 0; i < groupsCount; i++) {
-      let grpArr = [];
-      let pageArr = [];
-      let pageArrInd = 0;
-      for (
-        let j = i * stuCountPerGroup;
-        j < (i + 1) * stuCountPerGroup && j < sortedArray.length;
-        j++
-      ) {
-        if (sortedArray[j].exam_type != exam_type) {
-          pageArr.push(sortedArray[j].exam_type);
-          exam_type = sortedArray[j].exam_type;
-          pageArrInd++;
-        }
-        pageArr.push(sortedArray[j]);
+      for (let i = 0; i < groupsCount; i++) {
+        let grpArr = [];
+        let pageArr = [];
+        let pageArrInd = 0;
+        let exam_type = "P";
 
-        if (
-          pageArrInd == 79 ||
-          j == (i + 1) * stuCountPerGroup - 1 ||
-          j == sortedArray.length - 1
+        for (
+          let j = i * stuCountPerGroup;
+          j < (i + 1) * stuCountPerGroup && j < sortedArray.length;
+          j++
         ) {
-          grpArr.push(pageArr);
-          pageArr = [];
-          pageArrInd = 0;
-        } else {
-          pageArrInd++;
-        }
+          if (sortedArray[j].exam_type != exam_type) {
+            pageArr.push(sortedArray[j].exam_type);
+            exam_type = sortedArray[j].exam_type;
+            pageArrInd++;
+          }
+          pageArr.push(sortedArray[j]);
 
-        if (
-          j == (i + 1) * stuCountPerGroup - 1 ||
-          j == sortedArray.length - 1
-        ) {
-          break;
+          if (
+            pageArrInd == 79 ||
+            j == (i + 1) * stuCountPerGroup - 1 ||
+            j == sortedArray.length - 1
+          ) {
+            grpArr.push(pageArr);
+            pageArr = [];
+            pageArrInd = 0;
+          } else {
+            pageArrInd++;
+          }
+
+          if (
+            j == (i + 1) * stuCountPerGroup - 1 ||
+            j == sortedArray.length - 1
+          ) {
+            break;
+          }
         }
+        obj[i + 1] = grpArr;
       }
-      obj[i + 1] = grpArr;
+      setFinalNameList(obj);
+      console.log(obj);
     }
-    setFinalNameList(obj);
-    console.log(obj);
-    // }
-  }, [groupsCount]);
+  }, [groupsCount, eligibleStudentsForASubjectData]);
 
   const { data: latestAdmissionTemplateData } = useQuery({
     queryFn: () => getLatestAdmissionTemplate(batch_id),
@@ -248,11 +262,6 @@ const Page = () => {
   } = useQuery({
     queryFn: () => getBatchFullDetails(batch_id),
     queryKey: ["batchFullDetails"],
-  });
-
-  const { data: studentsWithSubjectsData } = useQuery({
-    queryFn: () => fetchStudentsWithSubjects(batch_id),
-    queryKey: ["studentsWithSubjects"],
   });
 
   const { data: batchCurriculumData } = useQuery({
@@ -273,9 +282,9 @@ const Page = () => {
   });
 
   const onGenerate = () => {
-    mutate(formData);
-    studentsWithSubjectsData &&
-      generateAdmissionCardPDFs(studentsWithSubjectsData);
+    // mutate(formData);
+    // studentsWithSubjectsData &&
+    generateAttendanceSheetPDFs();
   };
 
   useEffect(() => {
@@ -292,17 +301,12 @@ const Page = () => {
   }, [decodeBatchCode]);
 
   useEffect(() => {
-    console.log(batchCurriculumData);
-    setSubjectObject(createSubjectObject(batchCurriculumData));
-  }, [batchCurriculumData]);
-
-  useEffect(() => {
     console.log(formData);
   }, [formData]);
 
-  useEffect(() => {
-    console.log(studentsWithSubjectsData);
-  }, [studentsWithSubjectsData]);
+  // useEffect(() => {
+  //   console.log(studentsWithSubjectsData);
+  // }, [studentsWithSubjectsData]);
 
   useEffect(() => {
     console.log(finalNameList);
@@ -327,9 +331,9 @@ const Page = () => {
           <input
             type="number"
             min="1"
-            max={students?.length || 1}
+            max={eligibleStudentsForASubjectData?.length || 1}
             className="w-20 rounded-md border px-2 py-1 text-sm h-8"
-            value={groupsCount}
+            value={Object.keys(finalNameList).length}
             onChange={(e) => setGroupsCount(e.target.value)}
             onBlur={(e) => onGroupsCountBlured(e)}
           />
@@ -342,8 +346,6 @@ const Page = () => {
             setFormData={setFormData}
             formData={formData}
             batchFullDetailsData={batchFullDetailsData}
-            latestAdmissionTemplateData={latestAdmissionTemplateData}
-            batchCurriculumData={batchCurriculumData}
             level_ordinal={level_ordinal}
             sem_ordinal={sem_ordinal}
             decodeBatchCode={decodeBatchCode}
@@ -356,6 +358,10 @@ const Page = () => {
             totalGroups={entriesArr.length}
             setFinalNameList={setFinalNameList}
             finalNameList={finalNameList}
+            totalStudents={eligibleStudentsForASubjectData.length}
+            studentsInTheGroup={
+              grpArr.flat().filter((obj) => typeof obj != "string").length
+            }
           />
         ))
       )}

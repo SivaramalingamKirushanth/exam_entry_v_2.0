@@ -38,6 +38,12 @@ const StudentDetails = ({
     mutationFn: updateEligibility,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["students", "subject", sub_id]);
+      queryClient.invalidateQueries([
+        "eligibleStudentsForASubject",
+        batch_id,
+        sub_id,
+      ]);
+
       toast(res.message);
     },
     onError: (err) => {
