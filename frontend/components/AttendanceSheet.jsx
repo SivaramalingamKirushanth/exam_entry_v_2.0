@@ -69,7 +69,7 @@ const AttendanceSheet = ({
   }, [onRenderComplete, splittedArray]);
 
   return (
-    <div className="p-4 pt-0 max-w-4xl mx-auto font-serif bg-white">
+    <div className="p-4 pt-0 max-w-4xl mx-auto font-times bg-white">
       {/* <div className="text-center mb-4"> */}
       <div className="flex justify-between items-center mb-2">
         <div className="flex">
@@ -170,7 +170,7 @@ const AttendanceSheet = ({
         </div>
       </div>
 
-      <h3 className="font-bold text-lg mt-1 uppercase text-center">
+      <h3 className="text-xl mt-1 uppercase text-center font-algerian">
         attendance list
       </h3>
       {/* </div> */}
@@ -181,10 +181,10 @@ const AttendanceSheet = ({
         <table className="w-1/5 border-collapse border border-black text-sm mb-2">
           <thead>
             <tr>
-              <th className="border border-black px-1 py-3 text-xs font-semibold">
+              <th className="border border-black px-1 py-3 font-semibold">
                 Index no
               </th>
-              <th className="border border-black px-1 py-3 text-xs font-semibold">
+              <th className="border border-black px-1 py-3 font-semibold">
                 Attendance
               </th>
             </tr>
@@ -221,10 +221,10 @@ const AttendanceSheet = ({
         <table className="w-1/5 border-collapse border border-black text-sm mb-2">
           <thead>
             <tr>
-              <th className="border border-black px-1 py-3 text-xs font-semibold">
+              <th className="border border-black px-1 py-3 font-semibold">
                 Index no
               </th>
-              <th className="border border-black px-1 py-3 text-xs font-semibold">
+              <th className="border border-black px-1 py-3 font-semibold">
                 Attendance
               </th>
             </tr>
@@ -261,10 +261,10 @@ const AttendanceSheet = ({
         <table className="w-1/5 border-collapse border border-black text-sm mb-2">
           <thead>
             <tr>
-              <th className="border border-black px-1 py-3 text-xs font-semibold">
+              <th className="border border-black px-1 py-3 font-semibold">
                 Index no
               </th>
-              <th className="border border-black px-1 py-3 text-xs font-semibold">
+              <th className="border border-black px-1 py-3 font-semibold">
                 Attendance
               </th>
             </tr>
@@ -301,10 +301,10 @@ const AttendanceSheet = ({
         <table className="w-1/5 border-collapse border border-black text-sm mb-2">
           <thead>
             <tr>
-              <th className="border border-black px-1 py-3 text-xs font-semibold">
+              <th className="border border-black px-1 py-3 font-semibold">
                 Index no
               </th>
-              <th className="border border-black px-1 py-3 text-xs font-semibold">
+              <th className="border border-black px-1 py-3 font-semibold">
                 Attendance
               </th>
             </tr>
@@ -341,10 +341,10 @@ const AttendanceSheet = ({
         <table className="w-1/5 border-collapse border border-black text-sm mb-2">
           <thead>
             <tr>
-              <th className="border border-black px-1 py-3 text-xs font-semibold">
+              <th className="border border-black px-1 py-3 font-semibold">
                 Index no
               </th>
-              <th className="border border-black px-1 py-3 text-xs font-semibold">
+              <th className="border border-black px-1 py-3 font-semibold">
                 Attendance
               </th>
             </tr>

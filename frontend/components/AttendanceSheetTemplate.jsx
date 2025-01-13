@@ -244,7 +244,7 @@ const AttendanceSheetTemplate = ({
   }, [pageArr]);
 
   return (
-    <div className="border-2 border-black p-8 max-w-4xl mx-auto font-serif bg-white mb-2">
+    <div className="border-2 border-black p-8 max-w-4xl mx-auto font-times bg-white mb-2">
       {/* <div className="text-center mb-4"> */}
       <div className="flex justify-between items-center mb-2">
         <div className="flex">
@@ -529,7 +529,7 @@ const AttendanceSheetTemplate = ({
         </div>
       </div>
 
-      <h3 className="font-bold text-lg mt-1 uppercase text-center">
+      <h3 className="text-xl mt-1 uppercase text-center font-algerian">
         attendance list
       </h3>
       {/* </div> */}
@@ -542,13 +542,11 @@ const AttendanceSheetTemplate = ({
         width="100%"
       />
       <div className="flex">
-        <table className="w-1/5 border-collapse border border-black text-sm mb-2">
+        <table className="w-1/5 border-collapse border bord mb-2">
           <thead>
             <tr>
               <th className="border border-black px-1 py-3">Index no</th>
-              <th className="border border-black px-1 py-3 text-xs">
-                Attendance
-              </th>
+              <th className="border border-black px-1 py-3">Attendance</th>
             </tr>
           </thead>
           <tbody>
@@ -611,13 +609,11 @@ const AttendanceSheetTemplate = ({
             ))}
           </tbody>
         </table>{" "}
-        <table className="w-1/5 border-collapse border border-black text-sm mb-2">
+        <table className="w-1/5 border-collapse border border-black mb-2">
           <thead>
             <tr>
               <th className="border border-black px-1 py-3">Index no</th>
-              <th className="border border-black px-1 py-3 text-xs">
-                Attendance
-              </th>
+              <th className="border border-black px-1 py-3">Attendance</th>
             </tr>
           </thead>
           <tbody>
@@ -680,13 +676,11 @@ const AttendanceSheetTemplate = ({
             ))}
           </tbody>
         </table>{" "}
-        <table className="w-1/5 border-collapse border border-black text-sm mb-2">
+        <table className="w-1/5 border-collapse border border-black mb-2">
           <thead>
             <tr>
               <th className="border border-black px-1 py-3">Index no</th>
-              <th className="border border-black px-1 py-3 text-xs">
-                Attendance
-              </th>
+              <th className="border border-black px-1 py-3">Attendance</th>
             </tr>
           </thead>
           <tbody>
@@ -749,13 +743,11 @@ const AttendanceSheetTemplate = ({
             ))}
           </tbody>
         </table>{" "}
-        <table className="w-1/5 border-collapse border border-black text-sm mb-2">
+        <table className="w-1/5 border-collapse border border-black mb-2">
           <thead>
             <tr>
               <th className="border border-black px-1 py-3">Index no</th>
-              <th className="border border-black px-1 py-3 text-xs">
-                Attendance
-              </th>
+              <th className="border border-black px-1 py-3">Attendance</th>
             </tr>
           </thead>
           <tbody>
@@ -818,13 +810,11 @@ const AttendanceSheetTemplate = ({
             ))}
           </tbody>
         </table>{" "}
-        <table className="w-1/5 border-collapse border border-black text-sm mb-2">
+        <table className="w-1/5 border-collapse border border-black mb-2">
           <thead>
             <tr>
               <th className="border border-black px-1 py-3">Index no</th>
-              <th className="border border-black px-1 py-3 text-xs">
-                Attendance
-              </th>
+              <th className="border border-black px-1 py-3">Attendance</th>
             </tr>
           </thead>
           <tbody>

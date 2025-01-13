@@ -173,7 +173,7 @@ const AdmissionCardTemplate = ({
   }, [latestAdmissionTemplateData]);
 
   return (
-    <div className="border-2 border-black p-8 max-w-4xl mx-auto font-serif bg-white">
+    <div className="border-2 border-black p-8 max-w-4xl mx-auto font-times bg-white">
       <div className="text-center mb-4">
         <Image
           src={UoV_Logo}
@@ -318,7 +318,7 @@ const AdmissionCardTemplate = ({
             </Tooltip>
           </TooltipProvider>
         </div>
-        <h3 className="font-bold text-lg mt-1 uppercase">Admission Card</h3>
+        <h3 className="text-xl mt-1 uppercase font-algerian">Admission Card</h3>
       </div>
 
       <div className="grid grid-cols-2 gap-0 mb-2">

@@ -39,7 +39,7 @@ const AdmissionCard = ({
   }, [onRenderComplete]);
 
   return (
-    <div className="p-4 pt-0 max-w-4xl mx-auto font-serif bg-white">
+    <div className="p-4 pt-0 max-w-4xl mx-auto font-times bg-white">
       <div className="text-center mb-2">
         <Image
           src={UoV_Logo}
@@ -80,7 +80,7 @@ const AdmissionCard = ({
                 obj.year
           )}
         </div>
-        <h3 className="font-bold text-lg mt-1 uppercase">Admission Card</h3>
+        <h3 className="text-xl mt-1 uppercase font-algerian">Admission Card</h3>
       </div>
 
       <div className="grid grid-cols-2 gap-0 mb-1">
@@ -128,22 +128,22 @@ const AdmissionCard = ({
             formData.subjects.map((arr, ind) =>
               arr.map((subId, index) => (
                 <tr key={index}>
-                  <td className="border border-black p-1 pb-2 text-center text-sm font-sans">
+                  <td className="border border-black p-1 pb-2 text-center text-sm">
                     <div className="flex justify-center items-center">
                       {index ? "" : ind + 1}
                     </div>
                   </td>
-                  <td className="border border-black p-1 pb-2 text-sm w-20 font-sans">
+                  <td className="border border-black p-1 pb-2 text-sm w-20">
                     <div className="flex justify-center items-center">
                       {subjectObject[subId].sub_code}
                     </div>
                   </td>
-                  <td className="border border-black text-sm w-80 font-sans">
+                  <td className="border border-black text-sm w-80">
                     <div className="flex justify-start p-1 pb-2 -mt-3  items-center">
                       {subjectObject[subId].sub_name}
                     </div>
                   </td>
-                  <td className="border border-black p-1 pb-2 text-center text-sm font-sans">
+                  <td className="border border-black p-1 pb-2 text-center text-sm">
                     <div className="flex justify-center items-center">
                       {student?.subjects.some((obj) => obj.sub_id == subId) &&
                       student?.subjects.filter((obj) => obj.sub_id == subId)[0]

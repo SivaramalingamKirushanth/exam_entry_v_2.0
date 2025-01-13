@@ -62,8 +62,6 @@ const Page = () => {
   const [avgStuCountPerGroup, setAvgStuCountPerGroup] = useState(0);
   const [finalNameList, setFinalNameList] = useState({});
   const [formData, setFormData] = useState({
-    batch_id,
-    subjects: [],
     date: [{ year: new Date().getFullYear(), months: [new Date().getMonth()] }],
     description:
       '<p>Supervisors are kindly requested to mark absentees clearly "ABSENT" and "✔" those Present. One copy is to be returned under separate cover to the Deputy Registrar and one to be enclosed in the relevant packet of answer script, when answer scripts separately for each of a paper it is necessary to enclose a copy each of the attendance list in each packet.</p>',
@@ -185,7 +183,9 @@ const Page = () => {
       }
     }
 
-    pdf.save(`${batchFullDetailsData.batch_code}attendance_sheet.pdf`);
+    pdf.save(
+      `${batchFullDetailsData.batch_code}_${sub_code}_attendance_sheet.pdf`
+    );
 
     setGenerating(false);
   };
@@ -197,7 +197,6 @@ const Page = () => {
 
   useEffect(() => {
     if (eligibleStudentsForASubjectData?.length) {
-      console.log(eligibleStudentsForASubjectData);
       let stuCountPerGroup = divideStudents(
         eligibleStudentsForASubjectData.length,
         groupsCount
@@ -246,7 +245,6 @@ const Page = () => {
         obj[i + 1] = grpArr;
       }
       setFinalNameList(obj);
-      console.log(obj);
     }
   }, [groupsCount, eligibleStudentsForASubjectData]);
 
@@ -299,18 +297,6 @@ const Page = () => {
       setSem_ordinal(numberToOrdinalWord(decodeBatchCode.sem_no));
     }
   }, [decodeBatchCode]);
-
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
-
-  // useEffect(() => {
-  //   console.log(studentsWithSubjectsData);
-  // }, [studentsWithSubjectsData]);
-
-  useEffect(() => {
-    console.log(finalNameList);
-  }, [finalNameList]);
 
   return (
     <>
