@@ -1,8 +1,18 @@
 "use client";
-import AdmissionCardTemplate from "@/components/AdmissionCardTemplate";
+import dynamic from "next/dynamic";
+
+const AdmissionCardTemplate = dynamic(
+  () => import("@/components/AdmissionCardTemplate"),
+  {
+    ssr: false,
+  }
+);
 import { Button } from "@/components/ui/button";
 import { getBatchFullDetails } from "@/utils/apiRequests/batch.api";
-import { getCurriculumBybatchId } from "@/utils/apiRequests/curriculum.api";
+import {
+  getAppliedStudentsForSubject,
+  getCurriculumBybatchId,
+} from "@/utils/apiRequests/curriculum.api";
 import {
   createOrUpdateAdmission,
   fetchStudentsWithSubjects,
@@ -11,9 +21,11 @@ import {
 import {
   createSubjectObject,
   generateAdmissionCardPDFs,
+  getDayName,
   getModifiedDate,
   numberToOrdinalWord,
   parseString,
+  sortByExamType,
 } from "@/utils/functions";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
@@ -24,27 +36,56 @@ import html2canvas from "html2canvas";
 import ReactDOM from "react-dom";
 import AdmissionCard from "@/components/AdmissionCard";
 import { createRoot } from "react-dom/client";
+import AttendanceSheetTemplate from "@/components/AttendanceSheetTemplate";
+import { students } from "./students";
+
+function divideStudents(totalStudents, noOfGroups) {
+  const groupSize = Math.ceil(totalStudents / noOfGroups);
+  return groupSize;
+}
 
 const Page = () => {
   const searchParams = useSearchParams();
   const batch_id = searchParams.get("batch_id");
+  const sub_id = searchParams.get("sub_id");
+  const sub_name = searchParams.get("sub_name");
+  const sub_code = searchParams.get("sub_code");
+
   const [level_ordinal, setLevel_ordinal] = useState("");
   const [sem_ordinal, setSem_ordinal] = useState("");
   const [decodeBatchCode, setDecodeBatchCode] = useState({});
   const [subjectObject, setSubjectObject] = useState({});
   const [generating, setGenerating] = useState(false);
+  const [groupsCount, setGroupsCount] = useState(1);
+  const [avgStuCountPerGroup, setAvgStuCountPerGroup] = useState(0);
+  const [finalNameList, setFinalNameList] = useState({});
   const [formData, setFormData] = useState({
     batch_id,
-    generated_date: getModifiedDate(new Date()),
+    generated_date: `${getModifiedDate(new Date())} (${getDayName(
+      new Date()
+    )})`,
     subjects: [],
     date: [{ year: new Date().getFullYear(), months: [new Date().getMonth()] }],
     description:
-      "<p>Candidates are expected to produce this admission card to the  Supervisor/Invigilator/Examiner at the Examination Hall. This form &nbsp; &nbsp; &nbsp; should be filled and signed by the candidates in the presence of the Supervisor/Invigilator/Examiner every time a paper test is taken. The &nbsp; Supervisor/Invigilator/Examiner is expected to authenticate the signature of the candidate by placing his/her initials in the appropriate column. Students are requested to hand over the admission card to the Supervisor on the last day of the paper.</p>",
-    instructions:
-      "<p><strong><u>Instructions</u></strong></p><ol><li>No candidate shall be admitted to the Examination hall without this card.</li><li>If any candidate loses this admission card, he/she shall obtain a duplicate Admission Card on payment of Rs.150/-</li><li>Every candidate shall produce his/her Identity Card at every paper/Practical Examination he/she sits for.</li><li>Any unauthorized documents, notes &amp; bags should not be taken into the Examinations.</li><li>When unable to be present for any part of the Examination, it should be notified to me&nbsp;<strong><u>immediately in writing</u></strong>&nbsp;. No appeals will be considered later without this timely notification.</li></ol>",
-    provider:
-      "<p>Senior Asst. Registrar</p><p>Examination &amp; Student Admission</p>",
+      '<p>Supervisors are kindly requested to mark absentees clearly "ABSENT" and "✔" those Present. One copy is to be returned under separate cover to the Deputy Registrar and one to be enclosed in the relevant packet of answer script, when answer scripts separately for each of a paper it is necessary to enclose a copy each of the attendance list in each packet.</p>',
   });
+
+  const { data: AppliedStudentsData } = useQuery({
+    queryFn: () => getAppliedStudentsForSubject(batch_id, sub_id),
+    queryKey: ["students", "subject", sub_id],
+  });
+
+  const onGroupsCountBlured = (e) => {
+    let value = +e.target.value;
+    if (value < +e.target.min) {
+      value = +e.target.min;
+    } else if (value > +e.target.max) {
+      value = +e.target.max;
+    }
+
+    setGroupsCount(value);
+    e.target.value = value;
+  };
 
   const generateAdmissionCardPDFs = async (studentsData) => {
     if (typeof document === "undefined") {
@@ -145,6 +186,56 @@ const Page = () => {
     setGenerating(false);
   };
 
+  useEffect(() => {
+    // if (AppliedStudentsData?.length) {
+    let stuCountPerGroup = divideStudents(students.length, groupsCount);
+    setAvgStuCountPerGroup(stuCountPerGroup);
+    let obj = {};
+    let exam_type = "P";
+    let sortedArray = sortByExamType(students);
+
+    for (let i = 0; i < groupsCount; i++) {
+      let grpArr = [];
+      let pageArr = [];
+      let pageArrInd = 0;
+      for (
+        let j = i * stuCountPerGroup;
+        j < (i + 1) * stuCountPerGroup && j < sortedArray.length;
+        j++
+      ) {
+        if (sortedArray[j].exam_type != exam_type) {
+          pageArr.push(sortedArray[j].exam_type);
+          exam_type = sortedArray[j].exam_type;
+          pageArrInd++;
+        }
+        pageArr.push(sortedArray[j]);
+
+        if (
+          pageArrInd == 79 ||
+          j == (i + 1) * stuCountPerGroup - 1 ||
+          j == sortedArray.length - 1
+        ) {
+          grpArr.push(pageArr);
+          pageArr = [];
+          pageArrInd = 0;
+        } else {
+          pageArrInd++;
+        }
+
+        if (
+          j == (i + 1) * stuCountPerGroup - 1 ||
+          j == sortedArray.length - 1
+        ) {
+          break;
+        }
+      }
+      obj[i + 1] = grpArr;
+    }
+    setFinalNameList(obj);
+    console.log(obj);
+    // }
+  }, [groupsCount]);
+
   const { data: latestAdmissionTemplateData } = useQuery({
     queryFn: () => getLatestAdmissionTemplate(batch_id),
     queryKey: ["latestAdmissionTemplate"],
@@ -213,6 +304,10 @@ const Page = () => {
     console.log(studentsWithSubjectsData);
   }, [studentsWithSubjectsData]);
 
+  useEffect(() => {
+    console.log(finalNameList);
+  }, [finalNameList]);
+
   return (
     <>
       <div
@@ -226,19 +321,45 @@ const Page = () => {
           alt="Loading icon"
         />
       </div>
+      <div className="w-[80%] mx-auto flex justify-center mb-4">
+        <div>
+          No of groups&nbsp;:&nbsp;
+          <input
+            type="number"
+            min="1"
+            max={students?.length || 1}
+            className="w-20 rounded-md border px-2 py-1 text-sm h-8"
+            value={groupsCount}
+            onChange={(e) => setGroupsCount(e.target.value)}
+            onBlur={(e) => onGroupsCountBlured(e)}
+          />
+        </div>
+      </div>
+      {Object.entries(finalNameList).map(([grpNo, grpArr], _, entriesArr) =>
+        grpArr.map((pageArr, pageInd, arr) => (
+          <AttendanceSheetTemplate
+            batch_id={batch_id}
+            setFormData={setFormData}
+            formData={formData}
+            batchFullDetailsData={batchFullDetailsData}
+            latestAdmissionTemplateData={latestAdmissionTemplateData}
+            batchCurriculumData={batchCurriculumData}
+            level_ordinal={level_ordinal}
+            sem_ordinal={sem_ordinal}
+            decodeBatchCode={decodeBatchCode}
+            sub_name={sub_name}
+            sub_code={sub_code}
+            pageArr={pageArr}
+            pageNo={pageInd + 1}
+            groupNo={grpNo}
+            totalPages={arr.length}
+            totalGroups={entriesArr.length}
+            setFinalNameList={setFinalNameList}
+            finalNameList={finalNameList}
+          />
+        ))
+      )}
 
-      <AdmissionCardTemplate
-        batch_id={batch_id}
-        setFormData={setFormData}
-        formData={formData}
-        batchFullDetailsData={batchFullDetailsData}
-        latestAdmissionTemplateData={latestAdmissionTemplateData}
-        batchCurriculumData={batchCurriculumData}
-        level_ordinal={level_ordinal}
-        sem_ordinal={sem_ordinal}
-        decodeBatchCode={decodeBatchCode}
-        subjectObject={subjectObject}
-      />
       <div className="flex justify-center mt-8">
         <Button onClick={onGenerate}>Generate</Button>
       </div>

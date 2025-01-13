@@ -270,7 +270,6 @@ const BatchesDetails = () => {
 
   useEffect(() => {
     if (data) {
-      console.log(data);
       let filtData1 = searchValue
         ? data.filter((item) =>
             item.batch_id.toLowerCase().includes(searchValue.toLowerCase())

@@ -1,5 +1,12 @@
 "use client";
-import AdmissionCardTemplate from "@/components/AdmissionCardTemplate";
+import dynamic from "next/dynamic";
+
+const AdmissionCardTemplate = dynamic(
+  () => import("@/components/AdmissionCardTemplate"),
+  {
+    ssr: false,
+  }
+);
 import { Button } from "@/components/ui/button";
 import { getBatchFullDetails } from "@/utils/apiRequests/batch.api";
 import { getCurriculumBybatchId } from "@/utils/apiRequests/curriculum.api";

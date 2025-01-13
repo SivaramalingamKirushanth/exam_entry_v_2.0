@@ -1,4 +1,10 @@
 "use client";
+import dynamic from "next/dynamic";
+
+const RichTextEditor = dynamic(() => import("./RichTextEditor"), {
+  ssr: false,
+});
+
 import React, { useEffect, useState } from "react";
 import UoV_Logo from "./../images/UoV_Logo.png";
 import Image from "next/image";
@@ -34,8 +40,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-import RichTextEditor from "./RichTextEditor";
 
 const AdmissionCardTemplate = ({
   batch_id,
@@ -181,7 +185,7 @@ const AdmissionCardTemplate = ({
         <h1 className="font-bold text-lg uppercase underline">
           University of Vavuniya
         </h1>
-        <h2 className="text-md uppercase text-xl font-extrabold">
+        <h2 className="uppercase text-xl font-extrabold">
           Faculty of Applied Science
         </h2>
         <h3 className="font-bold text-lg mt-2 uppercase">
@@ -314,7 +318,7 @@ const AdmissionCardTemplate = ({
             </Tooltip>
           </TooltipProvider>
         </div>
-        <h3 className="font-bold text-lg mt-1">Admission Card</h3>
+        <h3 className="font-bold text-lg mt-1 uppercase">Admission Card</h3>
       </div>
 
       <div className="grid grid-cols-2 gap-0 mb-2">
@@ -439,7 +443,12 @@ const AdmissionCardTemplate = ({
                         + Combined Unit
                       </SelectItem>
                       {batchCurriculumData?.map((obj) => {
-                        if (!formData.subjects.flat().includes(obj.sub_id)) {
+                        if (
+                          !formData.subjects
+                            .flat()
+                            .map((item) => +item)
+                            .includes(+obj.sub_id)
+                        ) {
                           return (
                             <SelectItem key={obj.sub_id} value={obj.sub_id}>
                               {obj.sub_code + " " + obj.sub_name}
@@ -481,7 +490,12 @@ const AdmissionCardTemplate = ({
                 + Unit
               </SelectItem>
               {batchCurriculumData?.map((obj) => {
-                if (!formData.subjects?.flat().includes(obj.sub_id)) {
+                if (
+                  !formData.subjects
+                    .flat()
+                    .map((item) => +item)
+                    .includes(+obj.sub_id)
+                ) {
                   return (
                     <SelectItem key={obj.sub_id} value={obj.sub_id}>
                       {obj.sub_code + " " + obj.sub_name}

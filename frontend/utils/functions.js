@@ -78,6 +78,7 @@ export const numberToOrdinalWord = (numStr) => {
 };
 
 export function titleCase(str) {
+  console.log(str);
   const excludedWords = [
     "and",
     "or",
@@ -139,6 +140,33 @@ export function getModifiedDate(date) {
   return `${day}.${month}.${year}`;
 }
 
+export function getDayName(date) {
+  let day;
+  switch (date.getDay()) {
+    case 0:
+      day = "Sunday";
+      break;
+    case 1:
+      day = "Monday";
+      break;
+    case 2:
+      day = "Tuesday";
+      break;
+    case 3:
+      day = "Wednesday";
+      break;
+    case 4:
+      day = "Thursday";
+      break;
+    case 5:
+      day = "Friday";
+      break;
+    case 6:
+      day = "Saturday";
+  }
+  return day;
+}
+
 export const createSubjectObject = (subjects) => {
   const subjectMap = {};
 
@@ -148,3 +176,8 @@ export const createSubjectObject = (subjects) => {
 
   return subjectMap;
 };
+
+export function sortByExamType(array) {
+  const examOrder = { P: 1, M: 2, R: 3 }; // Define the order
+  return array.sort((a, b) => examOrder[a.exam_type] - examOrder[b.exam_type]);
+}

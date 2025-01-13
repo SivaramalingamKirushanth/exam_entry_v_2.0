@@ -22,12 +22,14 @@ export const addMedicalResitStudents = async (data) => {
 };
 
 export const getStudentsWithoutIndexNumber = async (batch_id) => {
+  console.log(batch_id);
   const response = await axiosInstance.post(
     "/entry/getStudentsWithoutIndexNumber",
     {
       batch_id,
     }
   );
+  console.log(response.data);
   return response.data;
 };
 

@@ -46,7 +46,7 @@ router.post(
 );
 router.post(
   "/fetchStudentsWithSubjects",
-  verifyUser(["1"]),
+  // verifyUser(["1"]),
   fetchStudentsWithSubjects
 );
 router.post(
