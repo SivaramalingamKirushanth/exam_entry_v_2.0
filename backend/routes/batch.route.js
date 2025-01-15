@@ -1,4 +1,6 @@
 import express from "express";
+import multer from "multer";
+const upload = multer({ storage: multer.memoryStorage() });
 import {
   addStudentsToTheBatchTable,
   createBatch,
@@ -15,6 +17,7 @@ import {
   setBatchTimePeriod,
   updateBatch,
   updateBatchStatus,
+  uploadAttendanceSheet,
 } from "../controllers/batch.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -46,6 +49,12 @@ router.post(
   "/getBatchFullDetails",
   verifyUser(["1", "5"]),
   getBatchFullDetails
+);
+router.post(
+  "/uploadAttendanceSheet",
+  verifyUser(["1"]),
+  upload.single("file"),
+  uploadAttendanceSheet
 );
 
 export default router;

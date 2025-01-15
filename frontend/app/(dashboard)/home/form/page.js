@@ -55,6 +55,10 @@ const Form = (request) => {
 
   if (error) return router.push("/home");
 
+  useEffect(() => {
+    console.log(applicationData);
+  }, [applicationData]);
+
   return (
     <>
       {applicationData && Object.keys(applicationData).length && (
@@ -101,8 +105,7 @@ const Form = (request) => {
                       {obj.sub_name}
                     </h1>
                     <h1 className="capitalize w-1/6 shrink-0 text-center">
-                      {+obj.attendance.slice(0, obj.attendance.length - 1) >=
-                      80 ? (
+                      {+obj.attendance >= 80 ? (
                         <Badge variant="success" className="capitalize">
                           eligible
                         </Badge>

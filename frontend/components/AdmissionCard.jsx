@@ -37,15 +37,15 @@ const AdmissionCard = ({
       onRenderComplete();
     }
   }, [onRenderComplete]);
-
+  console.log(student);
   return (
     <div className="p-4 pt-0 max-w-4xl mx-auto font-times bg-white">
       <div className="text-center mb-2">
         <Image
           src={UoV_Logo}
           alt="UOV logo"
-          height={80}
-          width={80}
+          height={100}
+          width={100}
           className="mx-auto"
         />
         <h1 className="font-bold text-lg uppercase underline">
@@ -98,7 +98,7 @@ const AdmissionCard = ({
         </p>
       </div>
 
-      <div className="mb-2 text-sm">{parse(formData.description) || ""}</div>
+      <div className="mb-2 text-base">{parse(formData.description) || ""}</div>
 
       <table className="w-full border-collapse border border-black mb-1">
         <thead>

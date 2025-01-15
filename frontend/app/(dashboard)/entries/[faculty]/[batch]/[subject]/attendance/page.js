@@ -15,9 +15,11 @@ import {
 } from "@/utils/apiRequests/curriculum.api";
 import {
   createOrUpdateAdmission,
+  createOrUpdateAttendance,
   fetchStudentsWithSubjects,
   getEligibleStudentsBySub,
   getLatestAdmissionTemplate,
+  getLatestAttendanceTemplate,
 } from "@/utils/apiRequests/entry.api";
 import {
   createSubjectObject,
@@ -62,6 +64,7 @@ const Page = () => {
   const [avgStuCountPerGroup, setAvgStuCountPerGroup] = useState(0);
   const [finalNameList, setFinalNameList] = useState({});
   const [formData, setFormData] = useState({
+    batch_id,
     date: [{ year: new Date().getFullYear(), months: [new Date().getMonth()] }],
     description:
       '<p>Supervisors are kindly requested to mark absentees clearly "ABSENT" and "✔" those Present. One copy is to be returned under separate cover to the Deputy Registrar and one to be enclosed in the relevant packet of answer script, when answer scripts separately for each of a paper it is necessary to enclose a copy each of the attendance list in each packet.</p>',
@@ -248,9 +251,9 @@ const Page = () => {
     }
   }, [groupsCount, eligibleStudentsForASubjectData]);
 
-  const { data: latestAdmissionTemplateData } = useQuery({
-    queryFn: () => getLatestAdmissionTemplate(batch_id),
-    queryKey: ["latestAdmissionTemplate"],
+  const { data: latestAttendanceTemplateData } = useQuery({
+    queryFn: () => getLatestAttendanceTemplate(batch_id),
+    queryKey: ["latestAttendanceTemplate", batch_id],
   });
 
   const {
@@ -262,13 +265,8 @@ const Page = () => {
     queryKey: ["batchFullDetails"],
   });
 
-  const { data: batchCurriculumData } = useQuery({
-    queryFn: () => getCurriculumBybatchId(batch_id),
-    queryKey: ["batchCurriculum"],
-  });
-
   const { status, mutate } = useMutation({
-    mutationFn: createOrUpdateAdmission,
+    mutationFn: createOrUpdateAttendance,
     onSuccess: (res) => {
       console.log(res);
       toast(res.message);
@@ -280,8 +278,7 @@ const Page = () => {
   });
 
   const onGenerate = () => {
-    // mutate(formData);
-    // studentsWithSubjectsData &&
+    mutate(formData);
     generateAttendanceSheetPDFs();
   };
 
@@ -328,10 +325,12 @@ const Page = () => {
       {Object.entries(finalNameList).map(([grpNo, grpArr], _, entriesArr) =>
         grpArr.map((pageArr, pageInd, arr) => (
           <AttendanceSheetTemplate
+            key={grpNo + "" + pageInd}
             batch_id={batch_id}
             setFormData={setFormData}
             formData={formData}
             batchFullDetailsData={batchFullDetailsData}
+            latestAttendanceTemplateData={latestAttendanceTemplateData}
             level_ordinal={level_ordinal}
             sem_ordinal={sem_ordinal}
             decodeBatchCode={decodeBatchCode}

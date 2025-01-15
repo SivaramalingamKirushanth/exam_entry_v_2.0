@@ -92,6 +92,7 @@ module.exports = {
         arial: ["Arial", "sans-serif"],
         calibri: ["Calibri", "sans-serif"],
         algerian: ["Algerian", "serif"],
+        bahnschriftCon: ["Bahnschrift Condensed", "serif"],
       },
     },
   },

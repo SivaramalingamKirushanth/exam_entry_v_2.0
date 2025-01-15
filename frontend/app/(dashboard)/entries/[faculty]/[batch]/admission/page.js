@@ -154,7 +154,7 @@ const Page = () => {
 
   const { data: latestAdmissionTemplateData } = useQuery({
     queryFn: () => getLatestAdmissionTemplate(batch_id),
-    queryKey: ["latestAdmissionTemplate"],
+    queryKey: ["latestAdmissionTemplate", batch_id],
   });
 
   const {

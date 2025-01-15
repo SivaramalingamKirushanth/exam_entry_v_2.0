@@ -3,6 +3,15 @@ import errorProvider from "../utils/errorProvider.js";
 import { parseString } from "../utils/functions.js";
 import lodash from "lodash";
 
+import streamifier from "streamifier";
+import csv from "csv-parser";
+import fs from "fs";
+import path from "path";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 export const getAllBatches = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
@@ -703,5 +712,172 @@ export const getBatchFullDetails = async (req, res, next) => {
   } catch (error) {
     console.error("Database connection error:", error);
     return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const uploadAttendanceSheet = async (req, res, next) => {
+  const results = [];
+  const failedCases = [];
+  const unmatchedSubjects = [];
+  const unmatchedStudents = [];
+
+  try {
+    if (!req.file || !req.file.buffer || !req.body.batch_id) {
+      return next(errorProvider(400, "No file uploaded or batch ID provided."));
+    }
+
+    const batchId = req.body.batch_id;
+    const buffer = req.file.buffer;
+    const stream = streamifier.createReadStream(buffer);
+
+    let isFirstRow = true;
+    let incomingSubjects = [];
+    stream
+      .pipe(csv({ headers: true })) // Read with headers
+      .on("data", (row) => {
+        if (isFirstRow) {
+          incomingSubjects = Object.values(row)
+            .slice(1)
+            .map((header) => header.replace(/[^a-zA-Z0-9]/g, ""));
+          isFirstRow = false;
+        } else {
+          results.push(row); // Collect rows
+        }
+      })
+      .on("end", async () => {
+        const conn = await pool.getConnection();
+        try {
+          await conn.beginTransaction();
+
+          // Fetch subject IDs from DB for the batch
+          const [dbSubjectRows] = await conn.query(
+            "SELECT bcl.sub_id, c.sub_code FROM batch_curriculum_lecturer bcl join curriculum c ON bcl.sub_id=c.sub_id WHERE bcl.batch_id = ?",
+            [batchId]
+          );
+
+          const dbSubjects = dbSubjectRows.reduce((acc, row) => {
+            const sanitizedCode = row.sub_code.replace(/[^a-zA-Z0-9]/g, "");
+            acc[sanitizedCode] = row.sub_id;
+            return acc;
+          }, {});
+
+          // Map incoming subjects to database sub_ids
+          const subIdOrder = incomingSubjects.map((incomingCode) => {
+            const matchingKey = Object.keys(dbSubjects).find(
+              (key) => key === incomingCode
+            );
+
+            if (!matchingKey) {
+              unmatchedSubjects.push(incomingCode);
+              return null;
+            }
+            console.log(dbSubjects[matchingKey]);
+            return dbSubjects[matchingKey];
+          });
+
+          if (unmatchedSubjects.length > 0) {
+            failedCases.push(
+              `Unmatched subjects: ${unmatchedSubjects.join(", ")}`
+            );
+          }
+
+          // Process each row and update attendance
+          for (const row of results) {
+            // Dynamically access "user_name" (first column) and the remaining columns (attendance data)
+            const user_name = row._0; // First column is user_name
+            const attendanceData = Object.entries(row)
+              .filter(([key, _]) => key !== "_0") // Exclude the first column
+              .map(([_, value]) => value); // Collect only the values for attendance
+
+            // Fetch student ID based on user_name
+            const [userResult] = await conn.query(
+              "SELECT s.s_id FROM user u JOIN student s ON u.user_id = s.user_id WHERE u.user_name = ?",
+              [user_name]
+            );
+
+            if (userResult.length === 0) {
+              unmatchedStudents.push({ user_name, attendance: attendanceData });
+              continue;
+            }
+
+            const s_id = userResult[0].s_id;
+
+            // Build dynamic update query using attendanceData and subIdOrder
+            const updates = subIdOrder
+              .map((sub_id, index) => {
+                const columnValue = attendanceData[index] || 0; // Match value to the sub_id order
+                return sub_id
+                  ? `sub_${sub_id} = ${conn.escape(columnValue)}`
+                  : null;
+              })
+              .filter(Boolean)
+              .join(", ");
+            console.log(updates);
+            if (updates) {
+              const tableName = `batch_${batchId}_students`;
+              await conn.query(
+                `UPDATE ${tableName} SET ${updates} WHERE s_id = ?`,
+                [s_id]
+              );
+            }
+          }
+
+          await conn.commit();
+
+          // Generate a failed cases file if needed
+          if (failedCases.length > 0 || unmatchedStudents.length > 0) {
+            const failedFilePath = path.join(
+              __dirname,
+              "failed_cases_attendance.txt"
+            );
+            const failedContent = [
+              ...failedCases,
+              ...unmatchedStudents.map(
+                (student) =>
+                  `Unmatched student: ${
+                    student.user_name
+                  }, Attendance: ${JSON.stringify(student.attendance)}`
+              ),
+            ].join("\n");
+
+            fs.writeFileSync(failedFilePath, failedContent);
+
+            res.setHeader(
+              "Content-Disposition",
+              `attachment; filename=failed_cases_attendance.txt`
+            );
+            res.setHeader("Content-Type", "text/plain");
+
+            // Stream the file to the response
+            const fileStream = fs.createReadStream(failedFilePath);
+            fileStream.pipe(res);
+
+            fileStream.on("end", () => {
+              fs.unlinkSync(failedFilePath);
+            });
+
+            return;
+          }
+
+          res.status(201).json({
+            message: "Attendance sheet processed successfully.",
+          });
+        } catch (error) {
+          await conn.rollback();
+          console.error("Error during transaction:", error);
+          return next(
+            errorProvider(500, "Failed to process attendance sheet.")
+          );
+        } finally {
+          conn.release();
+        }
+      })
+      .on("error", (err) => {
+        console.error("Error processing CSV:", err);
+        return next(errorProvider(500, "Error processing CSV file."));
+      });
+  } catch (error) {
+    console.error("Error handling upload:", error);
+    return next(errorProvider(500, "Failed to handle uploaded file."));
   }
 };

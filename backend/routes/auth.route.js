@@ -5,7 +5,7 @@ import {
   login,
   me,
   logout,
-  MultipleStudentsRegister,
+  multipleStudentsRegister,
 } from "../controllers/auth.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 import multer from "multer";
@@ -15,10 +15,10 @@ const router = express.Router();
 
 router.post("/studentRegister", verifyUser(["1"]), studentRegister);
 router.post(
-  "/MultipleStudentsRegister",
+  "/multipleStudentsRegister",
   verifyUser(["1"]),
   upload.single("file"),
-  MultipleStudentsRegister
+  multipleStudentsRegister
 );
 router.post("/managerRegister", verifyUser(["1"]), managerRegister);
 router.get("/me", verifyUser(["1", "2", "3", "4", "5"]), me);

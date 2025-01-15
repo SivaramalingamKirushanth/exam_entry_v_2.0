@@ -71,6 +71,26 @@ const dashboard = () => {
     setDownloadBatchId(batch_id);
   };
 
+  const onApplyClick = (e) => {
+    e.preventDefault();
+    const deg = e.currentTarget.dataset.deg;
+    const sem = e.currentTarget.dataset.sem;
+    const secretKey = process.env.NEXT_PUBLIC_CRYPTO_SECRET;
+    const degEncryptedData = CryptoJS.AES.encrypt(
+      JSON.stringify(deg),
+      secretKey
+    ).toString();
+    const semEncryptedData = CryptoJS.AES.encrypt(
+      JSON.stringify(sem),
+      secretKey
+    ).toString();
+    router.push(
+      `/home/form?deg=${encodeURIComponent(
+        degEncryptedData
+      )}&sem=${encodeURIComponent(semEncryptedData)}`
+    );
+  };
+
   // All queries initialized here
   const { data: bathchesOfStudentData, refetch: batchDataRefetch } = useQuery({
     queryFn: getBatchesByStudent,
@@ -235,6 +255,7 @@ const dashboard = () => {
     // Save the PDF for the current exam type
     pdf.save(`${studentData.index_num}_admission_card.pdf`);
     setGenerating(false);
+    setDownloadBatchId(null);
   };
 
   useEffect(() => {

@@ -102,6 +102,7 @@ const AttendanceSheetTemplate = ({
   setFormData,
   formData,
   batchFullDetailsData,
+  latestAttendanceTemplateData,
   level_ordinal,
   sem_ordinal,
   decodeBatchCode,
@@ -228,6 +229,41 @@ const AttendanceSheetTemplate = ({
   };
 
   useEffect(() => {
+    if (latestAttendanceTemplateData) {
+      console.log(latestAttendanceTemplateData);
+      let obj = {};
+      if (latestAttendanceTemplateData.exist) {
+        obj.description = latestAttendanceTemplateData?.data?.description;
+
+        const transformedDate = latestAttendanceTemplateData?.data?.exam_date
+          ?.split(",")
+          .map((item) => {
+            const [year, months] = item.split(":");
+            return {
+              year: parseInt(year),
+              months: months.split(";").map((mon) => +mon),
+            };
+          });
+
+        obj.date = transformedDate;
+      } else {
+        obj.description = latestAttendanceTemplateData?.data?.description;
+      }
+      console.log(obj);
+      setFormData((cur) => {
+        return {
+          ...cur,
+          ...obj,
+        };
+      });
+    }
+  }, [latestAttendanceTemplateData]);
+
+  useEffect(() => {
+    console.log(formData.description);
+  }, [formData]);
+
+  useEffect(() => {
     if (pageArr.length) {
       let arr = arrayPadEnd(pageArr);
 
@@ -278,7 +314,6 @@ const AttendanceSheetTemplate = ({
             `${level_ordinal} examination in ${batchFullDetailsData?.deg_name} - ${decodeBatchCode.academic_year} -${sem_ordinal} semester -`
           )}
           <div className="flex space-x-2 items-center flex-wrap">
-            {" "}
             {formData.date?.map((yearBlock, yearIndex) => (
               <React.Fragment key={yearIndex}>
                 <span>
@@ -458,7 +493,7 @@ const AttendanceSheetTemplate = ({
                     !formData[groupNo]?.actual_date && "text-muted-foreground"
                   )}
                 >
-                  {formData[groupNo]?.actual_date || <span>Pick a date</span>}{" "}
+                  {formData[groupNo]?.actual_date || <span>Pick a date</span>}
                   <CalendarIcon className="mr-2 h-4 w-4" />
                 </Button>
               </PopoverTrigger>
@@ -542,341 +577,78 @@ const AttendanceSheetTemplate = ({
         width="100%"
       />
       <div className="flex">
-        <table className="w-1/5 border-collapse border bord mb-2">
-          <thead>
-            <tr>
-              <th className="border border-black px-1 py-3">Index no</th>
-              <th className="border border-black px-1 py-3">Attendance</th>
-            </tr>
-          </thead>
-          <tbody>
-            {splittedArray[0]?.map((obj) => (
-              <tr className="h-12">
-                <td className="border border-black">
-                  {obj ? (
-                    typeof obj == "string" ? (
-                      obj == "R" ? (
-                        <h1 className="font-semibold text-center">Resit</h1>
+        {[0, 1, 2, 3, 4].map((ele) => (
+          <table
+            key={ele}
+            className="w-1/5 border-collapse border border-black mb-2"
+          >
+            <thead>
+              <tr>
+                <th className="border border-black px-1 py-3">Index no</th>
+                <th className="border border-black px-1 py-3">Attendance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {splittedArray[ele]?.map((obj, i) => (
+                <tr className="h-12" key={ele + "" + i}>
+                  <td className="border border-black">
+                    {obj ? (
+                      typeof obj == "string" ? (
+                        obj == "R" ? (
+                          <h1 className="font-semibold text-center">Resit</h1>
+                        ) : (
+                          <h1 className="font-semibold text-center">Medical</h1>
+                        )
                       ) : (
-                        <h1 className="font-semibold text-center">Medical</h1>
+                        <h1
+                          className={`text-center text-wrap ${
+                            obj.index_num ? "" : "bg-red-500"
+                          }`}
+                        >
+                          {obj.index_num || "Index no missing"}
+                        </h1>
                       )
-                    ) : (
-                      <h1
-                        className={`text-center text-wrap ${
-                          obj.index_num ? "" : "bg-red-500"
-                        }`}
-                      >
-                        {obj.index_num || "Index no missing"}
-                      </h1>
-                    )
-                  ) : (
-                    ""
-                  )}
-                </td>
-                <td className="border border-black ">
-                  <h1 className="text-center">
-                    {obj && typeof obj != "string" && totalGroups > 1 ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline">Move to</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56">
-                          <DropdownMenuLabel>Groups</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuRadioGroup
-                            onValueChange={(to) =>
-                              onGroupMoved(groupNo, to, obj.s_id)
-                            }
-                          >
-                            {new Array(totalGroups)
-                              .fill(0)
-                              .map((_, i) => i + 1)
-                              .filter((ele) => ele != groupNo)
-                              .map((ele) => (
-                                <DropdownMenuRadioItem value={ele}>
-                                  {ele}
-                                </DropdownMenuRadioItem>
-                              ))}
-                          </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                     ) : (
                       ""
                     )}
-                  </h1>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>{" "}
-        <table className="w-1/5 border-collapse border border-black mb-2">
-          <thead>
-            <tr>
-              <th className="border border-black px-1 py-3">Index no</th>
-              <th className="border border-black px-1 py-3">Attendance</th>
-            </tr>
-          </thead>
-          <tbody>
-            {splittedArray[1]?.map((obj) => (
-              <tr className="h-12">
-                <td className="border border-black">
-                  {obj ? (
-                    typeof obj == "string" ? (
-                      obj == "R" ? (
-                        <h1 className="font-semibold text-center">Resit</h1>
+                  </td>
+                  <td className="border border-black ">
+                    <h1 className="text-center">
+                      {obj && typeof obj != "string" && totalGroups > 1 ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline">Move to</Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-56">
+                            <DropdownMenuLabel>Groups</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuRadioGroup
+                              onValueChange={(to) =>
+                                onGroupMoved(groupNo, to, obj.s_id)
+                              }
+                            >
+                              {new Array(totalGroups)
+                                .fill(0)
+                                .map((_, i) => i + 1)
+                                .filter((ele) => ele != groupNo)
+                                .map((ele) => (
+                                  <DropdownMenuRadioItem value={ele}>
+                                    {ele}
+                                  </DropdownMenuRadioItem>
+                                ))}
+                            </DropdownMenuRadioGroup>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       ) : (
-                        <h1 className="font-semibold text-center">Medical</h1>
-                      )
-                    ) : (
-                      <h1
-                        className={`text-center text-wrap ${
-                          obj.index_num ? "" : "bg-red-500"
-                        }`}
-                      >
-                        {obj.index_num || "Index no missing"}
-                      </h1>
-                    )
-                  ) : (
-                    ""
-                  )}
-                </td>
-                <td className="border border-black ">
-                  <h1 className="text-center">
-                    {obj && typeof obj != "string" && totalGroups > 1 ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline">Move to</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56">
-                          <DropdownMenuLabel>Groups</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuRadioGroup
-                            onValueChange={(to) =>
-                              onGroupMoved(groupNo, to, obj.s_id)
-                            }
-                          >
-                            {new Array(totalGroups)
-                              .fill(0)
-                              .map((_, i) => i + 1)
-                              .filter((ele) => ele != groupNo)
-                              .map((ele) => (
-                                <DropdownMenuRadioItem value={ele}>
-                                  {ele}
-                                </DropdownMenuRadioItem>
-                              ))}
-                          </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      ""
-                    )}
-                  </h1>
-                </td>{" "}
-              </tr>
-            ))}
-          </tbody>
-        </table>{" "}
-        <table className="w-1/5 border-collapse border border-black mb-2">
-          <thead>
-            <tr>
-              <th className="border border-black px-1 py-3">Index no</th>
-              <th className="border border-black px-1 py-3">Attendance</th>
-            </tr>
-          </thead>
-          <tbody>
-            {splittedArray[2]?.map((obj) => (
-              <tr className="h-12">
-                <td className="border border-black">
-                  {obj ? (
-                    typeof obj == "string" ? (
-                      obj == "R" ? (
-                        <h1 className="font-semibold text-center">Resit</h1>
-                      ) : (
-                        <h1 className="font-semibold text-center">Medical</h1>
-                      )
-                    ) : (
-                      <h1
-                        className={`text-center text-wrap ${
-                          obj.index_num ? "" : "bg-red-500"
-                        }`}
-                      >
-                        {obj.index_num || "Index no missing"}
-                      </h1>
-                    )
-                  ) : (
-                    ""
-                  )}
-                </td>
-                <td className="border border-black ">
-                  <h1 className="text-center">
-                    {obj && typeof obj != "string" && totalGroups > 1 ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline">Move to</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56">
-                          <DropdownMenuLabel>Groups</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuRadioGroup
-                            onValueChange={(to) =>
-                              onGroupMoved(groupNo, to, obj.s_id)
-                            }
-                          >
-                            {new Array(totalGroups)
-                              .fill(0)
-                              .map((_, i) => i + 1)
-                              .filter((ele) => ele != groupNo)
-                              .map((ele) => (
-                                <DropdownMenuRadioItem value={ele}>
-                                  {ele}
-                                </DropdownMenuRadioItem>
-                              ))}
-                          </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      ""
-                    )}
-                  </h1>
-                </td>{" "}
-              </tr>
-            ))}
-          </tbody>
-        </table>{" "}
-        <table className="w-1/5 border-collapse border border-black mb-2">
-          <thead>
-            <tr>
-              <th className="border border-black px-1 py-3">Index no</th>
-              <th className="border border-black px-1 py-3">Attendance</th>
-            </tr>
-          </thead>
-          <tbody>
-            {splittedArray[3]?.map((obj) => (
-              <tr className="h-12">
-                <td className="border border-black">
-                  {obj ? (
-                    typeof obj == "string" ? (
-                      obj == "R" ? (
-                        <h1 className="font-semibold text-center">Resit</h1>
-                      ) : (
-                        <h1 className="font-semibold text-center">Medical</h1>
-                      )
-                    ) : (
-                      <h1
-                        className={`text-center text-wrap ${
-                          obj.index_num ? "" : "bg-red-500"
-                        }`}
-                      >
-                        {obj.index_num || "Index no missing"}
-                      </h1>
-                    )
-                  ) : (
-                    ""
-                  )}
-                </td>
-                <td className="border border-black ">
-                  <h1 className="text-center">
-                    {obj && typeof obj != "string" && totalGroups > 1 ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline">Move to</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56">
-                          <DropdownMenuLabel>Groups</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuRadioGroup
-                            onValueChange={(to) =>
-                              onGroupMoved(groupNo, to, obj.s_id)
-                            }
-                          >
-                            {new Array(totalGroups)
-                              .fill(0)
-                              .map((_, i) => i + 1)
-                              .filter((ele) => ele != groupNo)
-                              .map((ele) => (
-                                <DropdownMenuRadioItem value={ele}>
-                                  {ele}
-                                </DropdownMenuRadioItem>
-                              ))}
-                          </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      ""
-                    )}
-                  </h1>
-                </td>{" "}
-              </tr>
-            ))}
-          </tbody>
-        </table>{" "}
-        <table className="w-1/5 border-collapse border border-black mb-2">
-          <thead>
-            <tr>
-              <th className="border border-black px-1 py-3">Index no</th>
-              <th className="border border-black px-1 py-3">Attendance</th>
-            </tr>
-          </thead>
-          <tbody>
-            {splittedArray[4]?.map((obj) => (
-              <tr className="h-12">
-                <td className="border border-black">
-                  {obj ? (
-                    typeof obj == "string" ? (
-                      obj == "R" ? (
-                        <h1 className="font-semibold text-center">Resit</h1>
-                      ) : (
-                        <h1 className="font-semibold text-center">Medical</h1>
-                      )
-                    ) : (
-                      <h1
-                        className={`text-center text-wrap ${
-                          obj.index_num ? "" : "bg-red-500"
-                        }`}
-                      >
-                        {obj.index_num || "Index no missing"}
-                      </h1>
-                    )
-                  ) : (
-                    ""
-                  )}
-                </td>
-                <td className="border border-black ">
-                  <h1 className="text-center">
-                    {obj && typeof obj != "string" && totalGroups > 1 ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline">Move to</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56">
-                          <DropdownMenuLabel>Groups</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuRadioGroup
-                            onValueChange={(to) =>
-                              onGroupMoved(groupNo, to, obj.s_id)
-                            }
-                          >
-                            {new Array(totalGroups)
-                              .fill(0)
-                              .map((_, i) => i + 1)
-                              .filter((ele) => ele != groupNo)
-                              .map((ele) => (
-                                <DropdownMenuRadioItem value={ele}>
-                                  {ele}
-                                </DropdownMenuRadioItem>
-                              ))}
-                          </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      ""
-                    )}
-                  </h1>
-                </td>{" "}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                        ""
+                      )}
+                    </h1>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ))}
       </div>
 
       {/* Footer */}
@@ -890,7 +662,7 @@ const AttendanceSheetTemplate = ({
             <span className="inline-block w-28">Date</span>
             &#58;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;&#46;
           </div>
-        </div>{" "}
+        </div>
         <div className="flex flex-col space-y-2">
           <div className="flex">
             <span className="inline-block w-28">Supervisor</span>

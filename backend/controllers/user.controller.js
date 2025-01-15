@@ -171,7 +171,7 @@ export const updateStudent = async (req, res, next) => {
     contact_no,
     index_num = "",
   } = req.body;
-  console.log(contact_no, index_num);
+
   if (!s_id || !name || !f_id || !email || !user_name) {
     return next(errorProvider(400, "Missing required fields"));
   }
@@ -183,7 +183,7 @@ export const updateStudent = async (req, res, next) => {
         "CALL UpdateStudent(?, ?, ?, ?, ?, ?, ?);",
         [name, f_id, s_id, email, user_name, contact_no, index_num]
       );
-      console.log(results);
+
       return res.status(200).json({ message: "Student updated successfully" });
     } catch (error) {
       if (error.sqlMessage?.includes("Email or username already exists")) {

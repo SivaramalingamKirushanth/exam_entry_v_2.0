@@ -8,7 +8,7 @@ const RichTextEditor = ({ element, text, setFormData, height, width }) => {
   return (
     <ReactQuill
       theme="snow"
-      defaultValue={text}
+      value={text}
       onChange={(e) => {
         setFormData((cur) => ({ ...cur, [element]: e }));
       }}

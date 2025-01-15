@@ -91,7 +91,6 @@ export const getAllSubjectsForManager = async () => {
 };
 
 export const getAppliedStudentsForSubject = async (batch_id, sub_id) => {
-  console.log(batch_id, sub_id);
   const response = await axiosInstance.post(
     "/curriculum/getAppliedStudentsForSubject",
     { batch_id, sub_id }

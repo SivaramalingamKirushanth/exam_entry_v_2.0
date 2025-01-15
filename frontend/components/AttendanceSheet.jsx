@@ -178,206 +178,51 @@ const AttendanceSheet = ({
       <div className="mb-2 text-base">{parse(formData.description) || ""}</div>
 
       <div className="flex">
-        <table className="w-1/5 border-collapse border border-black text-sm mb-2">
-          <thead>
-            <tr>
-              <th className="border border-black px-1 py-3 font-semibold">
-                Index no
-              </th>
-              <th className="border border-black px-1 py-3 font-semibold">
-                Attendance
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {splittedArray[0]?.map((obj) => (
-              <tr className="h-[34px]">
-                <td className="border border-black">
-                  {obj ? (
-                    typeof obj == "string" ? (
-                      obj == "R" ? (
-                        <h1 className="font-semibold text-center">Resit</h1>
+        {[0, 1, 2, 3, 4].map((ele) => (
+          <table
+            key={ele}
+            className="w-1/5 border-collapse border border-black text-sm mb-2"
+          >
+            <thead>
+              <tr>
+                <th className="border border-black px-1 py-3 font-semibold">
+                  Index no
+                </th>
+                <th className="border border-black px-1 py-3 font-semibold">
+                  Attendance
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {splittedArray[ele]?.map((obj, i) => (
+                <tr className="h-[34px]" key={ele + "" + i}>
+                  <td className="border border-black">
+                    {obj ? (
+                      typeof obj == "string" ? (
+                        obj == "R" ? (
+                          <h1 className="font-semibold text-center">Resit</h1>
+                        ) : (
+                          <h1 className="font-semibold text-center">Medical</h1>
+                        )
                       ) : (
-                        <h1 className="font-semibold text-center">Medical</h1>
+                        <h1
+                          className={`text-center text-wrap ${
+                            obj.index_num ? "" : "bg-red-500"
+                          }`}
+                        >
+                          {obj.index_num || "Index no missing"}
+                        </h1>
                       )
                     ) : (
-                      <h1
-                        className={`text-center text-wrap ${
-                          obj.index_num ? "" : "bg-red-500"
-                        }`}
-                      >
-                        {obj.index_num || "Index no missing"}
-                      </h1>
-                    )
-                  ) : (
-                    ""
-                  )}
-                </td>
-                <td className="border border-black "></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>{" "}
-        <table className="w-1/5 border-collapse border border-black text-sm mb-2">
-          <thead>
-            <tr>
-              <th className="border border-black px-1 py-3 font-semibold">
-                Index no
-              </th>
-              <th className="border border-black px-1 py-3 font-semibold">
-                Attendance
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {splittedArray[1]?.map((obj) => (
-              <tr className="h-[34px]">
-                <td className="border border-black">
-                  {obj ? (
-                    typeof obj == "string" ? (
-                      obj == "R" ? (
-                        <h1 className="font-semibold text-center">Resit</h1>
-                      ) : (
-                        <h1 className="font-semibold text-center">Medical</h1>
-                      )
-                    ) : (
-                      <h1
-                        className={`text-center text-wrap ${
-                          obj.index_num ? "" : "bg-red-500"
-                        }`}
-                      >
-                        {obj.index_num || "Index no missing"}
-                      </h1>
-                    )
-                  ) : (
-                    ""
-                  )}
-                </td>
-                <td className="border border-black "></td>{" "}
-              </tr>
-            ))}
-          </tbody>
-        </table>{" "}
-        <table className="w-1/5 border-collapse border border-black text-sm mb-2">
-          <thead>
-            <tr>
-              <th className="border border-black px-1 py-3 font-semibold">
-                Index no
-              </th>
-              <th className="border border-black px-1 py-3 font-semibold">
-                Attendance
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {splittedArray[2]?.map((obj) => (
-              <tr className="h-[34px]">
-                <td className="border border-black">
-                  {obj ? (
-                    typeof obj == "string" ? (
-                      obj == "R" ? (
-                        <h1 className="font-semibold text-center">Resit</h1>
-                      ) : (
-                        <h1 className="font-semibold text-center">Medical</h1>
-                      )
-                    ) : (
-                      <h1
-                        className={`text-center text-wrap ${
-                          obj.index_num ? "" : "bg-red-500"
-                        }`}
-                      >
-                        {obj.index_num || "Index no missing"}
-                      </h1>
-                    )
-                  ) : (
-                    ""
-                  )}
-                </td>
-                <td className="border border-black "></td>{" "}
-              </tr>
-            ))}
-          </tbody>
-        </table>{" "}
-        <table className="w-1/5 border-collapse border border-black text-sm mb-2">
-          <thead>
-            <tr>
-              <th className="border border-black px-1 py-3 font-semibold">
-                Index no
-              </th>
-              <th className="border border-black px-1 py-3 font-semibold">
-                Attendance
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {splittedArray[3]?.map((obj) => (
-              <tr className="h-[34px]">
-                <td className="border border-black">
-                  {obj ? (
-                    typeof obj == "string" ? (
-                      obj == "R" ? (
-                        <h1 className="font-semibold text-center">Resit</h1>
-                      ) : (
-                        <h1 className="font-semibold text-center">Medical</h1>
-                      )
-                    ) : (
-                      <h1
-                        className={`text-center text-wrap ${
-                          obj.index_num ? "" : "bg-red-500"
-                        }`}
-                      >
-                        {obj.index_num || "Index no missing"}
-                      </h1>
-                    )
-                  ) : (
-                    ""
-                  )}
-                </td>
-                <td className="border border-black "></td>{" "}
-              </tr>
-            ))}
-          </tbody>
-        </table>{" "}
-        <table className="w-1/5 border-collapse border border-black text-sm mb-2">
-          <thead>
-            <tr>
-              <th className="border border-black px-1 py-3 font-semibold">
-                Index no
-              </th>
-              <th className="border border-black px-1 py-3 font-semibold">
-                Attendance
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {splittedArray[4]?.map((obj) => (
-              <tr className="h-[34px]">
-                <td className="border border-black">
-                  {obj ? (
-                    typeof obj == "string" ? (
-                      obj == "R" ? (
-                        <h1 className="font-semibold text-center">Resit</h1>
-                      ) : (
-                        <h1 className="font-semibold text-center">Medical</h1>
-                      )
-                    ) : (
-                      <h1
-                        className={`text-center text-wrap ${
-                          obj.index_num ? "" : "bg-red-500"
-                        }`}
-                      >
-                        {obj.index_num || "Index no missing"}
-                      </h1>
-                    )
-                  ) : (
-                    ""
-                  )}
-                </td>
-                <td className="border border-black "></td>{" "}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                      ""
+                    )}
+                  </td>
+                  <td className="border border-black "></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ))}
       </div>
 
       {/* Footer */}

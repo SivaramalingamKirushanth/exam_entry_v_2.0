@@ -380,8 +380,7 @@ export const fetchStudentsWithSubjects = async (req, res, next) => {
 
 export const getBatchAdmissionDetails = async (req, res, next) => {
   const { batch_id } = req.body;
-  console.log(batch_id);
-  // Validate input
+
   if (!batch_id) {
     return next(errorProvider(400, "Batch ID is required."));
   }
@@ -410,50 +409,144 @@ export const getBatchAdmissionDetails = async (req, res, next) => {
   }
 };
 
+// export const fetchStudentWithSubjectsByUserId = async (req, res, next) => {
+//   const { batch_id } = req.body;
+
+//   if (!batch_id) {
+//     return next(errorProvider(400, "Batch ID is required."));
+//   }
+
+//   const { user_id } = req.user;
+
+//   if (!user_id) {
+//     return next(errorProvider(401, "Unauthorized: User ID not found."));
+//   }
+
+//   try {
+//     const conn = await pool.getConnection();
+//     try {
+//       const [results] = await conn.query(
+//         "CALL GetStudentDetailsWithSubjects(?, ?);",
+//         [batch_id, user_id]
+//       );
+//       console.log(results);
+//       const studentDetails = {
+//         s_id: results[0][0].s_id,
+//         name: results[0][0].name,
+//         index_num: results[0][0].index_num,
+//         user_name: results[0][0].user_name,
+//         subjects: results[0].map((subject) => ({
+//           sub_id: subject.sub_id,
+//           eligibility: subject.eligibility,
+//         })),
+//       };
+
+//       return res.status(200).json(studentDetails);
+//     } catch (error) {
+//       console.error("Error fetching student details with subjects:", error);
+//       return next(
+//         errorProvider(500, "Failed to fetch student details with subjects.")
+//       );
+//     } finally {
+//       conn.release();
+//     }
+//   } catch (error) {
+//     console.error("Database connection error:", error);
+//     return next(errorProvider(500, "Failed to establish database connection."));
+//   }
+// };
+
+// export const fetchStudentWithSubjectsByUserId = async (req, res, next) => {
+//   const { batch_id } = req.body;
+//   const { user_id } = req.user;
+
+//   if (!batch_id || !user_id) {
+//     return next(errorProvider(400, "Batch ID and User ID are required."));
+//   }
+
+//   try {
+//     const conn = await pool.getConnection();
+//     try {
+//       // Calling stored procedure to fetch student details and subjects
+//       const [result] = await conn.query(
+//         "CALL FetchStudentWithSubjectsByUserId(?, ?);",
+//         [batch_id, user_id]
+//       );
+
+//       if (result.length === 0) {
+//         return next(errorProvider(404, "Student or subjects not found."));
+//       }
+
+//       console.log(result);
+//       return res.status(200).json(result[0]);
+//     } catch (error) {
+//       console.error("Error during fetch operation:", error);
+
+//       if (error.code === "45000") {
+//         return next(errorProvider(400, error.sqlMessage));
+//       }
+
+//       return next(
+//         errorProvider(500, "An error occurred while fetching student data.")
+//       );
+//     } finally {
+//       conn.release();
+//     }
+//   } catch (error) {
+//     console.error("Database connection error:", error);
+//     return next(errorProvider(500, "Failed to establish database connection."));
+//   }
+// };
+
 export const fetchStudentWithSubjectsByUserId = async (req, res, next) => {
   const { batch_id } = req.body;
+  const { user_id } = req.user;
 
   if (!batch_id) {
     return next(errorProvider(400, "Batch ID is required."));
   }
 
-  const { user_id } = req.user;
-
   if (!user_id) {
-    return next(errorProvider(401, "Unauthorized: User ID not found."));
+    return next(errorProvider(400, "User ID is required."));
   }
 
   try {
     const conn = await pool.getConnection();
     try {
+      // Execute the stored procedure
       const [results] = await conn.query(
-        "CALL GetStudentDetailsWithSubjects(?, ?);",
+        "CALL FetchStudentWithSubjectsByUserId(?, ?);",
         [batch_id, user_id]
       );
+      console.log(results);
+      // Parse the results
+      const studentData = results[0][0];
+      const subjects = results[1];
 
-      const studentDetails = {
-        s_id: results[0][0].s_id,
-        name: results[0][0].name,
-        index_num: results[0][0].index_num,
-        user_name: results[0][0].user_name,
-        subjects: results[0].map((subject) => ({
+      // Combine data into final response format
+      const response = {
+        s_id: studentData.s_id,
+        name: studentData.name,
+        user_name: studentData.user_name,
+        index_num: studentData.index_num,
+        subjects: subjects.map((subject) => ({
           sub_id: subject.sub_id,
-          eligibility: subject.eligibility,
+          sub_name: subject.sub_name,
+          sub_code: subject.sub_code,
+          attendance: subject.attendance || "0",
         })),
       };
 
-      return res.status(200).json(studentDetails);
+      return res.status(200).json(response);
     } catch (error) {
-      console.error("Error fetching student details with subjects:", error);
-      return next(
-        errorProvider(500, "Failed to fetch student details with subjects.")
-      );
+      console.error("Error fetching student with subjects:", error);
+      return next(errorProvider(500, "Failed to fetch student with subjects"));
     } finally {
       conn.release();
     }
   } catch (error) {
     console.error("Database connection error:", error);
-    return next(errorProvider(500, "Failed to establish database connection."));
+    return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
 
@@ -493,6 +586,84 @@ export const getEligibleStudentsBySub = async (req, res, next) => {
         errorProvider(
           500,
           "An error occurred while fetching eligible students."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const createOrUpdateAttendance = async (req, res, next) => {
+  const { batch_id, date, description } = req.body;
+
+  try {
+    const transformedDate = date
+      .map((dateObj) => `${dateObj.year}:${dateObj.months.join(";")}`)
+      .join(",");
+
+    // Database connection and procedure execution
+    const conn = await pool.getConnection();
+    try {
+      await conn.query("CALL UpdateAttendaceData(?, ?, ?)", [
+        batch_id,
+        transformedDate,
+        description,
+      ]);
+
+      return res.status(200).json({
+        message: "Attendance data added or updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error adding or updating attendance data:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while adding or updating attendance data."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getLatestAttendanceTemplate = async (req, res, next) => {
+  const { batch_id } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      // Call the stored procedure
+      const [rows] = await conn.query("CALL GetLatestAttendanceTemplate(?)", [
+        batch_id,
+      ]);
+
+      if (rows.length === 0) {
+        return res.status(404).json({
+          message: "No attendance template found.",
+        });
+      }
+
+      const response = rows[0][0];
+
+      if (response.data) {
+        response.data = JSON.parse(response.data);
+      }
+
+      return res.status(200).json(response);
+    } catch (error) {
+      console.error("Error fetching latest attendance template:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while fetching the latest attendance template."
         )
       );
     } finally {

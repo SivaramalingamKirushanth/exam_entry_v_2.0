@@ -3,6 +3,7 @@ import {
   addMedicalResitStudents,
   applyExam,
   createOrUpdateAdmission,
+  createOrUpdateAttendance,
   fetchStudentsWithSubjects,
   fetchStudentWithSubjectsByUserId,
   generateIndexNumbers,
@@ -10,6 +11,7 @@ import {
   getEligibleStudentsBySub,
   getLastAssignedIndexNumber,
   getLatestAdmissionTemplate,
+  getLatestAttendanceTemplate,
   getStudentSubjects,
   getStudentsWithoutIndexNumber,
 } from "../controllers/entry.controller.js";
@@ -64,5 +66,15 @@ router.post(
   "/getEligibleStudentsBySub",
   verifyUser(["1"]),
   getEligibleStudentsBySub
+);
+router.post(
+  "/createOrUpdateAttendance",
+  verifyUser(["1"]),
+  createOrUpdateAttendance
+);
+router.post(
+  "/getLatestAttendanceTemplate",
+  verifyUser(["1"]),
+  getLatestAttendanceTemplate
 );
 export default router;

@@ -97,3 +97,19 @@ export const getEligibleStudentsBySub = async (data) => {
   );
   return response.data;
 };
+
+export const createOrUpdateAttendance = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/createOrUpdateAttendance",
+    data
+  );
+  return response.data;
+};
+
+export const getLatestAttendanceTemplate = async (batch_id) => {
+  const response = await axiosInstance.post(
+    "/entry/getLatestAttendanceTemplate",
+    { batch_id }
+  );
+  return response.data;
+};

@@ -17,9 +17,9 @@ const mailer = async (receiver, user_name, password) => {
       from: `"Examination Branch" <${process.env.EMAIL}>`,
       to: receiver,
       subject: "Registration succesfull",
-      html: `<h2>You are successfully registered for to examinations</h2>
+      html: `<h2>You are successfully registered to examinations</h2>
               <h4>User name : ${user_name}</h4>
-              <h4>User name : ${password}</h4>`,
+              <h4>Password : ${password}</h4>`,
     });
     console.log("Message sent: %s", info.messageId);
   } catch (error) {
