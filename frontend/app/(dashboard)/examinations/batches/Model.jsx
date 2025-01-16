@@ -70,13 +70,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     mutationFn: editId ? updateBatch : createBatch,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["batches"]);
-      toast(res.message);
+      toast.success(res.message);
       setEditId("");
     },
     onError: (err) => {
-      console.log(err);
       setEditId("");
-      toast("Operation failed");
+      toast.error("Operation failed");
     },
   });
 

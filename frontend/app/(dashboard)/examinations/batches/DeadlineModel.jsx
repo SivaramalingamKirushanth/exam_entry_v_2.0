@@ -77,13 +77,12 @@ const DeadlineModel = ({
     mutationFn: setBatchTimePeriod,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["batches", deadlineId]);
-      toast(res.message);
+      toast.success(res.message);
       setDeadlineId("");
     },
     onError: (err) => {
-      console.log(err);
       setDeadlineId("");
-      toast("Operation failed");
+      toast.error("Operation failed");
     },
   });
 
@@ -94,7 +93,6 @@ const DeadlineModel = ({
   });
 
   useEffect(() => {
-    console.log(data);
     if (data && data.length) {
       let students_end = convertUTCToLocal(
         data?.filter((obj) => obj.user_type == "5")[0].end_date
@@ -102,8 +100,6 @@ const DeadlineModel = ({
       let lecturers_end = convertUTCToLocal(
         data?.filter((obj) => obj.user_type == "4")[0].end_date
       );
-
-      console.log(students_end, lecturers_end);
 
       setFormData({
         students_end,
@@ -141,7 +137,7 @@ const DeadlineModel = ({
 
   const onFormSubmitted = () => {
     const { students_end, lecturers_end } = formData;
-    console.log(students_end, lecturers_end);
+
     mutate({
       batch_id: deadlineId,
       students_end,

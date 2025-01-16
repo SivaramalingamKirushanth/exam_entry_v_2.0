@@ -40,11 +40,10 @@ const Form = (request) => {
     mutationFn: applyExam,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["batchesOfStudent"]);
-      toast(res.message);
+      toast.success(res.message);
     },
     onError: (err) => {
-      console.log(err);
-      toast("Operation failed");
+      toast.error("Operation failed");
     },
   });
 
@@ -54,10 +53,6 @@ const Form = (request) => {
   };
 
   if (error) return router.push("/home");
-
-  useEffect(() => {
-    console.log(applicationData);
-  }, [applicationData]);
 
   return (
     <>

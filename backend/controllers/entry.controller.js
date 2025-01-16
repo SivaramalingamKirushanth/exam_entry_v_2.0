@@ -518,10 +518,17 @@ export const fetchStudentWithSubjectsByUserId = async (req, res, next) => {
         "CALL FetchStudentWithSubjectsByUserId(?, ?);",
         [batch_id, user_id]
       );
-      console.log(results);
+
       // Parse the results
       const studentData = results[0][0];
       const subjects = results[1];
+
+      const [attendanceResults] = await conn.query(
+        "CALL FetchStudentEligibilityByBatchIdAndSId(?, ?);",
+        [batch_id, studentData.s_id]
+      );
+
+      const attendanceData = attendanceResults[0];
 
       // Combine data into final response format
       const response = {
@@ -533,7 +540,9 @@ export const fetchStudentWithSubjectsByUserId = async (req, res, next) => {
           sub_id: subject.sub_id,
           sub_name: subject.sub_name,
           sub_code: subject.sub_code,
-          attendance: subject.attendance || "0",
+          eligibility:
+            attendanceData.find((obj) => obj.sub_id == subject.sub_id)
+              ?.eligibility || "false",
         })),
       };
 

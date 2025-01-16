@@ -37,7 +37,7 @@ const AdmissionCard = ({
       onRenderComplete();
     }
   }, [onRenderComplete]);
-  console.log(student);
+
   return (
     <div className="p-4 pt-0 max-w-4xl mx-auto font-times bg-white">
       <div className="text-center mb-2">

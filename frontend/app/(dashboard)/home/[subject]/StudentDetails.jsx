@@ -30,11 +30,10 @@ const StudentDetails = ({ sub_id, batch_id, deadline }) => {
     mutationFn: updateEligibility,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["students", "subject", sub_id]);
-      toast(res.message);
+      toast.success(res.message);
     },
     onError: (err) => {
-      console.log(err);
-      toast("Operation failed");
+      toast.error("Operation failed");
     },
   });
 
@@ -90,8 +89,6 @@ const StudentDetails = ({ sub_id, batch_id, deadline }) => {
           <Switch
             id={row.original.s_id}
             onCheckedChange={(e) => {
-              console.log(row.original);
-
               onEligibilityChanged(row.original.s_id + ":" + e);
             }}
             checked={row.original.eligibility == "true"}

@@ -177,7 +177,6 @@ const StudentSelection = ({
   }, [feedId]);
 
   useEffect(() => {
-    console.log(feedId);
     if (feedId) {
       oldDataRefetch();
     }

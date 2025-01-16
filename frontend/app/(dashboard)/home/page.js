@@ -172,17 +172,12 @@ const dashboard = () => {
   }, [batchAdmissionDetailsData]);
 
   useEffect(() => {
-    console.log(batchCurriculumData);
     setSubjectObject(createSubjectObject(batchCurriculumData));
   }, [batchCurriculumData]);
 
-  useEffect(() => {
-    console.log(subjectObject);
-  }, [subjectObject]);
+  useEffect(() => {}, [subjectObject]);
 
-  useEffect(() => {
-    console.log(studentWithSubjectsData);
-  }, [studentWithSubjectsData]);
+  useEffect(() => {}, [studentWithSubjectsData]);
 
   useEffect(() => {
     if (batchFullDetailsData) {
@@ -198,6 +193,7 @@ const dashboard = () => {
   }, [decodeBatchCode]);
 
   const generateAdmissionCardPDFs = async (studentData) => {
+    setDownloadBatchId(null);
     if (typeof document === "undefined") {
       console.error("This function can only run in a browser environment.");
       return;
@@ -255,11 +251,11 @@ const dashboard = () => {
     // Save the PDF for the current exam type
     pdf.save(`${studentData.index_num}_admission_card.pdf`);
     setGenerating(false);
-    setDownloadBatchId(null);
   };
 
   useEffect(() => {
-    studentWithSubjectsData &&
+    downloadBatchId &&
+      studentWithSubjectsData &&
       Object.keys(studentWithSubjectsData).length &&
       batchAdmissionDetailsData &&
       Object.keys(batchAdmissionDetailsData).length &&
@@ -269,9 +265,20 @@ const dashboard = () => {
       Object.keys(decodeBatchCode).length &&
       batchFullDetailsData &&
       Object.keys(batchFullDetailsData).length &&
-      downloadBatchId &&
       generateAdmissionCardPDFs(studentWithSubjectsData);
-  }, [sem_ordinal]);
+  }, [
+    downloadBatchId,
+    studentWithSubjectsData,
+    studentWithSubjectsData,
+    batchAdmissionDetailsData,
+    batchAdmissionDetailsData,
+    subjectObject,
+    subjectObject,
+    decodeBatchCode,
+    decodeBatchCode,
+    batchFullDetailsData,
+    batchFullDetailsData,
+  ]);
 
   if (!user) return null;
 

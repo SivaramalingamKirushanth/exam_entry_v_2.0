@@ -230,7 +230,7 @@ const AttendanceSheetTemplate = ({
 
   useEffect(() => {
     if (latestAttendanceTemplateData) {
-      console.log(latestAttendanceTemplateData);
+
       let obj = {};
       if (latestAttendanceTemplateData.exist) {
         obj.description = latestAttendanceTemplateData?.data?.description;
@@ -249,7 +249,7 @@ const AttendanceSheetTemplate = ({
       } else {
         obj.description = latestAttendanceTemplateData?.data?.description;
       }
-      console.log(obj);
+
       setFormData((cur) => {
         return {
           ...cur,
@@ -259,10 +259,8 @@ const AttendanceSheetTemplate = ({
     }
   }, [latestAttendanceTemplateData]);
 
-  useEffect(() => {
-    console.log(formData.description);
-  }, [formData]);
 
+  
   useEffect(() => {
     if (pageArr.length) {
       let arr = arrayPadEnd(pageArr);

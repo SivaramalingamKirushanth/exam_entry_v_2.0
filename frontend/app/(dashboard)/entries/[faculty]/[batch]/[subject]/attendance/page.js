@@ -40,7 +40,6 @@ import ReactDOM from "react-dom";
 import AdmissionCard from "@/components/AdmissionCard";
 import { createRoot } from "react-dom/client";
 import AttendanceSheetTemplate from "@/components/AttendanceSheetTemplate";
-import { students } from "./students";
 import AttendanceSheet from "@/components/AttendanceSheet";
 
 function divideStudents(totalStudents, noOfGroups) {
@@ -268,12 +267,10 @@ const Page = () => {
   const { status, mutate } = useMutation({
     mutationFn: createOrUpdateAttendance,
     onSuccess: (res) => {
-      console.log(res);
-      toast(res.message);
+      toast.success(res.message);
     },
     onError: (err) => {
-      console.log(err);
-      toast("Operation failed");
+      toast.error("Operation failed");
     },
   });
 

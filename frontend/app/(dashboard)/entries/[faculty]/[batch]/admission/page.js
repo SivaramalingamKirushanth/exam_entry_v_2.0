@@ -179,12 +179,10 @@ const Page = () => {
   const { status, mutate } = useMutation({
     mutationFn: createOrUpdateAdmission,
     onSuccess: (res) => {
-      console.log(res);
-      toast(res.message);
+      toast.success(res.message);
     },
     onError: (err) => {
-      console.log(err);
-      toast("Operation failed");
+      toast.error("Operation failed");
     },
   });
 
@@ -208,17 +206,8 @@ const Page = () => {
   }, [decodeBatchCode]);
 
   useEffect(() => {
-    console.log(batchCurriculumData);
     setSubjectObject(createSubjectObject(batchCurriculumData));
   }, [batchCurriculumData]);
-
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
-
-  useEffect(() => {
-    console.log(studentsWithSubjectsData);
-  }, [studentsWithSubjectsData]);
 
   return (
     <>

@@ -44,11 +44,10 @@ const StudentDetails = ({
         sub_id,
       ]);
 
-      toast(res.message);
+      toast.success(res.message);
     },
     onError: (err) => {
-      console.log(err);
-      toast("Operation failed");
+      toast.error("Operation failed");
     },
   });
 
