@@ -8,11 +8,15 @@ import errorProvider from "../utils/errorProvider.js";
 import mailer from "../utils/mailer.js";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
+import bcrypt from "bcrypt";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const JWT_SECRET = process.env.JWT_SECRET || "abc123";
+const FRONTEND_SERVER = process.env.FRONTEND_SERVER || "localhost";
+const FRONTEND_PORT = process.env.FRONTEND_PORT || "3000";
 
 export const studentRegister = async (req, res, next) => {
   const {
@@ -32,7 +36,6 @@ export const studentRegister = async (req, res, next) => {
 
   try {
     const password = await generatePassword();
-    console.log("Generated password:", password);
 
     const hashedPassword = await hashPassword(password);
 
@@ -92,7 +95,13 @@ export const studentRegister = async (req, res, next) => {
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
-      await mailer(email, user_name, password);
+      await mailer(
+        email,
+        "Registration succesfull",
+        `<h2>You are successfully registered to examinations</h2>
+              <h4>User name : ${user_name}</h4>
+              <h4>Password : ${password}</h4>`
+      );
 
       return res
         .status(201)
@@ -204,7 +213,13 @@ export const multipleStudentsRegister = async (req, res, next) => {
 
             await conn.query("CALL LogAdminAction(?);", [desc]);
 
-            await mailer(email, user_name, password);
+            await mailer(
+              email,
+              "Registration succesfull",
+              `<h2>You are successfully registered to examinations</h2>
+              <h4>User name : ${user_name}</h4>
+              <h4>Password : ${password}</h4>`
+            );
           }
 
           await conn.commit();
@@ -315,7 +330,13 @@ export const managerRegister = async (req, res, next) => {
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
-      await mailer(email, user_name, password);
+      await mailer(
+        email,
+        "Registration succesfull",
+        `<h2>You are successfully registered to examinations</h2>
+        <h4>User name : ${user_name}</h4>
+        <h4>Password : ${password}</h4>`
+      );
 
       res.status(201).json({ message: "Manager registered successfully" });
     } catch (error) {
@@ -449,5 +470,165 @@ export const logout = (req, res) => {
   } catch (error) {
     console.error("Error during logout:", error);
     res.status(500).json({ message: "Error during logout" });
+  }
+};
+
+export const forgotPassword = async (req, res, next) => {
+  const { emailOrUsername } = req.body;
+
+  if (!emailOrUsername) {
+    return res.status(400).json({ message: "Email or username is required." });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [user] = await conn.query(
+        "SELECT user_id,email FROM user WHERE email = ? OR user_name = ?",
+        [emailOrUsername, emailOrUsername]
+      );
+
+      if (user.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No user found with this email address." });
+      }
+
+      const { user_id, email } = user[0];
+
+      // Generate token
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+      const expirationTime = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
+
+      // Store hashed token and expiration in DB
+      await conn.query("CALL StoreResetToken(?, ?, ?);", [
+        user_id,
+        hashedToken,
+        expirationTime,
+      ]);
+
+      // Send email
+      const resetLink = `http://${FRONTEND_SERVER}:${FRONTEND_PORT}/reset-password?token=${resetToken}`;
+      const htmlContent = `<p>You are receiving this email you have requested the reset of the password for you account. to reset your password</p> <p>Please click on the following link</p>
+                           <a href="${resetLink}">Reset Password</a>
+                           <p>OR</p>
+                           <p>Paste this into your browser to complete the process</p>
+                           <p>${resetLink}</p>
+                           </br>
+                           <p>This link will expire in 15 minutes</p>
+                           <p>If you didn't request this, please ignore this email</p>`;
+      await mailer(email, "Password Reset Request", htmlContent);
+
+      res
+        .status(200)
+        .json({ message: "Password reset link sent to your email." });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error during forgot password:", error);
+    next(new Error("Failed to process password reset request."));
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return res
+      .status(400)
+      .json({ message: "Token and new password are required." });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+
+      const [user] = await conn.query("CALL GetUserByResetToken(?)", [
+        hashedToken,
+      ]);
+      console.log(user);
+      if (user[0].length === 0) {
+        return res
+          .status(400)
+          .json({ message: "Invalid or expired reset token." });
+      }
+
+      const user_id = user[0][0].user_id;
+
+      const hashedPassword = await hashPassword(newPassword);
+
+      // Update password and invalidate reset token
+      await conn.query("CALL UpdateUserPassword(?, ?)", [
+        user_id,
+        hashedPassword,
+      ]);
+
+      res.status(200).json({ message: "Password reset successfully." });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error during password reset:", error);
+    next(new Error("Failed to reset password."));
+  }
+};
+
+export const changePassword = async (req, res, next) => {
+  const { user_id } = req.user; // Assumes JWT authentication
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res
+      .status(400)
+      .json({ message: "Current and new passwords are required." });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      // Fetch current hashed password
+      const [user] = await conn.query(
+        "SELECT password FROM user WHERE user_id = ?",
+        [user_id]
+      );
+
+      if (user.length === 0) {
+        return res.status(404).json({ message: "User not found." });
+      }
+
+      const isValidPassword = await verifyPassword(
+        currentPassword,
+        user[0].password
+      );
+
+      if (!isValidPassword) {
+        return res
+          .status(401)
+          .json({ message: "Current password is incorrect." });
+      }
+
+      // Update password
+      const hashedPassword = await hashPassword(newPassword);
+      await conn.query("CALL UpdateUserPassword(?, ?)", [
+        user_id,
+        hashedPassword,
+      ]);
+
+      res.status(200).json({ message: "Password changed successfully." });
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error during password change:", error);
+    next(new Error("Failed to change password."));
   }
 };

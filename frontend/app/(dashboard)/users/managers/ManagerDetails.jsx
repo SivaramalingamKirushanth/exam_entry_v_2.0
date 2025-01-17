@@ -59,8 +59,11 @@ const ManagerDetails = () => {
 
   const columns = [
     {
-      accessorKey: "user_name",
-      header: "User name",
+      id: "user_name",
+      header: "Email",
+      cell: ({ row }) => {
+        return <p className="lowercase">{row.original.user_name}</p>;
+      },
     },
     {
       accessorKey: "name",

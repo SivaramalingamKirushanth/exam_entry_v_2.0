@@ -14,7 +14,7 @@ export async function middleware(req) {
   }
 
   // Allow public routes
-  const publicRoutes = ["/"];
+  const publicRoutes = ["/", "/reset-password"];
   if (publicRoutes.some((route) => pathname === route)) {
     return NextResponse.next();
   }

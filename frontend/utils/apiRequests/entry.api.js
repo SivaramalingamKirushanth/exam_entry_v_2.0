@@ -111,3 +111,11 @@ export const getLatestAttendanceTemplate = async (batch_id) => {
   );
   return response.data;
 };
+
+export const deleteBatchSubjectEntries = async (batch_id) => {
+  const response = await axiosInstance.post(
+    "/entry/deleteBatchSubjectEntries",
+    { batch_id }
+  );
+  return response.data;
+};

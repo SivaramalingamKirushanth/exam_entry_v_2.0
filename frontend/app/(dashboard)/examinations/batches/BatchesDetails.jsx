@@ -48,6 +48,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import AttendanceModel from "./AttendanceModel";
+import { deleteBatchSubjectEntries } from "@/utils/apiRequests/entry.api";
 
 const BatchesDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
@@ -66,6 +67,7 @@ const BatchesDetails = () => {
   const [deadlineId, setDeadlineId] = useState("");
   const [attendanceId, setAttendanceId] = useState("");
   const [feedDegShort, setFeedDegShort] = useState("");
+  const [dropId, setDropId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
@@ -79,11 +81,24 @@ const BatchesDetails = () => {
       queryClient.invalidateQueries(["batches"]);
       setEditId("");
       toast.success(res.message);
-
     },
     onError: (err) => {
       setEditId("");
       toast.error("Operation failed");
+    },
+  });
+
+  const { mutate: dropEntriesMutate } = useMutation({
+    mutationFn: deleteBatchSubjectEntries,
+    onSuccess: (res) => {
+      mutate({ id: dropId, status: "false" });
+      queryClient.invalidateQueries(["batches"]);
+      toast.success(res.message);
+      setDropId(null);
+    },
+    onError: (err) => {
+      toast.error("Operation failed");
+      setDropId(null);
     },
   });
 
@@ -145,7 +160,7 @@ const BatchesDetails = () => {
     },
     {
       id: "Entries",
-      header: "Entries",
+      header: "Proper entries",
       cell: ({ row }) => {
         return <p className="text-center">{row.original.student_count}</p>;
       },
@@ -257,11 +272,11 @@ const BatchesDetails = () => {
                 </DrawerTrigger>
                 <DrawerContent>
                   <div className="mx-auto w-full max-w-sm">
-                    {" "}
                     <DrawerHeader>
                       <DrawerTitle>Are you absolutely sure?</DrawerTitle>
                       <DrawerDescription>
-                        This action cannot be undone.
+                        All the entries of batch {row.original.batch_code} will
+                        be deleted. This action cannot be undone.
                       </DrawerDescription>
                     </DrawerHeader>
                     <DrawerFooter className="flex justify-center items-center flex-row">
@@ -336,13 +351,17 @@ const BatchesDetails = () => {
       setAttendanceId(e.target.id);
       toggleAttendanceModal();
     }
+
+    if (e.target.classList.contains("dropBtn")) {
+      setDropId(e.target.id);
+    }
   };
 
   useEffect(() => {
     if (data) {
       let filtData1 = searchValue
         ? data.filter((item) =>
-            item.batch_id.toLowerCase().includes(searchValue.toLowerCase())
+            item.batch_code.toLowerCase().includes(searchValue.toLowerCase())
           )
         : data;
       let filtData2 = filtData1.filter((item) => {
@@ -351,6 +370,12 @@ const BatchesDetails = () => {
       setFilteredData(filtData2);
     }
   }, [searchValue, status, data]);
+
+  useEffect(() => {
+    if (dropId) {
+      dropEntriesMutate(dropId);
+    }
+  }, [dropId]);
 
   return (
     <>

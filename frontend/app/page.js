@@ -8,8 +8,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 
 import Link from "next/link";
-import axiosInstance from "@/lib/axiosInstance";
 import { useRouter } from "next/navigation";
+import { login } from "@/utils/apiRequests/auth.api";
+import { useMutation } from "@tanstack/react-query";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +18,17 @@ const Login = () => {
   });
   const [btnEnable, setBtnEnable] = useState(false);
   const router = useRouter();
+
+  const { mutate } = useMutation({
+    mutationFn: login,
+    onSuccess: (res) => {
+      toast.success(res.message);
+      router.replace("/home");
+    },
+    onError: (err) => {
+      toast.error("Invalid username or password");
+    },
+  });
 
   const onFormDataChanged = (e) => {
     if (e?.target) {
@@ -31,9 +43,7 @@ const Login = () => {
 
   const onFormSubmitted = async () => {
     try {
-      const { data } = await axiosInstance.post("/auth/login", formData);
-
-      router.push("/home");
+      mutate(formData);
     } catch (err) {
       console.log(err);
       console.log(err.response?.data?.message || "Login failed");
@@ -108,7 +118,10 @@ const Login = () => {
                 </div>
               </div>
               <div className=" flex space-x-2  items-center">
-                <Link href="#" className="text-sm text-blue-700 self-end">
+                <Link
+                  href="/reset-password"
+                  className="text-sm text-blue-700 self-end"
+                >
                   forgot password?
                 </Link>
               </div>

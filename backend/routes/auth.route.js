@@ -6,6 +6,9 @@ import {
   me,
   logout,
   multipleStudentsRegister,
+  resetPassword,
+  forgotPassword,
+  changePassword,
 } from "../controllers/auth.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 import multer from "multer";
@@ -24,5 +27,12 @@ router.post("/managerRegister", verifyUser(["1"]), managerRegister);
 router.get("/me", verifyUser(["1", "2", "3", "4", "5"]), me);
 router.post("/login", login);
 router.post("/logout", logout);
+router.post("/forgotPassword", forgotPassword);
+router.post("/resetPassword", resetPassword);
+router.post(
+  "/changePassword",
+  verifyUser(["1", "2", "3", "4", "5"]),
+  changePassword
+);
 
 export default router;

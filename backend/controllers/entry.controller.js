@@ -610,3 +610,68 @@ export const getLatestAttendanceTemplate = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection."));
   }
 };
+
+export const deleteBatchSubjectEntries = async (req, res, next) => {
+  const { batch_id } = req.body;
+
+  if (!batch_id) {
+    return next(errorProvider(400, "Batch ID is required."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      // Begin transaction
+      await conn.beginTransaction();
+
+      // Step 1: Fetch all sub_ids for the given batch_id
+      const [subjects] = await conn.query(
+        "SELECT sub_id FROM batch_curriculum_lecturer WHERE batch_id = ?",
+        [batch_id]
+      );
+
+      if (subjects.length === 0) {
+        return res.status(404).json({
+          message: `No subjects found for batch ID ${batch_id}.`,
+        });
+      }
+
+      // Step 2: Iterate through each sub_id and delete rows from corresponding table
+      for (const { sub_id } of subjects) {
+        const tableName = `batch_${batch_id}_sub_${sub_id}`;
+
+        // Delete all rows from the dynamically constructed table
+        await conn.query(`DELETE FROM ??`, [tableName]);
+      }
+
+      let batchStudentTableName = `batch_${batch_id}_students`;
+
+      await conn.query(`UPDATE ?? SET applied_to_exam='false'`, [
+        batchStudentTableName,
+      ]);
+
+      let desc = `Drop all the entries of batch_id=${batch_id}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      // Commit transaction
+      await conn.commit();
+
+      return res.status(200).json({
+        message: `All subject entries for the batch have been successfully deleted.`,
+      });
+    } catch (error) {
+      // Rollback transaction on error
+      await conn.rollback();
+      console.error("Error during subject entries deletion:", error);
+      return next(
+        errorProvider(500, "Failed to delete subject entries for the batch.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};

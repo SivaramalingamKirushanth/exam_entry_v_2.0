@@ -4,6 +4,7 @@ import {
   applyExam,
   createOrUpdateAdmission,
   createOrUpdateAttendance,
+  deleteBatchSubjectEntries,
   fetchStudentsWithSubjects,
   fetchStudentWithSubjectsByUserId,
   generateIndexNumbers,
@@ -76,5 +77,10 @@ router.post(
   "/getLatestAttendanceTemplate",
   verifyUser(["1"]),
   getLatestAttendanceTemplate
+);
+router.post(
+  "/deleteBatchSubjectEntries",
+  verifyUser(["1"]),
+  deleteBatchSubjectEntries
 );
 export default router;

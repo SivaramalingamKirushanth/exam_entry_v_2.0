@@ -49,3 +49,23 @@ export const multipleStudentsRegister = async (data) => {
     throw error;
   }
 };
+
+export const login = async (data) => {
+  const response = await axiosInstance.post("/auth/login", data);
+  return response.data;
+};
+
+export const forgotPassword = async (data) => {
+  const response = await axiosInstance.post("/auth/forgotPassword", data);
+  return response.data;
+};
+
+export const resetPassword = async (data) => {
+  const response = await axiosInstance.post("/auth/resetPassword", data);
+  return response.data;
+};
+
+export const changePassword = async (data) => {
+  const response = await axiosInstance.post("/auth/changePassword", data);
+  return response.data;
+};
