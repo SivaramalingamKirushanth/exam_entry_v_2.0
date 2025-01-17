@@ -87,6 +87,10 @@ export const studentRegister = async (req, res, next) => {
         contact_no,
       ]);
 
+      let desc = `Student created with user_id=${user_id}, s_id=${s_id}, name=${name}, f_id=${f_id}, index_num=${index_num}, contact_no=${contact_no}`;
+
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
       await conn.commit();
       await mailer(email, user_name, password);
 
@@ -196,6 +200,10 @@ export const multipleStudentsRegister = async (req, res, next) => {
               contact_no,
             ]);
 
+            let desc = `Student created with user_id=${user_id}, s_id=${s_id}, name=${name}, f_id=${f_id}, index_num=${index_num}, contact_no=${contact_no}`;
+
+            await conn.query("CALL LogAdminAction(?);", [desc]);
+
             await mailer(email, user_name, password);
           }
 
@@ -302,6 +310,9 @@ export const managerRegister = async (req, res, next) => {
         contact_no,
         status,
       ]);
+
+      let desc = `Manager created with user_id=${user_id}, m_id=${m_id}, name=${name}, contact_no=${contact_no}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
       await mailer(email, user_name, password);

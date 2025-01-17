@@ -175,10 +175,6 @@ const dashboard = () => {
     setSubjectObject(createSubjectObject(batchCurriculumData));
   }, [batchCurriculumData]);
 
-  useEffect(() => {}, [subjectObject]);
-
-  useEffect(() => {}, [studentWithSubjectsData]);
-
   useEffect(() => {
     if (batchFullDetailsData) {
       setDecodeBatchCode(parseString(batchFullDetailsData.batch_code));
@@ -402,14 +398,24 @@ const dashboard = () => {
                                 apply
                               </Button>
                             )}
-                            <Button
-                              variant="outline"
-                              className="uppercase"
-                              disabled={batch.admission_ready == "false"}
-                              onClick={() => onDownloadClick(batch.batch_id)}
-                            >
-                              download
-                            </Button>
+                            {batch.admission_ready == "false" ||
+                            batch.applied_to_exam == "false" ? (
+                              <Button
+                                variant="outline"
+                                className="uppercase"
+                                disabled={true}
+                              >
+                                download
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                className="uppercase"
+                                onClick={() => onDownloadClick(batch.batch_id)}
+                              >
+                                download
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>

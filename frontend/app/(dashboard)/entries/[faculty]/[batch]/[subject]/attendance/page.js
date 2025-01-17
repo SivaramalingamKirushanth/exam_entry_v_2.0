@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 
 const AdmissionCardTemplate = dynamic(
-  () => import("@/components/AdmissionCardTemplate"),
+  () => import("@/components/AttendanceSheetTemplate"),
   {
     ssr: false,
   }
@@ -14,30 +14,21 @@ import {
   getCurriculumBybatchId,
 } from "@/utils/apiRequests/curriculum.api";
 import {
-  createOrUpdateAdmission,
   createOrUpdateAttendance,
-  fetchStudentsWithSubjects,
   getEligibleStudentsBySub,
-  getLatestAdmissionTemplate,
   getLatestAttendanceTemplate,
 } from "@/utils/apiRequests/entry.api";
 import {
-  createSubjectObject,
-  generateAdmissionCardPDFs,
-  getDayName,
-  getModifiedDate,
   numberToOrdinalWord,
   parseString,
   sortByExamType,
 } from "@/utils/functions";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import ReactDOM from "react-dom";
-import AdmissionCard from "@/components/AdmissionCard";
 import { createRoot } from "react-dom/client";
 import AttendanceSheetTemplate from "@/components/AttendanceSheetTemplate";
 import AttendanceSheet from "@/components/AttendanceSheet";
@@ -62,16 +53,12 @@ const Page = () => {
   const [groupsCount, setGroupsCount] = useState(1);
   const [avgStuCountPerGroup, setAvgStuCountPerGroup] = useState(0);
   const [finalNameList, setFinalNameList] = useState({});
+  const [currentEditor, setCurrentEditor] = useState(null);
   const [formData, setFormData] = useState({
     batch_id,
     date: [{ year: new Date().getFullYear(), months: [new Date().getMonth()] }],
     description:
       '<p>Supervisors are kindly requested to mark absentees clearly "ABSENT" and "✔" those Present. One copy is to be returned under separate cover to the Deputy Registrar and one to be enclosed in the relevant packet of answer script, when answer scripts separately for each of a paper it is necessary to enclose a copy each of the attendance list in each packet.</p>',
-  });
-
-  const { data: AppliedStudentsData } = useQuery({
-    queryFn: () => getAppliedStudentsForSubject(batch_id, sub_id),
-    queryKey: ["students", "subject", sub_id],
   });
 
   const onGroupsCountBlured = (e) => {
@@ -326,6 +313,8 @@ const Page = () => {
             batch_id={batch_id}
             setFormData={setFormData}
             formData={formData}
+            setCurrentEditor={setCurrentEditor}
+            currentEditor={currentEditor}
             batchFullDetailsData={batchFullDetailsData}
             latestAttendanceTemplateData={latestAttendanceTemplateData}
             level_ordinal={level_ordinal}

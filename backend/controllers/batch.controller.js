@@ -179,6 +179,11 @@ export const createBatch = async (req, res, next) => {
         ),
       ]);
 
+      let desc = `Batch created with batch_id=${batch_id}, sub_ids=${Object.keys(
+        subjects
+      ).join(",")}, m_ids=${Object.values(subjects).join(",")}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
       await conn.commit();
       return res.status(201).json({
         message: "Batch and batch subject details created successfully",
@@ -273,6 +278,11 @@ export const updateBatch = async (req, res, next) => {
         ),
       ]);
 
+      let desc = `Batch updated with batch_id=${batch_id}, sub_ids=${Object.keys(
+        subjects
+      ).join(",")}, m_ids=${Object.values(subjects).join(",")}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
       await conn.commit();
       return res.status(200).json({
         message: "Batch and batch subject details updated successfully",
@@ -320,6 +330,9 @@ export const updateBatchStatus = async (req, res, next) => {
 
       // Update batch details
       await conn.query("CALL updateBatchStatus(?, ?);", [batch_id, status]);
+
+      let desc = `Batch status changed for batch_id=${batch_id} to status=${status}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
       return res.status(200).json({
@@ -417,6 +430,11 @@ export const addStudentsToTheBatchTable = async (req, res, next) => {
           newSelections.join(","),
         ]);
       }
+
+      let desc = `Batch students updated for batch_id=${batch_id}, droped=${removedSelections.join(
+        ","
+      )}, inserted=${newSelections.join(",")}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
       return res.status(200).json({
@@ -555,6 +573,9 @@ export const setBatchTimePeriod = async (req, res, next) => {
          ON DUPLICATE KEY UPDATE end_date = ?`,
         [batch_id, "4", lecturers_end, lecturers_end]
       );
+
+      let desc = `Batch time period inserted or updated for batch_id=${batch_id} to students_end=${students_end}, lecturers_end=${lecturers_end}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res
         .status(200)
@@ -821,6 +842,9 @@ export const uploadAttendanceSheet = async (req, res, next) => {
               );
             }
           }
+
+          let desc = `Batch attendace sheet uploaded for batch_id=${batchId}`;
+          await conn.query("CALL LogAdminAction(?);", [desc]);
 
           await conn.commit();
 

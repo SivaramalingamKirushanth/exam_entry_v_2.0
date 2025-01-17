@@ -1,9 +1,12 @@
 "use client";
 import dynamic from "next/dynamic";
 
-const RichTextEditor = dynamic(() => import("./RichTextEditor"), {
-  ssr: false,
-});
+const RichTextEditorIndividual = dynamic(
+  () => import("./RichTextEditorIndividual"),
+  {
+    ssr: false,
+  }
+);
 
 import React, { useEffect, useState } from "react";
 import UoV_Logo from "./../images/UoV_Logo.png";
@@ -101,6 +104,8 @@ const makePagination = (sortedArray) => {
 const AttendanceSheetTemplate = ({
   setFormData,
   formData,
+  setCurrentEditor,
+  currentEditor,
   batchFullDetailsData,
   latestAttendanceTemplateData,
   level_ordinal,
@@ -230,7 +235,6 @@ const AttendanceSheetTemplate = ({
 
   useEffect(() => {
     if (latestAttendanceTemplateData) {
-
       let obj = {};
       if (latestAttendanceTemplateData.exist) {
         obj.description = latestAttendanceTemplateData?.data?.description;
@@ -259,8 +263,6 @@ const AttendanceSheetTemplate = ({
     }
   }, [latestAttendanceTemplateData]);
 
-
-  
   useEffect(() => {
     if (pageArr.length) {
       let arr = arrayPadEnd(pageArr);
@@ -565,14 +567,16 @@ const AttendanceSheetTemplate = ({
       <h3 className="text-xl mt-1 uppercase text-center font-algerian">
         attendance list
       </h3>
-      {/* </div> */}
 
-      <RichTextEditor
+      <RichTextEditorIndividual
         setFormData={setFormData}
         text={formData.description}
         element="description"
         height="110px"
         width="100%"
+        setCurrentEditor={setCurrentEditor}
+        currentEditor={currentEditor}
+        unique={groupNo + "" + pageNo}
       />
       <div className="flex">
         {[0, 1, 2, 3, 4].map((ele) => (
@@ -630,7 +634,7 @@ const AttendanceSheetTemplate = ({
                                 .map((_, i) => i + 1)
                                 .filter((ele) => ele != groupNo)
                                 .map((ele) => (
-                                  <DropdownMenuRadioItem value={ele}>
+                                  <DropdownMenuRadioItem key={ele} value={ele}>
                                     {ele}
                                   </DropdownMenuRadioItem>
                                 ))}

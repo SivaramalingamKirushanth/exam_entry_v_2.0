@@ -11,7 +11,14 @@ export const applyExam = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
-      const [result] = await conn.query("CALL ApplyExam(?);", [user_id]);
+      // Call the stored procedure and retrieve the OUT parameter
+      await conn.query("CALL ApplyExam(?, @out_batch_id);", [user_id]);
+
+      // Retrieve the OUT parameter value
+      const [[result]] = await conn.query("SELECT @out_batch_id AS batch_id");
+      const batch_id = result.batch_id;
+
+      await conn.query("CALL LogStudentAction(?, ?);", [user_id, batch_id]);
 
       return res.status(200).json({
         message: "Exam application processed successfully.",
@@ -58,6 +65,9 @@ export const addMedicalResitStudents = async (req, res, next) => {
             s_id,
             type,
           ]);
+
+          let desc = `Medical or Resit Student for batch_id=${batch_id}, sub_id=${sub_id}, s_id=${s_id}, type=${type}`;
+          await conn.query("CALL LogAdminAction(?);", [desc]);
         }
       }
 
@@ -250,6 +260,9 @@ export const createOrUpdateAdmission = async (req, res, next) => {
         provider,
       ]);
 
+      let desc = `Admission created or updated for batch_id=${batch_id}, generated_date=${generated_date}, transformedSubjects=${transformedSubjects}, transformedDate=${transformedDate}, description=${description}, instructions=${instructions}, provider=${provider}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
       return res.status(200).json({
         message: "Admission data added or updated successfully.",
       });
@@ -409,95 +422,6 @@ export const getBatchAdmissionDetails = async (req, res, next) => {
   }
 };
 
-// export const fetchStudentWithSubjectsByUserId = async (req, res, next) => {
-//   const { batch_id } = req.body;
-
-//   if (!batch_id) {
-//     return next(errorProvider(400, "Batch ID is required."));
-//   }
-
-//   const { user_id } = req.user;
-
-//   if (!user_id) {
-//     return next(errorProvider(401, "Unauthorized: User ID not found."));
-//   }
-
-//   try {
-//     const conn = await pool.getConnection();
-//     try {
-//       const [results] = await conn.query(
-//         "CALL GetStudentDetailsWithSubjects(?, ?);",
-//         [batch_id, user_id]
-//       );
-//       console.log(results);
-//       const studentDetails = {
-//         s_id: results[0][0].s_id,
-//         name: results[0][0].name,
-//         index_num: results[0][0].index_num,
-//         user_name: results[0][0].user_name,
-//         subjects: results[0].map((subject) => ({
-//           sub_id: subject.sub_id,
-//           eligibility: subject.eligibility,
-//         })),
-//       };
-
-//       return res.status(200).json(studentDetails);
-//     } catch (error) {
-//       console.error("Error fetching student details with subjects:", error);
-//       return next(
-//         errorProvider(500, "Failed to fetch student details with subjects.")
-//       );
-//     } finally {
-//       conn.release();
-//     }
-//   } catch (error) {
-//     console.error("Database connection error:", error);
-//     return next(errorProvider(500, "Failed to establish database connection."));
-//   }
-// };
-
-// export const fetchStudentWithSubjectsByUserId = async (req, res, next) => {
-//   const { batch_id } = req.body;
-//   const { user_id } = req.user;
-
-//   if (!batch_id || !user_id) {
-//     return next(errorProvider(400, "Batch ID and User ID are required."));
-//   }
-
-//   try {
-//     const conn = await pool.getConnection();
-//     try {
-//       // Calling stored procedure to fetch student details and subjects
-//       const [result] = await conn.query(
-//         "CALL FetchStudentWithSubjectsByUserId(?, ?);",
-//         [batch_id, user_id]
-//       );
-
-//       if (result.length === 0) {
-//         return next(errorProvider(404, "Student or subjects not found."));
-//       }
-
-//       console.log(result);
-//       return res.status(200).json(result[0]);
-//     } catch (error) {
-//       console.error("Error during fetch operation:", error);
-
-//       if (error.code === "45000") {
-//         return next(errorProvider(400, error.sqlMessage));
-//       }
-
-//       return next(
-//         errorProvider(500, "An error occurred while fetching student data.")
-//       );
-//     } finally {
-//       conn.release();
-//     }
-//   } catch (error) {
-//     console.error("Database connection error:", error);
-//     return next(errorProvider(500, "Failed to establish database connection."));
-//   }
-// };
-
 export const fetchStudentWithSubjectsByUserId = async (req, res, next) => {
   const { batch_id } = req.body;
   const { user_id } = req.user;
@@ -622,6 +546,9 @@ export const createOrUpdateAttendance = async (req, res, next) => {
         transformedDate,
         description,
       ]);
+
+      let desc = `Admission created or updated for batch_id=${batch_id}, transformedDate=${transformedDate}, description=${description}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(200).json({
         message: "Attendance data added or updated successfully.",

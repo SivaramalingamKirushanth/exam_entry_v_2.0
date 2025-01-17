@@ -111,8 +111,6 @@ const StudentDetails = ({
           <Switch
             id={row.original.s_id}
             onCheckedChange={(e) => {
-              console.log(row.original);
-
               onEligibilityChanged(row.original.s_id + ":" + e);
             }}
             checked={row.original.eligibility == "true"}

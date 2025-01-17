@@ -134,7 +134,6 @@ const AdmissionCardTemplate = ({
 
   useEffect(() => {
     if (latestAdmissionTemplateData) {
-
       let obj = {};
       if (latestAdmissionTemplateData.exist) {
         obj.generated_date = latestAdmissionTemplateData?.data?.generated_date;

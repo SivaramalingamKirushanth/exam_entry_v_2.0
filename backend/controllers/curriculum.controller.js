@@ -206,6 +206,9 @@ export const createCurriculum = async (req, res, next) => {
         status,
       ]);
 
+      let desc = `Curriculum created sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, deg_id=${deg_id}, level=${level}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
       return res.status(201).json({
         message: "Curriculum record created successfully",
       });
@@ -248,6 +251,9 @@ export const updateCurriculum = async (req, res, next) => {
         );
       }
 
+      let desc = `Curriculum updated for sub_id=${sub_id}, sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, deg_id=${deg_id}, level=${level}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
       return res
         .status(200)
         .json({ message: "Curriculum updated successfully" });
@@ -289,6 +295,9 @@ export const updateCurriculumStatus = async (req, res, next) => {
           errorProvider(404, "Curriculum record not found or no changes made")
         );
       }
+
+      let desc = `Curriculum status changed for sub_id=${id} to status=${status}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res
         .status(200)
@@ -524,6 +533,17 @@ export const updateEligibility = async (req, res, next) => {
     return next(errorProvider(400, "Missing required fields."));
   }
 
+  let status_from;
+  let status_to;
+
+  if (eligibility == "true") {
+    status_from = "false";
+    status_to = "true";
+  } else {
+    status_from = "true";
+    status_to = "false";
+  }
+
   try {
     const conn = await pool.getConnection();
     try {
@@ -534,6 +554,15 @@ export const updateEligibility = async (req, res, next) => {
         batch_id,
         eligibility,
         role_id,
+      ]);
+
+      await conn.query("CALL LogEligibilityChange(?, ?, ?, ?, ?, ?);", [
+        user_id,
+        s_id,
+        batch_id,
+        sub_id,
+        status_from,
+        status_to,
       ]);
 
       return res
