@@ -88,7 +88,7 @@ const Login = () => {
             <Input
               id="password"
               name="password"
-              // type="password"
+              type="password"
               className="col-span-3"
               onChange={(e) => onFormDataChanged(e)}
               onBlur={(e) => {

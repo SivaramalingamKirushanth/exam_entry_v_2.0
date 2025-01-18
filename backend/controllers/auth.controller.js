@@ -518,7 +518,7 @@ export const forgotPassword = async (req, res, next) => {
       }
 
       // Check if the failed attempts exceed the limit
-      if (failed_attempts >= 5) {
+      if (failed_attempts > 5) {
         const lockoutPeriod = new Date(currentTime.getTime() + 15 * 60 * 1000); // 15 minutes lockout
         await conn.query(
           "UPDATE user SET lockout_until = ? WHERE user_id = ?",
