@@ -8,6 +8,8 @@ import { useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
+import { FaChevronLeft } from "react-icons/fa6";
 
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -22,10 +24,17 @@ const ResetPassword = () => {
     mutationFn: token ? resetPassword : forgotPassword,
     onSuccess: (res) => {
       toast.success(res.message);
+      setNewPassword("");
+      setConfirmPassword("");
+      setEmailOrUsername("");
       router.replace("/");
     },
     onError: (err) => {
-      toast.error("Operation failed");
+      if (err.status == 429) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error("Operation failed");
+      }
     },
   });
 
@@ -62,7 +71,11 @@ const ResetPassword = () => {
               />
             </div>
           </div>
-          <div className="flex justify-end space-x-2 mt-4">
+          <div className="flex justify-between space-x-2 mt-4">
+            <Link href="/" className="flex items-center text-blue-500 text-sm">
+              <FaChevronLeft />
+              &nbsp;Login
+            </Link>
             <Button disabled={isPending} onClick={handleResetMail}>
               {isPending ? "Sending..." : "Send Reset Link"}
             </Button>

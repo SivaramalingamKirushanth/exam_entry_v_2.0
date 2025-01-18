@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "./ui/button";
 import user_avatar from "./../images/user_avatar.jpg";
+import Link from "next/link";
+import { FaKey } from "react-icons/fa6";
 const regex = /^[a-zA-Z]+\d+$/;
 
 const DashboardHeader = ({ logoutHandler }) => {
@@ -78,8 +80,15 @@ const DashboardHeader = ({ logoutHandler }) => {
             </Avatar>
           </div>
         </PopoverTrigger>
-        <PopoverContent>
-          <Button variant="outline" onClick={logoutHandler}>
+        <PopoverContent className="w-48">
+          <Link
+            href="/change password"
+            className="text-sm flex items-center border-y border-zinc-200 py-3"
+          >
+            Change password&nbsp;&nbsp;&nbsp;&nbsp;
+            <FaKey />
+          </Link>
+          <Button className="mt-6" variant="outline" onClick={logoutHandler}>
             Logout
           </Button>
         </PopoverContent>

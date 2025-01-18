@@ -27,6 +27,7 @@ const Login = () => {
     },
     onError: (err) => {
       toast.error("Invalid username or password");
+      router.replace("/");
     },
   });
 

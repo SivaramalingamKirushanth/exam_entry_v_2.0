@@ -17,6 +17,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const JWT_SECRET = process.env.JWT_SECRET || "abc123";
 const FRONTEND_SERVER = process.env.FRONTEND_SERVER || "localhost";
 const FRONTEND_PORT = process.env.FRONTEND_PORT || "3000";
+const MAX_FAILED_ATTEMPTS = 10;
+const LOCKOUT_DURATION_MINUTES = 10; // Lockout duration in minutes
 
 export const studentRegister = async (req, res, next) => {
   const {
@@ -484,7 +486,7 @@ export const forgotPassword = async (req, res, next) => {
     const conn = await pool.getConnection();
     try {
       const [user] = await conn.query(
-        "SELECT user_id,email FROM user WHERE email = ? OR user_name = ?",
+        "SELECT user_id, email, failed_attempts, lockout_until FROM user WHERE email = ? OR user_name = ?",
         [emailOrUsername, emailOrUsername]
       );
 
@@ -494,7 +496,40 @@ export const forgotPassword = async (req, res, next) => {
           .json({ message: "No user found with this email address." });
       }
 
-      const { user_id, email } = user[0];
+      const { user_id, email, failed_attempts, lockout_until } = user[0];
+      const currentTime = new Date();
+
+      // Check if user is in the lockout period
+      if (lockout_until && new Date(lockout_until) > currentTime) {
+        const remainingTime = Math.ceil(
+          (new Date(lockout_until) - currentTime) / (1000 * 60)
+        );
+        return res.status(429).json({
+          message: `Too many reset attempts. Please try again in ${remainingTime} minutes.`,
+        });
+      }
+
+      // Reset the counter if lockout period has passed
+      if (lockout_until && new Date(lockout_until) <= currentTime) {
+        await conn.query(
+          "UPDATE user SET failed_attempts = 0, lockout_until = NULL WHERE user_id = ?",
+          [user_id]
+        );
+      }
+
+      // Check if the failed attempts exceed the limit
+      if (failed_attempts >= 5) {
+        const lockoutPeriod = new Date(currentTime.getTime() + 15 * 60 * 1000); // 15 minutes lockout
+        await conn.query(
+          "UPDATE user SET lockout_until = ? WHERE user_id = ?",
+          [lockoutPeriod, user_id]
+        );
+
+        return res.status(429).json({
+          message:
+            "Too many reset attempts. Please try again after 15 minutes.",
+        });
+      }
 
       // Generate token
       const resetToken = crypto.randomBytes(32).toString("hex");
@@ -511,21 +546,27 @@ export const forgotPassword = async (req, res, next) => {
         expirationTime,
       ]);
 
+      // Increment the failed attempts count
+      await conn.query(
+        "UPDATE user SET failed_attempts = failed_attempts + 1 WHERE user_id = ?",
+        [user_id]
+      );
+
       // Send email
       const resetLink = `http://${FRONTEND_SERVER}:${FRONTEND_PORT}/reset-password?token=${resetToken}`;
-      const htmlContent = `<p>You are receiving this email you have requested the reset of the password for you account. to reset your password</p> <p>Please click on the following link</p>
+      const htmlContent = `<p>You are receiving this email because you have requested a password reset for your account.</p>
+                           <p>Please click on the following link to reset your password:</p>
                            <a href="${resetLink}">Reset Password</a>
                            <p>OR</p>
-                           <p>Paste this into your browser to complete the process</p>
+                           <p>Paste this into your browser to complete the process:</p>
                            <p>${resetLink}</p>
-                           </br>
-                           <p>This link will expire in 15 minutes</p>
-                           <p>If you didn't request this, please ignore this email</p>`;
+                           <p>This link will expire in 15 minutes.</p>
+                           <p>If you didn't request this, please ignore this email.</p>`;
       await mailer(email, "Password Reset Request", htmlContent);
 
-      res
-        .status(200)
-        .json({ message: "Password reset link sent to your email." });
+      res.status(200).json({
+        message: "Password reset link sent to your email.",
+      });
     } finally {
       conn.release();
     }

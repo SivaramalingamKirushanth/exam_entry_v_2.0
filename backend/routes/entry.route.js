@@ -9,7 +9,9 @@ import {
   fetchStudentWithSubjectsByUserId,
   generateIndexNumbers,
   getBatchAdmissionDetails,
+  getDeanDashboardData,
   getEligibleStudentsBySub,
+  getHodDashboardData,
   getLastAssignedIndexNumber,
   getLatestAdmissionTemplate,
   getLatestAttendanceTemplate,
@@ -83,4 +85,7 @@ router.post(
   verifyUser(["1"]),
   deleteBatchSubjectEntries
 );
+router.get("/getDeanDashboardData", verifyUser(["2"]), getDeanDashboardData);
+router.get("/getHodDashboardData", verifyUser(["3"]), getHodDashboardData);
+
 export default router;

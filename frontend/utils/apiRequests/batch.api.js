@@ -1,94 +1,136 @@
 import axiosInstance from "@/lib/axiosInstance";
 import axios from "axios";
 
+const handleRequest = async (requestFn, errorMessage) => {
+  try {
+    const response = await requestFn();
+    return response.data;
+  } catch {
+    throw new Error(errorMessage);
+  }
+};
+
 export const getAllBatches = async () => {
-  const response = await axiosInstance.get("/batch/getAllBatches");
-  return response.data;
+  return handleRequest(
+    () => axiosInstance.get("/batch/getAllBatches"),
+    "Failed to fetch batches."
+  );
 };
 
 export const getAllBatchDetails = async () => {
-  const response = await axiosInstance.get("/batch/getAllBatchDetails");
-  return response.data;
+  return handleRequest(
+    () => axiosInstance.get("/batch/getAllBatchDetails"),
+    "Failed to fetch batch details."
+  );
 };
 
 export const getBatchById = async (batch_id) => {
-  const response = await axiosInstance.post("/batch/getBatchById", {
-    batch_id,
-  });
-  return response.data;
+  return handleRequest(
+    () =>
+      axiosInstance.post("/batch/getBatchById", {
+        batch_id,
+      }),
+    "Failed to fetch batch by ID."
+  );
 };
 
 export const getStudentsByBatchId = async (batch_id) => {
-  const response = await axiosInstance.post("/batch/getStudentsByBatchId", {
-    batch_id,
-  });
-  return response.data;
+  return handleRequest(
+    () =>
+      axiosInstance.post("/batch/getStudentsByBatchId", {
+        batch_id,
+      }),
+    "Failed to fetch students by batch ID."
+  );
 };
 
 export const createBatch = async (data) => {
-  const response = await axiosInstance.post("/batch/createBatch", data);
-  return response.data;
+  return handleRequest(
+    () => axiosInstance.post("/batch/createBatch", data),
+    "Failed to create batch."
+  );
 };
 
 export const addStudentsToTheBatchTable = async (data) => {
-  const response = await axiosInstance.post(
-    "/batch/addStudentsToTheBatchTable",
-    data
+  return handleRequest(
+    () => axiosInstance.post("/batch/addStudentsToTheBatchTable", data),
+    "Failed to add students to the batch."
   );
-  return response.data;
 };
 
 export const updateBatch = async (data) => {
-  const response = await axiosInstance.put("/batch/updateBatch", data);
-  return response.data;
+  return handleRequest(
+    () => axiosInstance.put("/batch/updateBatch", data),
+    "Failed to update batch."
+  );
 };
 
 export const updateBatchStatus = async (data) => {
-  const response = await axiosInstance.put("/batch/updateBatchStatus", data);
-  return response.data;
+  return handleRequest(
+    () => axiosInstance.put("/batch/updateBatchStatus", data),
+    "Failed to update batch status."
+  );
 };
 
 export const getNoOfBatches = async () => {
-  const response = await axiosInstance.get("/batch/getNoOfBatches");
-  return response.data;
+  return handleRequest(
+    () => axiosInstance.get("/batch/getNoOfBatches"),
+    "Failed to fetch the number of batches."
+  );
 };
 
 export const getBatchByFacultyId = async (f_id) => {
-  const response = await axiosInstance.post("/batch/getBatchByFacultyId", {
-    f_id,
-  });
-  return response.data;
+  return handleRequest(
+    () =>
+      axiosInstance.post("/batch/getBatchByFacultyId", {
+        f_id,
+      }),
+    "Failed to fetch batches by faculty ID."
+  );
 };
 
 export const getBatchesByStudent = async () => {
-  const response = await axiosInstance.get("/batch/getBatchesByStudent");
-  return response.data;
+  return handleRequest(
+    () => axiosInstance.get("/batch/getBatchesByStudent"),
+    "Failed to fetch batches for the student."
+  );
 };
 
 export const setBatchTimePeriod = async (data) => {
-  const response = await axiosInstance.put("/batch/setBatchTimePeriod", data);
-  return response.data;
+  return handleRequest(
+    () => axiosInstance.put("/batch/setBatchTimePeriod", data),
+    "Failed to set batch time period."
+  );
 };
 
 export const getBatchTimePeriod = async (batch_id) => {
-  const response = await axiosInstance.post("/batch/getBatchTimePeriod", {
-    batch_id,
-  });
-  return response.data;
+  return handleRequest(
+    () =>
+      axiosInstance.post("/batch/getBatchTimePeriod", {
+        batch_id,
+      }),
+    "Failed to fetch batch time period."
+  );
 };
 
 export const getNonBatchStudents = async (batch_id) => {
-  const response = await axiosInstance.post("/batch/getNonBatchStudents", {
-    batch_id,
-  });
-  return response.data;
+  return handleRequest(
+    () =>
+      axiosInstance.post("/batch/getNonBatchStudents", {
+        batch_id,
+      }),
+    "Failed to fetch non-batch students."
+  );
 };
 
 export const getBatchFullDetails = async (batch_id) => {
-  const response = await axiosInstance.post("/batch/getBatchFullDetails", {
-    batch_id,
-  });
-  return response.data;
+  return handleRequest(
+    () =>
+      axiosInstance.post("/batch/getBatchFullDetails", {
+        batch_id,
+      }),
+    "Failed to fetch batch full details."
+  );
 };
 
 export const uploadAttendanceSheet = async (data) => {
@@ -107,11 +149,9 @@ export const uploadAttendanceSheet = async (data) => {
 
     const contentType = response.headers["content-type"];
     if (contentType.includes("application/json")) {
-      // Handle JSON response
       const responseData = JSON.parse(await response.data.text());
       return { message: responseData.message, isFile: false };
     } else if (contentType.includes("text/plain")) {
-      // Handle file response
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -124,8 +164,7 @@ export const uploadAttendanceSheet = async (data) => {
     }
 
     throw new Error("Unexpected response type");
-  } catch (error) {
-    console.error("Error processing request:", error);
-    throw error;
+  } catch {
+    throw new Error("Failed to upload attendance sheet.");
   }
 };
