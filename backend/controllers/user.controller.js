@@ -162,23 +162,30 @@ export const getStudentByDegShort = async (req, res, next) => {
 };
 
 export const updateStudent = async (req, res, next) => {
-  const { name, f_id, email, status, s_id, user_name } = req.body;
+  const {
+    name,
+    f_id,
+    email,
+    s_id,
+    user_name,
+    contact_no,
+    index_num = "",
+  } = req.body;
 
-  if (!s_id || !name || !f_id || !email || !user_name || !status) {
+  if (!s_id || !name || !f_id || !email || !user_name) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
   try {
     const conn = await pool.getConnection();
     try {
-      await conn.query("CALL UpdateStudent(?, ?, ?, ?, ?, ?);", [
-        name,
-        f_id,
-        status,
-        s_id,
-        email,
-        user_name,
-      ]);
+      const [results] = await conn.query(
+        "CALL UpdateStudent(?, ?, ?, ?, ?, ?, ?);",
+        [name, f_id, s_id, email, user_name, contact_no, index_num]
+      );
+
+      let desc = `Student updated for s_id=${s_id}, name=${name}, f_id=${f_id}, email=${email}, user_name=${user_name}, contact_no=${contact_no}, index_num=${index_num}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(200).json({ message: "Student updated successfully" });
     } catch (error) {
@@ -198,30 +205,99 @@ export const updateStudent = async (req, res, next) => {
   }
 };
 
-export const updateManager = async (req, res, next) => {
-  const { name, email, contact_no, status, m_id, user_name } = req.body;
+export const updateStudentStatus = async (req, res, next) => {
+  const { status, id: s_id } = req.body;
 
-  if (!m_id || !name || !email || !contact_no || !user_name || !status) {
+  if (!s_id || !status) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
   try {
     const conn = await pool.getConnection();
     try {
-      await conn.query("CALL UpdateManager(?, ?, ?, ?, ?, ?);", [
+      await conn.query("CALL updateStudentStatus(?, ?);", [status, s_id]);
+
+      let desc = `Student status changed for s_id=${s_id} to status=${status}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      return res
+        .status(200)
+        .json({ message: "Student status updated successfully" });
+    } catch (error) {
+      if (error.sqlMessage?.includes("Email or username already exists")) {
+        return next(errorProvider(409, "Email or username already exists"));
+      }
+      console.error("Error updating student:", error);
+      return next(
+        errorProvider(500, "An error occurred while updating the student")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const updateManager = async (req, res, next) => {
+  const { name, email, contact_no, m_id, user_name } = req.body;
+
+  if (!m_id || !name || !email || !contact_no || !user_name) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.query("CALL UpdateManager(?, ?, ?, ?, ?);", [
         name,
         email,
         user_name,
         contact_no,
-        status,
         m_id,
       ]);
+
+      let desc = `Manager updated for m_id=${m_id}, name=${name}, email=${email}, user_name=${user_name}, contact_no=${contact_no}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(200).json({ message: "Manager updated successfully" });
     } catch (error) {
       if (error.sqlMessage?.includes("Email or username already exists")) {
         return next(errorProvider(409, "Email or username already exists"));
       }
+      console.error("Error updating manager:", error);
+      return next(
+        errorProvider(500, "An error occurred while updating the manager")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const updateManagerStatus = async (req, res, next) => {
+  const { status, id: m_id } = req.body;
+
+  if (!m_id || !status) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.query("CALL updateManagerStatus(?, ?);", [status, m_id]);
+
+      let desc = `Manager status changed for m_id=${m_id} to status=${status}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      return res
+        .status(200)
+        .json({ message: "Manager status updated successfully" });
+    } catch (error) {
       console.error("Error updating manager:", error);
       return next(
         errorProvider(500, "An error occurred while updating the manager")

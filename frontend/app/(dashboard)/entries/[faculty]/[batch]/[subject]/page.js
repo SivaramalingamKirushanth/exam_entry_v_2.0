@@ -1,53 +1,30 @@
 "use client";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { getCurriculumBybatchId } from "@/utils/apiRequests/curriculum.api";
+import StudentDetails from "./StudentDetails";
 
-const departments = () => {
-  const pathname = usePathname();
+const users = () => {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
+  const sub_id = searchParams.get("sub_id");
   const batch_id = searchParams.get("batch_id");
-
-  const { data: curriculumsOfBatchData } = useQuery({
-    queryFn: () => getCurriculumBybatchId(batch_id),
-    queryKey: ["curriculumsOfBatch"],
-  });
+  const sub_name = searchParams.get("sub_name");
+  const sub_code = searchParams.get("sub_code");
 
   return (
     <div className="flex justify-end md:justify-center">
-      <div className="md:w-[70%] flex gap-6 flex-wrap">
-        {curriculumsOfBatchData &&
-          curriculumsOfBatchData.map((obj) => (
-            <Link
-              href={{
-                pathname: `${pathname}/${obj.sub_id}`,
-                query: {
-                  sub_id: obj.sub_id,
-                },
-              }}
-              className="w-[30%] hover:shadow-md rounded-xl"
-              key={obj.sub_id}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="capitalize">{obj.sub_name}</CardTitle>
-                  <CardDescription>{obj.sub_code}</CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
-          ))}
+      <div className="md:w-[70%] ">
+        <StudentDetails
+          sub_id={sub_id}
+          sub_name={sub_name}
+          batch_id={batch_id}
+          pathname={pathname}
+          sub_code={sub_code}
+        />
       </div>
     </div>
   );
 };
 
-export default departments;
+export default users;

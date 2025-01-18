@@ -180,7 +180,14 @@ export const getCurriculumsByDid = async (req, res, next) => {
 };
 
 export const createCurriculum = async (req, res, next) => {
-  const { sub_code, sub_name, sem_no, deg_id, level, status } = req.body;
+  const {
+    sub_code,
+    sub_name,
+    sem_no,
+    deg_id,
+    level,
+    status = "true",
+  } = req.body;
 
   if (!sub_code || !sub_name || !sem_no || !deg_id || !level || !status) {
     return res.status(400).json({ message: "All fields are required" });
@@ -198,6 +205,9 @@ export const createCurriculum = async (req, res, next) => {
         level,
         status,
       ]);
+
+      let desc = `Curriculum created sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, deg_id=${deg_id}, level=${level}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(201).json({
         message: "Curriculum record created successfully",
@@ -220,8 +230,7 @@ export const createCurriculum = async (req, res, next) => {
 };
 
 export const updateCurriculum = async (req, res, next) => {
-  const { sub_code, sub_name, sem_no, deg_id, level, status, sub_id } =
-    req.body;
+  const { sub_code, sub_name, sem_no, deg_id, level, sub_id } = req.body;
 
   if (!sub_id) {
     return next(errorProvider(400, "Subject ID (sub_id) is required"));
@@ -232,8 +241,8 @@ export const updateCurriculum = async (req, res, next) => {
 
     try {
       const [result] = await conn.query(
-        "CALL UpdateCurriculum(?, ?, ?, ?, ?, ?, ?);",
-        [sub_id, sub_code, sub_name, sem_no, deg_id, level, status]
+        "CALL UpdateCurriculum(?, ?, ?, ?, ?, ?);",
+        [sub_id, sub_code, sub_name, sem_no, deg_id, level]
       );
 
       if (result.affectedRows === 0) {
@@ -242,9 +251,57 @@ export const updateCurriculum = async (req, res, next) => {
         );
       }
 
+      let desc = `Curriculum updated for sub_id=${sub_id}, sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, deg_id=${deg_id}, level=${level}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
       return res
         .status(200)
         .json({ message: "Curriculum updated successfully" });
+    } catch (error) {
+      console.error("Error updating curriculum:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while updating the curriculum record"
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const updateCurriculumStatus = async (req, res, next) => {
+  const { status, id: sub_id } = req.body;
+
+  if (!sub_id || !status) {
+    return next(errorProvider(400, "Subject ID (sub_id) is required"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [result] = await conn.query("CALL updateCurriculumStatus(?, ?);", [
+        sub_id,
+        status,
+      ]);
+
+      if (result.affectedRows === 0) {
+        return next(
+          errorProvider(404, "Curriculum record not found or no changes made")
+        );
+      }
+
+      let desc = `Curriculum status changed for sub_id=${id} to status=${status}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      return res
+        .status(200)
+        .json({ message: "Curriculum status updated successfully" });
     } catch (error) {
       console.error("Error updating curriculum:", error);
       return next(
@@ -284,6 +341,7 @@ export const getNoOfCurriculums = async (req, res, next) => {
 
 export const getCurriculumBybatchId = async (req, res, next) => {
   const { batch_id } = req.body;
+  console.log(batch_id);
 
   if (!batch_id) {
     return next(errorProvider(400, "Batch ID is required."));
@@ -324,16 +382,20 @@ export const getStudentApplicationDetails = async (req, res, next) => {
         [user_id]
       );
 
-      const studentDetails = results[0];
-      const batchId = results[1]; // Assuming batch ID comes in the second result set
-      const subjects = results[2]; // Assuming subjects come in the third result set
+      const studentDetails = results[0][0]; // First result set
+      const subjects = results[1]; // Second result set
 
-      if (!batchId) {
-        return next(
-          errorProvider(404, "No batch associated with the student.")
-        );
+      if (!subjects.length) {
+        return next(errorProvider(404, "No subjects found for this batch."));
       }
 
+      const batchId = subjects[0].batch_id; // Ensure batch ID is retrieved
+
+      if (!batchId) {
+        return next(errorProvider(500, "Batch ID is missing."));
+      }
+
+      // Dynamic attendance query
       const attendanceQuery = `
         SELECT ${subjects.map((s) => `sub_${s.sub_id}`).join(", ")}
         FROM batch_${batchId}_students
@@ -344,12 +406,23 @@ export const getStudentApplicationDetails = async (req, res, next) => {
         studentDetails.s_id,
       ]);
 
+      if (!attendanceResult.length) {
+        return next(
+          errorProvider(
+            404,
+            "No attendance found for this student in the batch"
+          )
+        );
+      }
+
+      // Format the response
+      const attendance = attendanceResult[0];
       const response = {
         ...studentDetails,
         subjects: subjects.map((subject) => ({
           sub_code: subject.sub_code,
           sub_name: subject.sub_name,
-          attendance: attendanceResult[0][`sub_${subject.sub_id}`] || "N/A", // Handle missing data
+          attendance: attendance[`sub_${subject.sub_id}`] || "N/A",
         })),
       };
 
@@ -371,116 +444,145 @@ export const getStudentApplicationDetails = async (req, res, next) => {
   }
 };
 
-// export const getStudentApplicationDetails = async (req, res, next) => {
-//   const { user_id } = req.user;
+export const getAllSubjectsForManager = async (req, res, next) => {
+  const { user_id } = req.user;
 
-//   if (!user_id) {
-//     return next(errorProvider(400, "User ID  required"));
-//   }
+  if (!user_id) {
+    return next(errorProvider(400, "User ID is required."));
+  }
 
-//   try {
-//     const conn = await pool.getConnection();
+  try {
+    const conn = await pool.getConnection();
+    try {
+      // Call the stored procedure
+      const [subjects] = await conn.query("CALL GetAllSubjectsForManager(?);", [
+        user_id,
+      ]);
 
-//     try {
-//       await conn.beginTransaction();
+      if (!subjects.length) {
+        return res.status(404).json({
+          message: "No subjects found for the given user ID.",
+        });
+      }
 
-//       const [batchIdsResults] = await conn.execute(
-//         "SELECT sd.batch_ids from student_detail sd INNER JOIN student s ON sd.s_id = s.s_id WHERE s.user_id = ?",
-//         [user_id]
-//       );
+      return res.status(200).json(subjects[0]);
+    } catch (error) {
+      console.error("Error fetching subjects for manager:", error);
 
-//       const batch_idS_Arr = batchIdsResults[0].batch_ids.split(",");
-//       const batch_id = batch_idS_Arr[batch_idS_Arr.length - 1];
+      if (error.code === "45000") {
+        return next(errorProvider(400, error.sqlMessage));
+      }
 
-//       if (!batch_id) {
-//         return next(errorProvider(400, "Batch ID required"));
-//       }
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while fetching subjects for the manager."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
 
-//       const [studentDetails] = await conn.execute(
-//         `SELECT
-//           sd.name,
-//           sd.index_num,
-//           s.s_id,
-//           u.user_name,
-//           f.f_name
-//         FROM faculty f INNER JOIN fac_dep fd ON f.f_id = fd.f_id INNER JOIN student_detail sd ON
-//         fd.d_id = sd.d_id
-//         INNER JOIN student s ON sd.s_id = s.s_id
-//         INNER JOIN user u ON s.user_id = u.user_id
-//         WHERE u.user_id = ?`,
-//         [user_id]
-//       );
+export const getAppliedStudentsForSubject = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+  const { batch_id, sub_id } = req.body;
 
-//       if (!studentDetails.length) {
-//         return next(errorProvider(404, "Student not found"));
-//       }
+  if (!user_id || !batch_id || !sub_id || !role_id) {
+    return next(errorProvider(400, "Missing required fields."));
+  }
 
-//       const { name, index_num, s_id, user_name, f_name } = studentDetails[0];
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [results] = await conn.query(
+        "CALL GetAppliedStudentsByBatchAndSubject(?, ?, ?, ?);",
+        [user_id, batch_id, sub_id, role_id]
+      );
 
-//       // Step 2: Get the subject codes and names for the batch
-//       const [subjects] = await conn.execute(
-//         `SELECT c.sub_code, c.sub_name ,c.sub_id
-//          FROM curriculum c
-//          INNER JOIN batch_curriculum_lecturer bcl ON c.sub_id = bcl.sub_id
-//          WHERE bcl.batch_id = ?`,
-//         [batch_id]
-//       );
+      return res.status(200).json(results[0]);
+    } catch (error) {
+      console.error("Error fetching applied students for subject:", error);
 
-//       if (!subjects.length) {
-//         return next(errorProvider(404, "No subjects found for this batch"));
-//       }
+      if (error.code === "45000") {
+        return next(errorProvider(403, error.sqlMessage));
+      }
 
-//       // Step 3: Dynamically query attendance from batch_<batch_id>_students
-//       const subjectColumns = subjects
-//         .map((subject) => `sub_${subject.sub_id}`)
-//         .join(", ");
-//       const attendanceQuery = `
-//         SELECT ${subjectColumns}
-//         FROM batch_${batch_id}_students
-//         WHERE s_id = ?
-//       `;
+      return next(
+        errorProvider(500, "An error occurred while fetching applied students.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
 
-//       const [attendanceResult] = await conn.execute(attendanceQuery, [s_id]);
+export const updateEligibility = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+  const { batch_id, sub_id, eligibility, s_id } = req.body;
 
-//       if (!attendanceResult.length) {
-//         return next(
-//           errorProvider(
-//             404,
-//             "No attendance found for this student in the batch"
-//           )
-//         );
-//       }
+  console.log(user_id, role_id, batch_id, sub_id, eligibility, s_id);
+  if (!user_id || !s_id || !sub_id || !batch_id || !eligibility || !role_id) {
+    return next(errorProvider(400, "Missing required fields."));
+  }
 
-//       // Step 4: Format the response
-//       const attendance = attendanceResult[0];
-//       const response = {
-//         name,
-//         index_num,
-//         user_name,
-//         f_name,
-//         subjects: subjects.map((subject) => ({
-//           sub_code: subject.sub_code,
-//           sub_name: subject.sub_name,
-//           attendance: attendance[`sub_${subject.sub_id}`] || "N/A", // Handle missing data
-//         })),
-//       };
+  let status_from;
+  let status_to;
 
-//       await conn.commit();
-//       res.status(200).json(response);
-//     } catch (error) {
-//       await conn.rollback();
-//       console.error("Error fetching student batch details:", error);
-//       return next(
-//         errorProvider(
-//           500,
-//           "An error occurred while fetching student batch details"
-//         )
-//       );
-//     } finally {
-//       conn.release();
-//     }
-//   } catch (error) {
-//     console.error("Database connection error:", error);
-//     return next(errorProvider(500, "Failed to establish database connection"));
-//   }
-// };
+  if (eligibility == "true") {
+    status_from = "false";
+    status_to = "true";
+  } else {
+    status_from = "true";
+    status_to = "false";
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.query("CALL UpdateEligibility(?, ?, ?, ?, ?, ?);", [
+        user_id,
+        s_id,
+        sub_id,
+        batch_id,
+        eligibility,
+        role_id,
+      ]);
+
+      await conn.query("CALL LogEligibilityChange(?, ?, ?, ?, ?, ?);", [
+        user_id,
+        s_id,
+        batch_id,
+        sub_id,
+        status_from,
+        status_to,
+      ]);
+
+      return res
+        .status(200)
+        .json({ message: "Eligibility updated successfully." });
+    } catch (error) {
+      console.error("Error updating eligibility:", error);
+
+      if (error.code === "45000") {
+        return next(errorProvider(403, error.sqlMessage));
+      }
+
+      return next(
+        errorProvider(500, "An error occurred while updating eligibility.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};

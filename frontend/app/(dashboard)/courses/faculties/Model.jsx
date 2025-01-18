@@ -17,7 +17,7 @@ import {
 import { getAllActiveManagers } from "@/utils/apiRequests/user.api";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
-  const [formData, setFormData] = useState({ status: "true" });
+  const [formData, setFormData] = useState({});
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
 
@@ -26,12 +26,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     onSuccess: (res) => {
       queryClient.invalidateQueries(["facultiesExtra"]);
       setEditId("");
-      toast(res.message);
+      toast.success(res.message);
     },
     onError: (err) => {
-      console.log(err);
       setEditId("");
-      toast("Operation failed");
+      toast.error("Operation failed");
     },
   });
 
@@ -51,8 +50,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         ...curData,
         [e.target?.name]: e.target?.value,
       }));
-    } else if (typeof e == "boolean") {
-      setFormData((curData) => ({ ...curData, status: e.toString() }));
     } else {
       setFormData((curData) => ({
         ...curData,
@@ -63,12 +60,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   const onFormSubmitted = () => {
     mutate(formData);
-    setFormData({ status: "true" });
+    setFormData({});
     setIsOpen(false);
   };
 
   const onFormReset = () => {
-    setFormData(data || { status: "true" });
+    setFormData(data || {});
   };
 
   useEffect(() => {
@@ -96,7 +93,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
                 onClick={() => {
                   setIsOpen(false);
-                  setFormData({ status: "true" });
+                  setFormData({});
                   setEditId("");
                 }}
               />
@@ -151,25 +148,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   }}
                   value={formData.contact_no || ""}
                 />
-              </div>
-
-              <div className="grid grid-cols-4 gap-4">
-                <Label className="text-right">Status</Label>
-                <div className="items-top flex space-x-2 col-span-3 items-center">
-                  <Checkbox
-                    id="status"
-                    onCheckedChange={(e) => onFormDataChanged(e)}
-                    checked={formData?.status === "true"}
-                  />
-                  <div className="grid gap-1.5 leading-none">
-                    <label
-                      htmlFor="status"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      Active
-                    </label>
-                  </div>
-                </div>
               </div>
             </div>
             <div className="flex justify-between space-x-2 mt-4">

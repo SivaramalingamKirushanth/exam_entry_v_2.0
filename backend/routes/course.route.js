@@ -27,6 +27,9 @@ import {
   getActiveDepartmentsInAFacultyWithDegreesCount,
   getActiveDegreesInADepartmentWithLevelsCount,
   getDegreeByShort,
+  updateDegreeStatus,
+  updateDepartmentStatus,
+  updateFacultyStatus,
 } from "../controllers/course.controller.js";
 
 const router = express.Router();
@@ -34,6 +37,7 @@ const router = express.Router();
 ////////FACULTY
 router.post("/createFaculty", createFaculty);
 router.put("/updateFaculty", updateFaculty);
+router.put("/updateFacultyStatus", updateFacultyStatus);
 router.get("/getAllFaculties", getAllFaculties);
 router.post("/getFacultyById", getFacultyById);
 router.get("/getNoOfFaculty", getNoOfFaculty);
@@ -47,6 +51,7 @@ router.get(
 ////////DEPARTMENT
 router.post("/createDepartment", createDepartment);
 router.put("/updateDepartment", updateDepartment);
+router.put("/updateDepartmentStatus", updateDepartmentStatus);
 router.get("/getAllDepartments", getAllDepartments);
 router.post("/getDepartmentById", getDepartmentById);
 router.post("/getDepartmentsByFacultyId", getDepartmentsByFacultyId);
@@ -68,6 +73,7 @@ router.post(
 ////////DEGREE
 router.post("/createDegree", createDegree);
 router.put("/updateDegree", updateDegree);
+router.put("/updateDegreeStatus", updateDegreeStatus);
 router.get("/getAllDegrees", getAllDegrees);
 router.post("/getDegreeById", getDegreeById);
 router.post("/getDegreesByDepartmentId", getDegreesByDepartmentId);

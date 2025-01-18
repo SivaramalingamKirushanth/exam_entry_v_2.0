@@ -1,5 +1,4 @@
 "use client";
-import { columns } from "./Columns";
 import { DataTable } from "./DataTable";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
@@ -12,10 +11,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Modal from "./Model";
-import { getAllBatches } from "@/utils/apiRequests/batch.api";
+import {
+  getAllBatchDetails,
+  getAllBatches,
+  updateBatchStatus,
+} from "@/utils/apiRequests/batch.api";
 import StudentModel from "./StudentModel";
+import DeadlineModel from "./DeadlineModel";
+import { Button } from "@/components/ui/button";
+import { ArrowUpDown } from "lucide-react";
+import {
+  FaClock,
+  FaPen,
+  FaTrash,
+  FaUserCheck,
+  FaUserPlus,
+} from "react-icons/fa6";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
+import { toast, Toaster } from "sonner";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import AttendanceModel from "./AttendanceModel";
+import { deleteBatchSubjectEntries } from "@/utils/apiRequests/entry.api";
 
 const BatchesDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
@@ -23,16 +56,249 @@ const BatchesDetails = () => {
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
   const [isFeedOpen, setIsFeedOpen] = useState(false);
+  const [isDeadlineOpen, setIsDeadlineOpen] = useState(false);
+  const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
   const modalRef = useRef(null);
   const studentModalRef = useRef(null);
+  const deadlineModalRef = useRef(null);
+  const attendanceModalRef = useRef(null);
   const [editId, setEditId] = useState("");
   const [feedId, setFeedId] = useState("");
+  const [deadlineId, setDeadlineId] = useState("");
+  const [attendanceId, setAttendanceId] = useState("");
   const [feedDegShort, setFeedDegShort] = useState("");
+  const [dropId, setDropId] = useState(null);
+  const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
-    queryFn: getAllBatches,
+    queryFn: getAllBatchDetails,
     queryKey: ["batches"],
   });
+
+  const { mutate } = useMutation({
+    mutationFn: updateBatchStatus,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries(["batches"]);
+      setEditId("");
+      toast.success(res.message);
+    },
+    onError: (err) => {
+      setEditId("");
+      toast.error("Operation failed");
+    },
+  });
+
+  const { mutate: dropEntriesMutate } = useMutation({
+    mutationFn: deleteBatchSubjectEntries,
+    onSuccess: (res) => {
+      mutate({ id: dropId, status: "false" });
+      queryClient.invalidateQueries(["batches"]);
+      toast.success(res.message);
+      setDropId(null);
+    },
+    onError: (err) => {
+      toast.error("Operation failed");
+      setDropId(null);
+    },
+  });
+
+  const onStatusChanged = async (e) => {
+    let id = e.split(":")[0];
+    let status = e.split(":")[1];
+    mutate({ id, status });
+  };
+  const columns = [
+    {
+      accessorKey: "batch_code",
+      header: "Batch code",
+    },
+    {
+      id: "academic_year",
+
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Academic year
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        let academic_year = row.original.batch_code.slice(0, 4);
+        return <p className="text-center">{academic_year}</p>;
+      },
+    },
+    {
+      accessorKey: "degree_name",
+      header: "Degree programme",
+    },
+    {
+      id: "level",
+
+      header: "Level",
+      cell: ({ row }) => {
+        let level = row.original.batch_code.slice(
+          row.original.batch_code.length - 2,
+          row.original.batch_code.length - 1
+        );
+        return <p className="text-center">{level}</p>;
+      },
+    },
+    {
+      id: "sem",
+
+      header: "Semester",
+      cell: ({ row }) => {
+        let sem = row.original.batch_code.slice(
+          row.original.batch_code.length - 1
+        );
+        return <p className="text-center">{sem}</p>;
+      },
+    },
+    {
+      id: "Entries",
+      header: "Proper entries",
+      cell: ({ row }) => {
+        return <p className="text-center">{row.original.student_count}</p>;
+      },
+    },
+    {
+      id: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        return (
+          <Switch
+            id={row.original.batch_id}
+            onCheckedChange={(e) =>
+              onStatusChanged(row.original.batch_id + ":" + e)
+            }
+            checked={row.original.batch_status == "true"}
+          />
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: () => {
+        return <p className="text-center">Actions</p>;
+      },
+
+      cell: ({ row }) => {
+        let short = row.original.batch_code.slice(
+          4,
+          row.original.batch_code.length - 2
+        );
+        return (
+          <div className="flex gap-2">
+            <div className="flex justify-center items-center">
+              {row.original.student_count ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 cursor-not-allowed">
+                        <FaPen />
+                        &nbsp;Edit
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white text-black shadow-lg p-2">
+                      <p>
+                        student(s) already applied for the exam. so you can't
+                        edit now
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="editBtn"
+                  id={row.original.batch_id}
+                >
+                  <FaPen />
+                  &nbsp;Edit
+                </Button>
+              )}
+            </div>
+            <div className="flex flex-col gap-1">
+              <Button
+                variant="outline"
+                className="deadlineBtn flex justify-between"
+                id={row.original.batch_id}
+              >
+                <FaClock />
+                &nbsp;Set Deadlines
+              </Button>
+              {row.original.student_count ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="flex items-center justify-between gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 cursor-not-allowed">
+                      <FaUserPlus />
+                      &nbsp;Feed Students
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white text-black shadow-lg p-2">
+                      <p>
+                        student(s) already applied for the exam. so you can't
+                        add/remove students now
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <Button
+                  className="feedBtn flex justify-between"
+                  id={row.original.batch_id + ":" + short}
+                >
+                  <FaUserPlus />
+                  &nbsp;Feed Students
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                className="attendanceBtn flex justify-between"
+                id={row.original.batch_id}
+              >
+                <FaUserCheck />
+                &nbsp;Update Attendance
+              </Button>
+            </div>
+            <div className="flex justify-center items-center">
+              <Drawer>
+                <DrawerTrigger className="flex items-center justify-between gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-red-400 bg-red-500 active:bg-red-400/75 text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 ">
+                  <FaTrash />
+                  &nbsp;Drop Entries
+                </DrawerTrigger>
+                <DrawerContent>
+                  <div className="mx-auto w-full max-w-sm">
+                    <DrawerHeader>
+                      <DrawerTitle>Are you absolutely sure?</DrawerTitle>
+                      <DrawerDescription>
+                        All the entries of batch {row.original.batch_code} will
+                        be deleted. This action cannot be undone.
+                      </DrawerDescription>
+                    </DrawerHeader>
+                    <DrawerFooter className="flex justify-center items-center flex-row">
+                      <Button
+                        id={row.original.batch_id}
+                        className="dropBtn hover:bg-red-400 bg-red-500 active:bg-red-400/75"
+                      >
+                        Drop
+                      </Button>
+                      <DrawerClose className="inline">
+                        <Button variant="outline">Cancel</Button>
+                      </DrawerClose>
+                    </DrawerFooter>
+                  </div>
+                </DrawerContent>
+              </Drawer>
+            </div>
+          </div>
+        );
+      },
+    },
+  ];
 
   const onClearClicked = () => setSearchValue("");
 
@@ -44,6 +310,11 @@ const BatchesDetails = () => {
     setStatus(e);
   };
 
+  const toggleDeadlineModal = () => {
+    isDeadlineOpen && setDeadlineId("");
+    setIsDeadlineOpen((prev) => !prev);
+  };
+
   const toggleModal = () => {
     isOpen && setEditId("");
     setIsOpen((prev) => !prev);
@@ -52,6 +323,11 @@ const BatchesDetails = () => {
   const toggleFeedModal = () => {
     isFeedOpen && setFeedId("") && setFeedDegShort("");
     setIsFeedOpen((prev) => !prev);
+  };
+
+  const toggleAttendanceModal = () => {
+    isAttendanceOpen && setAttendanceId("");
+    setIsAttendanceOpen((prev) => !prev);
   };
 
   const onBtnClicked = (e) => {
@@ -65,14 +341,27 @@ const BatchesDetails = () => {
       setFeedDegShort(e.target.id.split(":")[1]);
       toggleFeedModal();
     }
+
+    if (e.target.classList.contains("deadlineBtn")) {
+      setDeadlineId(e.target.id);
+      toggleDeadlineModal();
+    }
+
+    if (e.target.classList.contains("attendanceBtn")) {
+      setAttendanceId(e.target.id);
+      toggleAttendanceModal();
+    }
+
+    if (e.target.classList.contains("dropBtn")) {
+      setDropId(e.target.id);
+    }
   };
 
   useEffect(() => {
     if (data) {
-      console.log(data);
       let filtData1 = searchValue
         ? data.filter((item) =>
-            item.batch_id.toLowerCase().includes(searchValue.toLowerCase())
+            item.batch_code.toLowerCase().includes(searchValue.toLowerCase())
           )
         : data;
       let filtData2 = filtData1.filter((item) => {
@@ -81,6 +370,12 @@ const BatchesDetails = () => {
       setFilteredData(filtData2);
     }
   }, [searchValue, status, data]);
+
+  useEffect(() => {
+    if (dropId) {
+      dropEntriesMutate(dropId);
+    }
+  }, [dropId]);
 
   return (
     <>
@@ -122,6 +417,13 @@ const BatchesDetails = () => {
           </div>
         </div>
       </div>
+      <DeadlineModel
+        deadlineId={deadlineId}
+        isDeadlineOpen={isDeadlineOpen}
+        setIsDeadlineOpen={setIsDeadlineOpen}
+        deadlineModalRef={deadlineModalRef}
+        setDeadlineId={setDeadlineId}
+      />
       <Modal
         editId={editId}
         isOpen={isOpen}
@@ -137,6 +439,13 @@ const BatchesDetails = () => {
         studentModalRef={studentModalRef}
         setFeedId={setFeedId}
         setFeedDegShort={setFeedDegShort}
+      />
+      <AttendanceModel
+        isAttendanceOpen={isAttendanceOpen}
+        setIsAttendanceOpen={setIsAttendanceOpen}
+        attendanceModalRef={attendanceModalRef}
+        attendanceId={attendanceId}
+        setAttendanceId={setAttendanceId}
       />
       <div className="container mx-auto">
         <DataTable

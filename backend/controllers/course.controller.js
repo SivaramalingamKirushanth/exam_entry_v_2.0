@@ -7,7 +7,7 @@ export const createFaculty = async (req, res, next) => {
   let { f_name, email, contact_no, status } = req.body;
 
   if (!status) {
-    status = "false";
+    status = "true";
   }
 
   if (!f_name || !email || !contact_no) {
@@ -51,6 +51,9 @@ export const createFaculty = async (req, res, next) => {
         status,
       ]);
 
+      let desc = `Faculty created with f_name=${f_name}, user_id=${user_id}, email=${email}, contact_no=${contact_no}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
       await conn.commit();
       await mailer(email, email, password);
 
@@ -71,7 +74,7 @@ export const createFaculty = async (req, res, next) => {
 };
 
 export const updateFaculty = async (req, res, next) => {
-  const { f_id, f_name, email, contact_no, status } = req.body;
+  const { f_id, f_name, email, contact_no } = req.body;
 
   if (!f_id || !f_name || !email || !contact_no) {
     return next(errorProvider(400, "Missing required fields"));
@@ -96,15 +99,17 @@ export const updateFaculty = async (req, res, next) => {
       const user_id = facultyDetails[0][0].user_id;
 
       // Step 2: Update faculty details
-      await conn.query("CALL UpdateFacultyDetails(?, ?, ?, ?);", [
+      await conn.query("CALL UpdateFacultyDetails(?, ?, ?);", [
         f_id,
         f_name,
         contact_no,
-        status,
       ]);
 
       // Step 3: Update user details
       await conn.query("CALL UpdateUserDetails(?, ?);", [user_id, email]);
+
+      let desc = `Faculty updated for f_id=${f_id} with f_name=${f_name}, user_id=${user_id}, email=${email}, contact_no=${contact_no}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
 
@@ -124,8 +129,59 @@ export const updateFaculty = async (req, res, next) => {
   }
 };
 
+export const updateFacultyStatus = async (req, res, next) => {
+  const { id: f_id, status } = req.body;
+
+  if (!f_id || !status) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      // Step 1: Check if faculty exists
+      const [facultyDetails] = await conn.query(
+        "CALL GetFacultyDetailsByFid(?);",
+        [f_id]
+      );
+
+      if (!facultyDetails[0].length) {
+        conn.release();
+        return next(errorProvider(404, "Faculty not found"));
+      }
+
+      const user_id = facultyDetails[0][0].user_id;
+
+      // Step 2: Update faculty details
+      await conn.query("CALL updateFacultyStatus(?, ?);", [f_id, status]);
+
+      let desc = `Batch status changed for f_id=${f_id} to status=${status}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      await conn.commit();
+
+      return res
+        .status(200)
+        .json({ message: "Faculty status updated successfully" });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error while updating faculty:", error);
+      return next(
+        errorProvider(500, "An error occurred while updating faculty")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
 export const createDepartment = async (req, res, next) => {
-  const { d_name, email, contact_no, status = "false", f_id } = req.body;
+  const { d_name, email, contact_no, status = "true", f_id } = req.body;
 
   if (!d_name || !email || !contact_no || !f_id) {
     return next(errorProvider(400, "Missing required fields"));
@@ -170,6 +226,9 @@ export const createDepartment = async (req, res, next) => {
       // Step 5: Link the department to the faculty
       await conn.query("CALL LinkFacultyDepartment(?, ?);", [f_id, d_id]);
 
+      let desc = `Department created with d_id=${d_id} for f_id=${f_id}, d_name=${d_name}, user_id=${user_id}, contact_no=${contact_no}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
       await conn.commit();
 
       // Send email notification to the department user
@@ -194,7 +253,7 @@ export const createDepartment = async (req, res, next) => {
 };
 
 export const updateDepartment = async (req, res, next) => {
-  const { d_id, d_name, email, contact_no, status, f_id } = req.body;
+  const { d_id, d_name, email, contact_no, f_id } = req.body;
 
   if (!d_id || !d_name || !email || !contact_no || !f_id) {
     return next(errorProvider(400, "Missing required fields"));
@@ -220,11 +279,10 @@ export const updateDepartment = async (req, res, next) => {
       const user_id = departmentDetails[0][0].user_id;
 
       // Step 2: Update department details
-      await conn.query("CALL UpdateDepartmentDetails(?, ?, ?, ?);", [
+      await conn.query("CALL UpdateDepartmentDetails(?, ?, ?);", [
         d_id,
         d_name,
         contact_no,
-        status,
       ]);
 
       // Step 3: Update user details
@@ -232,6 +290,9 @@ export const updateDepartment = async (req, res, next) => {
 
       // Step 4: Update faculty-department link
       await conn.query("CALL UpdateFacultyDepartmentLink(?, ?);", [f_id, d_id]);
+
+      let desc = `Department updated for d_id=${d_id} with d_name=${d_name}, user_id=${user_id}, email=${email}, contact_no=${contact_no}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
 
@@ -253,13 +314,65 @@ export const updateDepartment = async (req, res, next) => {
   }
 };
 
+export const updateDepartmentStatus = async (req, res, next) => {
+  const { id: d_id, status } = req.body;
+
+  if (!d_id || !status) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      await conn.beginTransaction();
+
+      // Step 1: Check if department exists
+      const [departmentDetails] = await conn.query(
+        "CALL GetDepartmentDetailsByDid(?);",
+        [d_id]
+      );
+
+      if (!departmentDetails[0].length) {
+        conn.release();
+        return next(errorProvider(404, "Department not found"));
+      }
+
+      const user_id = departmentDetails[0][0].user_id;
+
+      // Step 2: Update department details
+      await conn.query("CALL updateDepartmentStatus(?, ?);", [d_id, status]);
+
+      let desc = `Department status changed for d_id=${d_id} to status=${status}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      await conn.commit();
+
+      return res
+        .status(200)
+        .json({ message: "Department status updated successfully" });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error while updating department:", error);
+      return next(
+        errorProvider(500, "An error occurred while updating department")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
 export const createDegree = async (req, res, next) => {
   const {
     deg_name,
     short,
     levels: levelsArr,
     no_of_sem_per_year,
-    status = "false",
+    status = "true",
     d_id,
   } = req.body;
 
@@ -297,6 +410,9 @@ export const createDegree = async (req, res, next) => {
       // Step 3: Link the degree with the department
       await conn.query("CALL LinkDegreeWithDepartment(?, ?);", [d_id, deg_id]);
 
+      let desc = `Degree created with deg_id=${deg_id} for d_id=${d_id}, deg_name=${deg_name}, short=${short}, levels=${levels}, no_of_sem_per_year=${no_of_sem_per_year}, contact_no=${contact_no}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
       await conn.commit();
 
       res.status(201).json({
@@ -325,7 +441,6 @@ export const updateDegree = async (req, res, next) => {
     short,
     levels: levelsArr,
     no_of_sem_per_year,
-    status,
     d_id,
   } = req.body;
 
@@ -373,21 +488,74 @@ export const updateDegree = async (req, res, next) => {
       }
 
       // Step 3: Update degree details
-      await conn.query("CALL UpdateDegreeDetails(?, ?, ?, ?, ?, ?);", [
+      await conn.query("CALL UpdateDegreeDetails(?, ?, ?, ?, ?);", [
         deg_id,
         deg_name,
         short,
         levels,
         no_of_sem_per_year,
-        status,
       ]);
 
       // Step 4: Update department-degree link
       await conn.query("CALL UpdateDepDeg(?, ?);", [d_id, deg_id]);
 
+      let desc = `Degree updated for deg_id=${deg_id} with deg_name=${deg_name}, short=${short}, levels=${levels}, no_of_sem_per_year=${no_of_sem_per_year}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
       await conn.commit();
 
       return res.status(200).json({ message: "Degree updated successfully" });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error while updating degree:", error);
+      return next(
+        errorProvider(500, "An error occurred while updating the degree")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const updateDegreeStatus = async (req, res, next) => {
+  const { id: deg_id, status } = req.body;
+
+  if (!deg_id || !status) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      await conn.beginTransaction();
+
+      // Step 1: Check if degree exists
+      const [degreeExistsResult] = await conn.query(
+        "CALL GetDegreeDetailsByDegid(?, @exists); SELECT @exists AS degree_exists;",
+        [deg_id]
+      );
+      const { degree_exists } = degreeExistsResult[1][0];
+
+      if (degree_exists === 0) {
+        conn.release();
+        return next(errorProvider(404, "Degree not found"));
+      }
+
+      // Step 3: Update degree details
+      await conn.query("CALL updateDegreeStatus(?, ?);", [deg_id, status]);
+
+      let desc = `Degree status changed for deg_id=${deg_id} to status=${status}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      await conn.commit();
+
+      return res
+        .status(200)
+        .json({ message: "Degree status updated successfully" });
     } catch (error) {
       await conn.rollback();
       console.error("Error while updating degree:", error);
