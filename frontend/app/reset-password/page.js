@@ -30,6 +30,7 @@ const ResetPassword = () => {
       router.replace("/");
     },
     onError: (err) => {
+      console.log(err);
       if (err.status == 429) {
         toast.error(err.response.data.message);
       } else {
@@ -74,7 +75,7 @@ const ResetPassword = () => {
           <div className="flex justify-between space-x-2 mt-4">
             <Link href="/" className="flex items-center text-blue-500 text-sm">
               <FaChevronLeft />
-              &nbsp;Login
+              &nbsp;Sign in
             </Link>
             <Button disabled={isPending} onClick={handleResetMail}>
               {isPending ? "Sending..." : "Send Reset Link"}
@@ -153,7 +154,11 @@ const ResetPassword = () => {
             />
           </div>
         </div>
-        <div className="flex justify-end space-x-2 mt-4">
+        <div className="flex justify-between space-x-2 mt-4">
+          <Link href="/" className="flex items-center text-blue-500 text-sm">
+            <FaChevronLeft />
+            &nbsp;Sign in
+          </Link>
           <Button disabled={isPending} onClick={handleSubmit}>
             {isPending ? "Resetting..." : "Reset Password"}
           </Button>
