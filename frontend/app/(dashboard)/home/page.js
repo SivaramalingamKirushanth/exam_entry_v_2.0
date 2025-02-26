@@ -31,7 +31,6 @@ import {
   parseString,
   titleCase,
 } from "@/utils/functions";
-import { getDegreeByShort } from "@/utils/apiRequests/course.api";
 import CryptoJS from "crypto-js";
 import {
   getAllSubjectsForManager,
@@ -296,6 +295,7 @@ const dashboard = () => {
   // Conditional Rendering Based on Role
   switch (user.role_id) {
     case "1":
+      break;
     case "2":
       deanDashboardRefetch();
       return (
@@ -412,6 +412,7 @@ const dashboard = () => {
             : ""}
         </div>
       );
+
     case "3":
       hodDashboardRefetch();
       return (
@@ -528,35 +529,44 @@ const dashboard = () => {
             : ""}
         </div>
       );
+
     case "4":
       subjectsOfManagerRefetch();
+      console.log(subjectsOfManagerData);
       return (
         <div className="flex justify-end md:justify-center">
           <div className="md:w-[70%] flex gap-6 flex-wrap">
-            {subjectsOfManagerData?.map((obj) => (
-              <Link
-                href={{
-                  pathname: `${pathname}/${obj.sub_code}`,
-                  query: {
-                    sub_id: obj.sub_id,
-                    batch_id: obj.batch_id,
-                    deadline: obj.deadline,
-                  },
-                }}
-                className="w-[30%] max-w-[30%] hover:shadow-md rounded-xl"
-                key={obj.sub_id}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{titleCase(obj.sub_name)}</CardTitle>
-                    <CardDescription>{obj.sub_code}</CardDescription>
-                  </CardHeader>
-                </Card>
-              </Link>
-            ))}
+            {subjectsOfManagerData && subjectsOfManagerData.length ? (
+              subjectsOfManagerData.map((obj) => (
+                <Link
+                  href={{
+                    pathname: `${pathname}/${obj.sub_code}`,
+                    query: {
+                      sub_id: obj.sub_id,
+                      batch_id: obj.batch_id,
+                      deadline: obj.deadline,
+                    },
+                  }}
+                  className="w-[30%] max-w-[30%] hover:shadow-md rounded-xl"
+                  key={obj.sub_id}
+                >
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{titleCase(obj.sub_name)}</CardTitle>
+                      <CardDescription>{obj.sub_code}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
+              ))
+            ) : (
+              <h1 className="text-2xl text-center w-full">
+                No entries available!
+              </h1>
+            )}
           </div>
         </div>
       );
+
     case "5":
       batchDataRefetch();
 

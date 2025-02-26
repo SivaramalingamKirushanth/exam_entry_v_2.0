@@ -547,7 +547,7 @@ export const createOrUpdateAttendance = async (req, res, next) => {
         description,
       ]);
 
-      let desc = `Admission created or updated for batch_id=${batch_id}, transformedDate=${transformedDate}, description=${description}`;
+      let desc = `Attendance created or updated for batch_id=${batch_id}, transformedDate=${transformedDate}, description=${description}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(200).json({
@@ -889,5 +889,41 @@ export const getHodDashboardData = async (req, res, next) => {
   } catch (error) {
     console.error("Error in Dean Dashboard:", error);
     next(new Error("Failed to fetch data for Dean Dashboard"));
+  }
+};
+
+export const getAppliedStudentsForSubject = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+  const { batch_id, sub_id } = req.body;
+
+  if (!user_id || !batch_id || !sub_id || !role_id) {
+    return next(errorProvider(400, "Missing required fields."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [results] = await conn.query(
+        "CALL GetAppliedStudentsByBatchAndSubject(?, ?, ?, ?);",
+        [user_id, batch_id, sub_id, role_id]
+      );
+
+      return res.status(200).json(results[0]);
+    } catch (error) {
+      console.error("Error fetching applied students for subject:", error);
+
+      if (error.code === "45000") {
+        return next(errorProvider(403, error.sqlMessage));
+      }
+
+      return next(
+        errorProvider(500, "An error occurred while fetching applied students.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
   }
 };

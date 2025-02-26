@@ -90,17 +90,17 @@ export const getAllSubjectsForManager = async () => {
   return response.data;
 };
 
-export const getAppliedStudentsForSubject = async (batch_id, sub_id) => {
-  const response = await axiosInstance.post(
-    "/curriculum/getAppliedStudentsForSubject",
-    { batch_id, sub_id }
+export const updateEligibility = async (data) => {
+  const response = await axiosInstance.put(
+    "/curriculum/updateEligibility",
+    data
   );
   return response.data;
 };
 
-export const updateEligibility = async (data) => {
+export const updateMultipleEligibility = async (data) => {
   const response = await axiosInstance.put(
-    "/curriculum/updateEligibility",
+    "/curriculum/updateMultipleEligibility",
     data
   );
   return response.data;

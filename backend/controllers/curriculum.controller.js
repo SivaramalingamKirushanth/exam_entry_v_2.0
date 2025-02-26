@@ -459,6 +459,8 @@ export const getAllSubjectsForManager = async (req, res, next) => {
         user_id,
       ]);
 
+      console.log(subjects);
+
       if (!subjects.length) {
         return res.status(404).json({
           message: "No subjects found for the given user ID.",
@@ -488,48 +490,19 @@ export const getAllSubjectsForManager = async (req, res, next) => {
   }
 };
 
-export const getAppliedStudentsForSubject = async (req, res, next) => {
-  const { user_id, role_id } = req.user;
-  const { batch_id, sub_id } = req.body;
-
-  if (!user_id || !batch_id || !sub_id || !role_id) {
-    return next(errorProvider(400, "Missing required fields."));
-  }
-
-  try {
-    const conn = await pool.getConnection();
-    try {
-      const [results] = await conn.query(
-        "CALL GetAppliedStudentsByBatchAndSubject(?, ?, ?, ?);",
-        [user_id, batch_id, sub_id, role_id]
-      );
-
-      return res.status(200).json(results[0]);
-    } catch (error) {
-      console.error("Error fetching applied students for subject:", error);
-
-      if (error.code === "45000") {
-        return next(errorProvider(403, error.sqlMessage));
-      }
-
-      return next(
-        errorProvider(500, "An error occurred while fetching applied students.")
-      );
-    } finally {
-      conn.release();
-    }
-  } catch (error) {
-    console.error("Database connection error:", error);
-    return next(errorProvider(500, "Failed to establish database connection."));
-  }
-};
-
 export const updateEligibility = async (req, res, next) => {
   const { user_id, role_id } = req.user;
-  const { batch_id, sub_id, eligibility, s_id } = req.body;
+  const { batch_id, sub_id, eligibility, s_id, remark } = req.body;
 
-  console.log(user_id, role_id, batch_id, sub_id, eligibility, s_id);
-  if (!user_id || !s_id || !sub_id || !batch_id || !eligibility || !role_id) {
+  if (
+    !user_id ||
+    !s_id ||
+    !sub_id ||
+    !batch_id ||
+    !eligibility ||
+    !role_id ||
+    !remark
+  ) {
     return next(errorProvider(400, "Missing required fields."));
   }
 
@@ -556,20 +529,99 @@ export const updateEligibility = async (req, res, next) => {
         role_id,
       ]);
 
-      await conn.query("CALL LogEligibilityChange(?, ?, ?, ?, ?, ?);", [
+      await conn.query("CALL LogEligibilityChange(?, ?, ?, ?, ?, ?, ?);", [
         user_id,
         s_id,
         batch_id,
         sub_id,
         status_from,
         status_to,
+        remark,
       ]);
+
+      await conn.commit();
 
       return res
         .status(200)
         .json({ message: "Eligibility updated successfully." });
     } catch (error) {
+      await conn.rollback();
       console.error("Error updating eligibility:", error);
+
+      if (error.code === "45000") {
+        return next(errorProvider(403, error.sqlMessage));
+      }
+
+      return next(
+        errorProvider(500, "An error occurred while updating eligibility.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const updateMultipleEligibility = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+  const { batch_id, sub_id, eligibility, s_ids, remark } = req.body;
+
+  if (
+    !user_id ||
+    !s_ids.length ||
+    !sub_id ||
+    !batch_id ||
+    !eligibility ||
+    !role_id
+  ) {
+    return next(errorProvider(400, "Missing required fields."));
+  }
+
+  let status_from;
+  let status_to;
+
+  if (eligibility == "true") {
+    status_from = "false";
+    status_to = "true";
+  } else {
+    status_from = "true";
+    status_to = "false";
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      for (let s_id of s_ids) {
+        await conn.query("CALL UpdateEligibility(?, ?, ?, ?, ?, ?);", [
+          user_id,
+          s_id,
+          sub_id,
+          batch_id,
+          eligibility,
+          role_id,
+        ]);
+
+        await conn.query("CALL LogEligibilityChange(?, ?, ?, ?, ?, ?, ?);", [
+          user_id,
+          s_id,
+          batch_id,
+          sub_id,
+          status_from,
+          status_to,
+          remark,
+        ]);
+      }
+
+      await conn.commit();
+
+      return res
+        .status(200)
+        .json({ message: "Eligibility updated successfully." });
+    } catch (error) {
+      console.error("Error updating eligibilities:", error);
+      await conn.rollback();
 
       if (error.code === "45000") {
         return next(errorProvider(403, error.sqlMessage));

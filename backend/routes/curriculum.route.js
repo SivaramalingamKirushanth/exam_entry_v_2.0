@@ -12,9 +12,9 @@ import {
   getStudentApplicationDetails,
   getCurriculumsByDid,
   getAllSubjectsForManager,
-  getAppliedStudentsForSubject,
   updateEligibility,
   updateCurriculumStatus,
+  updateMultipleEligibility,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -44,11 +44,12 @@ router.get(
   verifyUser(["4"]),
   getAllSubjectsForManager
 );
-router.post(
-  "/getAppliedStudentsForSubject",
-  verifyUser(["1", "4"]),
-  getAppliedStudentsForSubject
-);
+
 router.put("/updateEligibility", verifyUser(["1", "4"]), updateEligibility);
+router.put(
+  "/updateMultipleEligibility",
+  verifyUser(["1", "4"]),
+  updateMultipleEligibility
+);
 
 export default router;

@@ -129,3 +129,11 @@ export const getHodDashboardData = async () => {
   const response = await axiosInstance.get("/entry/getHodDashboardData");
   return response.data;
 };
+
+export const getAppliedStudentsForSubject = async (batch_id, sub_id) => {
+  const response = await axiosInstance.post(
+    "/entry/getAppliedStudentsForSubject",
+    { batch_id, sub_id }
+  );
+  return response.data;
+};
