@@ -15,6 +15,7 @@ import {
   updateEligibility,
   updateCurriculumStatus,
   updateMultipleEligibility,
+  checkSubjectExist,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -51,5 +52,6 @@ router.put(
   verifyUser(["1", "4"]),
   updateMultipleEligibility
 );
+router.post("/checkSubjectExist", verifyUser(["4"]), checkSubjectExist);
 
 export default router;

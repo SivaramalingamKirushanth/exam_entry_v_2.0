@@ -341,7 +341,6 @@ export const getNoOfCurriculums = async (req, res, next) => {
 
 export const getCurriculumBybatchId = async (req, res, next) => {
   const { batch_id } = req.body;
-  console.log(batch_id);
 
   if (!batch_id) {
     return next(errorProvider(400, "Batch ID is required."));
@@ -458,8 +457,6 @@ export const getAllSubjectsForManager = async (req, res, next) => {
       const [subjects] = await conn.query("CALL GetAllSubjectsForManager(?);", [
         user_id,
       ]);
-
-      console.log(subjects);
 
       if (!subjects.length) {
         return res.status(404).json({
@@ -629,6 +626,43 @@ export const updateMultipleEligibility = async (req, res, next) => {
 
       return next(
         errorProvider(500, "An error occurred while updating eligibility.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const checkSubjectExist = async (req, res, next) => {
+  const { user_id } = req.user;
+  const { batch_id, sub_id } = req.body;
+
+  if (!sub_id || !batch_id || !user_id) {
+    return res.status(200).json({ subjectExists: false });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [subjectExistsResult] = await conn.query(
+        "CALL CheckSubjectExist(?, ?, ?, @subjectExists); SELECT @subjectExists AS subjectExists;",
+        [batch_id, sub_id, user_id]
+      );
+
+      const subjectExists = subjectExistsResult[1][0].subjectExists;
+
+      await conn.commit();
+
+      return res.status(200).json({ subjectExists });
+    } catch (error) {
+      console.error("Error during cheking subject existence:", error);
+      await conn.rollback();
+
+      return next(
+        errorProvider(500, "An error occurred while cheking subject existence.")
       );
     } finally {
       conn.release();

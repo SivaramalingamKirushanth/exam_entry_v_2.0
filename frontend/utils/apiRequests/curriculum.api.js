@@ -83,6 +83,14 @@ export const getStudentApplicationDetails = async () => {
   return response.data;
 };
 
+export const checkSubjectExist = async (data) => {
+  const response = await axiosInstance.post(
+    "/curriculum/checkSubjectExist",
+    data
+  );
+  return response.data;
+};
+
 export const getAllSubjectsForManager = async () => {
   const response = await axiosInstance.get(
     "/curriculum/getAllSubjectsForManager"

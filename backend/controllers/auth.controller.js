@@ -418,46 +418,50 @@ export const login = async (req, res, next) => {
 
 export const me = async (req, res, next) => {
   const { user_id, role_id } = req.user;
-  const conn = await pool.getConnection();
-
   try {
-    let procedureName;
+    const conn = await pool.getConnection();
+    try {
+      let procedureName;
 
-    switch (role_id) {
-      case "5":
-        procedureName = "GetStudentDetails";
-        break;
-      case "4":
-        procedureName = "GetManagerDetails";
-        break;
-      case "3":
-        procedureName = "GetDepartmentDetails";
-        break;
-      case "2":
-        procedureName = "GetFacultyDetails";
-        break;
-      case "1":
-        procedureName = "GetAdminDetails";
-        break;
-      default:
-        return next(errorProvider(400, "Invalid role ID"));
+      switch (role_id) {
+        case "5":
+          procedureName = "GetStudentDetails";
+          break;
+        case "4":
+          procedureName = "GetManagerDetails";
+          break;
+        case "3":
+          procedureName = "GetDepartmentDetails";
+          break;
+        case "2":
+          procedureName = "GetFacultyDetails";
+          break;
+        case "1":
+          procedureName = "GetAdminDetails";
+          break;
+        default:
+          return next(errorProvider(400, "Invalid role ID"));
+      }
+
+      // Call the stored procedure
+      const [userDetails] = await conn.query(`CALL ${procedureName}(?)`, [
+        user_id,
+      ]);
+
+      // Respond with the first result
+      return res.status(200).json(userDetails[0][0]);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      return next(
+        errorProvider(500, "An error occurred while fetching user details")
+      );
+    } finally {
+      // Release the connection
+      if (conn) conn.release();
     }
-
-    // Call the stored procedure
-    const [userDetails] = await conn.query(`CALL ${procedureName}(?)`, [
-      user_id,
-    ]);
-
-    // Respond with the first result
-    return res.status(200).json(userDetails[0][0]);
   } catch (error) {
-    console.error("Error fetching user details:", error);
-    return next(
-      errorProvider(500, "An error occurred while fetching user details")
-    );
-  } finally {
-    // Release the connection
-    if (conn) conn.release();
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
 

@@ -532,7 +532,7 @@ const dashboard = () => {
 
     case "4":
       subjectsOfManagerRefetch();
-      console.log(subjectsOfManagerData);
+
       return (
         <div className="flex justify-end md:justify-center">
           <div className="md:w-[70%] flex gap-6 flex-wrap">
