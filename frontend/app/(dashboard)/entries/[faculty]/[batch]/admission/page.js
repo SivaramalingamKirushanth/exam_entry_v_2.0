@@ -17,7 +17,6 @@ import {
 } from "@/utils/apiRequests/entry.api";
 import {
   createSubjectObject,
-  generateAdmissionCardPDFs,
   getModifiedDate,
   numberToOrdinalWord,
   parseString,
@@ -159,7 +158,7 @@ const Page = () => {
 
   const {
     data: batchFullDetailsData,
-    isLoading,
+    isLoading: isBatchDetailsLoading,
     error,
   } = useQuery({
     queryFn: () => getBatchFullDetails(batch_id),
@@ -171,10 +170,11 @@ const Page = () => {
     queryKey: ["studentsWithSubjects"],
   });
 
-  const { data: batchCurriculumData } = useQuery({
-    queryFn: () => getCurriculumBybatchId(batch_id),
-    queryKey: ["batchCurriculum"],
-  });
+  const { data: batchCurriculumData, isLoading: isCurriculumDataLoading } =
+    useQuery({
+      queryFn: () => getCurriculumBybatchId(batch_id),
+      queryKey: ["batchCurriculum"],
+    });
 
   const { status, mutate } = useMutation({
     mutationFn: createOrUpdateAdmission,
@@ -235,8 +235,17 @@ const Page = () => {
         decodeBatchCode={decodeBatchCode}
         subjectObject={subjectObject}
       />
-      <div className="flex justify-center mt-8">
-        <Button onClick={onGenerate}>Generate</Button>
+      <div
+        className={`${
+          isBatchDetailsLoading || isCurriculumDataLoading ? "hidden " : "flex "
+        } justify-center mt-8 `}
+      >
+        <Button
+          disabled={isBatchDetailsLoading || isCurriculumDataLoading}
+          onClick={onGenerate}
+        >
+          Generate
+        </Button>
       </div>
     </>
   );

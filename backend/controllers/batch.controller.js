@@ -121,16 +121,16 @@ export const getBatchById = async (req, res, next) => {
 };
 
 export const createBatch = async (req, res, next) => {
-  const { batch_code, subjects, status = "true" } = req.body;
+  const { batch_code, subjects, status = "true", deg_id } = req.body;
 
   try {
     const conn = await pool.getConnection();
     try {
-      if (!batch_code || !status || !Object.keys(subjects).length) {
+      if (!batch_code || !status || !Object.keys(subjects).length || !deg_id) {
         return next(
           errorProvider(
             400,
-            "All fields (batch_code, status, subjects) are required"
+            "All fields (batch_code, status, subjects, deg_id) are required"
           )
         );
       }
@@ -150,8 +150,8 @@ export const createBatch = async (req, res, next) => {
 
       // Insert batch and retrieve batch_id
       const [batchResult] = await conn.query(
-        "CALL InsertBatch(?, ?, ?, @batch_id); SELECT @batch_id AS batch_id;",
-        [batch_code, Object.keys(subjects).join(","), status]
+        "CALL InsertBatch(?, ?, ?, ?, @batch_id); SELECT @batch_id AS batch_id;",
+        [batch_code, Object.keys(subjects).join(","), status, deg_id]
       );
       const batch_id = batchResult[1][0].batch_id;
 
@@ -207,16 +207,21 @@ export const createBatch = async (req, res, next) => {
 };
 
 export const updateBatch = async (req, res, next) => {
-  const { old_subjects, batch_code, subjects, batch_id } = req.body;
+  const { old_subjects, batch_code, subjects, batch_id, deg_id } = req.body;
 
   try {
     const conn = await pool.getConnection();
     try {
-      if (!batch_id || !batch_code || !Object.keys(subjects).length) {
+      if (
+        !batch_id ||
+        !batch_code ||
+        !Object.keys(subjects).length ||
+        !deg_id
+      ) {
         return next(
           errorProvider(
             400,
-            "All fields (batch_id, status, batch_code, subjects) are required"
+            "All fields (batch_id, status, batch_code, subjects, deg_id) are required"
           )
         );
       }
@@ -235,10 +240,11 @@ export const updateBatch = async (req, res, next) => {
       }
 
       // Update batch details
-      await conn.query("CALL UpdateBatchDetails(?, ?, ?);", [
+      await conn.query("CALL UpdateBatchDetails(?, ?, ?, ?);", [
         batch_id,
         batch_code,
         Object.keys(subjects).join(","),
+        deg_id,
       ]);
 
       // Drop old tables and columns if subjects changed
@@ -551,9 +557,10 @@ export const getBatchesByStudent = async (req, res, next) => {
 };
 
 export const setBatchTimePeriod = async (req, res, next) => {
-  const { batch_id, students_end, lecturers_end } = req.body;
+  const { batch_id, students_end, lecturers_end, hod_end, dean_end } = req.body;
 
-  if (!batch_id || !students_end || !lecturers_end) {
+  console.log(batch_id, students_end, lecturers_end, hod_end, dean_end);
+  if (!batch_id || !students_end || !lecturers_end || !hod_end || !dean_end) {
     return next(errorProvider(400, "Missing required fields."));
   }
 
@@ -574,7 +581,21 @@ export const setBatchTimePeriod = async (req, res, next) => {
         [batch_id, "4", lecturers_end, lecturers_end]
       );
 
-      let desc = `Batch time period inserted or updated for batch_id=${batch_id} to students_end=${students_end}, lecturers_end=${lecturers_end}`;
+      await conn.execute(
+        `INSERT INTO batch_time_periods (batch_id, user_type, end_date)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE end_date = ?`,
+        [batch_id, "3", hod_end, hod_end]
+      );
+
+      await conn.execute(
+        `INSERT INTO batch_time_periods (batch_id, user_type, end_date)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE end_date = ?`,
+        [batch_id, "2", dean_end, dean_end]
+      );
+
+      let desc = `Batch time period inserted or updated for batch_id=${batch_id} to students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res
@@ -903,5 +924,156 @@ export const uploadAttendanceSheet = async (req, res, next) => {
   } catch (error) {
     console.error("Error handling upload:", error);
     return next(errorProvider(500, "Failed to handle uploaded file."));
+  }
+};
+
+export const getAllBatchesForDepartment = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+
+  if (!user_id) {
+    return next(errorProvider(400, "User ID is required."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [departments] = await conn.query(
+        "SELECT d_id FROM department WHERE user_id = ? AND status = 'true'",
+        [user_id]
+      );
+
+      if (departments.length === 0) {
+        return res.status(404).json({ message: "No active departments found" });
+      }
+      let department = departments[0];
+      const result = [];
+
+      // Step 2: Get active degrees under this faculty
+      const [degrees] = await conn.query(
+        "CALL GetActiveDegreesInDepartment(?)",
+        [department.d_id]
+      );
+
+      if (degrees[0].length > 0) {
+        for (const degree of degrees[0]) {
+          // Step 2: Get active degrees under this faculty
+          const [batches] = await conn.query(
+            "CALL GetActiveBatchesWithinDeadline(?, ?)",
+            [degree.deg_id, role_id]
+          );
+
+          if (batches[0].length > 0) {
+            batches[0].forEach((batch) =>
+              result.push({ ...batch, deg_name: degree.deg_name })
+            );
+          }
+        }
+      }
+
+      return res.status(200).json(result);
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getAllBatchesForFaculty = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+
+  if (!user_id) {
+    return next(errorProvider(400, "User ID is required."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      // Step 1: Get faculty ID for the dean
+      const [faculty] = await conn.query(
+        "SELECT f_id FROM faculty WHERE user_id = ? AND status = 'true'",
+        [user_id]
+      );
+
+      if (faculty.length === 0) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      const facultyId = faculty[0].f_id;
+
+      // Step 2: Get active departments under this faculty
+      const [departments] = await conn.query(
+        "CALL GetDepartmentsByFacultyId(?)",
+        [facultyId]
+      );
+
+      if (departments[0].length === 0) {
+        return res.status(404).json({ message: "No active departments found" });
+      }
+
+      const result = [];
+
+      for (const department of departments[0]) {
+        // Step 2: Get active degrees under this faculty
+        const [degrees] = await conn.query(
+          "CALL GetActiveDegreesInDepartment(?)",
+          [department.d_id]
+        );
+
+        if (degrees[0].length > 0) {
+          for (const degree of degrees[0]) {
+            // Step 2: Get active degrees under this faculty
+            const [batches] = await conn.query(
+              "CALL GetActiveBatchesWithinDeadline(?, ?)",
+              [degree.deg_id, role_id]
+            );
+
+            if (batches[0].length > 0) {
+              batches[0].forEach((batch) =>
+                result.push({ ...batch, deg_name: degree.deg_name })
+              );
+            }
+          }
+        }
+      }
+
+      res.status(200).json(result);
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getDeadlinesForBatch = async (req, res, next) => {
+  const { batch_id } = req.body;
+
+  if (!batch_id) {
+    return next(errorProvider(400, "batch_id is required."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [deadlines] = await conn.query("CALL GetDeadlinesForBatch(?)", [
+        batch_id,
+      ]);
+
+      if (deadlines[0].length === 0) {
+        return res.status(404).json({ message: "No deadlines available" });
+      }
+
+      res.status(200).json(deadlines[0]);
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
   }
 };

@@ -11,15 +11,31 @@ import { FaTimes } from "react-icons/fa";
 import { FaCheck } from "react-icons/fa6";
 
 const ReportTable = ({ subjects, data, exam_type, batch_id }) => {
-  console.log(subjects);
+  const totObj = {};
+
+  Object.values(data).forEach((stuArr) =>
+    stuArr.forEach((subObj) => {
+      if (subObj.eligibility == "true") {
+        if (totObj.hasOwnProperty(subObj.sub_id)) {
+          totObj[subObj.sub_id]++;
+        } else {
+          totObj[subObj.sub_id] = 1;
+        }
+      }
+    })
+  );
+
   return (
     <Table className="bg-white">
       <TableHeader>
-        <TableRow>
-          <TableHead className="w-[100px]">Index No</TableHead>
+        <TableRow className="bg-black hover:bg-black">
+          <TableHead className="w-[100px] text-white">Index No</TableHead>
 
           {subjects?.map((obj) => (
-            <TableHead key={"header" + obj.sub_id + exam_type + batch_id}>
+            <TableHead
+              className="text-white"
+              key={"header" + obj.sub_id + exam_type + batch_id}
+            >
               {obj.sub_code}
             </TableHead>
           ))}
@@ -53,6 +69,16 @@ const ReportTable = ({ subjects, data, exam_type, batch_id }) => {
             ))}
           </TableRow>
         ))}
+        <TableRow className="bg-zinc-200">
+          <TableCell className="font-bold">Total</TableCell>
+          {subjects?.map((obj) => (
+            <TableCell key={"total" + obj.sub_id + exam_type + batch_id}>
+              <h1 className="justify-center flex font-bold">
+                {totObj[obj.sub_id] ? totObj[obj.sub_id] : 0}
+              </h1>
+            </TableCell>
+          ))}
+        </TableRow>
       </TableBody>
     </Table>
   );

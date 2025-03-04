@@ -137,3 +137,25 @@ export const getAppliedStudentsForSubject = async (batch_id, sub_id) => {
   );
   return response.data;
 };
+
+export const getAppliedStudentsForSubjectOfFaculty = async (
+  batch_id,
+  sub_id
+) => {
+  const response = await axiosInstance.post(
+    "/entry/getAppliedStudentsForSubjectOfFaculty",
+    { batch_id, sub_id }
+  );
+  return response.data;
+};
+
+export const getAppliedStudentsForSubjectOfDepartment = async (
+  batch_id,
+  sub_id
+) => {
+  const response = await axiosInstance.post(
+    "/entry/getAppliedStudentsForSubjectOfDepartment",
+    { batch_id, sub_id }
+  );
+  return response.data;
+};

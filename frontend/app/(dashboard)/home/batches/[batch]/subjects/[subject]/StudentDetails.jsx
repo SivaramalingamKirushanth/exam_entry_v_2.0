@@ -20,16 +20,47 @@ import {
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { getAppliedStudentsForSubject } from "@/utils/apiRequests/entry.api";
+import {
+  getAppliedStudentsForSubject,
+  getAppliedStudentsForSubjectOfDepartment,
+  getAppliedStudentsForSubjectOfFaculty,
+} from "@/utils/apiRequests/entry.api";
+import { getDeadlinesForBatch } from "@/utils/apiRequests/batch.api";
+import { useUser } from "@/utils/useUser";
 
-const StudentDetails = ({ sub_id, batch_id, deadline }) => {
+const StudentDetails = ({ sub_id, batch_id }) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
+  const [deadlineObj, setDeadlineObj] = useState({
+    lec_deadline: "",
+    hod_deadline: "",
+    dean_deadline: "",
+    stu_deadline: "",
+  });
+  const [roleId, setRoleID] = useState(null);
+  const { data: user, isLoading } = useUser();
+
+  useEffect(() => {
+    if (user?.role_id) {
+      setRoleID(user?.role_id);
+    }
+  }, [user]);
 
   const { data, error } = useQuery({
-    queryFn: () => getAppliedStudentsForSubject(batch_id, sub_id),
+    queryFn: () =>
+      roleId == "3"
+        ? getAppliedStudentsForSubjectOfDepartment(batch_id, sub_id)
+        : roleId == "2"
+        ? getAppliedStudentsForSubjectOfFaculty(batch_id, sub_id)
+        : null,
     queryKey: ["students", "subject", sub_id],
+    enabled: roleId == "2" || roleId == "3",
+  });
+
+  const { data: deadlineData } = useQuery({
+    queryFn: () => getDeadlinesForBatch(batch_id),
+    queryKey: ["batch", "dealines", batch_id],
   });
 
   if (error?.response?.status == 500) {
@@ -133,7 +164,8 @@ const StudentDetails = ({ sub_id, batch_id, deadline }) => {
                 e.preventDefault();
                 triggerRef.current.click();
               }}
-              checked={!isAnyoneNotEligible}
+              checked={filteredData.length && !isAnyoneNotEligible}
+              disabled={!filteredData.length}
             />
             <Popover>
               <PopoverTrigger
@@ -233,9 +265,132 @@ const StudentDetails = ({ sub_id, batch_id, deadline }) => {
     }
   }, [searchValue, data]);
 
+  useEffect(() => {
+    if (deadlineData && deadlineData.length) {
+      setDeadlineObj({
+        stu_deadline: deadlineData.filter((obj) => obj.user_type == "5")[0]
+          .deadline,
+        lec_deadline: deadlineData.filter((obj) => obj.user_type == "4")[0]
+          .deadline,
+        hod_deadline: deadlineData.filter((obj) => obj.user_type == "3")[0]
+          .deadline,
+        dean_deadline: deadlineData.filter((obj) => obj.user_type == "2")[0]
+          .deadline,
+      });
+    }
+  }, [deadlineData]);
+
   return (
     <>
-      <div className="flex justify-between mb-2 items-start">
+      {/* <div className="flex gap-2 px-5 mb-4">
+        <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
+          <div className="text-green-900 font-serif">Student Submission</div>
+          <div className="bg-gradient-to-r from-green-100 to-green-500 h-1 w-full"></div>
+          <div className="bg-green-500 h-6 w-1 self-end"></div>
+          <div className="absolute right-0 translate-x-1/2 bottom-0 text-green-700  font-semibold text-sm font-mono">
+            {new Date(deadlineObj.stu_deadline)
+              .toString()
+              .slice(
+                4,
+                new Date(deadlineObj.stu_deadline).toString().indexOf("GMT")
+              )}
+          </div>
+        </div>
+        <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
+          <div className="absolute right-0 translate-x-1/2 top-0 text-blue-700  font-semibold text-sm font-mono">
+            {new Date(deadlineObj.lec_deadline)
+              .toString()
+              .slice(
+                4,
+                new Date(deadlineObj.lec_deadline).toString().indexOf("GMT")
+              )}{" "}
+          </div>
+          <div className="bg-blue-500 h-6 w-1 self-end"></div>
+          <div className="bg-gradient-to-r from-blue-100 to-blue-500 h-1 w-full"></div>
+          <div className="text-blue-900 font-serif">Lecturer Review</div>
+        </div>
+        <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
+          <div className="text-orange-900 font-serif">HOD Approval</div>
+          <div className="bg-gradient-to-r from-orange-100 to-orange-500 h-1 w-full"></div>
+          <div className="bg-orange-500 h-6 w-1 self-end"></div>
+          <div className="absolute right-0 translate-x-1/2 bottom-0 text-orange-700  font-semibold text-sm font-mono">
+            {new Date(deadlineObj.hod_deadline)
+              .toString()
+              .slice(
+                4,
+                new Date(deadlineObj.hod_deadline).toString().indexOf("GMT")
+              )}{" "}
+          </div>
+        </div>
+        <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
+          <div className="absolute right-0 translate-x-1/2 top-0 text-red-700  font-semibold text-sm font-mono">
+            {new Date(deadlineObj.dean_deadline)
+              .toString()
+              .slice(
+                4,
+                new Date(deadlineObj.dean_deadline).toString().indexOf("GMT")
+              )}{" "}
+          </div>
+          <div className="bg-red-500 h-6 w-1 self-end"></div>
+          <div className="bg-gradient-to-r from-red-100 to-red-500 h-1 w-full"></div>
+          <div className="text-red-900 font-serif">Dean Approval</div>
+        </div>
+      </div> */}
+      <div className="flex gap-2 px-5 mb-4">
+        <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
+          <div className="text-black font-serif">Student Submission</div>
+          <div className="bg-gradient-to-r from-white to-black h-1 w-full"></div>
+          <div className="bg-black h-6 w-1 self-end"></div>
+          <div className="absolute right-0 translate-x-1/2 bottom-0 text-black  font-semibold text-sm font-mono">
+            {new Date(deadlineObj.stu_deadline)
+              .toString()
+              .slice(
+                4,
+                new Date(deadlineObj.stu_deadline).toString().indexOf("GMT")
+              )}
+          </div>
+        </div>
+        <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
+          <div className="absolute right-0 translate-x-1/2 top-0 text-black  font-semibold text-sm font-mono">
+            {new Date(deadlineObj.lec_deadline)
+              .toString()
+              .slice(
+                4,
+                new Date(deadlineObj.lec_deadline).toString().indexOf("GMT")
+              )}{" "}
+          </div>
+          <div className="bg-black h-6 w-1 self-end"></div>
+          <div className="bg-gradient-to-r from-white to-black h-1 w-full"></div>
+          <div className="text-black font-serif">Lecturer Review</div>
+        </div>
+        <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
+          <div className="text-black font-serif">HOD Approval</div>
+          <div className="bg-gradient-to-r from-white to-black h-1 w-full"></div>
+          <div className="bg-black h-6 w-1 self-end"></div>
+          <div className="absolute right-0 translate-x-1/2 bottom-0 text-black  font-semibold text-sm font-mono">
+            {new Date(deadlineObj.hod_deadline)
+              .toString()
+              .slice(
+                4,
+                new Date(deadlineObj.hod_deadline).toString().indexOf("GMT")
+              )}{" "}
+          </div>
+        </div>
+        <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
+          <div className="absolute right-0 translate-x-1/2 top-0 text-black  font-semibold text-sm font-mono">
+            {new Date(deadlineObj.dean_deadline)
+              .toString()
+              .slice(
+                4,
+                new Date(deadlineObj.dean_deadline).toString().indexOf("GMT")
+              )}{" "}
+          </div>
+          <div className="bg-black h-6 w-1 self-end"></div>
+          <div className="bg-gradient-to-r from-white to-black h-1 w-full"></div>
+          <div className="text-black font-serif">Dean Approval</div>
+        </div>
+      </div>
+      <div className="flex items-start mb-3">
         <div className="bg-white rounded-md flex relative">
           <Input
             placeholder="Search by name or user name"
@@ -251,12 +406,6 @@ const StudentDetails = ({ sub_id, batch_id, deadline }) => {
           >
             <MdCancel className="size-5 cursor-pointer" />
           </span>
-        </div>
-        <div className="px-3 py-[0.35rem] border bg-white rounded-md">
-          Deadline :{" "}
-          {new Date(deadline)
-            .toString()
-            .slice(4, new Date(deadline).toString().indexOf("GMT"))}
         </div>
       </div>
       <div className="container mx-auto">

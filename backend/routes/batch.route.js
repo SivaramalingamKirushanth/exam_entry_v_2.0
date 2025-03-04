@@ -18,6 +18,9 @@ import {
   updateBatch,
   updateBatchStatus,
   uploadAttendanceSheet,
+  getAllBatchesForDepartment,
+  getAllBatchesForFaculty,
+  getDeadlinesForBatch,
 } from "../controllers/batch.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -50,11 +53,20 @@ router.post(
   verifyUser(["1", "5"]),
   getBatchFullDetails
 );
+router.get(
+  "/getAllBatchesForDepartment",
+  verifyUser(["3"]),
+  getAllBatchesForDepartment
+);
+router.get(
+  "/getAllBatchesForFaculty",
+  verifyUser(["2"]),
+  getAllBatchesForFaculty
+);
 router.post(
-  "/uploadAttendanceSheet",
-  verifyUser(["1"]),
-  upload.single("file"),
-  uploadAttendanceSheet
+  "/getDeadlinesForBatch",
+  verifyUser(["2", "3", "4"]),
+  getDeadlinesForBatch
 );
 
 export default router;

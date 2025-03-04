@@ -16,6 +16,8 @@ import {
   updateCurriculumStatus,
   updateMultipleEligibility,
   checkSubjectExist,
+  getAllSubjectsForDepartment,
+  getAllSubjectsForFaculty,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -45,8 +47,22 @@ router.get(
   verifyUser(["4"]),
   getAllSubjectsForManager
 );
+router.get(
+  "/getAllSubjectsForDepartment",
+  verifyUser(["3"]),
+  getAllSubjectsForDepartment
+);
+router.get(
+  "/getAllSubjectsForFaculty",
+  verifyUser(["2"]),
+  getAllSubjectsForFaculty
+);
 
-router.put("/updateEligibility", verifyUser(["1", "4"]), updateEligibility);
+router.put(
+  "/updateEligibility",
+  verifyUser(["1", "2", "3", "4"]),
+  updateEligibility
+);
 router.put(
   "/updateMultipleEligibility",
   verifyUser(["1", "4"]),

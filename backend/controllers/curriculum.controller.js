@@ -487,6 +487,182 @@ export const getAllSubjectsForManager = async (req, res, next) => {
   }
 };
 
+export const getAllSubjectsForDepartment = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+
+  if (!user_id) {
+    return next(errorProvider(400, "User ID is required."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [departments] = await conn.query(
+        "SELECT d_id FROM department WHERE user_id = ? AND status = 'true'",
+        [user_id]
+      );
+
+      if (departments.length === 0) {
+        return res.status(404).json({ message: "No active departments found" });
+      }
+      let department = departments[0];
+      const result = [];
+
+      // Step 2: Get active degrees under this faculty
+      const [degrees] = await conn.query(
+        "CALL GetActiveDegreesInDepartment(?)",
+        [department.d_id]
+      );
+
+      if (degrees[0].length > 0) {
+        for (const degree of degrees[0]) {
+          // Step 2: Get active degrees under this faculty
+          const [batches] = await conn.query(
+            "CALL GetActiveBatchesWithinDeadline(?, ?)",
+            [degree.deg_id, role_id]
+          );
+
+          if (batches[0].length > 0) {
+            for (const batch of batches[0]) {
+              const { batch_id, batch_code } = batch;
+
+              // Step 3: Get subjects for this batch
+              const [subjects] = await conn.query(
+                "CALL GetSubjectsForBatch(?)",
+                [batch_id]
+              );
+
+              if (subjects[0].length > 0) {
+                const subjectData = [];
+
+                for (const subject of subjects[0]) {
+                  const { sub_id, sub_code, sub_name } = subject;
+
+                  subjectData.push({
+                    sub_id,
+                    sub_code,
+                    sub_name,
+                  });
+                }
+
+                result.push({
+                  batch_id,
+                  batch_code,
+                  deg_name: degree.deg_name,
+                  subjects: subjectData,
+                });
+              }
+            }
+          }
+        }
+      }
+
+      res.status(200).json(result);
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getAllSubjectsForFaculty = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+
+  if (!user_id) {
+    return next(errorProvider(400, "User ID is required."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      // Step 1: Get faculty ID for the dean
+      const [faculty] = await conn.query(
+        "SELECT f_id FROM faculty WHERE user_id = ? AND status = 'true'",
+        [user_id]
+      );
+
+      if (faculty.length === 0) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      const facultyId = faculty[0].f_id;
+
+      // Step 2: Get active departments under this faculty
+      const [departments] = await conn.query(
+        "CALL GetDepartmentsByFacultyId(?)",
+        [facultyId]
+      );
+
+      if (departments[0].length === 0) {
+        return res.status(404).json({ message: "No active departments found" });
+      }
+
+      const result = [];
+
+      for (const department of departments[0]) {
+        // Step 2: Get active degrees under this faculty
+        const [degrees] = await conn.query(
+          "CALL GetActiveDegreesInDepartment(?)",
+          [department.d_id]
+        );
+
+        if (degrees[0].length > 0) {
+          for (const degree of degrees[0]) {
+            // Step 2: Get active degrees under this faculty
+            const [batches] = await conn.query(
+              "CALL GetActiveBatchesWithinDeadline(?, ?)",
+              [degree.deg_id, role_id]
+            );
+
+            if (batches[0].length > 0) {
+              for (const batch of batches[0]) {
+                const { batch_id, batch_code } = batch;
+
+                // Step 3: Get subjects for this batch
+                const [subjects] = await conn.query(
+                  "CALL GetSubjectsForBatch(?)",
+                  [batch_id]
+                );
+
+                if (subjects[0].length > 0) {
+                  const subjectData = [];
+
+                  for (const subject of subjects[0]) {
+                    const { sub_id, sub_code, sub_name } = subject;
+
+                    subjectData.push({
+                      sub_id,
+                      sub_code,
+                      sub_name,
+                    });
+                  }
+
+                  result.push({
+                    batch_id,
+                    batch_code,
+                    deg_name: degree.deg_name,
+                    subjects: subjectData,
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+
+      res.status(200).json(result);
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
 export const updateEligibility = async (req, res, next) => {
   const { user_id, role_id } = req.user;
   const { batch_id, sub_id, eligibility, s_id, remark } = req.body;

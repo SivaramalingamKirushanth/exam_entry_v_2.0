@@ -98,6 +98,20 @@ export const getAllSubjectsForManager = async () => {
   return response.data;
 };
 
+export const getAllSubjectsForDepartment = async () => {
+  const response = await axiosInstance.get(
+    "/curriculum/getAllSubjectsForDepartment"
+  );
+  return response.data;
+};
+
+export const getAllSubjectsForFaculty = async () => {
+  const response = await axiosInstance.get(
+    "/curriculum/getAllSubjectsForFaculty"
+  );
+  return response.data;
+};
+
 export const updateEligibility = async (data) => {
   const response = await axiosInstance.put(
     "/curriculum/updateEligibility",
