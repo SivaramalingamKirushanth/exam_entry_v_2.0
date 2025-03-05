@@ -40,27 +40,23 @@ const AdmissionCard = ({
 
   return (
     <div className="p-4 pt-0 max-w-4xl mx-auto font-times bg-white">
-      <div className="text-center mb-2">
+      <div className="text-center mb-2 ">
         <Image
           src={UoV_Logo}
           alt="UOV logo"
           height={100}
           width={100}
-          className="mx-auto"
+          className="mx-auto mb-2"
         />
-        <h1 className="font-bold text-lg uppercase underline">
+        <h1 className="font-bold text-lg uppercase leading-[1]">
           University of Vavuniya
         </h1>
-        <h2 className="text-md uppercase text-lg font-extrabold">
-          {batchFullDetailsData?.f_name}
+        <h2 className="uppercase text-xl font-extrabold leading-[1]">
+          faculty of {batchFullDetailsData?.f_name}
         </h2>
-        <h3 className="text-lg mt-2 uppercase">
-          {level_ordinal} examination in {batchFullDetailsData?.deg_name} -
-          {decodeBatchCode.academic_year} - <br />
-        </h3>
-        <div className="flex justify-center text-lg uppercase space-x-2 items-center flex-wrap">
-          {sem_ordinal}
-          &nbsp;semester -&nbsp;
+        <div className="flex justify-center font-semibold text-base uppercase space-x-2 items-center flex-wrap leading-[1]">
+          {level_ordinal} examination in {batchFullDetailsData?.deg_name} -{" "}
+          {decodeBatchCode.academic_year} - {sem_ordinal}&nbsp;semester -
           {formData.date?.map((obj, ind) =>
             ind
               ? " ," +
@@ -80,39 +76,51 @@ const AdmissionCard = ({
                 obj.year
           )}
         </div>
-        <h3 className="text-xl mt-1 uppercase font-algerian">Admission Card</h3>
+        <h3 className="text-xl uppercase font-bold leading-[1.1]">
+          Admission Card
+        </h3>
       </div>
 
-      <div className="grid grid-cols-2 gap-0 mb-1">
+      <div className="flex justify-between mb-2 text-sm">
         <p>
-          <span className="font-bold w-24 inline-block">Name</span> :-&nbsp;
+          <span className="font-bold inline-block">Name</span> :&nbsp;
           {student?.name || ""}
         </p>
         <p>
-          <span className="font-bold w-24 inline-block">Reg. No</span> :-&nbsp;
+          <span className="font-bold inline-block">Reg. No</span> :&nbsp;
           {student?.user_name || ""}
         </p>
         <p>
-          <span className="font-bold w-24 inline-block">Index No</span> :-&nbsp;
+          <span className="font-bold inline-block">Index No</span> :&nbsp;
           {student?.index_num || ""}
+        </p>
+        <p>
+          <span className="font-bold inline-block">Category</span> :&nbsp;
+          {type == "P"
+            ? "Proper"
+            : type == "R"
+            ? "Resit"
+            : type == "M"
+            ? "Medical"
+            : ""}
         </p>
       </div>
 
-      <div className="mb-2 text-base">{parse(formData.description) || ""}</div>
+      <div className="mb-5 mt-1 text-sm leading-[1.1]">
+        {parse(formData.description) || ""}
+      </div>
 
       <table className="w-full border-collapse border border-black mb-1">
         <thead>
           <tr>
-            <th className="border border-black px-1 pb-2 text-xs">S.No</th>
+            <th className="border border-black px-1 pb-2 text-xs">No.</th>
             <th className="border border-black px-1 pb-2 text-xs w-16">
-              Unit Code
+              Subject Code
             </th>
             <th className="border border-black px-1 pb-2 text-xs w-72">
               Subject
             </th>
-            <th className="border border-black px-1 pb-2 text-xs">
-              Eligibility
-            </th>
+            <th className="border border-black px-1 pb-2 text-xs">Eligible</th>
             <th className="border border-black px-1 pb-2 text-xs w-16">Date</th>
             <th className="border border-black px-1 pb-2 text-xs">
               Candidate’s Signature
@@ -128,23 +136,23 @@ const AdmissionCard = ({
             formData.subjects.map((arr, ind) =>
               arr.map((subId, index) => (
                 <tr key={index}>
-                  <td className="border border-black p-1 pb-2 text-center text-sm">
-                    <div className="flex justify-center items-center">
+                  <td className="border border-black text-center text-sm">
+                    <div className="flex justify-center -mt-1 pb-2 items-center leading-[1]">
                       {index ? "" : ind + 1}
                     </div>
                   </td>
-                  <td className="border border-black p-1 pb-2 text-sm w-20">
-                    <div className="flex justify-center items-center">
+                  <td className="border border-black text-sm w-20">
+                    <div className="flex items-center -mt-1 pb-2 leading-[1] pl-1">
                       {subjectObject[subId].sub_code}
                     </div>
                   </td>
                   <td className="border border-black text-sm w-80">
-                    <div className="flex justify-start p-1 pb-2 -mt-3  items-center">
+                    <div className="flex justify-start -mt-1 pb-2 items-center leading-[1] px-1">
                       {subjectObject[subId].sub_name}
                     </div>
                   </td>
                   <td className="border border-black p-1 pb-2 text-center text-sm">
-                    <div className="flex justify-center items-center">
+                    <div className="flex justify-center items-center leading-[1]">
                       {student?.subjects.some((obj) => obj.sub_id == subId) &&
                       student?.subjects.filter((obj) => obj.sub_id == subId)[0]
                         .eligibility == "true" ? (
@@ -164,12 +172,15 @@ const AdmissionCard = ({
       </table>
 
       {/* Footer Instructions */}
-      <div className="text-sm mb-8">
-        <div className="text-sm pl-2">
+      <div className="mb-8">
+        <div className="pl-2 text-sm">
           {parse(
             formData.instructions
               .replace(/<ol>/g, '<ol className="list-inside list-decimal">')
               .replace(/<ul>/g, '<ol className="list-inside list-disc">' || "")
+              .replace(/<h3>/g, '<h3 className="text-lg">' || "")
+              .replace(/<h2>/g, '<h2 className="text-2xl">' || "")
+              .replace(/<h1>/g, '<h1 className="text-3xl">' || "")
           )}
         </div>
       </div>

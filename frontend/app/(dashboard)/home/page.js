@@ -21,6 +21,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/utils/useUser";
 import { useQuery } from "@tanstack/react-query";
 import {
+  getAllBatchesForDepartment,
+  getAllBatchesForFaculty,
   getBatchesByStudent,
   getBatchFullDetails,
 } from "@/utils/apiRequests/batch.api";
@@ -31,9 +33,10 @@ import {
   parseString,
   titleCase,
 } from "@/utils/functions";
-import { getDegreeByShort } from "@/utils/apiRequests/course.api";
 import CryptoJS from "crypto-js";
 import {
+  getAllSubjectsForDepartment,
+  getAllSubjectsForFaculty,
   getAllSubjectsForManager,
   getCurriculumBybatchId,
 } from "@/utils/apiRequests/curriculum.api";
@@ -108,6 +111,20 @@ const dashboard = () => {
       enabled: false,
     });
 
+  const { data: batchesOfFacultyData, refetch: batchesOfFacultyRefetch } =
+    useQuery({
+      queryFn: getAllBatchesForFaculty,
+      queryKey: ["batchesOfFaculty"],
+      enabled: false,
+    });
+
+  const { data: batchesOfDepartmentData, refetch: batchesOfDepartmentRefetch } =
+    useQuery({
+      queryFn: getAllBatchesForDepartment,
+      queryKey: ["batchesOfDepartment"],
+      enabled: false,
+    });
+
   const {
     data: batchAdmissionDetailsData,
     refetch: batchAdmissionDetailsRefetch,
@@ -137,18 +154,6 @@ const dashboard = () => {
       queryKey: ["studentsWithSubjects"],
       enabled: false,
     });
-
-  const { data: deanDashboardData, refetch: deanDashboardRefetch } = useQuery({
-    queryFn: getDeanDashboardData,
-    queryKey: ["deanDashboard"],
-    enabled: false,
-  });
-
-  const { data: hodDashboardData, refetch: hodDashboardRefetch } = useQuery({
-    queryFn: getHodDashboardData,
-    queryKey: ["hodDashboard"],
-    enabled: false,
-  });
 
   useEffect(() => {
     if (downloadBatchId) {
@@ -296,267 +301,145 @@ const dashboard = () => {
   // Conditional Rendering Based on Role
   switch (user.role_id) {
     case "1":
+      break;
     case "2":
-      deanDashboardRefetch();
+      batchesOfFacultyRefetch();
+
       return (
-        <div>
-          {deanDashboardData?.length
-            ? deanDashboardData.map((batch) => {
-                const decodeBatchCode = parseString(batch.batch_code);
+        <div className="flex justify-end md:justify-center">
+          <div className="md:w-[70%] flex gap-6 flex-wrap">
+            {batchesOfFacultyData && batchesOfFacultyData.length ? (
+              batchesOfFacultyData.map((obj) => {
+                const decodeBatchCode = parseString(obj.batch_code);
                 const level_ordinal = numberToOrdinalWord(
                   decodeBatchCode.level
                 );
                 const sem_ordinal = numberToOrdinalWord(decodeBatchCode.sem_no);
-                const subjects = [];
-                const properData = {};
-                const medicalData = {};
-                const resitData = {};
-                batch.subjects.forEach((subObj) => {
-                  subjects.push({
-                    sub_id: subObj.sub_id,
-                    sub_code: subObj.sub_code,
-                  });
-                  subObj.students.forEach((stuObj) => {
-                    if (stuObj.exam_type == "P") {
-                      properData[stuObj.index_num]
-                        ? properData[stuObj.index_num].push({
-                            sub_id: subObj.sub_id,
-                            sub_code: subObj.sub_code,
-                            eligibility: stuObj.eligibility,
-                          })
-                        : (properData[stuObj.index_num] = [
-                            {
-                              sub_id: subObj.sub_id,
-                              sub_code: subObj.sub_code,
-                              eligibility: stuObj.eligibility,
-                            },
-                          ]);
-                    } else if (stuObj.exam_type == "M") {
-                      medicalData[stuObj.index_num]
-                        ? medicalData[stuObj.index_num].push({
-                            sub_id: subObj.sub_id,
-                            sub_code: subObj.sub_code,
-                            eligibility: stuObj.eligibility,
-                          })
-                        : (medicalData[stuObj.index_num] = [
-                            {
-                              sub_id: subObj.sub_id,
-                              sub_code: subObj.sub_code,
-                              eligibility: stuObj.eligibility,
-                            },
-                          ]);
-                    } else if (stuObj.exam_type == "R") {
-                      resitData[stuObj.index_num]
-                        ? resitData[stuObj.index_num].push({
-                            sub_id: subObj.sub_id,
-                            sub_code: subObj.sub_code,
-                            eligibility: stuObj.eligibility,
-                          })
-                        : (resitData[stuObj.index_num] = [
-                            {
-                              sub_id: subObj.sub_id,
-                              sub_code: subObj.sub_code,
-                              eligibility: stuObj.eligibility,
-                            },
-                          ]);
-                    }
-                  });
-                });
-                console.log(subjects);
-                console.log(properData);
-                console.log(medicalData);
-                console.log(resitData);
-
                 return (
-                  <div key={batch.batch_id}>
-                    <h1 className="uppercase text-2xl font-bold text-center my-3">
-                      {level_ordinal} examination in {batch.deg_name} -{" "}
-                      {decodeBatchCode.academic_year} {sem_ordinal}
-                      &nbsp;semester
-                    </h1>
-                    <div>
-                      <h1 className="uppercase text-xl font-semibold text-center my-1">
-                        Proper
-                      </h1>
-
-                      <ReportTable
-                        subjects={subjects}
-                        data={properData}
-                        exam_type="P"
-                        batch_id={batch.batch_id}
-                      />
-                      <h1 className="uppercase text-xl font-semibold text-center my-1">
-                        Medical
-                      </h1>
-
-                      <ReportTable
-                        subjects={subjects}
-                        data={medicalData}
-                        exam_type="M"
-                        batch_id={batch.batch_id}
-                      />
-                      <h1 className="uppercase text-xl font-semibold text-center my-1">
-                        Re-sit
-                      </h1>
-
-                      <ReportTable
-                        subjects={subjects}
-                        data={resitData}
-                        exam_type="R"
-                        batch_id={batch.batch_id}
-                      />
-                    </div>
-                  </div>
+                  <Link
+                    href={{
+                      pathname: `${pathname}/batches/${obj.batch_code}`,
+                      query: {
+                        batch_id: obj.batch_id,
+                      },
+                    }}
+                    className="min-w-[30%] max-w-[30%] hover:shadow-md rounded-xl"
+                    key={obj.batch_id}
+                  >
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="capitalize text-center">
+                          <p>
+                            {level_ordinal} examination in {obj.deg_name}
+                          </p>
+                          <p>{decodeBatchCode.academic_year}</p>
+                          <br />
+                          <p>{sem_ordinal} semester</p>
+                        </CardTitle>
+                        <CardDescription className="capitalize text-center">
+                          {obj.batch_code}
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </Link>
                 );
               })
-            : ""}
+            ) : (
+              <h1 className="text-2xl text-center w-full">
+                No batches available!
+              </h1>
+            )}
+          </div>
         </div>
       );
+
     case "3":
-      hodDashboardRefetch();
+      batchesOfDepartmentRefetch();
+
       return (
-        <div>
-          {hodDashboardData?.length
-            ? hodDashboardData.map((batch) => {
-                const decodeBatchCode = parseString(batch.batch_code);
+        <div className="flex justify-end md:justify-center">
+          <div className="md:w-[70%] flex gap-6 flex-wrap">
+            {batchesOfDepartmentData && batchesOfDepartmentData.length ? (
+              batchesOfDepartmentData.map((obj) => {
+                const decodeBatchCode = parseString(obj.batch_code);
                 const level_ordinal = numberToOrdinalWord(
                   decodeBatchCode.level
                 );
                 const sem_ordinal = numberToOrdinalWord(decodeBatchCode.sem_no);
-                const subjects = [];
-                const properData = {};
-                const medicalData = {};
-                const resitData = {};
-                batch.subjects.forEach((subObj) => {
-                  subjects.push({
-                    sub_id: subObj.sub_id,
-                    sub_code: subObj.sub_code,
-                  });
-                  subObj.students.forEach((stuObj) => {
-                    if (stuObj.exam_type == "P") {
-                      properData[stuObj.index_num]
-                        ? properData[stuObj.index_num].push({
-                            sub_id: subObj.sub_id,
-                            sub_code: subObj.sub_code,
-                            eligibility: stuObj.eligibility,
-                          })
-                        : (properData[stuObj.index_num] = [
-                            {
-                              sub_id: subObj.sub_id,
-                              sub_code: subObj.sub_code,
-                              eligibility: stuObj.eligibility,
-                            },
-                          ]);
-                    } else if (stuObj.exam_type == "M") {
-                      medicalData[stuObj.index_num]
-                        ? medicalData[stuObj.index_num].push({
-                            sub_id: subObj.sub_id,
-                            sub_code: subObj.sub_code,
-                            eligibility: stuObj.eligibility,
-                          })
-                        : (medicalData[stuObj.index_num] = [
-                            {
-                              sub_id: subObj.sub_id,
-                              sub_code: subObj.sub_code,
-                              eligibility: stuObj.eligibility,
-                            },
-                          ]);
-                    } else if (stuObj.exam_type == "R") {
-                      resitData[stuObj.index_num]
-                        ? resitData[stuObj.index_num].push({
-                            sub_id: subObj.sub_id,
-                            sub_code: subObj.sub_code,
-                            eligibility: stuObj.eligibility,
-                          })
-                        : (resitData[stuObj.index_num] = [
-                            {
-                              sub_id: subObj.sub_id,
-                              sub_code: subObj.sub_code,
-                              eligibility: stuObj.eligibility,
-                            },
-                          ]);
-                    }
-                  });
-                });
-                console.log(subjects);
-                console.log(properData);
-                console.log(medicalData);
-                console.log(resitData);
-
                 return (
-                  <div key={batch.batch_id}>
-                    <h1 className="uppercase text-2xl font-bold text-center my-3">
-                      {level_ordinal} examination in {batch.deg_name} -{" "}
-                      {decodeBatchCode.academic_year} {sem_ordinal}
-                      &nbsp;semester
-                    </h1>
-                    <div>
-                      <h1 className="uppercase text-xl font-semibold text-center my-1">
-                        Proper
-                      </h1>
-
-                      <ReportTable
-                        subjects={subjects}
-                        data={properData}
-                        exam_type="P"
-                        batch_id={batch.batch_id}
-                      />
-                      <h1 className="uppercase text-xl font-semibold text-center my-1">
-                        Medical
-                      </h1>
-
-                      <ReportTable
-                        subjects={subjects}
-                        data={medicalData}
-                        exam_type="M"
-                        batch_id={batch.batch_id}
-                      />
-                      <h1 className="uppercase text-xl font-semibold text-center my-1">
-                        Re-sit
-                      </h1>
-
-                      <ReportTable
-                        subjects={subjects}
-                        data={resitData}
-                        exam_type="R"
-                        batch_id={batch.batch_id}
-                      />
-                    </div>
-                  </div>
+                  <Link
+                    href={{
+                      pathname: `${pathname}/batches/${obj.batch_code}`,
+                      query: {
+                        batch_id: obj.batch_id,
+                      },
+                    }}
+                    className="min-w-[30%] max-w-[30%] hover:shadow-md rounded-xl"
+                    key={obj.batch_id}
+                  >
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="capitalize text-center">
+                          <p>
+                            {level_ordinal} examination in {obj.deg_name}
+                          </p>
+                          <p>{decodeBatchCode.academic_year}</p>
+                          <br />
+                          <p>{sem_ordinal} semester</p>
+                        </CardTitle>
+                        <CardDescription className="capitalize text-center">
+                          {obj.batch_code}
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </Link>
                 );
               })
-            : ""}
+            ) : (
+              <h1 className="text-2xl text-center w-full">
+                No batches available!
+              </h1>
+            )}
+          </div>
         </div>
       );
     case "4":
       subjectsOfManagerRefetch();
+
       return (
         <div className="flex justify-end md:justify-center">
           <div className="md:w-[70%] flex gap-6 flex-wrap">
-            {subjectsOfManagerData?.map((obj) => (
-              <Link
-                href={{
-                  pathname: `${pathname}/${obj.sub_code}`,
-                  query: {
-                    sub_id: obj.sub_id,
-                    batch_id: obj.batch_id,
-                    deadline: obj.deadline,
-                  },
-                }}
-                className="w-[30%] max-w-[30%] hover:shadow-md rounded-xl"
-                key={obj.sub_id}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{titleCase(obj.sub_name)}</CardTitle>
-                    <CardDescription>{obj.sub_code}</CardDescription>
-                  </CardHeader>
-                </Card>
-              </Link>
-            ))}
+            {subjectsOfManagerData && subjectsOfManagerData.length ? (
+              subjectsOfManagerData.map((obj) => (
+                <Link
+                  href={{
+                    pathname: `${pathname}/subjects/${obj.sub_code}`,
+                    query: {
+                      sub_id: obj.sub_id,
+                      batch_id: obj.batch_id,
+                      deadline: obj.deadline,
+                    },
+                  }}
+                  className="w-[30%] max-w-[30%] hover:shadow-md rounded-xl"
+                  key={obj.sub_id}
+                >
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{titleCase(obj.sub_name)}</CardTitle>
+                      <CardDescription>{obj.sub_code}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
+              ))
+            ) : (
+              <h1 className="text-2xl text-center w-full">
+                No entries available!
+              </h1>
+            )}
           </div>
         </div>
       );
+
     case "5":
       batchDataRefetch();
 

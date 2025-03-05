@@ -294,14 +294,13 @@ export const getLatestAdmissionTemplate = async (req, res, next) => {
         batch_id,
       ]);
 
-      if (rows.length === 0) {
+      if (rows[0].length === 0) {
         return res.status(404).json({
           message: "No admission template found.",
         });
       }
 
       const response = rows[0][0];
-
       if (response.data) {
         response.data = JSON.parse(response.data);
       }
@@ -547,7 +546,7 @@ export const createOrUpdateAttendance = async (req, res, next) => {
         description,
       ]);
 
-      let desc = `Admission created or updated for batch_id=${batch_id}, transformedDate=${transformedDate}, description=${description}`;
+      let desc = `Attendance created or updated for batch_id=${batch_id}, transformedDate=${transformedDate}, description=${description}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(200).json({
@@ -717,7 +716,7 @@ export const getDeanDashboardData = async (req, res, next) => {
           for (const degree of degrees[0]) {
             // Step 2: Get active degrees under this faculty
             const [batches] = await conn.query("CALL GetActiveBatches(?)", [
-              degree.short,
+              degree.deg_id,
             ]);
 
             if (batches[0].length > 0) {
@@ -819,7 +818,7 @@ export const getHodDashboardData = async (req, res, next) => {
         for (const degree of degrees[0]) {
           // Step 2: Get active degrees under this faculty
           const [batches] = await conn.query("CALL GetActiveBatches(?)", [
-            degree.short,
+            degree.deg_id,
           ]);
 
           if (batches[0].length > 0) {
@@ -889,5 +888,234 @@ export const getHodDashboardData = async (req, res, next) => {
   } catch (error) {
     console.error("Error in Dean Dashboard:", error);
     next(new Error("Failed to fetch data for Dean Dashboard"));
+  }
+};
+
+export const getAppliedStudentsForSubject = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+  const { batch_id, sub_id } = req.body;
+
+  if (!user_id || !batch_id || !sub_id || !role_id) {
+    return next(errorProvider(400, "Missing required fields."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [results] = await conn.query(
+        "CALL GetAppliedStudentsByBatchAndSubject(?, ?, ?, ?);",
+        [user_id, batch_id, sub_id, role_id]
+      );
+
+      return res.status(200).json(results[0]);
+    } catch (error) {
+      console.error("Error fetching applied students for subject:", error);
+
+      if (error.code === "45000") {
+        return next(errorProvider(403, error.sqlMessage));
+      }
+
+      return next(
+        errorProvider(500, "An error occurred while fetching applied students.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getAppliedStudentsForSubjectOfFaculty = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+  const { batch_id, sub_id } = req.body;
+
+  if (!batch_id || !sub_id) {
+    return next(errorProvider(400, "required fields are missing"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      // Step 1: Get faculty ID for the dean
+      const [faculty] = await conn.query(
+        "SELECT f_id FROM faculty WHERE user_id = ? AND status = 'true'",
+        [user_id]
+      );
+
+      if (faculty.length === 0) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+
+      const facultyId = faculty[0].f_id;
+
+      // Step 2: Get active departments under this faculty
+      const [departments] = await conn.query(
+        "CALL GetDepartmentsByFacultyId(?)",
+        [facultyId]
+      );
+
+      if (departments[0].length === 0) {
+        return res.status(404).json({ message: "No active departments found" });
+      }
+
+      for (const department of departments[0]) {
+        // Step 2: Get active degrees under this faculty
+        const [degrees] = await conn.query(
+          "CALL GetActiveDegreesInDepartment(?)",
+          [department.d_id]
+        );
+
+        if (degrees[0].length > 0) {
+          const [deg] = await conn.query(
+            "SELECT deg_id FROM batch WHERE batch_id = ?",
+            [batch_id]
+          );
+          const degree = degrees[0].find(
+            (item) => item.deg_id == deg[0].deg_id
+          );
+
+          if (degree) {
+            const [batches] = await conn.query(
+              "CALL GetActiveBatchesWithinDeadline(?, ?)",
+              [degree.deg_id, role_id]
+            );
+
+            if (batches[0].length > 0) {
+              const batch = batches[0].find((obj) => obj.batch_id == batch_id);
+              if (batch) {
+                const [subjects] = await conn.query(
+                  "CALL GetSubjectsForBatch(?)",
+                  [batch_id]
+                );
+
+                if (subjects[0].length > 0) {
+                  const subject = subjects[0].find(
+                    (obj) => obj.sub_id == sub_id
+                  );
+                  if (subject) {
+                    const [results] = await conn.query(
+                      "CALL GetAppliedStudentsForSubjectOfFacOrDep(?, ?, ?);",
+                      [batch_id, sub_id, role_id]
+                    );
+
+                    return res.status(200).json(results[0]);
+                  } else {
+                    return next(
+                      errorProvider(404, "No matching subject found.")
+                    );
+                  }
+                } else {
+                  return next(errorProvider(404, "No subjects found."));
+                }
+              } else {
+                return next(errorProvider(404, "No matching batch found."));
+              }
+            } else {
+              return next(errorProvider(404, "No batches found."));
+            }
+          } else {
+            return next(errorProvider(404, "No matching degree found."));
+          }
+        } else {
+          return next(errorProvider(404, "No degrees found."));
+        }
+      }
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getAppliedStudentsForSubjectOfDepartment = async (
+  req,
+  res,
+  next
+) => {
+  const { user_id, role_id } = req.user;
+  const { batch_id, sub_id } = req.body;
+
+  if (!batch_id || !sub_id || !user_id) {
+    return next(errorProvider(400, "required fields are missing"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [departments] = await conn.query(
+        "SELECT d_id FROM department WHERE user_id = ? AND status = 'true'",
+        [user_id]
+      );
+
+      if (departments.length === 0) {
+        return res.status(404).json({ message: "No active departments found" });
+      }
+      let department = departments[0];
+
+      const [degrees] = await conn.query(
+        "CALL GetActiveDegreesInDepartment(?)",
+        [department.d_id]
+      );
+
+      if (degrees[0].length > 0) {
+        const [deg] = await conn.query(
+          "SELECT deg_id FROM batch WHERE batch_id = ?",
+          [batch_id]
+        );
+        const degree = degrees[0].find((item) => item.deg_id == deg[0].deg_id);
+
+        if (degree) {
+          const [batches] = await conn.query(
+            "CALL GetActiveBatchesWithinDeadline(?, ?)",
+            [degree.deg_id, role_id]
+          );
+
+          if (batches[0].length > 0) {
+            const batch = batches[0].find((obj) => obj.batch_id == batch_id);
+            if (batch) {
+              const [subjects] = await conn.query(
+                "CALL GetSubjectsForBatch(?)",
+                [batch_id]
+              );
+
+              if (subjects[0].length > 0) {
+                const subject = subjects[0].find((obj) => obj.sub_id == sub_id);
+                if (subject) {
+                  const [results] = await conn.query(
+                    "CALL GetAppliedStudentsForSubjectOfFacOrDep(?, ?, ?);",
+                    [batch_id, sub_id, role_id]
+                  );
+
+                  return res.status(200).json(results[0]);
+                } else {
+                  return next(errorProvider(404, "No matching subject found."));
+                }
+              } else {
+                return next(errorProvider(404, "No subjects found."));
+              }
+            } else {
+              return next(errorProvider(404, "No matching batch found."));
+            }
+          } else {
+            return next(errorProvider(404, "No batches found."));
+          }
+        } else {
+          return next(errorProvider(404, "No matching degree found."));
+        }
+      } else {
+        return next(errorProvider(404, "No degrees found."));
+      }
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
   }
 };

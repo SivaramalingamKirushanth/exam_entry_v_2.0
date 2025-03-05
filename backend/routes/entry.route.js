@@ -8,6 +8,9 @@ import {
   fetchStudentsWithSubjects,
   fetchStudentWithSubjectsByUserId,
   generateIndexNumbers,
+  getAppliedStudentsForSubject,
+  getAppliedStudentsForSubjectOfDepartment,
+  getAppliedStudentsForSubjectOfFaculty,
   getBatchAdmissionDetails,
   getDeanDashboardData,
   getEligibleStudentsBySub,
@@ -87,5 +90,12 @@ router.post(
 );
 router.get("/getDeanDashboardData", verifyUser(["2"]), getDeanDashboardData);
 router.get("/getHodDashboardData", verifyUser(["3"]), getHodDashboardData);
+router.post(
+  "/getAppliedStudentsForSubject",
+  verifyUser(["1", "4"]),
+  getAppliedStudentsForSubject
+);
+router.post("/getAppliedStudentsForSubjectOfFaculty", verifyUser(["2"]), getAppliedStudentsForSubjectOfFaculty);
+router.post("/getAppliedStudentsForSubjectOfDepartment", verifyUser(["3"]), getAppliedStudentsForSubjectOfDepartment);
 
 export default router;

@@ -5,7 +5,7 @@ const RichTextEditor = dynamic(() => import("./RichTextEditor"), {
   ssr: false,
 });
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import UoV_Logo from "./../images/UoV_Logo.png";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
@@ -172,27 +172,25 @@ const AdmissionCardTemplate = ({
 
   return (
     <div className="border-2 border-black p-8 max-w-4xl mx-auto font-times bg-white">
-      <div className="text-center mb-4">
+      <div className="text-center mb-4 ">
         <Image
           src={UoV_Logo}
           alt="UOV logo"
           height={100}
           width={100}
-          className="mx-auto"
+          className="mx-auto mb-2"
         />
-        <h1 className="font-bold text-lg uppercase underline">
+        <h1 className="font-bold text-lg uppercase leading-[1]">
           University of Vavuniya
         </h1>
-        <h2 className="uppercase text-xl font-extrabold">
-          {batchFullDetailsData?.f_name}
+        <h2 className="uppercase text-xl font-extrabold leading-[1]">
+          faculty of {batchFullDetailsData?.f_name}
         </h2>
-        <h3 className="font-bold text-lg mt-2 uppercase">
-          {level_ordinal} examination in {batchFullDetailsData?.deg_name} -
-          {decodeBatchCode.academic_year} - <br />
-        </h3>
-        <div className="flex justify-center font-bold text-lg uppercase space-x-2 items-center flex-wrap">
-          {sem_ordinal}
-          &nbsp;semester -&nbsp;{" "}
+
+        <div className="flex justify-center font-semibold text-base uppercase space-x-2 items-center flex-wrap  leading-[1]">
+          {level_ordinal} examination in {batchFullDetailsData?.deg_name} -{" "}
+          {decodeBatchCode.academic_year} - {sem_ordinal}
+          &nbsp;semester -
           {formData.date?.map((yearBlock, yearIndex) => (
             <React.Fragment key={yearIndex}>
               <span>
@@ -316,21 +314,23 @@ const AdmissionCardTemplate = ({
             </Tooltip>
           </TooltipProvider>
         </div>
-        <h3 className="text-xl mt-1 uppercase font-algerian">Admission Card</h3>
+        <h3 className="text-xl uppercase font-bold leading-[1.1]">
+          Admission Card
+        </h3>
       </div>
 
-      <div className="grid grid-cols-2 gap-0 mb-2">
+      <div className="flex justify-between mb-2 text-sm">
         <p>
-          <span className="font-bold w-24 inline-block">Name</span> :-&nbsp;
-          ____
+          <span className="font-bold inline-block">Name</span> :&nbsp; ____
         </p>
         <p>
-          <span className="font-bold w-24 inline-block">Reg. No</span> :-&nbsp;
-          ____
+          <span className="font-bold inline-block">Reg. No</span> :&nbsp; ____
         </p>
         <p>
-          <span className="font-bold w-24 inline-block">Index No</span> :-&nbsp;
-          ____
+          <span className="font-bold inline-block">Index No</span> :&nbsp; ____
+        </p>
+        <p>
+          <span className="font-bold inline-block">Category</span> :&nbsp; ____
         </p>
       </div>
 
@@ -345,10 +345,10 @@ const AdmissionCardTemplate = ({
       <table className="w-full border-collapse border border-black text-sm mb-2">
         <thead>
           <tr>
-            <th className="border border-black px-2 py-1">S.No</th>
-            <th className="border border-black px-2 py-1">Unit Code</th>
+            <th className="border border-black px-2 py-1">No.</th>
+            <th className="border border-black px-2 py-1">Subject Code</th>
             <th className="border border-black px-2 py-1">Subject</th>
-            <th className="border border-black px-2 py-1">Eligibility</th>
+            <th className="border border-black px-2 py-1">Eligible</th>
             <th className="border border-black px-2 py-1">Date</th>
             <th className="border border-black px-2 py-1">
               Candidate’s Signature
@@ -362,13 +362,13 @@ const AdmissionCardTemplate = ({
           {formData.subjects?.map((arr, index) =>
             arr.map((sub_id, ind) => (
               <tr key={index + ":" + ind}>
-                <td className="border border-black px-2 py-1 text-center">
+                <td className="border border-black px-2 py-1 text-center leading-[0.9]">
                   {ind ? "" : index + 1}
                 </td>
-                <td className="border border-black px-2 py-1">
+                <td className="border border-black px-2 py-1 leading-[0.9]">
                   {subjectObject[sub_id]?.sub_code}
                 </td>
-                <td className="border border-black px-2 py-1 relative">
+                <td className="border border-black px-2 py-1 relative leading-[0.9]">
                   {subjectObject[sub_id]?.sub_name}
                   {formData.subjects?.length - 1 == index &&
                   formData.subjects?.[index].length - 1 == ind ? (

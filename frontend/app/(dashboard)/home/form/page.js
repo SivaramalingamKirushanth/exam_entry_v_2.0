@@ -52,7 +52,9 @@ const Form = (request) => {
     router.push("/home");
   };
 
-  if (error) return router.push("/home");
+  useEffect(() => {
+    if (error) router.push("/home");
+  }, [error]);
 
   return (
     <>
@@ -114,7 +116,9 @@ const Form = (request) => {
                 ))}
             </div>
             <div className="flex justify-end">
-              <Button onClick={onSubmit}>Submit</Button>
+              {Object.keys(applicationData).length && (
+                <Button onClick={onSubmit}>Submit</Button>
+              )}
             </div>
           </div>
         </div>

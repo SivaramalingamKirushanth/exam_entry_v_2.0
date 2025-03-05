@@ -210,6 +210,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         old_subjects,
         old_status,
         batch_id,
+        deg_id,
       } = formData;
       mutate({
         batch_code,
@@ -219,15 +220,20 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         old_subjects,
         old_status,
         batch_id,
+        deg_id,
       });
     } else {
-      const { batch_code, subjects, status } = formData;
-      mutate({ batch_code, subjects, status });
+      const { batch_code, subjects, status, deg_id } = formData;
+      mutate({ batch_code, subjects, status, deg_id });
     }
 
     setFormData({});
     setIsOpen(false);
   };
+
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
 
   const onFormReset = () => {
     setFormData(

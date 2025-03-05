@@ -13,7 +13,7 @@ const RichTextEditor = ({ element, text, setFormData, height, width }) => {
         setFormData((cur) => ({ ...cur, [element]: e }));
       }}
       style={{ height, width, marginBottom: "50px" }}
-      className="font-serif mb-3"
+      className="font-times mb-3"
     />
   );
 };

@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { login } from "@/utils/apiRequests/auth.api";
 import { useMutation } from "@tanstack/react-query";
+import { FaEye, FaEyeSlash } from "react-icons/fa6";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -18,6 +19,8 @@ const Login = () => {
   });
   const [btnEnable, setBtnEnable] = useState(false);
   const router = useRouter();
+  const loginBtnRef = useRef(null);
+  const [protectedPass, setProtectedPass] = useState(true);
 
   const { mutate } = useMutation({
     mutationFn: login,
@@ -58,7 +61,14 @@ const Login = () => {
   }, [formData]);
 
   return (
-    <div className="flex justify-center items-center h-full">
+    <div
+      className="flex justify-center items-center h-full"
+      onKeyDown={(e) => {
+        if (e.key == "Enter") {
+          loginBtnRef.current.click();
+        }
+      }}
+    >
       <div className="bg-white rounded-lg shadow-lg w-[425px] p-6">
         <div className="flex justify-between items-center border-b pb-2 mb-4">
           <h3 className="text-lg font-semibold">Sign in</h3>
@@ -85,19 +95,32 @@ const Login = () => {
             <Label htmlFor="password" className="text-right">
               Password
             </Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              className="col-span-3"
-              onChange={(e) => onFormDataChanged(e)}
-              onBlur={(e) => {
-                e.target.value = e.target.value.trim();
-                onFormDataChanged(e);
-              }}
-              value={formData.password || ""}
-              placeholder="Enter your password"
-            />
+            <div className="col-span-3 relative">
+              <Input
+                id="password"
+                name="password"
+                type={protectedPass ? "password" : "text"}
+                className="w-full"
+                onChange={(e) => onFormDataChanged(e)}
+                onBlur={(e) => {
+                  e.target.value = e.target.value.trim();
+                  onFormDataChanged(e);
+                }}
+                value={formData.password || ""}
+                placeholder="Enter your password"
+              />
+              {protectedPass ? (
+                <FaEye
+                  className="absolute right-3 top-3 cursor-pointer"
+                  onClick={() => setProtectedPass(false)}
+                />
+              ) : (
+                <FaEyeSlash
+                  className="absolute right-3 top-3 cursor-pointer"
+                  onClick={() => setProtectedPass(true)}
+                />
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-4 gap-4 mt-4">
@@ -130,7 +153,12 @@ const Login = () => {
           </div>
         </div>
         <div className="flex justify-end space-x-2 mt-4">
-          <Button type="button" disabled={!btnEnable} onClick={onFormSubmitted}>
+          <Button
+            type="button"
+            ref={loginBtnRef}
+            disabled={!btnEnable}
+            onClick={onFormSubmitted}
+          >
             Sign In
           </Button>
         </div>
