@@ -231,10 +231,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     setIsOpen(false);
   };
 
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
-
   const onFormReset = () => {
     setFormData(
       {

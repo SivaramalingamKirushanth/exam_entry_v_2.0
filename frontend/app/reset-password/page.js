@@ -30,7 +30,7 @@ const ResetPassword = () => {
       router.replace("/");
     },
     onError: (err) => {
-      console.log(err);
+
       if (err.status == 429) {
         toast.error(err.response.data.message);
       } else {

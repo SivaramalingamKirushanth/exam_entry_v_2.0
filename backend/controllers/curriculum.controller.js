@@ -666,7 +666,7 @@ export const getAllSubjectsForFaculty = async (req, res, next) => {
 export const updateEligibility = async (req, res, next) => {
   const { user_id, role_id } = req.user;
   const { batch_id, sub_id, eligibility, s_id, remark } = req.body;
-  console.log(batch_id, sub_id, eligibility, s_id, remark);
+
   if (
     !user_id ||
     !s_id ||
@@ -693,7 +693,7 @@ export const updateEligibility = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
-      console.log(1);
+
       await conn.query("CALL UpdateEligibility(?, ?, ?, ?, ?, ?);", [
         user_id,
         s_id,
@@ -702,8 +702,8 @@ export const updateEligibility = async (req, res, next) => {
         eligibility,
         role_id,
       ]);
-      console.log(2);
 
+      
       await conn.query("CALL LogEligibilityChange(?, ?, ?, ?, ?, ?, ?);", [
         user_id,
         s_id,
@@ -713,8 +713,8 @@ export const updateEligibility = async (req, res, next) => {
         status_to,
         remark,
       ]);
-      console.log(3);
 
+      
       await conn.commit();
 
       return res

@@ -262,7 +262,6 @@ const StudentDetails = ({ sub_id, batch_id }) => {
   }, [searchValue, data]);
 
   useEffect(() => {
-    console.log(deadlineData);
     if (deadlineData && deadlineData.length) {
       setDeadlineObj({
         stu_deadline: deadlineData.filter((obj) => obj.user_type == "5")[0]
