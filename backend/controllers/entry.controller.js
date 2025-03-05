@@ -741,6 +741,11 @@ export const getDeanDashboardData = async (req, res, next) => {
                       [batch_id, sub_id]
                     );
 
+                    const [remarks] = await conn.query(
+                      "CALL GetRemarksForSubject(?, ?)",
+                      [batch_id, sub_id]
+                    );
+
                     let studentsData = [];
                     if (students[0].length > 0) {
                       for (const student of students[0]) {
@@ -764,6 +769,7 @@ export const getDeanDashboardData = async (req, res, next) => {
                       sub_id,
                       sub_code,
                       students: studentsData,
+                      remarks: remarks[0],
                     });
                   }
 
@@ -843,6 +849,11 @@ export const getHodDashboardData = async (req, res, next) => {
                     [batch_id, sub_id]
                   );
 
+                  const [remarks] = await conn.query(
+                    "CALL GetRemarksForSubject(?, ?)",
+                    [batch_id, sub_id]
+                  );
+
                   let studentsData = [];
                   if (students[0].length > 0) {
                     for (const student of students[0]) {
@@ -866,6 +877,7 @@ export const getHodDashboardData = async (req, res, next) => {
                     sub_id,
                     sub_code,
                     students: studentsData,
+                    remarks: remarks[0],
                   });
                 }
 
@@ -886,8 +898,8 @@ export const getHodDashboardData = async (req, res, next) => {
       conn.release();
     }
   } catch (error) {
-    console.error("Error in Dean Dashboard:", error);
-    next(new Error("Failed to fetch data for Dean Dashboard"));
+    console.error("Error in HOD Dashboard:", error);
+    next(new Error("Failed to fetch data for HOD Dashboard"));
   }
 };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import ReportTable from "@/components/ReportTable";
+import Timeline from "@/components/Timeline";
 import {
   getDeanDashboardData,
   getHodDashboardData,
@@ -48,18 +49,23 @@ const page = () => {
                 sub_code: subObj.sub_code,
               });
               subObj.students.forEach((stuObj) => {
+                const remarks = subObj.remarks.filter(
+                  (remarkObj) => remarkObj.s_id == stuObj.s_id
+                );
                 if (stuObj.exam_type == "P") {
                   properData[stuObj.index_num]
                     ? properData[stuObj.index_num].push({
                         sub_id: subObj.sub_id,
                         sub_code: subObj.sub_code,
                         eligibility: stuObj.eligibility,
+                        remarks,
                       })
                     : (properData[stuObj.index_num] = [
                         {
                           sub_id: subObj.sub_id,
                           sub_code: subObj.sub_code,
                           eligibility: stuObj.eligibility,
+                          remarks,
                         },
                       ]);
                 } else if (stuObj.exam_type == "M") {
@@ -68,12 +74,14 @@ const page = () => {
                         sub_id: subObj.sub_id,
                         sub_code: subObj.sub_code,
                         eligibility: stuObj.eligibility,
+                        remarks,
                       })
                     : (medicalData[stuObj.index_num] = [
                         {
                           sub_id: subObj.sub_id,
                           sub_code: subObj.sub_code,
                           eligibility: stuObj.eligibility,
+                          remarks,
                         },
                       ]);
                 } else if (stuObj.exam_type == "R") {
@@ -82,12 +90,14 @@ const page = () => {
                         sub_id: subObj.sub_id,
                         sub_code: subObj.sub_code,
                         eligibility: stuObj.eligibility,
+                        remarks,
                       })
                     : (resitData[stuObj.index_num] = [
                         {
                           sub_id: subObj.sub_id,
                           sub_code: subObj.sub_code,
                           eligibility: stuObj.eligibility,
+                          remarks,
                         },
                       ]);
                 }
@@ -101,7 +111,7 @@ const page = () => {
               >
                 <h1 className="uppercase text-2xl font-bold text-center my-3">
                   {level_ordinal} examination in {batch.deg_name} -{" "}
-                  {decodeBatchCode.academic_year} {sem_ordinal}
+                  {decodeBatchCode.academic_year} - {sem_ordinal}
                   &nbsp;semester
                 </h1>
                 <div>

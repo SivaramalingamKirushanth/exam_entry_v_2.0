@@ -55,7 +55,7 @@ router.post(
 );
 router.post(
   "/fetchStudentsWithSubjects",
-  // verifyUser(["1"]),
+  verifyUser(["1"]),
   fetchStudentsWithSubjects
 );
 router.post(
@@ -95,7 +95,15 @@ router.post(
   verifyUser(["1", "4"]),
   getAppliedStudentsForSubject
 );
-router.post("/getAppliedStudentsForSubjectOfFaculty", verifyUser(["2"]), getAppliedStudentsForSubjectOfFaculty);
-router.post("/getAppliedStudentsForSubjectOfDepartment", verifyUser(["3"]), getAppliedStudentsForSubjectOfDepartment);
+router.post(
+  "/getAppliedStudentsForSubjectOfFaculty",
+  verifyUser(["2"]),
+  getAppliedStudentsForSubjectOfFaculty
+);
+router.post(
+  "/getAppliedStudentsForSubjectOfDepartment",
+  verifyUser(["3"]),
+  getAppliedStudentsForSubjectOfDepartment
+);
 
 export default router;

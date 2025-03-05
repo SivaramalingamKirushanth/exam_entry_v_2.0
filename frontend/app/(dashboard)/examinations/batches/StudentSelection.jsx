@@ -146,10 +146,6 @@ const StudentSelection = ({
     },
   ];
 
-  const onSearchChange = (e) => {
-    setSearchValue(e.target.value);
-  };
-
   const onClearClicked = () => {
     setSearchValue("");
     if (stuData) {
@@ -208,8 +204,9 @@ const StudentSelection = ({
           <div className="bg-white rounded-md flex relative w-full">
             <Input
               placeholder="Search by student id or name"
-              onBlur={(e) => setSearchValue(e.target.value)}
+              onChange={(e) => setSearchValue(e.target.value)}
               className="w-full"
+              value={searchValue}
             />
             <span
               className={`${

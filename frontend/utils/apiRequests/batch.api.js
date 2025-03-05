@@ -77,6 +77,13 @@ export const getAllBatchesForFaculty = async () => {
   return response.data;
 };
 
+export const getAllActiveBatchesProgesses = async () => {
+  const response = await axiosInstance.get(
+    "/batch/getAllActiveBatchesProgesses"
+  );
+  return response.data;
+};
+
 export const setBatchTimePeriod = async (data) => {
   const response = await axiosInstance.put("/batch/setBatchTimePeriod", data);
   return response.data;

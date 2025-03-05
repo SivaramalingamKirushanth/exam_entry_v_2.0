@@ -17,10 +17,10 @@ import {
   setBatchTimePeriod,
   updateBatch,
   updateBatchStatus,
-  uploadAttendanceSheet,
   getAllBatchesForDepartment,
   getAllBatchesForFaculty,
   getDeadlinesForBatch,
+  getAllActiveBatchesProgesses,
 } from "../controllers/batch.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -63,9 +63,14 @@ router.get(
   verifyUser(["2"]),
   getAllBatchesForFaculty
 );
+router.get(
+  "/getAllActiveBatchesProgesses",
+  verifyUser(["1"]),
+  getAllActiveBatchesProgesses
+);
 router.post(
   "/getDeadlinesForBatch",
-  verifyUser(["2", "3", "4"]),
+  verifyUser(["1", "2", "3", "4"]),
   getDeadlinesForBatch
 );
 

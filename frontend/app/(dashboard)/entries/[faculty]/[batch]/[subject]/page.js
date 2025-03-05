@@ -5,7 +5,6 @@ import StudentDetails from "./StudentDetails";
 
 const users = () => {
   const searchParams = useSearchParams();
-  const pathname = usePathname();
 
   const sub_id = searchParams.get("sub_id");
   const batch_id = searchParams.get("batch_id");
@@ -19,7 +18,6 @@ const users = () => {
           sub_id={sub_id}
           sub_name={sub_name}
           batch_id={batch_id}
-          pathname={pathname}
           sub_code={sub_code}
         />
       </div>

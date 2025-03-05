@@ -1077,3 +1077,24 @@ export const getDeadlinesForBatch = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const getAllActiveBatchesProgesses = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      // Step 1: Get faculty ID for the dean
+      const [faculty] = await conn.query(
+        "CALL GetAllActiveBatchesProgesses()",
+        []
+      );
+
+      res.status(200).json(faculty[0]);
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};

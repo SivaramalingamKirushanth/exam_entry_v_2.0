@@ -7,8 +7,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { FaTimes } from "react-icons/fa";
 import { FaCheck } from "react-icons/fa6";
+import Timeline from "./Timeline";
 
 const ReportTable = ({ subjects, data, exam_type, batch_id }) => {
   const totObj = {};
@@ -51,17 +57,42 @@ const ReportTable = ({ subjects, data, exam_type, batch_id }) => {
               >
                 {subObjArr.some((subObj) => subObj.sub_id == obj.sub_id) ? (
                   subObjArr.find((subObj) => subObj.sub_id == obj.sub_id)
-                    .eligibility == "true" ? (
-                    <h1 className="justify-center flex">
-                      <FaCheck />
-                    </h1>
+                    .remarks.length ? (
+                    <HoverCard>
+                      <HoverCardTrigger className="flex py-1 justify-center bg-yellow-300">
+                        {subObjArr.find((subObj) => subObj.sub_id == obj.sub_id)
+                          .eligibility == "true" ? (
+                          <FaCheck />
+                        ) : (
+                          <FaTimes />
+                        )}
+                      </HoverCardTrigger>
+                      <HoverCardContent>
+                        <h1 className="font-bold mb-1 text-lg text-center">
+                          Remarks
+                        </h1>
+                        <Timeline
+                          timelineData={subObjArr
+                            .find((subObj) => subObj.sub_id == obj.sub_id)
+                            .remarks.sort(
+                              (a, b) =>
+                                new Date(b.date_time) - new Date(a.date_time)
+                            )}
+                        />
+                      </HoverCardContent>
+                    </HoverCard>
                   ) : (
                     <h1 className="justify-center flex">
-                      <FaTimes />
+                      {subObjArr.find((subObj) => subObj.sub_id == obj.sub_id)
+                        .eligibility == "true" ? (
+                        <FaCheck />
+                      ) : (
+                        <FaTimes />
+                      )}
                     </h1>
                   )
                 ) : (
-                  <h1 className="justify-center flex">
+                  <h1 className="justify-center py-1 flex">
                     <FaTimes />
                   </h1>
                 )}

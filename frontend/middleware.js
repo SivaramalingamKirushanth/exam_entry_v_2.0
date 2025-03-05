@@ -34,6 +34,10 @@ export async function middleware(req) {
     );
     const { payload: user } = await jwtVerify(token, secretKey);
 
+    if (!user) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+
     //Allow everyone to the Home apge
     if (pathname == `/home`) {
       return NextResponse.next();
@@ -49,22 +53,35 @@ export async function middleware(req) {
       if (isStuAllowedPage) {
         return NextResponse.next();
       } else {
-        console.log(2);
         return NextResponse.redirect(new URL("/home", req.url));
       }
     }
 
-    //check if the user is lecturer and he not visiting a not allowed page
-    const lecNotAllowedPages = ["home/form", "home/report"];
-    const isLecNotAllowedPage = lecNotAllowedPages.some((page) =>
+    //check if the user is lecturer and he visiting a allowed page
+    const lecAllowedPages = ["home/subjects"];
+    const isLecAllowedPage = lecAllowedPages.some((page) =>
       pathname.startsWith(`/${page}`)
     );
 
     if (user.role_id === "4") {
-      if (isLecNotAllowedPage) {
-        return NextResponse.redirect(new URL("/home", req.url));
-      } else {
+      if (isLecAllowedPage) {
         return NextResponse.next();
+      } else {
+        return NextResponse.redirect(new URL("/home", req.url));
+      }
+    }
+
+    //check if the user is lecturer and he visiting a allowed page
+    const deanHodAllowedPages = ["home/batches", "report"];
+    const isdeanHodAllowedPage = deanHodAllowedPages.some((page) =>
+      pathname.startsWith(`/${page}`)
+    );
+
+    if (user.role_id === "2" || user.role_id === "3") {
+      if (isdeanHodAllowedPage) {
+        return NextResponse.next();
+      } else {
+        return NextResponse.redirect(new URL("/home", req.url));
       }
     }
 
