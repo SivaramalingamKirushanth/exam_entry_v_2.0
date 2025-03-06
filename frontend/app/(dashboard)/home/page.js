@@ -772,7 +772,7 @@ const dashboard = () => {
       batchDataRefetch();
 
       return (
-        <div className="flex justify-end md:justify-center relative">
+        <div className="flex justify-center relative">
           <div
             className={`${
               generating ? "fixed" : "hidden"
@@ -785,8 +785,8 @@ const dashboard = () => {
             />
           </div>
 
-          <div className="md:w-[70%] rounded-md bg-white">
-            <Table className="overflow-x-scroll max-w-[100vw]:">
+          <div className="hidden sm:block w-[90%] lg:w-[75%] rounded-md bg-white">
+            <Table>
               <TableCaption>A list of your recent examinations.</TableCaption>
               <TableHeader>
                 <TableRow>
@@ -886,6 +886,89 @@ const dashboard = () => {
                   })}
               </TableBody>
             </Table>
+          </div>
+          <div className="sm:hidden flex flex-col items-center gap-3">
+            {bathchesOfStudentData?.length &&
+              bathchesOfStudentData?.map((batch) => {
+                const decodeBatchCode = parseString(batch.batch_code);
+                const level_ordinal = numberToOrdinalWord(
+                  decodeBatchCode.level
+                );
+                const sem_ordinal = numberToOrdinalWord(decodeBatchCode.sem_no);
+
+                return (
+                  <div
+                    className=" rounded-md bg-white p-3 gap-3 flex flex-col items-center"
+                    key={batch.batch_id}
+                  >
+                    <h1 className="font-medium uppercase text-center">
+                      {level_ordinal} examination in {batch.deg_name} -{" "}
+                      {decodeBatchCode.academic_year} {sem_ordinal}
+                      &nbsp;semester{" "}
+                      <Badge
+                        variant={
+                          batch.status === "done"
+                            ? "success"
+                            : batch.status === "pending"
+                            ? "pending"
+                            : batch.status === "expired"
+                            ? "failure"
+                            : "active"
+                        }
+                        className="uppercase"
+                      >
+                        {batch.status}
+                      </Badge>
+                    </h1>
+                    <div className="flex justify-around items-center self-stretch">
+                      {batch.status == "active" ? (
+                        <Button
+                          variant="outline"
+                          className="uppercase"
+                          data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${decodeBatchCode.academic_year}`}
+                          data-sem={`${sem_ordinal} semester`}
+                          onClick={(e) => onApplyClick(e)}
+                        >
+                          apply
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          className="uppercase"
+                          disabled={true}
+                        >
+                          apply
+                        </Button>
+                      )}
+                      {batch.admission_ready == "false" ||
+                      batch.applied_to_exam == "false" ? (
+                        <Button
+                          variant="outline"
+                          className="uppercase"
+                          disabled={true}
+                        >
+                          download
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          className="uppercase"
+                          onClick={() => onDownloadClick(batch.batch_id)}
+                        >
+                          download
+                        </Button>
+                      )}
+                    </div>
+                    Deadline &#58;{" "}
+                    {new Date(batch.deadline)
+                      .toString()
+                      .slice(
+                        4,
+                        new Date(batch.deadline).toString().indexOf("GMT")
+                      )}
+                  </div>
+                );
+              })}
           </div>
         </div>
       );
