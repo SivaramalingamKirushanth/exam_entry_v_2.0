@@ -91,7 +91,7 @@ export const addMedicalResitStudents = async (req, res, next) => {
 
 export const getStudentSubjects = async (req, res, next) => {
   const { batch_id, s_id } = req.body;
-  console.log(batch_id, s_id);
+
   try {
     const conn = await pool.getConnection();
     try {
@@ -99,7 +99,7 @@ export const getStudentSubjects = async (req, res, next) => {
         batch_id,
         s_id,
       ]);
-      console.log(results);
+
       return res.status(200).json(results[0]);
     } catch (error) {
       console.error("Error fetching student subjects:", error);
@@ -130,7 +130,7 @@ export const getStudentsWithoutIndexNumber = async (req, res, next) => {
         "CALL GetStudentsWithoutIndexNumber(?);",
         [batch_id]
       );
-      console.log(results[1]);
+
       const count = results[0][0]?.students_without_index || 0;
       const user_names = results[1]?.map((obj) => obj.user_name);
       return res.status(200).json({
@@ -168,7 +168,7 @@ export const generateIndexNumbers = async (req, res, next) => {
         "CALL GenerateIndexNumbers(?, ?, ?, ?);",
         [batch_id, course, batch, parseInt(startsFrom, 10)]
       );
-      console.log(results);
+
       return res.status(200).json({
         message: "Index numbers generated successfully.",
         data: results[0], // List of updated students
@@ -505,7 +505,7 @@ export const getEligibleStudentsBySub = async (req, res, next) => {
         index_num: row.index_num,
       }));
 
-      console.log(appliedStudents);
+
       return res.status(200).json(appliedStudents);
     } catch (error) {
       console.error("Error fetching eligible students:", error);
@@ -741,6 +741,11 @@ export const getDeanDashboardData = async (req, res, next) => {
                       [batch_id, sub_id]
                     );
 
+                    const [remarks] = await conn.query(
+                      "CALL GetRemarksForSubject(?, ?)",
+                      [batch_id, sub_id]
+                    );
+
                     let studentsData = [];
                     if (students[0].length > 0) {
                       for (const student of students[0]) {
@@ -764,6 +769,7 @@ export const getDeanDashboardData = async (req, res, next) => {
                       sub_id,
                       sub_code,
                       students: studentsData,
+                      remarks: remarks[0],
                     });
                   }
 
@@ -843,6 +849,11 @@ export const getHodDashboardData = async (req, res, next) => {
                     [batch_id, sub_id]
                   );
 
+                  const [remarks] = await conn.query(
+                    "CALL GetRemarksForSubject(?, ?)",
+                    [batch_id, sub_id]
+                  );
+
                   let studentsData = [];
                   if (students[0].length > 0) {
                     for (const student of students[0]) {
@@ -866,6 +877,7 @@ export const getHodDashboardData = async (req, res, next) => {
                     sub_id,
                     sub_code,
                     students: studentsData,
+                    remarks: remarks[0],
                   });
                 }
 
@@ -886,8 +898,8 @@ export const getHodDashboardData = async (req, res, next) => {
       conn.release();
     }
   } catch (error) {
-    console.error("Error in Dean Dashboard:", error);
-    next(new Error("Failed to fetch data for Dean Dashboard"));
+    console.error("Error in HOD Dashboard:", error);
+    next(new Error("Failed to fetch data for HOD Dashboard"));
   }
 };
 

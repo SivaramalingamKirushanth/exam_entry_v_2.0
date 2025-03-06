@@ -286,7 +286,7 @@ export const managerRegister = async (req, res, next) => {
 
   try {
     const password = await generatePassword();
-    console.log("Generated password:", password);
+
     const hashedPassword = await hashPassword(password);
 
     const conn = await pool.getConnection();
@@ -379,7 +379,7 @@ export const login = async (req, res, next) => {
       const user = result[1][0];
 
       if (!user || !user.user_id) {
-        console.log("User not found in database");
+
         return next(errorProvider(401, "Invalid username or password"));
       }
 
@@ -600,7 +600,7 @@ export const resetPassword = async (req, res, next) => {
       const [user] = await conn.query("CALL GetUserByResetToken(?)", [
         hashedToken,
       ]);
-      console.log(user);
+
       if (user[0].length === 0) {
         return res
           .status(400)

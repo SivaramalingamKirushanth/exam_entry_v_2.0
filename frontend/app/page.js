@@ -52,7 +52,7 @@ const Login = () => {
       console.log(err);
       console.log(err.response?.data?.message || "Login failed");
     }
-    setFormData({ remember_me: true });
+    setFormData((cur) => ({ ...cur, password: "" }));
   };
 
   useEffect(() => {

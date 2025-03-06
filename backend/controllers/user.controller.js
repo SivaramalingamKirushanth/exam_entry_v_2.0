@@ -360,3 +360,24 @@ export const getNoOfStudents = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const getSummaryData = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.query("CALL GetAdminSummary();");
+
+      return res.status(200).json(result[0][0]);
+    } catch (error) {
+      console.error("Error retrieving summary data:", error);
+      return next(
+        errorProvider(500, "An error occurred while fetching the summary data")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};

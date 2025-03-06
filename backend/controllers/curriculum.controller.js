@@ -693,6 +693,7 @@ export const updateEligibility = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
+
       await conn.query("CALL UpdateEligibility(?, ?, ?, ?, ?, ?);", [
         user_id,
         s_id,
@@ -702,6 +703,7 @@ export const updateEligibility = async (req, res, next) => {
         role_id,
       ]);
 
+      
       await conn.query("CALL LogEligibilityChange(?, ?, ?, ?, ?, ?, ?);", [
         user_id,
         s_id,
@@ -712,6 +714,7 @@ export const updateEligibility = async (req, res, next) => {
         remark,
       ]);
 
+      
       await conn.commit();
 
       return res

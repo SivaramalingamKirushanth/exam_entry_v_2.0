@@ -559,7 +559,7 @@ export const getBatchesByStudent = async (req, res, next) => {
 export const setBatchTimePeriod = async (req, res, next) => {
   const { batch_id, students_end, lecturers_end, hod_end, dean_end } = req.body;
 
-  console.log(batch_id, students_end, lecturers_end, hod_end, dean_end);
+
   if (!batch_id || !students_end || !lecturers_end || !hod_end || !dean_end) {
     return next(errorProvider(400, "Missing required fields."));
   }
@@ -630,7 +630,8 @@ export const getBatchTimePeriod = async (req, res, next) => {
         [batch_id]
       );
 
-      console.log(results);
+
+      
 
       return res.status(200).json(results);
     } catch (error) {
@@ -813,7 +814,7 @@ export const uploadAttendanceSheet = async (req, res, next) => {
               unmatchedSubjects.push(incomingCode);
               return null;
             }
-            console.log(dbSubjects[matchingKey]);
+
             return dbSubjects[matchingKey];
           });
 
@@ -854,8 +855,8 @@ export const uploadAttendanceSheet = async (req, res, next) => {
               })
               .filter(Boolean)
               .join(", ");
-            console.log(updates);
-            if (updates) {
+
+              if (updates) {
               const tableName = `batch_${batchId}_students`;
               await conn.query(
                 `UPDATE ${tableName} SET ${updates} WHERE s_id = ?`,
@@ -1069,6 +1070,27 @@ export const getDeadlinesForBatch = async (req, res, next) => {
       }
 
       res.status(200).json(deadlines[0]);
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getAllActiveBatchesProgesses = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      // Step 1: Get faculty ID for the dean
+      const [faculty] = await conn.query(
+        "CALL GetAllActiveBatchesProgesses()",
+        []
+      );
+
+      res.status(200).json(faculty[0]);
     } finally {
       conn.release();
     }
