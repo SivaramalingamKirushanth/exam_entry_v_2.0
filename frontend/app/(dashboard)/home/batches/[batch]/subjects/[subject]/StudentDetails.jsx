@@ -282,7 +282,7 @@ const StudentDetails = ({ sub_id, batch_id }) => {
 
   return (
     <>
-      {/* <div className="flex gap-2 px-5 mb-4">
+      <div className="flex gap-2 px-5 mb-4">
         <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
           <div className="text-green-900 font-serif">Student Submission</div>
           <div className="bg-gradient-to-r from-green-100 to-green-500 h-1 w-full"></div>
@@ -335,8 +335,8 @@ const StudentDetails = ({ sub_id, batch_id }) => {
           <div className="bg-gradient-to-r from-red-100 to-red-500 h-1 w-full"></div>
           <div className="text-red-900 font-serif">Dean Approval</div>
         </div>
-      </div> */}
-      <div className="flex gap-2 px-5 mb-4">
+      </div>
+      {/* <div className="flex gap-2 px-5 mb-4">
         <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
           <div className="text-black font-serif">Student Submission</div>
           <div className="bg-gradient-to-r from-white to-black h-1 w-full"></div>
@@ -389,7 +389,7 @@ const StudentDetails = ({ sub_id, batch_id }) => {
           <div className="bg-gradient-to-r from-white to-black h-1 w-full"></div>
           <div className="text-black font-serif">Dean Approval</div>
         </div>
-      </div>
+      </div> */}
       <div className="flex items-start mb-3">
         <div className="bg-white rounded-md flex relative">
           <Input

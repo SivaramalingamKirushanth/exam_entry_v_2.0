@@ -17,6 +17,7 @@ import Modal from "./Model";
 import IndexModel from "./IndexModel";
 import { getStudentsWithoutIndexNumber } from "@/utils/apiRequests/entry.api";
 import { getDeadlinesForBatch } from "@/utils/apiRequests/batch.api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const batches = () => {
   const pathname = usePathname();
@@ -33,7 +34,10 @@ const batches = () => {
     setIsOpen((prev) => !prev);
   };
 
-  const { data: curriculumsOfBatchData } = useQuery({
+  const {
+    data: curriculumsOfBatchData,
+    isLoading: isCurriculumsOfBatchDataLoading,
+  } = useQuery({
     queryFn: () => getCurriculumBybatchId(batch_id),
     queryKey: ["curriculumsOfBatch", batch_id],
   });
@@ -100,6 +104,10 @@ const batches = () => {
           ))}
       </div>
       <div className="md:w-[70%] flex gap-6 flex-wrap">
+        {isCurriculumsOfBatchDataLoading &&
+          [1, 2, 3, 4, 5, 6].map((_, i) => (
+            <Skeleton key={i} className="w-[30%] h-32 max-w-[30%] rounded-xl" />
+          ))}
         {curriculumsOfBatchData &&
           curriculumsOfBatchData.map((obj) => (
             <Link
