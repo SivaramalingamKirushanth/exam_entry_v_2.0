@@ -95,8 +95,6 @@ export const studentRegister = async (req, res, next) => {
 
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
-      await conn.commit();
-
       try {
         await mailer(
           email,
@@ -108,6 +106,8 @@ export const studentRegister = async (req, res, next) => {
       } catch (mailError) {
         console.error(`Failed to send mail:`, mailError);
       }
+
+      await conn.commit();
 
       return res
         .status(201)
@@ -339,7 +339,6 @@ export const managerRegister = async (req, res, next) => {
       let desc = `Manager created with user_id=${user_id}, m_id=${m_id}, name=${name}, contact_no=${contact_no}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
-      await conn.commit();
       try {
         await mailer(
           email,
@@ -351,6 +350,7 @@ export const managerRegister = async (req, res, next) => {
       } catch (mailError) {
         console.error(`Failed to send mail:`, mailError);
       }
+      await conn.commit();
 
       res.status(201).json({ message: "Manager registered successfully" });
     } catch (error) {
