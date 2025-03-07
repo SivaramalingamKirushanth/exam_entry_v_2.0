@@ -9,7 +9,6 @@ import mailer from "../utils/mailer.js";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import bcrypt from "bcrypt";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -18,7 +17,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "abc123";
 const FRONTEND_SERVER = process.env.FRONTEND_SERVER || "localhost";
 const FRONTEND_PORT = process.env.FRONTEND_PORT || "3000";
 const MAX_FAILED_ATTEMPTS = 10;
-const LOCKOUT_DURATION_MINUTES = 10; // Lockout duration in minutes
+const LOCKOUT_DURATION_MINUTES = 15; // Lockout duration in minutes
 
 export const studentRegister = async (req, res, next) => {
   const {
@@ -97,13 +96,18 @@ export const studentRegister = async (req, res, next) => {
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
-      await mailer(
-        email,
-        "Registration succesfull",
-        `<h2>You are successfully registered to examinations</h2>
-              <h4>User name : ${user_name}</h4>
-              <h4>Password : ${password}</h4>`
-      );
+
+      try {
+        await mailer(
+          email,
+          "Registration succesfull",
+          `<h2>You are successfully registered to examinations</h2>
+                <h4>User name : ${user_name}</h4>
+                <h4>Password : ${password}</h4>`
+        );
+      } catch (mailError) {
+        console.error(`Failed to send mail:`, mailError);
+      }
 
       return res
         .status(201)
@@ -215,13 +219,17 @@ export const multipleStudentsRegister = async (req, res, next) => {
 
             await conn.query("CALL LogAdminAction(?);", [desc]);
 
-            await mailer(
-              email,
-              "Registration succesfull",
-              `<h2>You are successfully registered to examinations</h2>
-              <h4>User name : ${user_name}</h4>
-              <h4>Password : ${password}</h4>`
-            );
+            try {
+              await mailer(
+                email,
+                "Registration succesfull",
+                `<h2>You are successfully registered to examinations</h2>
+                <h4>User name : ${user_name}</h4>
+                <h4>Password : ${password}</h4>`
+              );
+            } catch (mailError) {
+              console.error(`Failed to send mail:`, mailError);
+            }
           }
 
           await conn.commit();
@@ -332,13 +340,17 @@ export const managerRegister = async (req, res, next) => {
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
-      await mailer(
-        email,
-        "Registration succesfull",
-        `<h2>You are successfully registered to examinations</h2>
-        <h4>User name : ${user_name}</h4>
-        <h4>Password : ${password}</h4>`
-      );
+      try {
+        await mailer(
+          email,
+          "Registration succesfull",
+          `<h2>You are successfully registered to examinations</h2>
+          <h4>User name : ${user_name}</h4>
+          <h4>Password : ${password}</h4>`
+        );
+      } catch (mailError) {
+        console.error(`Failed to send mail:`, mailError);
+      }
 
       res.status(201).json({ message: "Manager registered successfully" });
     } catch (error) {
@@ -379,7 +391,6 @@ export const login = async (req, res, next) => {
       const user = result[1][0];
 
       if (!user || !user.user_id) {
-
         return next(errorProvider(401, "Invalid username or password"));
       }
 
@@ -522,8 +533,10 @@ export const forgotPassword = async (req, res, next) => {
       }
 
       // Check if the failed attempts exceed the limit
-      if (failed_attempts > 5) {
-        const lockoutPeriod = new Date(currentTime.getTime() + 15 * 60 * 1000); // 15 minutes lockout
+      if (failed_attempts > MAX_FAILED_ATTEMPTS) {
+        const lockoutPeriod = new Date(
+          currentTime.getTime() + LOCKOUT_DURATION_MINUTES * 60 * 1000
+        ); // 15 minutes lockout
         await conn.query(
           "UPDATE user SET lockout_until = ? WHERE user_id = ?",
           [lockoutPeriod, user_id]
