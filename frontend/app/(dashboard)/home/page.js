@@ -56,6 +56,7 @@ import ReportTable from "@/components/ReportTable";
 import BatchProgress from "./BatchProgress";
 import { getSummaryData } from "@/utils/apiRequests/user.api";
 import SummaryCard from "./SummaryCard";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const dashboard = () => {
   const pathname = usePathname();
@@ -118,32 +119,45 @@ const dashboard = () => {
     enabled: false,
   });
 
-  const { data: bathchesOfStudentData, refetch: batchDataRefetch } = useQuery({
+  const {
+    data: bathchesOfStudentData,
+    refetch: batchDataRefetch,
+    isLoading: isBathchesOfStudentLoading,
+  } = useQuery({
     queryFn: getBatchesByStudent,
     queryKey: ["batchesOfStudent"],
     enabled: false,
   });
 
-  const { data: subjectsOfManagerData, refetch: subjectsOfManagerRefetch } =
-    useQuery({
-      queryFn: getAllSubjectsForManager,
-      queryKey: ["subjectsOfManager"],
-      enabled: false,
-    });
+  const {
+    data: subjectsOfManagerData,
+    refetch: subjectsOfManagerRefetch,
+    isLoading: isSubjectsOfManagerLoading,
+  } = useQuery({
+    queryFn: getAllSubjectsForManager,
+    queryKey: ["subjectsOfManager"],
+    enabled: false,
+  });
 
-  const { data: batchesOfFacultyData, refetch: batchesOfFacultyRefetch } =
-    useQuery({
-      queryFn: getAllBatchesForFaculty,
-      queryKey: ["batchesOfFaculty"],
-      enabled: false,
-    });
+  const {
+    data: batchesOfFacultyData,
+    refetch: batchesOfFacultyRefetch,
+    isLoading: isBatchesOfFacultyLoading,
+  } = useQuery({
+    queryFn: getAllBatchesForFaculty,
+    queryKey: ["batchesOfFaculty"],
+    enabled: false,
+  });
 
-  const { data: batchesOfDepartmentData, refetch: batchesOfDepartmentRefetch } =
-    useQuery({
-      queryFn: getAllBatchesForDepartment,
-      queryKey: ["batchesOfDepartment"],
-      enabled: false,
-    });
+  const {
+    data: batchesOfDepartmentData,
+    refetch: batchesOfDepartmentRefetch,
+    isLoading: isBatchesOfDepartmenLoading,
+  } = useQuery({
+    queryFn: getAllBatchesForDepartment,
+    queryKey: ["batchesOfDepartment"],
+    enabled: false,
+  });
 
   const {
     data: batchAdmissionDetailsData,
@@ -633,6 +647,20 @@ const dashboard = () => {
     case "2":
       batchesOfFacultyRefetch();
 
+      if (isBatchesOfFacultyLoading)
+        return (
+          <div className="flex justify-end md:justify-center">
+            <div className="md:w-[70%] flex gap-6 flex-wrap">
+              {[1, 2, 3, 4, 5, 6].map((_, i) => (
+                <Skeleton
+                  key={i}
+                  className="w-[30%] h-32 max-w-[30%] rounded-xl"
+                />
+              ))}
+            </div>
+          </div>
+        );
+
       return (
         <div className="flex justify-end md:justify-center">
           <div className="md:w-[70%] flex gap-6 flex-wrap">
@@ -684,6 +712,20 @@ const dashboard = () => {
     case "3":
       batchesOfDepartmentRefetch();
 
+      if (isBatchesOfDepartmenLoading)
+        return (
+          <div className="flex justify-end md:justify-center">
+            <div className="md:w-[70%] flex gap-6 flex-wrap">
+              {[1, 2, 3, 4, 5, 6].map((_, i) => (
+                <Skeleton
+                  key={i}
+                  className="w-[30%] h-32 max-w-[30%] rounded-xl"
+                />
+              ))}
+            </div>
+          </div>
+        );
+
       return (
         <div className="flex justify-end md:justify-center">
           <div className="md:w-[70%] flex gap-6 flex-wrap">
@@ -733,6 +775,20 @@ const dashboard = () => {
       );
     case "4":
       subjectsOfManagerRefetch();
+
+      if (isSubjectsOfManagerLoading)
+        return (
+          <div className="flex justify-end md:justify-center">
+            <div className="md:w-[70%] flex gap-6 flex-wrap">
+              {[1, 2, 3, 4, 5, 6].map((_, i) => (
+                <Skeleton
+                  key={i}
+                  className="w-[30%] h-32 max-w-[30%] rounded-xl"
+                />
+              ))}
+            </div>
+          </div>
+        );
 
       return (
         <div className="flex justify-end md:justify-center">
@@ -888,6 +944,11 @@ const dashboard = () => {
             </Table>
           </div>
           <div className="sm:hidden flex flex-col items-center gap-3">
+            {isBathchesOfStudentLoading &&
+              [1, 2, 3, 4].map((_, i) => (
+                <Skeleton key={i} className="w-full h-48 rounded-md" />
+              ))}
+
             {bathchesOfStudentData?.length &&
               bathchesOfStudentData?.map((batch) => {
                 const decodeBatchCode = parseString(batch.batch_code);
@@ -959,13 +1020,15 @@ const dashboard = () => {
                         </Button>
                       )}
                     </div>
-                    Deadline &#58;{" "}
-                    {new Date(batch.deadline)
-                      .toString()
-                      .slice(
-                        4,
-                        new Date(batch.deadline).toString().indexOf("GMT")
-                      )}
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="font-semibold">Deadline</span>
+                      {new Date(batch.deadline)
+                        .toString()
+                        .slice(
+                          4,
+                          new Date(batch.deadline).toString().indexOf("GMT")
+                        )}
+                    </div>
                   </div>
                 );
               })}

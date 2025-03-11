@@ -1,5 +1,7 @@
 import pool from "../config/db.js";
 import errorProvider from "../utils/errorProvider.js";
+import { fetchEmailsForUserType } from "../utils/functions.js";
+import mailer from "../utils/mailer.js";
 
 export const applyExam = async (req, res, next) => {
   const { user_id } = req.user;
@@ -263,6 +265,24 @@ export const createOrUpdateAdmission = async (req, res, next) => {
       let desc = `Admission created or updated for batch_id=${batch_id}, generated_date=${generated_date}, transformedSubjects=${transformedSubjects}, transformedDate=${transformedDate}, description=${description}, instructions=${instructions}, provider=${provider}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
+      for (let user_type of ["2", "3"]) {
+        const data = await fetchEmailsForUserType(conn, batch_id, user_type);
+
+        if (data.length > 0) {
+          const mails = data.map((obj) => obj.email).join(",");
+
+          try {
+            await mailer(
+              mails,
+              `Report page updated`,
+              `<p>Report page is updated. you can see the final reports now</p>`
+            );
+          } catch (mailError) {
+            console.error(`Failed to send mail:`, mailError);
+          }
+        }
+      }
+
       return res.status(200).json({
         message: "Admission data added or updated successfully.",
       });
@@ -504,7 +524,6 @@ export const getEligibleStudentsBySub = async (req, res, next) => {
         exam_type: row.exam_type,
         index_num: row.index_num,
       }));
-
 
       return res.status(200).json(appliedStudents);
     } catch (error) {
