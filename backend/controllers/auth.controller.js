@@ -75,21 +75,15 @@ export const studentRegister = async (req, res, next) => {
       );
       const user_id = userResult[1][0].userId;
 
-      const [studentResult] = await conn.query(
-        "CALL InsertStudent(?, @studentId); SELECT @studentId AS studentId;",
-        [user_id]
-      );
-      const s_id = studentResult[1][0].studentId;
-
       // Insert student details
-      await conn.query("CALL InsertStudentDetail(?, ?, ?, ?,? ,?);", [
-        s_id,
-        name,
-        f_id,
-        status,
-        index_num,
-        contact_no,
-      ]);
+      const [studentResult] = await conn.query(
+        "CALL InsertStudentDetail( ?, ?, ?, ? ,?, @sId);SELECT @sId AS sId;",
+        [name, f_id, status, index_num, contact_no]
+      );
+
+      const s_id = studentResult[1][0].sId;
+
+      await conn.query("CALL InsertStudent(?, ?);", [user_id, s_id]);
 
       let desc = `Student created with user_id=${user_id}, s_id=${s_id}, name=${name}, f_id=${f_id}, index_num=${index_num}, contact_no=${contact_no}`;
 
@@ -128,6 +122,7 @@ export const studentRegister = async (req, res, next) => {
 export const multipleStudentsRegister = async (req, res, next) => {
   const results = [];
   const failedRecords = [];
+  const role_id = 5;
 
   try {
     // Check if file exists
@@ -193,27 +188,21 @@ export const multipleStudentsRegister = async (req, res, next) => {
               continue;
             }
 
-            // Insert user
             const [userResult] = await conn.query(
               "CALL InsertUser(?, ?, ?, ?, @userId); SELECT @userId AS userId;",
-              [user_name, email, hashedPassword, 5]
+              [user_name, email, hashedPassword, role_id]
             );
             const user_id = userResult[1][0].userId;
-            // Insert student
-            const [studentResult] = await conn.query(
-              "CALL InsertStudent(?, @studentId); SELECT @studentId AS studentId;",
-              [user_id]
-            );
-            const s_id = studentResult[1][0].studentId;
+
             // Insert student details
-            await conn.query("CALL InsertStudentDetail(?, ?, ?, ?,? ,?);", [
-              s_id,
-              name,
-              f_id,
-              status,
-              index_num,
-              contact_no,
-            ]);
+            const [studentResult] = await conn.query(
+              "CALL InsertStudentDetail( ?, ?, ?,? ,?, @sId);SELECT @sId AS sId;",
+              [name, f_id, status, index_num, contact_no]
+            );
+
+            const s_id = studentResult[1][0].sId;
+
+            await conn.query("CALL InsertStudent(?, ?);", [user_id, s_id]);
 
             let desc = `Student created with user_id=${user_id}, s_id=${s_id}, name=${name}, f_id=${f_id}, index_num=${index_num}, contact_no=${contact_no}`;
 
@@ -321,20 +310,15 @@ export const managerRegister = async (req, res, next) => {
       );
       const user_id = userResult[1][0].userId;
 
-      // Insert manager
+      // Insert magnager details
       const [managerResult] = await conn.query(
-        "CALL InsertManager(?, @managerId); SELECT @managerId AS managerId;",
-        [user_id]
+        "CALL InsertManagerDetail(?, ?, ? , @mId);SELECT @mId AS mId;",
+        [name, contact_no, status]
       );
-      const m_id = managerResult[1][0].managerId;
 
-      // Insert manager details
-      await conn.query("CALL InsertManagerDetail(?, ?, ?, ?);", [
-        m_id,
-        name,
-        contact_no,
-        status,
-      ]);
+      const m_id = managerResult[1][0].mId;
+
+      await conn.query("CALL InsertManager(?, ?);", [user_id, m_id]);
 
       let desc = `Manager created with user_id=${user_id}, m_id=${m_id}, name=${name}, contact_no=${contact_no}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);

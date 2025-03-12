@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 05, 2025 at 09:53 PM
+-- Generation Time: Mar 12, 2025 at 06:40 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -2263,26 +2263,26 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `InsertBatchCurriculumLecturer` (IN 
     END WHILE;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `InsertManager` (IN `p_user_id` INT, OUT `p_m_id` INT)   BEGIN
-    INSERT INTO manager(user_id) 
-    VALUES (p_user_id);
+CREATE DEFINER=`root`@`localhost` PROCEDURE `InsertManager` (IN `p_user_id` INT, IN `p_m_id` INT)   BEGIN
+    INSERT INTO manager(user_id, m_id) 
+    VALUES (p_user_id,p_m_id);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `InsertManagerDetail` (IN `p_name` VARCHAR(255), IN `p_contact_no` VARCHAR(20), IN `p_status` VARCHAR(255), OUT `p_m_id` INT)   BEGIN
+    INSERT INTO manager_detail(name, contact_no, status) 
+    VALUES (p_name, p_contact_no, p_status);
     SET p_m_id = LAST_INSERT_ID();
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `InsertManagerDetail` (IN `p_m_id` INT, IN `p_name` VARCHAR(255), IN `p_contact_no` VARCHAR(20), IN `p_status` VARCHAR(255))   BEGIN
-    INSERT INTO manager_detail(m_id, name, contact_no, status) 
-    VALUES (p_m_id, p_name, p_contact_no, p_status);
+CREATE DEFINER=`root`@`localhost` PROCEDURE `InsertStudent` (IN `p_user_id` INT, IN `p_s_id` INT)   BEGIN
+    INSERT INTO student(user_id,s_id) 
+    VALUES (p_user_id, p_s_id);
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `InsertStudent` (IN `p_user_id` INT, OUT `p_s_id` INT)   BEGIN
-    INSERT INTO student(user_id) 
-    VALUES (p_user_id);
+CREATE DEFINER=`root`@`localhost` PROCEDURE `InsertStudentDetail` (IN `p_name` VARCHAR(255), IN `p_f_id` INT, IN `p_status` VARCHAR(255), IN `p_index_num` VARCHAR(50), IN `p_contact_no` VARCHAR(100), OUT `p_s_id` INT)   BEGIN
+    INSERT INTO student_detail(name, f_id, status, index_num, contact_no) 
+    VALUES (p_name, p_f_id, p_status,p_index_num,p_contact_no);
     SET p_s_id = LAST_INSERT_ID();
-END$$
-
-CREATE DEFINER=`root`@`localhost` PROCEDURE `InsertStudentDetail` (IN `p_s_id` INT, IN `p_name` VARCHAR(255), IN `p_f_id` INT, IN `p_status` VARCHAR(255), IN `p_index_num` VARCHAR(50), IN `p_contact_no` VARCHAR(100))   BEGIN
-    INSERT INTO student_detail(s_id, name, f_id, status, index_num, contact_no) 
-    VALUES (p_s_id, p_name, p_f_id, p_status,p_index_num,p_contact_no);
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `InsertUser` (IN `p_user_name` VARCHAR(255), IN `p_email` VARCHAR(255), IN `p_password` VARCHAR(255), IN `p_role_id` INT, OUT `p_user_id` INT)   BEGIN
@@ -2820,7 +2820,22 @@ INSERT INTO `admin_log` (`id`, `description`, `date_time`) VALUES
 (94, 'Batch time period inserted or updated for batch_id=17 to students_end=2025-02-27T13:35, lecturers_end=2025-02-28T17:33, hod_end=2025-03-04T12:36, dean_end=2025-03-04T17:36', '2025-03-05 13:26:51'),
 (95, 'Batch time period inserted or updated for batch_id=17 to students_end=2025-02-27T13:35, lecturers_end=2025-02-28T17:33, hod_end=2025-03-04T12:36, dean_end=2025-03-06T17:36', '2025-03-05 20:31:06'),
 (96, 'Batch time period inserted or updated for batch_id=17 to students_end=2025-02-27T13:35, lecturers_end=2025-02-28T17:33, hod_end=2025-03-04T12:36, dean_end=2025-03-07T17:36', '2025-03-05 20:38:06'),
-(97, 'Batch time period inserted or updated for batch_id=17 to students_end=2025-02-27T13:35, lecturers_end=2025-02-28T17:33, hod_end=2025-03-06T12:36, dean_end=2025-03-07T17:36', '2025-03-05 20:38:13');
+(97, 'Batch time period inserted or updated for batch_id=17 to students_end=2025-02-27T13:35, lecturers_end=2025-02-28T17:33, hod_end=2025-03-06T12:36, dean_end=2025-03-07T17:36', '2025-03-05 20:38:13'),
+(98, 'Batch time period inserted or updated for batch_id=17 to students_end=2025-03-07T13:35, lecturers_end=2025-02-28T17:33, hod_end=2025-03-06T12:36, dean_end=2025-03-07T17:36', '2025-03-06 07:23:47'),
+(99, 'Admission created or updated for batch_id=17, generated_date=05.03.2025, transformedSubjects=16:24,20,21,19,18,22,17,25,23, transformedDate=2025:2, description=<p>Candidates are expected to produce this admission card to the Supervisor/Invigilator/Examiner at the Examination Hall. This form&nbsp;&nbsp;&nbsp;should be filled and signed by the candidates in the presence of the Supervisor/Invigilator/Examiner every time a paper test is taken. The&nbsp;Supervisor/Invigilator/Examiner is expected to authenticate the signature of the candidate by placing his/her initials in the appropriate column. Students are requested to hand over the admission card to the Supervisor on the last day of the paper.</p>, instructions=<p><strong><u>Instructions</u></strong></p><ol><li>No candidate shall be admitted to the Examination hall without this card.</li><li>If any candidate loses this admission card, he/she shall obtain a duplicate Admission Card on payment of Rs.150/-</li><li>Every candidate shall produce his/her Identity Card at every paper/Practical Examination he/she sits for.</li><li>Any unauthorized documents, notes &amp; bags should not be taken into the Examinations.</li><li>When unable to be present for any part of the Examination, it should be notified to me&nbsp;<strong><u>immediately in writing</u></strong>&nbsp;. No appeals will be considered later without this timely notification.</li></ol>, provider=<p>Senior Asst. Registrar</p><p>Examination &amp; Student Admission</p>', '2025-03-07 13:33:51'),
+(100, 'Admission created or updated for batch_id=17, generated_date=05.03.2025, transformedSubjects=16:24,20,21,19,18,22,17,25,23, transformedDate=2025:2, description=<p>Candidates are expected to produce this admission card to the Supervisor/Invigilator/Examiner at the Examination Hall. This form&nbsp;&nbsp;&nbsp;should be filled and signed by the candidates in the presence of the Supervisor/Invigilator/Examiner every time a paper test is taken. The&nbsp;Supervisor/Invigilator/Examiner is expected to authenticate the signature of the candidate by placing his/her initials in the appropriate column. Students are requested to hand over the admission card to the Supervisor on the last day of the paper.</p>, instructions=<p><strong><u>Instructions</u></strong></p><ol><li>No candidate shall be admitted to the Examination hall without this card.</li><li>If any candidate loses this admission card, he/she shall obtain a duplicate Admission Card on payment of Rs.150/-</li><li>Every candidate shall produce his/her Identity Card at every paper/Practical Examination he/she sits for.</li><li>Any unauthorized documents, notes &amp; bags should not be taken into the Examinations.</li><li>When unable to be present for any part of the Examination, it should be notified to me&nbsp;<strong><u>immediately in writing</u></strong>&nbsp;. No appeals will be considered later without this timely notification.</li></ol>, provider=<p>Senior Asst. Registrar</p><p>Examination &amp; Student Admission</p>', '2025-03-07 13:35:06'),
+(101, 'Student created with user_id=144, s_id=103, name=ffhh, f_id=9, index_num=, contact_no=11111111', '2025-03-07 13:42:37'),
+(102, 'Student created with user_id=145, s_id=104, name=dfdf, f_id=8, index_num=, contact_no=erer', '2025-03-07 14:06:38'),
+(103, 'Student created with user_id=146, s_id=146, name=rtyrtyty, f_id=8, index_num=, contact_no=sds', '2025-03-12 15:44:24'),
+(104, 'Student created with user_id=150, s_id=104, name=222222, f_id=8, index_num=222222, contact_no=222222', '2025-03-12 15:58:58'),
+(105, 'Student created with user_id=151, s_id=105, name=3, f_id=10, index_num=3, contact_no=3', '2025-03-12 16:33:45'),
+(106, 'Student created with user_id=152, s_id=106, name=4, f_id=10, index_num=, contact_no=4', '2025-03-12 16:33:48'),
+(107, 'Student status changed for s_id=105 to status=false', '2025-03-12 16:46:50'),
+(108, 'Student status changed for s_id=105 to status=true', '2025-03-12 16:47:05'),
+(109, 'Manager created with user_id=153, m_id=153, name=55, contact_no=55', '2025-03-12 16:56:54'),
+(110, 'Manager created with user_id=154, m_id=8, name=55, contact_no=55', '2025-03-12 17:00:25'),
+(111, 'Manager status changed for m_id=8 to status=false', '2025-03-12 17:00:34'),
+(112, 'Manager status changed for m_id=8 to status=true', '2025-03-12 17:00:35');
 
 -- --------------------------------------------------------
 
@@ -3212,18 +3227,19 @@ CREATE TABLE `batch_time_periods` (
   `user_type` enum('5','4','3','2') NOT NULL,
   `end_date` datetime NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `mail_sent` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `batch_time_periods`
 --
 
-INSERT INTO `batch_time_periods` (`id`, `batch_id`, `user_type`, `end_date`, `created_at`, `updated_at`) VALUES
-(59, 17, '5', '2025-02-27 13:35:00', '2024-12-26 06:41:12', '2025-03-02 17:41:07'),
-(60, 17, '4', '2025-02-28 17:33:00', '2024-12-26 06:41:12', '2025-03-02 17:41:07'),
-(99, 17, '3', '2025-03-06 12:36:00', '2025-02-28 12:06:23', '2025-03-05 20:38:13'),
-(100, 17, '2', '2025-03-07 17:36:00', '2025-02-28 12:06:23', '2025-03-05 20:38:06');
+INSERT INTO `batch_time_periods` (`id`, `batch_id`, `user_type`, `end_date`, `created_at`, `updated_at`, `mail_sent`) VALUES
+(59, 17, '5', '2025-03-07 13:35:00', '2024-12-26 06:41:12', '2025-03-07 13:11:14', 0),
+(60, 17, '4', '2025-02-28 17:33:00', '2024-12-26 06:41:12', '2025-03-07 13:20:09', 1),
+(99, 17, '3', '2025-03-06 12:36:00', '2025-02-28 12:06:23', '2025-03-07 13:20:13', 1),
+(100, 17, '2', '2025-03-07 17:06:00', '2025-02-28 12:06:23', '2025-03-07 13:20:17', 1);
 
 -- --------------------------------------------------------
 
@@ -3471,7 +3487,8 @@ INSERT INTO `manager` (`m_id`, `user_id`) VALUES
 (3, 125),
 (4, 126),
 (5, 127),
-(7, 143);
+(7, 143),
+(8, 154);
 
 -- --------------------------------------------------------
 
@@ -3480,7 +3497,6 @@ INSERT INTO `manager` (`m_id`, `user_id`) VALUES
 --
 
 CREATE TABLE `manager_detail` (
-  `id` int(11) NOT NULL,
   `m_id` int(11) NOT NULL,
   `name` varchar(500) NOT NULL,
   `contact_no` varchar(100) NOT NULL,
@@ -3491,13 +3507,14 @@ CREATE TABLE `manager_detail` (
 -- Dumping data for table `manager_detail`
 --
 
-INSERT INTO `manager_detail` (`id`, `m_id`, `name`, `contact_no`, `status`) VALUES
-(1, 1, 'S.Vadivel', '94770345120', 'true'),
-(2, 2, 'J.Fernando', '94775587965', 'true'),
-(3, 3, 'S.Rajesh', '95728754932', 'false'),
-(4, 4, 'T.Anuradha', '94753267382', 'true'),
-(5, 5, 'N.Sivakumar', '94772584321', 'true'),
-(7, 7, 'Waseem', '67876845634', 'true');
+INSERT INTO `manager_detail` (`m_id`, `name`, `contact_no`, `status`) VALUES
+(1, 'S.Vadivel', '94770345120', 'true'),
+(2, 'J.Fernando', '94775587965', 'true'),
+(3, 'S.Rajesh', '95728754932', 'false'),
+(4, 'T.Anuradha', '94753267382', 'true'),
+(5, 'N.Sivakumar', '94772584321', 'true'),
+(7, 'Waseem', '67876845634', 'true'),
+(8, '55', '55', 'true');
 
 -- --------------------------------------------------------
 
@@ -3629,7 +3646,12 @@ INSERT INTO `student` (`s_id`, `user_id`) VALUES
 (99, 139),
 (100, 140),
 (101, 141),
-(102, 142);
+(102, 142),
+(103, 144),
+(104, 145),
+(104, 150),
+(105, 151),
+(106, 152);
 
 -- --------------------------------------------------------
 
@@ -3660,7 +3682,6 @@ INSERT INTO `students_log` (`id`, `user_id`, `exam`, `date_time`) VALUES
 --
 
 CREATE TABLE `student_detail` (
-  `id` int(11) NOT NULL,
   `s_id` int(11) NOT NULL,
   `name` varchar(150) NOT NULL,
   `index_num` varchar(50) NOT NULL,
@@ -3674,100 +3695,105 @@ CREATE TABLE `student_detail` (
 -- Dumping data for table `student_detail`
 --
 
-INSERT INTO `student_detail` (`id`, `s_id`, `name`, `index_num`, `contact_no`, `batch_ids`, `f_id`, `status`) VALUES
-(7, 7, 'KELUM B.Η.Τ', 'IT 16001', '11111111111', '17', 8, 'true'),
-(8, 8, 'JAYASINGHE M.D.', 'IT 16002', '', '17', 8, 'true'),
-(9, 9, 'WICKRAMASINGHE S.N.', 'IT 16003', '1345435', '17', 8, 'true'),
-(10, 10, 'KARUNITHAA M.', 'IT 15001', '', '17', 8, 'true'),
-(11, 11, 'BANUJA V.', '', '', '', 8, 'true'),
-(12, 12, 'DEWMINI AV', '', '', '', 8, 'true'),
-(13, 13, 'GUNASEKARA HDD ', '', '', '', 8, 'true'),
-(14, 14, 'ABEYSINGHEA.AK.C', '', '', '', 8, 'true'),
-(15, 15, 'PEIRIS P.PH.B.', '', '', '', 8, 'true'),
-(16, 16, 'PERERAKA.S.LD', '', '', '', 8, 'true'),
-(17, 17, 'Udisha W.H.I.', '', '', '', 8, 'true'),
-(18, 18, 'Imran BM', 'IT 16004', '', '', 8, 'true'),
-(19, 19, 'Shanmugarajah D', '', '', '', 8, 'true'),
-(20, 20, 'Muniweera K.G.U.K.', '', '', '', 8, 'true'),
-(21, 21, 'Lourdes Jellorine C', '', '', '', 8, 'true'),
-(22, 22, 'Nalawansa U.K', '', '', '', 8, 'true'),
-(23, 23, 'Devakumar P.', '', '', '', 8, 'true'),
-(24, 24, 'Senevirathne S.A', '', '', '', 8, 'true'),
-(25, 25, 'Jegatheeswaran V.', 'IT 16005', '', '', 8, 'true'),
-(26, 26, 'Shahla A.A.F.S.', 'IT 16006', '', '', 8, 'true'),
-(27, 27, 'RANAWEERA T.R.M.D.S', '', '', '', 8, 'true'),
-(28, 28, 'SUDARAKA R.A.V', '', '', '', 8, 'true'),
-(29, 29, 'KARIYAWASAM K.K.S.M.V', '', '', '', 8, 'true'),
-(30, 30, 'WEERAKOON W.A.D.L', '', '', '', 8, 'true'),
-(31, 31, 'LAKSHIKA R.M.K', '', '', '', 8, 'true'),
-(32, 32, 'WICKRAMASINGHE W.M.D.L', '', '', '', 8, 'true'),
-(33, 33, 'DISSANAYAKA D.M.I.L', '', '', '', 8, 'true'),
-(34, 34, 'CHITHRAKA P.R', '', '', '', 8, 'true'),
-(35, 35, 'DISSANAYAKA D.M.S.P ', '', '', '', 8, 'true'),
-(36, 36, 'PATHIRANA W.P.S.I', '', '', '', 8, 'true'),
-(37, 37, 'KAWMADI L.G.A.S', '', '', '', 8, 'true'),
-(38, 38, 'THARUSHI K.H.P', '', '', '', 8, 'true'),
-(39, 39, 'CHANDRASIRI W.H.T.S', '', '', '', 8, 'true'),
-(40, 40, 'HEMANTHA H.B.G.P.N', '', '', '', 8, 'true'),
-(41, 41, 'HERATH H.P.N.I', '', '', '', 8, 'true'),
-(42, 42, 'BUDDHIMA H.M.H', '', '', '', 8, 'true'),
-(43, 43, 'MANAMPERI G.M.C', '', '', '', 8, 'true'),
-(44, 44, 'DHARMASIRI P.C.M', '', '', '', 8, 'true'),
-(45, 45, 'THILAKARATHNA D.M.I.D', '', '', '', 8, 'true'),
-(46, 46, 'DISSANAYAKA I.L', '', '', '', 8, 'true'),
-(47, 47, 'MOHOMMAD P.M.', '', '', '', 8, 'true'),
-(48, 48, 'HETTIARACHCHI T.N', '', '', '', 8, 'true'),
-(49, 49, 'RAJASINGHA G.R', '', '', '', 8, 'true'),
-(50, 50, 'THARUSHI U.K', '', '', '', 8, 'true'),
-(51, 51, 'LOKARAJA D.C', '', '', '', 8, 'true'),
-(52, 52, 'PAVANI T.D.N', '', '', '', 8, 'true'),
-(53, 53, 'RANAPATHI G.S.A', '', '', '', 8, 'true'),
-(54, 54, 'SAGARIKA D.T.W.D', '', '', '', 8, 'true'),
-(55, 55, 'KARUNARATHNA S.D', '', '', '', 8, 'true'),
-(56, 56, 'KUMARI K.L', '', '', '', 8, 'true'),
-(57, 57, 'DHARMAPRIYA G.D', '', '', '', 8, 'true'),
-(58, 58, 'SANDUNI T.L', '', '', '', 8, 'true'),
-(59, 59, 'DASSANAYAKA G.R', '', '', '', 8, 'true'),
-(60, 60, 'RANIMIKA T.S', '', '', '', 8, 'true'),
-(61, 61, 'SELVAM D.C', '', '', '', 8, 'true'),
-(62, 62, 'HETTIGODA K.A', '', '', '', 8, 'true'),
-(63, 63, 'RAJAPAKSHA R.D', '', '', '', 8, 'true'),
-(64, 64, 'NIWANDANA T.U', '', '', '', 8, 'true'),
-(65, 65, 'SENARATHNA R.L', '', '', '', 8, 'true'),
-(66, 66, 'L. Hariharan', '', '', '', 8, 'true'),
-(67, 67, 'T. Vartheeswaran', '', '', '', 8, 'true'),
-(68, 68, 'V. Varaniya', '', '', '', 8, 'true'),
-(69, 69, 'M. J. F. Ilma', '', '', '', 8, 'true'),
-(70, 70, 'M. S. K. Alwis', '', '', '', 8, 'true'),
-(71, 71, 'C. Thanushiga', '', '', '', 8, 'true'),
-(72, 72, 'B. Ushanthika', '', '', '', 8, 'true'),
-(73, 73, 'J. M. Kumari', '', '', '', 8, 'true'),
-(74, 74, 'P. Nivithashini', '', '', '', 8, 'true'),
-(75, 75, 'B. Kobika', '', '', '', 8, 'true'),
-(76, 76, 'SOORIYAARACHCHI Y.P', '', '', '', 10, 'true'),
-(77, 77, 'DARMADASA R.Y', '', '', '', 10, 'true'),
-(78, 78, 'GAYANI D.H', '', '', '', 10, 'true'),
-(79, 79, 'PALLIYAGURU G.M', '', '', '', 10, 'true'),
-(80, 80, 'PIYUMIKA D.S', '', '', '', 10, 'true'),
-(81, 81, 'RANATHUNGA D.S', '', '', '', 10, 'true'),
-(82, 82, 'KARUNATHILAKA S.D', '', '', '', 10, 'true'),
-(83, 83, 'JAYASINHA T.K', '', '', '', 10, 'true'),
-(84, 84, 'KALANI F.D', '', '', '', 10, 'true'),
-(85, 85, 'SENARATHNA R.L', '', '', '', 10, 'true'),
-(86, 86, 'DARMIKAM J.L', '', '', '', 10, 'true'),
-(87, 87, 'PERERA G.D', '', '', '', 10, 'true'),
-(88, 88, 'TANAKA S.H', '', '', '', 10, 'true'),
-(89, 89, 'DASSANAYAKA R.M', '', '', '', 10, 'true'),
-(90, 90, 'SHANIKA T.S', '', '', '', 10, 'true'),
-(91, 91, 'RANASINHA D.C', '', '', '', 10, 'true'),
-(92, 92, 'MIHIRANI K.A', '', '', '', 10, 'true'),
-(93, 93, 'RAJAPAKSHA T.N.D.R.S', '', '', '', 10, 'true'),
-(94, 94, 'JAYASIRI T.U', '', '', '', 10, 'true'),
-(95, 95, 'SENARATHNA R.L.B', '', '', '', 10, 'true'),
-(99, 99, 'Ashfak', 'A 22101', '37627446', '', 8, 'true'),
-(100, 100, 'Jallu', '', '243243535', '', 8, 'true'),
-(101, 101, 'Kamaal BBD', '', '3243534545', '', 8, 'true'),
-(102, 102, 'romee', 'IT 17002', '325354646', '', 8, 'true');
+INSERT INTO `student_detail` (`s_id`, `name`, `index_num`, `contact_no`, `batch_ids`, `f_id`, `status`) VALUES
+(1, 'rtyrtyty', '', 'sds', '', 8, 'true'),
+(7, 'KELUM B.Η.Τ', 'IT 16001', '11111111111', '17', 8, 'true'),
+(8, 'JAYASINGHE M.D.', 'IT 16002', '', '17', 8, 'true'),
+(9, 'WICKRAMASINGHE S.N.', 'IT 16003', '1345435', '17', 8, 'true'),
+(10, 'KARUNITHAA M.', 'IT 15001', '', '17', 8, 'true'),
+(11, 'BANUJA V.', '', '', '', 8, 'true'),
+(12, 'DEWMINI AV', '', '', '', 8, 'true'),
+(13, 'GUNASEKARA HDD ', '', '', '', 8, 'true'),
+(14, 'ABEYSINGHEA.AK.C', '', '', '', 8, 'true'),
+(15, 'PEIRIS P.PH.B.', '', '', '', 8, 'true'),
+(16, 'PERERAKA.S.LD', '', '', '', 8, 'true'),
+(17, 'Udisha W.H.I.', '', '', '', 8, 'true'),
+(18, 'Imran BM', 'IT 16004', '', '', 8, 'true'),
+(19, 'Shanmugarajah D', '', '', '', 8, 'true'),
+(20, 'Muniweera K.G.U.K.', '', '', '', 8, 'true'),
+(21, 'Lourdes Jellorine C', '', '', '', 8, 'true'),
+(22, 'Nalawansa U.K', '', '', '', 8, 'true'),
+(23, 'Devakumar P.', '', '', '', 8, 'true'),
+(24, 'Senevirathne S.A', '', '', '', 8, 'true'),
+(25, 'Jegatheeswaran V.', 'IT 16005', '', '', 8, 'true'),
+(26, 'Shahla A.A.F.S.', 'IT 16006', '', '', 8, 'true'),
+(27, 'RANAWEERA T.R.M.D.S', '', '', '', 8, 'true'),
+(28, 'SUDARAKA R.A.V', '', '', '', 8, 'true'),
+(29, 'KARIYAWASAM K.K.S.M.V', '', '', '', 8, 'true'),
+(30, 'WEERAKOON W.A.D.L', '', '', '', 8, 'true'),
+(31, 'LAKSHIKA R.M.K', '', '', '', 8, 'true'),
+(32, 'WICKRAMASINGHE W.M.D.L', '', '', '', 8, 'true'),
+(33, 'DISSANAYAKA D.M.I.L', '', '', '', 8, 'true'),
+(34, 'CHITHRAKA P.R', '', '', '', 8, 'true'),
+(35, 'DISSANAYAKA D.M.S.P ', '', '', '', 8, 'true'),
+(36, 'PATHIRANA W.P.S.I', '', '', '', 8, 'true'),
+(37, 'KAWMADI L.G.A.S', '', '', '', 8, 'true'),
+(38, 'THARUSHI K.H.P', '', '', '', 8, 'true'),
+(39, 'CHANDRASIRI W.H.T.S', '', '', '', 8, 'true'),
+(40, 'HEMANTHA H.B.G.P.N', '', '', '', 8, 'true'),
+(41, 'HERATH H.P.N.I', '', '', '', 8, 'true'),
+(42, 'BUDDHIMA H.M.H', '', '', '', 8, 'true'),
+(43, 'MANAMPERI G.M.C', '', '', '', 8, 'true'),
+(44, 'DHARMASIRI P.C.M', '', '', '', 8, 'true'),
+(45, 'THILAKARATHNA D.M.I.D', '', '', '', 8, 'true'),
+(46, 'DISSANAYAKA I.L', '', '', '', 8, 'true'),
+(47, 'MOHOMMAD P.M.', '', '', '', 8, 'true'),
+(48, 'HETTIARACHCHI T.N', '', '', '', 8, 'true'),
+(49, 'RAJASINGHA G.R', '', '', '', 8, 'true'),
+(50, 'THARUSHI U.K', '', '', '', 8, 'true'),
+(51, 'LOKARAJA D.C', '', '', '', 8, 'true'),
+(52, 'PAVANI T.D.N', '', '', '', 8, 'true'),
+(53, 'RANAPATHI G.S.A', '', '', '', 8, 'true'),
+(54, 'SAGARIKA D.T.W.D', '', '', '', 8, 'true'),
+(55, 'KARUNARATHNA S.D', '', '', '', 8, 'true'),
+(56, 'KUMARI K.L', '', '', '', 8, 'true'),
+(57, 'DHARMAPRIYA G.D', '', '', '', 8, 'true'),
+(58, 'SANDUNI T.L', '', '', '', 8, 'true'),
+(59, 'DASSANAYAKA G.R', '', '', '', 8, 'true'),
+(60, 'RANIMIKA T.S', '', '', '', 8, 'true'),
+(61, 'SELVAM D.C', '', '', '', 8, 'true'),
+(62, 'HETTIGODA K.A', '', '', '', 8, 'true'),
+(63, 'RAJAPAKSHA R.D', '', '', '', 8, 'true'),
+(64, 'NIWANDANA T.U', '', '', '', 8, 'true'),
+(65, 'SENARATHNA R.L', '', '', '', 8, 'true'),
+(66, 'L. Hariharan', '', '', '', 8, 'true'),
+(67, 'T. Vartheeswaran', '', '', '', 8, 'true'),
+(68, 'V. Varaniya', '', '', '', 8, 'true'),
+(69, 'M. J. F. Ilma', '', '', '', 8, 'true'),
+(70, 'M. S. K. Alwis', '', '', '', 8, 'true'),
+(71, 'C. Thanushiga', '', '', '', 8, 'true'),
+(72, 'B. Ushanthika', '', '', '', 8, 'true'),
+(73, 'J. M. Kumari', '', '', '', 8, 'true'),
+(74, 'P. Nivithashini', '', '', '', 8, 'true'),
+(75, 'B. Kobika', '', '', '', 8, 'true'),
+(76, 'SOORIYAARACHCHI Y.P', '', '', '', 10, 'true'),
+(77, 'DARMADASA R.Y', '', '', '', 10, 'true'),
+(78, 'GAYANI D.H', '', '', '', 10, 'true'),
+(79, 'PALLIYAGURU G.M', '', '', '', 10, 'true'),
+(80, 'PIYUMIKA D.S', '', '', '', 10, 'true'),
+(81, 'RANATHUNGA D.S', '', '', '', 10, 'true'),
+(82, 'KARUNATHILAKA S.D', '', '', '', 10, 'true'),
+(83, 'JAYASINHA T.K', '', '', '', 10, 'true'),
+(84, 'KALANI F.D', '', '', '', 10, 'true'),
+(85, 'SENARATHNA R.L', '', '', '', 10, 'true'),
+(86, 'DARMIKAM J.L', '', '', '', 10, 'true'),
+(87, 'PERERA G.D', '', '', '', 10, 'true'),
+(88, 'TANAKA S.H', '', '', '', 10, 'true'),
+(89, 'DASSANAYAKA R.M', '', '', '', 10, 'true'),
+(90, 'SHANIKA T.S', '', '', '', 10, 'true'),
+(91, 'RANASINHA D.C', '', '', '', 10, 'true'),
+(92, 'MIHIRANI K.A', '', '', '', 10, 'true'),
+(93, 'RAJAPAKSHA T.N.D.R.S', '', '', '', 10, 'true'),
+(94, 'JAYASIRI T.U', '', '', '', 10, 'true'),
+(95, 'SENARATHNA R.L.B', '', '', '', 10, 'true'),
+(99, 'Ashfak', 'A 22101', '37627446', '', 8, 'true'),
+(100, 'Jallu', '', '243243535', '', 8, 'true'),
+(101, 'Kamaal BBD', '', '3243534545', '', 8, 'true'),
+(102, 'romee', 'IT 17002', '325354646', '', 8, 'true'),
+(103, 'ffhh', '', '11111111', '', 9, 'true'),
+(104, '222222', '222222', '222222', '', 8, 'true'),
+(105, '3', '3', '3', '', 10, 'true'),
+(106, '4', '', '4', '', 10, 'true');
 
 -- --------------------------------------------------------
 
@@ -3903,10 +3929,16 @@ INSERT INTO `user` (`user_id`, `user_name`, `email`, `password`, `role_id`, `res
 (137, 'v', 'v', '$2b$10$JVwXxjHQ8.ECfQwE7JYHWu17lsiMpVJzn4cJACerwXWIUKj22VisS', '2', NULL, NULL, 0, NULL),
 (138, 'v', 'v', '$2b$10$Nj2MGA7dbnuALUfS9LQn1eZ5mt3hQC2EeyMVZaTTP3ysvdHP1tPyS', '2', NULL, NULL, 0, NULL),
 (139, '2019/ASB/03', 'mohamedasfhaq1999@gmail.com', '$2b$10$Ml/Nypvd2c7NKtQj59VaN.G6pq3XsmxioSTYsITHge6juQfvHpIZy', '5', NULL, NULL, 0, NULL),
-(140, '2020/ICT/119', 'zzzahrannnldeen2@gmail.com', '$2b$10$2xr9KDlt5nAssbq8gP0yJO5Zy.mM1h2qxVx1PVQcq0m5sUvQZHEMO', '5', '7ed7c8c7b8ffad13afbb131a99ab20376c8bf8c49ccf625be991dfef8a57792b', '2025-01-19 01:57:17', 6, '2025-01-19 01:58:06'),
+(140, '2020/ICT/119', 'zzzahrannnldeen2@gmail.commm', '$2b$10$2xr9KDlt5nAssbq8gP0yJO5Zy.mM1h2qxVx1PVQcq0m5sUvQZHEMO', '5', '7ed7c8c7b8ffad13afbb131a99ab20376c8bf8c49ccf625be991dfef8a57792b', '2025-01-19 01:57:17', 6, '2025-01-19 01:58:06'),
 (141, '2022/ICT/14', 'Kamaal123@gmail.com', '$2b$10$oTahzYlAPCkgSA9FHOq6h.zVQB5sKDhiDDP9aEh5PdFYigPtntc.y', '5', NULL, NULL, 0, NULL),
 (142, '2022/ICT/15', 'romee7@gmail.com', '$2b$10$yt2M0c.uVvPJLrRC.Jvdje6AgjydpIUmd.B37RfwwSk3/AW86kCvW', '5', NULL, NULL, 0, NULL),
-(143, 'waseem@vau.ac.lk', 'waseem@gmail.com', '$2b$10$kqUrlyJ3qQYOI7Qi/9Nvf.ldlcCbEju96INyLWJqovXr/VDVIKWf6', '4', NULL, NULL, 0, NULL);
+(143, 'waseem@vau.ac.lk', 'waseem@gmail.com', '$2b$10$kqUrlyJ3qQYOI7Qi/9Nvf.ldlcCbEju96INyLWJqovXr/VDVIKWf6', '4', NULL, NULL, 0, NULL),
+(144, '23534545', '2020ict119@vau.jfn.ac.lk', '$2b$10$vby8SD/WUdDg5nx1ZNY/9.VOMeMx/KQs6Giflv7DH/i3P50KM6YiC', '5', NULL, NULL, 0, NULL),
+(145, 'wererer', 'wrewer@dg.v', '$2b$10$b/M0W.p48V4bvxy0/1JZDeEaX5pHBOD4SgZLn13bN3Ps53u6wH8du', '5', NULL, NULL, 0, NULL),
+(150, '222222', 'zzzahrannnldeen@gmail.com', '$2b$10$WAXLamE6eFXX1LuYoP/Txe3YBARPYUJb3nwRNL2qdMG4GukSwJFPO', '5', NULL, NULL, 0, NULL),
+(151, '3', 'zahranliyasdeen@gmail.com', '$2b$10$Vnz/f.vdYbPTgTBp8lxyxuDp9p6X6Vu9wx/FN2ni27b0qStTolxpa', '5', NULL, NULL, 0, NULL),
+(152, '4', 'zzzahrannnldeen2@gmail.com', '$2b$10$x0hqMF/rhcFg2lNa3yjPZOVL0xW/TH3u4esn4.fSwNpNZg1k4eUlm', '5', NULL, NULL, 0, NULL),
+(154, '55', '55@5.5', '$2b$10$LDtNk2gcuSqLb7xKnC2BquvRkUuCJuNM.peR7yyHLHQDY8ZthSqwS', '4', NULL, NULL, 0, NULL);
 
 --
 -- Indexes for dumped tables
@@ -4007,13 +4039,14 @@ ALTER TABLE `fac_dep`
 -- Indexes for table `manager`
 --
 ALTER TABLE `manager`
-  ADD PRIMARY KEY (`m_id`);
+  ADD PRIMARY KEY (`m_id`,`user_id`),
+  ADD KEY `fk_manager_user_id` (`user_id`);
 
 --
 -- Indexes for table `manager_detail`
 --
 ALTER TABLE `manager_detail`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`m_id`);
 
 --
 -- Indexes for table `roles`
@@ -4025,7 +4058,8 @@ ALTER TABLE `roles`
 -- Indexes for table `student`
 --
 ALTER TABLE `student`
-  ADD PRIMARY KEY (`s_id`,`user_id`);
+  ADD PRIMARY KEY (`s_id`,`user_id`),
+  ADD KEY `fk_student_user_id` (`user_id`);
 
 --
 -- Indexes for table `students_log`
@@ -4037,7 +4071,7 @@ ALTER TABLE `students_log`
 -- Indexes for table `student_detail`
 --
 ALTER TABLE `student_detail`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`s_id`);
 
 --
 -- Indexes for table `user`
@@ -4053,7 +4087,7 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `admin_log`
 --
 ALTER TABLE `admin_log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=113;
 
 --
 -- AUTO_INCREMENT for table `admission`
@@ -4095,7 +4129,7 @@ ALTER TABLE `batch_curriculum_lecturer`
 -- AUTO_INCREMENT for table `batch_time_periods`
 --
 ALTER TABLE `batch_time_periods`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=177;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=181;
 
 --
 -- AUTO_INCREMENT for table `curriculum`
@@ -4128,22 +4162,10 @@ ALTER TABLE `faculty`
   MODIFY `f_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
--- AUTO_INCREMENT for table `manager`
---
-ALTER TABLE `manager`
-  MODIFY `m_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
 -- AUTO_INCREMENT for table `manager_detail`
 --
 ALTER TABLE `manager_detail`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT for table `student`
---
-ALTER TABLE `student`
-  MODIFY `s_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
+  MODIFY `m_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `students_log`
@@ -4155,13 +4177,13 @@ ALTER TABLE `students_log`
 -- AUTO_INCREMENT for table `student_detail`
 --
 ALTER TABLE `student_detail`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
+  MODIFY `s_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
 
 --
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=144;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=155;
 
 --
 -- Constraints for dumped tables
@@ -4171,7 +4193,21 @@ ALTER TABLE `user`
 -- Constraints for table `batch_time_periods`
 --
 ALTER TABLE `batch_time_periods`
-  ADD CONSTRAINT `batch_time_periods_ibfk_1` FOREIGN KEY (`batch_id`) REFERENCES `batch` (`batch_id`);
+  ADD CONSTRAINT `fk_batch_time_periods_batch_id` FOREIGN KEY (`batch_id`) REFERENCES `batch` (`batch_id`);
+
+--
+-- Constraints for table `manager`
+--
+ALTER TABLE `manager`
+  ADD CONSTRAINT `fk_manager_m_id` FOREIGN KEY (`m_id`) REFERENCES `manager_detail` (`m_id`),
+  ADD CONSTRAINT `fk_manager_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`);
+
+--
+-- Constraints for table `student`
+--
+ALTER TABLE `student`
+  ADD CONSTRAINT `fk_student_s_id` FOREIGN KEY (`s_id`) REFERENCES `student_detail` (`s_id`),
+  ADD CONSTRAINT `fk_student_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
