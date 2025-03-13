@@ -51,8 +51,8 @@ export default function Footer() {
       <footer className="bg-[hsl(240,5.9%,10%)] text-white py-6 mt-6 text-center">
         <div className="container mx-auto px-4 flex flex-col items-center">
           <p className="text-sm">
-            &copy; {new Date().getFullYear()} University of Vavuniya. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.
+            All&nbsp;rights&nbsp;reserved.
           </p>
           <button
             onClick={() => setShowModal(true)}

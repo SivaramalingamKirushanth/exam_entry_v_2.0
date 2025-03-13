@@ -86,21 +86,13 @@ const dashboard = () => {
   const onApplyClick = (e) => {
     e.preventDefault();
     const deg = e.currentTarget.dataset.deg;
-    const sem = e.currentTarget.dataset.sem;
     const secretKey = process.env.NEXT_PUBLIC_CRYPTO_SECRET;
     const degEncryptedData = CryptoJS.AES.encrypt(
       JSON.stringify(deg),
       secretKey
     ).toString();
-    const semEncryptedData = CryptoJS.AES.encrypt(
-      JSON.stringify(sem),
-      secretKey
-    ).toString();
-    router.push(
-      `/home/form?deg=${encodeURIComponent(
-        degEncryptedData
-      )}&sem=${encodeURIComponent(semEncryptedData)}`
-    );
+
+    router.push(`/home/form?deg=${encodeURIComponent(degEncryptedData)}`);
   };
 
   // All queries initialized here
@@ -869,7 +861,7 @@ const dashboard = () => {
                       <TableRow key={batch.batch_id}>
                         <TableCell className="font-medium uppercase">
                           {level_ordinal} examination in {batch.deg_name} -{" "}
-                          {decodeBatchCode.academic_year} {sem_ordinal}
+                          {decodeBatchCode.academic_year} - {sem_ordinal}
                           &nbsp;semester
                         </TableCell>
                         <TableCell>
@@ -894,8 +886,7 @@ const dashboard = () => {
                               <Button
                                 variant="outline"
                                 className="uppercase"
-                                data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${decodeBatchCode.academic_year}`}
-                                data-sem={`${sem_ordinal} semester`}
+                                data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${decodeBatchCode.academic_year} - ${sem_ordinal} semester`}
                                 onClick={(e) => onApplyClick(e)}
                               >
                                 apply
@@ -959,12 +950,12 @@ const dashboard = () => {
 
                 return (
                   <div
-                    className=" rounded-md bg-white p-3 gap-3 flex flex-col items-center"
+                    className=" rounded-md text-sm bg-white p-3 gap-3 flex flex-col items-center"
                     key={batch.batch_id}
                   >
                     <h1 className="font-medium uppercase text-center">
                       {level_ordinal} examination in {batch.deg_name} -{" "}
-                      {decodeBatchCode.academic_year} {sem_ordinal}
+                      {decodeBatchCode.academic_year} - {sem_ordinal}
                       &nbsp;semester{" "}
                       <Badge
                         variant={
@@ -986,8 +977,8 @@ const dashboard = () => {
                         <Button
                           variant="outline"
                           className="uppercase"
-                          data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${decodeBatchCode.academic_year}`}
-                          data-sem={`${sem_ordinal} semester`}
+                          size="sm"
+                          data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${decodeBatchCode.academic_year} - ${sem_ordinal} semester`}
                           onClick={(e) => onApplyClick(e)}
                         >
                           apply
@@ -996,6 +987,7 @@ const dashboard = () => {
                         <Button
                           variant="outline"
                           className="uppercase"
+                          size="sm"
                           disabled={true}
                         >
                           apply
@@ -1006,6 +998,7 @@ const dashboard = () => {
                         <Button
                           variant="outline"
                           className="uppercase"
+                          size="sm"
                           disabled={true}
                         >
                           download
@@ -1014,6 +1007,7 @@ const dashboard = () => {
                         <Button
                           variant="outline"
                           className="uppercase"
+                          size="sm"
                           onClick={() => onDownloadClick(batch.batch_id)}
                         >
                           download

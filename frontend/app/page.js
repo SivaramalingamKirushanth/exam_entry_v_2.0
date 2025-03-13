@@ -27,11 +27,14 @@ const Login = () => {
     mutationFn: login,
     onSuccess: (res) => {
       toast.success(res.message);
+      setFormData((cur) => ({
+        remember_me: true,
+      }));
       router.replace("/home");
     },
     onError: (err) => {
       toast.error("Invalid username or password");
-      router.replace("/");
+      setFormData((cur) => ({ ...cur, password: "" }));
     },
   });
 
@@ -53,7 +56,6 @@ const Login = () => {
       console.log(err);
       console.log(err.response?.data?.message || "Login failed");
     }
-    setFormData((cur) => ({ ...cur, password: "" }));
   };
 
   useEffect(() => {
