@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 13, 2025 at 04:23 PM
+-- Generation Time: Mar 13, 2025 at 04:29 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -4065,7 +4065,8 @@ ALTER TABLE `student`
 -- Indexes for table `students_log`
 --
 ALTER TABLE `students_log`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_student_log_user_id` (`user_id`);
 
 --
 -- Indexes for table `student_detail`
@@ -4194,6 +4195,12 @@ ALTER TABLE `user`
 --
 ALTER TABLE `student`
   ADD CONSTRAINT `fk_student_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`);
+
+--
+-- Constraints for table `students_log`
+--
+ALTER TABLE `students_log`
+  ADD CONSTRAINT `fk_student_log_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
