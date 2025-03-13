@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 13, 2025 at 04:29 PM
+-- Generation Time: Mar 13, 2025 at 04:33 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -4021,7 +4021,8 @@ ALTER TABLE `dep_deg`
 -- Indexes for table `eligibility_log`
 --
 ALTER TABLE `eligibility_log`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_eligibility_log_user_id` (`user_id`);
 
 --
 -- Indexes for table `faculty`
@@ -4189,6 +4190,12 @@ ALTER TABLE `user`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `eligibility_log`
+--
+ALTER TABLE `eligibility_log`
+  ADD CONSTRAINT `fk_eligibility_log_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`);
 
 --
 -- Constraints for table `student`
