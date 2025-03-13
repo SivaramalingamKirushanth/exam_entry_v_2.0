@@ -15,9 +15,10 @@ export const sendBatchNotifications = async () => {
         `SELECT btp.*, b.batch_code 
          FROM batch_time_periods btp 
          JOIN batch b ON btp.batch_id = b.batch_id 
-         WHERE end_date <= NOW() AND mail_sent = 0`
+         WHERE end_date <= NOW() AND mail_sent = 0 AND user_type != '2'`
       );
 
+      0;
       for (const row of rows) {
         const { batch_id, user_type, id, batch_code } = row;
 
@@ -31,11 +32,7 @@ export const sendBatchNotifications = async () => {
           const dealine = new Date(data[0].endDate)
             .toString()
             .slice(4, new Date(data[0].endDate).toString().indexOf("GMT"));
-          const userId = data[0].id;
-
           const mails = data.map((obj) => obj.email).join(",");
-
-          console.log(1, mails);
 
           try {
             await mailer(
@@ -46,7 +43,7 @@ export const sendBatchNotifications = async () => {
 
             await conn.execute(
               `UPDATE batch_time_periods SET mail_sent = 1 WHERE id = ?`,
-              [userId]
+              [id]
             );
 
             console.log(

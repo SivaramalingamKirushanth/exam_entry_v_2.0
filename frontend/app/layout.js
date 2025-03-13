@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import ReactQueryProvider from "@/utils/providers/ReactQueryProvider";
 import { Toaster } from "@/components/ui/sonner";
+import Footer from "@/components/Footer";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,16 +25,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`font-sans antialiased bg-zinc-100 h-screen overflow-hidden`}
-      >
+      <body className="font-sans antialiased bg-zinc-100 h-screen flex flex-col">
         <ReactQueryProvider>
           <Header />
-          <div className="pt-20 h-full w-full overflow-y-scroll">
-            {children}
-          </div>
+          <main className="flex-grow overflow-y-scroll pt-20">{children}</main>
           <Toaster />
-          <ReactQueryDevtools />
+          {/* <ReactQueryDevtools /> */}
         </ReactQueryProvider>
       </body>
     </html>
