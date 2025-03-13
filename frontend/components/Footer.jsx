@@ -190,7 +190,7 @@ export default function Footer() {
                 </div>
 
                 {/* Team members grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
                   {devs.slice(0, 3).map((mem, i) => (
                     <div
                       key={i}
