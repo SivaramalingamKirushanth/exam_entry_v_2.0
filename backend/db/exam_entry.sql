@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 13, 2025 at 04:58 PM
+-- Generation Time: Mar 13, 2025 at 05:04 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -4218,6 +4218,7 @@ ALTER TABLE `faculty`
 -- Constraints for table `manager`
 --
 ALTER TABLE `manager`
+  ADD CONSTRAINT `fk_manager_m_id` FOREIGN KEY (`m_id`) REFERENCES `manager_detail` (`m_id`),
   ADD CONSTRAINT `fk_manager_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`);
 
 --
