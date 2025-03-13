@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 13, 2025 at 05:08 PM
+-- Generation Time: Mar 13, 2025 at 05:13 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -4220,6 +4220,12 @@ ALTER TABLE `eligibility_log`
 --
 ALTER TABLE `faculty`
   ADD CONSTRAINT `fk_faculty_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`);
+
+--
+-- Constraints for table `fac_dep`
+--
+ALTER TABLE `fac_dep`
+  ADD CONSTRAINT `fk_fac_dep_f_id` FOREIGN KEY (`f_id`) REFERENCES `faculty` (`f_id`);
 
 --
 -- Constraints for table `manager`
