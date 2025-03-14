@@ -440,6 +440,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     <Label className="text-right">Degree programme</Label>
                     <Select
                       onValueChange={(e) => {
+                        setFormData((cur) => ({
+                          ...cur,
+                          level: "",
+                          sem_no: "",
+                        }));
                         onFormDataChanged(e);
                       }}
                       value={formData.deg_id ? "deg_id:" + formData.deg_id : ""}
