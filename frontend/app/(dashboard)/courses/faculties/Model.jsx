@@ -24,11 +24,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const { status, mutate } = useMutation({
     mutationFn: editId ? updateFaculty : createFaculty,
     onSuccess: (res) => {
+      console.log(1);
       queryClient.invalidateQueries(["facultiesExtra"]);
       setEditId("");
       toast.success(res.message);
     },
     onError: (err) => {
+      console.log(2);
       setEditId("");
       toast.error("Operation failed");
     },

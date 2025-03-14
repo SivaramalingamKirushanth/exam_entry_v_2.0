@@ -98,7 +98,7 @@ export const studentRegister = async (req, res, next) => {
                 <h4>Password : ${password}</h4>`
         );
       } catch (mailError) {
-        console.error(`Failed to send mail:`, mailError);
+        return next(errorProvider(500, "Failed to send mail:" + mailError));
       }
 
       await conn.commit();
@@ -217,11 +217,13 @@ export const multipleStudentsRegister = async (req, res, next) => {
                 <h4>Password : ${password}</h4>`
               );
             } catch (mailError) {
-              console.error(`Failed to send mail:`, mailError);
+              return next(
+                errorProvider(500, "Failed to send mail:" + mailError)
+              );
             }
-          }
 
-          await conn.commit();
+            await conn.commit();
+          }
 
           if (failedRecords.length > 0) {
             const filePath = path.join(__dirname, "failed_records.txt");
@@ -332,7 +334,7 @@ export const managerRegister = async (req, res, next) => {
           <h4>Password : ${password}</h4>`
         );
       } catch (mailError) {
-        console.error(`Failed to send mail:`, mailError);
+        errorProvider(500, "Failed to send mail:" + mailError);
       }
       await conn.commit();
 

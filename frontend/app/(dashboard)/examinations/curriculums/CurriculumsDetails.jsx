@@ -146,8 +146,10 @@ const CurriculumsDetails = () => {
   useEffect(() => {
     if (data) {
       let filtData1 = searchValue
-        ? data.filter((item) =>
-            item.sub_name.toLowerCase().includes(searchValue.toLowerCase())
+        ? data.filter(
+            (item) =>
+              item.sub_name.toLowerCase().includes(searchValue.toLowerCase()) ||
+              item.sub_code.toLowerCase().includes(searchValue.toLowerCase())
           )
         : data;
       let filtData2 = filtData1.filter((item) => {
