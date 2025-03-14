@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 14, 2025 at 09:15 AM
+-- Generation Time: Mar 14, 2025 at 09:22 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -3986,7 +3986,8 @@ ALTER TABLE `batch_18_students`
 --
 ALTER TABLE `batch_curriculum_lecturer`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_batch_curriculum_lecturer_m_id` (`m_id`);
+  ADD KEY `fk_batch_curriculum_lecturer_m_id` (`m_id`),
+  ADD KEY `fk_batch_curriculum_lecturer_sub_id` (`sub_id`);
 
 --
 -- Indexes for table `batch_time_periods`
@@ -4212,7 +4213,8 @@ ALTER TABLE `batch`
 -- Constraints for table `batch_curriculum_lecturer`
 --
 ALTER TABLE `batch_curriculum_lecturer`
-  ADD CONSTRAINT `fk_batch_curriculum_lecturer_m_id` FOREIGN KEY (`m_id`) REFERENCES `manager_detail` (`m_id`);
+  ADD CONSTRAINT `fk_batch_curriculum_lecturer_m_id` FOREIGN KEY (`m_id`) REFERENCES `manager_detail` (`m_id`),
+  ADD CONSTRAINT `fk_batch_curriculum_lecturer_sub_id` FOREIGN KEY (`sub_id`) REFERENCES `curriculum` (`sub_id`);
 
 --
 -- Constraints for table `curriculum`
