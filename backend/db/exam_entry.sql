@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 14, 2025 at 06:39 AM
+-- Generation Time: Mar 14, 2025 at 06:59 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -4017,7 +4017,8 @@ ALTER TABLE `department`
 -- Indexes for table `dep_deg`
 --
 ALTER TABLE `dep_deg`
-  ADD PRIMARY KEY (`d_id`,`deg_id`);
+  ADD PRIMARY KEY (`d_id`,`deg_id`),
+  ADD KEY `fk_dep_deg_deg_id` (`deg_id`);
 
 --
 -- Indexes for table `eligibility_log`
@@ -4214,7 +4215,8 @@ ALTER TABLE `department`
 -- Constraints for table `dep_deg`
 --
 ALTER TABLE `dep_deg`
-  ADD CONSTRAINT `fk_dep_deg_d_id` FOREIGN KEY (`d_id`) REFERENCES `department` (`d_id`);
+  ADD CONSTRAINT `fk_dep_deg_d_id` FOREIGN KEY (`d_id`) REFERENCES `department` (`d_id`),
+  ADD CONSTRAINT `fk_dep_deg_deg_id` FOREIGN KEY (`deg_id`) REFERENCES `degree` (`deg_id`);
 
 --
 -- Constraints for table `eligibility_log`
