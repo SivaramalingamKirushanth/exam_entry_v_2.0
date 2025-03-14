@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 14, 2025 at 06:35 AM
+-- Generation Time: Mar 14, 2025 at 06:39 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -4209,6 +4209,12 @@ ALTER TABLE `batch_curriculum_lecturer`
 --
 ALTER TABLE `department`
   ADD CONSTRAINT `fk_department_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`);
+
+--
+-- Constraints for table `dep_deg`
+--
+ALTER TABLE `dep_deg`
+  ADD CONSTRAINT `fk_dep_deg_d_id` FOREIGN KEY (`d_id`) REFERENCES `department` (`d_id`);
 
 --
 -- Constraints for table `eligibility_log`
