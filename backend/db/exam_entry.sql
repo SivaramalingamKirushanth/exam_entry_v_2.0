@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 14, 2025 at 06:59 AM
+-- Generation Time: Mar 14, 2025 at 09:08 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -3966,7 +3966,8 @@ ALTER TABLE `attendance`
 -- Indexes for table `batch`
 --
 ALTER TABLE `batch`
-  ADD PRIMARY KEY (`batch_id`);
+  ADD PRIMARY KEY (`batch_id`),
+  ADD KEY `fk_batch_deg_id` (`deg_id`);
 
 --
 -- Indexes for table `batch_17_students`
@@ -4198,6 +4199,12 @@ ALTER TABLE `user`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `batch`
+--
+ALTER TABLE `batch`
+  ADD CONSTRAINT `fk_batch_deg_id` FOREIGN KEY (`deg_id`) REFERENCES `degree` (`deg_id`);
 
 --
 -- Constraints for table `batch_curriculum_lecturer`
