@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 14, 2025 at 06:28 AM
+-- Generation Time: Mar 14, 2025 at 06:35 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -4038,7 +4038,8 @@ ALTER TABLE `faculty`
 -- Indexes for table `fac_dep`
 --
 ALTER TABLE `fac_dep`
-  ADD PRIMARY KEY (`f_id`,`d_id`);
+  ADD PRIMARY KEY (`f_id`,`d_id`),
+  ADD KEY `fk_fac_dep_d_id` (`d_id`);
 
 --
 -- Indexes for table `manager`
@@ -4226,6 +4227,7 @@ ALTER TABLE `faculty`
 -- Constraints for table `fac_dep`
 --
 ALTER TABLE `fac_dep`
+  ADD CONSTRAINT `fk_fac_dep_d_id` FOREIGN KEY (`d_id`) REFERENCES `department` (`d_id`),
   ADD CONSTRAINT `fk_fac_dep_f_id` FOREIGN KEY (`f_id`) REFERENCES `faculty` (`f_id`);
 
 --
