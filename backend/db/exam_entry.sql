@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 14, 2025 at 09:22 AM
+-- Generation Time: Mar 14, 2025 at 09:30 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -3191,7 +3191,7 @@ CREATE TABLE `batch_18_sub_15` (
 
 CREATE TABLE `batch_curriculum_lecturer` (
   `id` int(11) NOT NULL,
-  `batch_id` varchar(50) NOT NULL,
+  `batch_id` int(11) NOT NULL,
   `sub_id` int(11) NOT NULL,
   `m_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -3201,19 +3201,19 @@ CREATE TABLE `batch_curriculum_lecturer` (
 --
 
 INSERT INTO `batch_curriculum_lecturer` (`id`, `batch_id`, `sub_id`, `m_id`) VALUES
-(103, '17', 16, 1),
-(104, '17', 17, 2),
-(105, '17', 18, 1),
-(106, '17', 19, 4),
-(107, '17', 20, 5),
-(108, '17', 21, 1),
-(109, '17', 22, 2),
-(110, '17', 23, 1),
-(111, '17', 24, 4),
-(112, '17', 25, 5),
-(126, '18', 13, 1),
-(127, '18', 14, 2),
-(128, '18', 15, 4);
+(103, 17, 16, 1),
+(104, 17, 17, 2),
+(105, 17, 18, 1),
+(106, 17, 19, 4),
+(107, 17, 20, 5),
+(108, 17, 21, 1),
+(109, 17, 22, 2),
+(110, 17, 23, 1),
+(111, 17, 24, 4),
+(112, 17, 25, 5),
+(126, 18, 13, 1),
+(127, 18, 14, 2),
+(128, 18, 15, 4);
 
 -- --------------------------------------------------------
 
