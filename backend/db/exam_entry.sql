@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 13, 2025 at 05:13 PM
+-- Generation Time: Mar 14, 2025 at 09:44 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -3191,7 +3191,7 @@ CREATE TABLE `batch_18_sub_15` (
 
 CREATE TABLE `batch_curriculum_lecturer` (
   `id` int(11) NOT NULL,
-  `batch_id` varchar(50) NOT NULL,
+  `batch_id` int(11) NOT NULL,
   `sub_id` int(11) NOT NULL,
   `m_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -3201,19 +3201,19 @@ CREATE TABLE `batch_curriculum_lecturer` (
 --
 
 INSERT INTO `batch_curriculum_lecturer` (`id`, `batch_id`, `sub_id`, `m_id`) VALUES
-(103, '17', 16, 1),
-(104, '17', 17, 2),
-(105, '17', 18, 1),
-(106, '17', 19, 4),
-(107, '17', 20, 5),
-(108, '17', 21, 1),
-(109, '17', 22, 2),
-(110, '17', 23, 1),
-(111, '17', 24, 4),
-(112, '17', 25, 5),
-(126, '18', 13, 1),
-(127, '18', 14, 2),
-(128, '18', 15, 4);
+(103, 17, 16, 1),
+(104, 17, 17, 2),
+(105, 17, 18, 1),
+(106, 17, 19, 4),
+(107, 17, 20, 5),
+(108, 17, 21, 1),
+(109, 17, 22, 2),
+(110, 17, 23, 1),
+(111, 17, 24, 4),
+(112, 17, 25, 5),
+(126, 18, 13, 1),
+(127, 18, 14, 2),
+(128, 18, 15, 4);
 
 -- --------------------------------------------------------
 
@@ -3954,19 +3954,22 @@ ALTER TABLE `admin_log`
 -- Indexes for table `admission`
 --
 ALTER TABLE `admission`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_admission_batch_id` (`batch_id`);
 
 --
 -- Indexes for table `attendance`
 --
 ALTER TABLE `attendance`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_attendance_batch_id` (`batch_id`);
 
 --
 -- Indexes for table `batch`
 --
 ALTER TABLE `batch`
-  ADD PRIMARY KEY (`batch_id`);
+  ADD PRIMARY KEY (`batch_id`),
+  ADD KEY `fk_batch_deg_id` (`deg_id`);
 
 --
 -- Indexes for table `batch_17_students`
@@ -3985,7 +3988,9 @@ ALTER TABLE `batch_18_students`
 --
 ALTER TABLE `batch_curriculum_lecturer`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_batch_curriculum_lecturer_m_id` (`m_id`);
+  ADD KEY `fk_batch_curriculum_lecturer_m_id` (`m_id`),
+  ADD KEY `fk_batch_curriculum_lecturer_sub_id` (`sub_id`),
+  ADD KEY `fk_batch_curriculum_lecturer_batch_id` (`batch_id`);
 
 --
 -- Indexes for table `batch_time_periods`
@@ -3998,7 +4003,8 @@ ALTER TABLE `batch_time_periods`
 -- Indexes for table `curriculum`
 --
 ALTER TABLE `curriculum`
-  ADD PRIMARY KEY (`sub_id`);
+  ADD PRIMARY KEY (`sub_id`),
+  ADD KEY `fk_curriculam_deg_id` (`deg_id`);
 
 --
 -- Indexes for table `degree`
@@ -4017,7 +4023,8 @@ ALTER TABLE `department`
 -- Indexes for table `dep_deg`
 --
 ALTER TABLE `dep_deg`
-  ADD PRIMARY KEY (`d_id`,`deg_id`);
+  ADD PRIMARY KEY (`d_id`,`deg_id`),
+  ADD KEY `fk_dep_deg_deg_id` (`deg_id`);
 
 --
 -- Indexes for table `eligibility_log`
@@ -4025,7 +4032,8 @@ ALTER TABLE `dep_deg`
 ALTER TABLE `eligibility_log`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_eligibility_log_user_id` (`user_id`),
-  ADD KEY `fk_eligibility_log_s_id` (`s_id`);
+  ADD KEY `fk_eligibility_log_s_id` (`s_id`),
+  ADD KEY `fk_eligibility_log_sub_id` (`sub_id`);
 
 --
 -- Indexes for table `faculty`
@@ -4038,7 +4046,8 @@ ALTER TABLE `faculty`
 -- Indexes for table `fac_dep`
 --
 ALTER TABLE `fac_dep`
-  ADD PRIMARY KEY (`f_id`,`d_id`);
+  ADD PRIMARY KEY (`f_id`,`d_id`),
+  ADD KEY `fk_fac_dep_d_id` (`d_id`);
 
 --
 -- Indexes for table `manager`
@@ -4077,7 +4086,8 @@ ALTER TABLE `students_log`
 -- Indexes for table `student_detail`
 --
 ALTER TABLE `student_detail`
-  ADD PRIMARY KEY (`s_id`);
+  ADD PRIMARY KEY (`s_id`),
+  ADD KEY `fk_student_detail_f_id` (`f_id`);
 
 --
 -- Indexes for table `user`
@@ -4197,10 +4207,42 @@ ALTER TABLE `user`
 --
 
 --
+-- Constraints for table `admission`
+--
+ALTER TABLE `admission`
+  ADD CONSTRAINT `fk_admission_batch_id` FOREIGN KEY (`batch_id`) REFERENCES `batch` (`batch_id`);
+
+--
+-- Constraints for table `attendance`
+--
+ALTER TABLE `attendance`
+  ADD CONSTRAINT `fk_attendance_batch_id` FOREIGN KEY (`batch_id`) REFERENCES `batch` (`batch_id`);
+
+--
+-- Constraints for table `batch`
+--
+ALTER TABLE `batch`
+  ADD CONSTRAINT `fk_batch_deg_id` FOREIGN KEY (`deg_id`) REFERENCES `degree` (`deg_id`);
+
+--
 -- Constraints for table `batch_curriculum_lecturer`
 --
 ALTER TABLE `batch_curriculum_lecturer`
-  ADD CONSTRAINT `fk_batch_curriculum_lecturer_m_id` FOREIGN KEY (`m_id`) REFERENCES `manager_detail` (`m_id`);
+  ADD CONSTRAINT `fk_batch_curriculum_lecturer_batch_id` FOREIGN KEY (`batch_id`) REFERENCES `batch` (`batch_id`),
+  ADD CONSTRAINT `fk_batch_curriculum_lecturer_m_id` FOREIGN KEY (`m_id`) REFERENCES `manager_detail` (`m_id`),
+  ADD CONSTRAINT `fk_batch_curriculum_lecturer_sub_id` FOREIGN KEY (`sub_id`) REFERENCES `curriculum` (`sub_id`);
+
+--
+-- Constraints for table `batch_time_periods`
+--
+ALTER TABLE `batch_time_periods`
+  ADD CONSTRAINT `fk_batch_time_periods_batch_id` FOREIGN KEY (`batch_id`) REFERENCES `batch` (`batch_id`);
+
+--
+-- Constraints for table `curriculum`
+--
+ALTER TABLE `curriculum`
+  ADD CONSTRAINT `fk_curriculam_deg_id` FOREIGN KEY (`deg_id`) REFERENCES `degree` (`deg_id`);
 
 --
 -- Constraints for table `department`
@@ -4209,10 +4251,18 @@ ALTER TABLE `department`
   ADD CONSTRAINT `fk_department_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`);
 
 --
+-- Constraints for table `dep_deg`
+--
+ALTER TABLE `dep_deg`
+  ADD CONSTRAINT `fk_dep_deg_d_id` FOREIGN KEY (`d_id`) REFERENCES `department` (`d_id`),
+  ADD CONSTRAINT `fk_dep_deg_deg_id` FOREIGN KEY (`deg_id`) REFERENCES `degree` (`deg_id`);
+
+--
 -- Constraints for table `eligibility_log`
 --
 ALTER TABLE `eligibility_log`
   ADD CONSTRAINT `fk_eligibility_log_s_id` FOREIGN KEY (`s_id`) REFERENCES `student_detail` (`s_id`),
+  ADD CONSTRAINT `fk_eligibility_log_sub_id` FOREIGN KEY (`sub_id`) REFERENCES `curriculum` (`sub_id`),
   ADD CONSTRAINT `fk_eligibility_log_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`);
 
 --
@@ -4225,6 +4275,7 @@ ALTER TABLE `faculty`
 -- Constraints for table `fac_dep`
 --
 ALTER TABLE `fac_dep`
+  ADD CONSTRAINT `fk_fac_dep_d_id` FOREIGN KEY (`d_id`) REFERENCES `department` (`d_id`),
   ADD CONSTRAINT `fk_fac_dep_f_id` FOREIGN KEY (`f_id`) REFERENCES `faculty` (`f_id`);
 
 --
@@ -4246,6 +4297,12 @@ ALTER TABLE `student`
 --
 ALTER TABLE `students_log`
   ADD CONSTRAINT `fk_student_log_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`);
+
+--
+-- Constraints for table `student_detail`
+--
+ALTER TABLE `student_detail`
+  ADD CONSTRAINT `fk_student_detail_f_id` FOREIGN KEY (`f_id`) REFERENCES `faculty` (`f_id`);
 
 --
 -- Constraints for table `user`
