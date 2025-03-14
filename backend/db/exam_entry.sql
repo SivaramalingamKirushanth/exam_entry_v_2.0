@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 14, 2025 at 09:08 AM
+-- Generation Time: Mar 14, 2025 at 09:11 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -3999,7 +3999,8 @@ ALTER TABLE `batch_time_periods`
 -- Indexes for table `curriculum`
 --
 ALTER TABLE `curriculum`
-  ADD PRIMARY KEY (`sub_id`);
+  ADD PRIMARY KEY (`sub_id`),
+  ADD KEY `fk_curriculam_deg_id` (`deg_id`);
 
 --
 -- Indexes for table `degree`
@@ -4211,6 +4212,12 @@ ALTER TABLE `batch`
 --
 ALTER TABLE `batch_curriculum_lecturer`
   ADD CONSTRAINT `fk_batch_curriculum_lecturer_m_id` FOREIGN KEY (`m_id`) REFERENCES `manager_detail` (`m_id`);
+
+--
+-- Constraints for table `curriculum`
+--
+ALTER TABLE `curriculum`
+  ADD CONSTRAINT `fk_curriculam_deg_id` FOREIGN KEY (`deg_id`) REFERENCES `degree` (`deg_id`);
 
 --
 -- Constraints for table `department`
