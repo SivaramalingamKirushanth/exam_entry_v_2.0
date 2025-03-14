@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 14, 2025 at 09:37 AM
+-- Generation Time: Mar 14, 2025 at 09:41 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -3954,7 +3954,8 @@ ALTER TABLE `admin_log`
 -- Indexes for table `admission`
 --
 ALTER TABLE `admission`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_admission_batch_id` (`batch_id`);
 
 --
 -- Indexes for table `attendance`
@@ -4203,6 +4204,12 @@ ALTER TABLE `user`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `admission`
+--
+ALTER TABLE `admission`
+  ADD CONSTRAINT `fk_admission_batch_id` FOREIGN KEY (`batch_id`) REFERENCES `batch` (`batch_id`);
 
 --
 -- Constraints for table `batch`
