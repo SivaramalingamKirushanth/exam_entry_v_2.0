@@ -607,7 +607,7 @@ const AttendanceSheetTemplate = ({
                             obj.index_num ? "" : "bg-red-500"
                           }`}
                         >
-                          {obj.index_num || "Index no missing"}
+                          {obj.index_num || "Missing!"}
                         </h1>
                       )
                     ) : (

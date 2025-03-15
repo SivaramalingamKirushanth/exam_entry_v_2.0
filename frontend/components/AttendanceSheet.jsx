@@ -201,21 +201,29 @@ const AttendanceSheet = ({
             <tbody>
               {splittedArray[ele]?.map((obj, i) => (
                 <tr className="h-[34px]" key={ele + "" + i}>
-                  <td className="border border-black">
+                  <td
+                    className={`border border-black ${
+                      obj && obj != "R" && obj != "M" && !obj.index_num
+                        ? "bg-red-500"
+                        : ""
+                    }`}
+                  >
                     {obj ? (
                       typeof obj == "string" ? (
                         obj == "R" ? (
-                          <h1 className="font-semibold text-center">Resit</h1>
+                          <h1 className="flex justify-center -mt-1 pb-2 items-center leading-[1] font-semibold text-center">
+                            Resit
+                          </h1>
                         ) : (
-                          <h1 className="font-semibold text-center">Medical</h1>
+                          <h1 className="flex justify-center -mt-1 pb-2 items-center leading-[1] font-semibold text-center">
+                            Medical
+                          </h1>
                         )
                       ) : (
                         <h1
-                          className={`text-center text-wrap ${
-                            obj.index_num ? "" : "bg-red-500"
-                          }`}
+                          className={`flex justify-center leading-[1] -mt-1 pb-2 items-center text-wrap`}
                         >
-                          {obj.index_num || "Index no missing"}
+                          {obj.index_num || "Missing!"}
                         </h1>
                       )
                     ) : (
