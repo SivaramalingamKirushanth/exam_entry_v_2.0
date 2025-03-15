@@ -77,7 +77,7 @@ const AttendanceSheet = ({
         </div>
         <div className="flex items-center">
           <span>Hall&nbsp;No&nbsp;:&nbsp;</span>
-          <div>{formData[groupNo]?.hallNo || ""}</div>
+          <div className="min-w-24">{formData[groupNo]?.hallNo || ""}</div>
         </div>
       </div>
       <h1 className="font-bold text-lg uppercase text-center mb-2">
@@ -141,7 +141,7 @@ const AttendanceSheet = ({
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 min-w-56">
           <div className="flex items-center">
             <div className="w-36 flex justify-between shrink-0">
               Date <span>:&nbsp;</span>
@@ -153,10 +153,15 @@ const AttendanceSheet = ({
               Time <span>:&nbsp;</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div>{formData[groupNo]?.fromTime || ""}</div>
+              <div>
+                {formData[groupNo]?.fromTime ||
+                  "\u00a0\u00a0\u00a0\u00a0\u00a0"}
+              </div>
               <span>&ndash;</span>
 
-              <div>{formData[groupNo]?.toTime || ""}</div>
+              <div>
+                {formData[groupNo]?.toTime || "\u00a0\u00a0\u00a0\u00a0\u00a0"}
+              </div>
             </div>
           </div>
           <div className="flex">
@@ -170,14 +175,14 @@ const AttendanceSheet = ({
         </div>
       </div>
 
-      <h3 className="text-xl mt-1 uppercase text-center font-algerian">
+      <h3 className="text-xl my-1 uppercase text-center font-algerian">
         attendance list
       </h3>
       {/* </div> */}
 
-      <div className="mb-2 text-base">{parse(formData.description) || ""}</div>
+      <div className="text-sm">{parse(formData.description) || ""}</div>
 
-      <div className="flex">
+      <div className="flex mt-4">
         {[0, 1, 2, 3, 4].map((ele) => (
           <table
             key={ele}

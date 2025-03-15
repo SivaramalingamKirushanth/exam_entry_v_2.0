@@ -25,10 +25,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased bg-zinc-100 h-screen flex flex-col">
+      <body className="font-sans antialiased bg-zinc-100 h-screen overflow-hidden">
         <ReactQueryProvider>
           <Header />
-          <main className="flex-grow overflow-y-scroll pt-20">{children}</main>
+          <main className="h-full w-full overflow-y-scroll pt-20">
+            {children}
+          </main>
           <Toaster />
           {/* <ReactQueryDevtools /> */}
         </ReactQueryProvider>

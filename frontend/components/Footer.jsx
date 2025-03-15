@@ -56,17 +56,16 @@ export default function Footer() {
           </p>
           <button
             onClick={() => setShowModal(true)}
-            className="relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 mt-3
-  text-white shadow-lg overflow-hidden border border-transparent"
+            className="relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 mt-3 text-white shadow-lg overflow-hidden border border-transparent"
           >
-            {/* Gradient Border Effect */}
-            <span className="absolute inset-0 rounded-md p-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500" />
+            {/* Animated Gradient Border Effect */}
+            <span className="absolute inset-0 rounded-md p-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 animate-gradient-x" />
 
             {/* Black Background */}
             <span className="absolute inset-[2px] bg-black backdrop-blur-md rounded-md" />
 
             {/* Gradient Text */}
-            <span className="relative z-10 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 bg-clip-text text-transparent">
+            <span className="relative z-10 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 animate-gradient-x bg-clip-text text-transparent">
               Meet the Team
             </span>
           </button>
@@ -158,7 +157,7 @@ export default function Footer() {
                   <div className="w-full md:w-1/2 bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-purple-200 transition-all">
                     <div className="flex justify-between">
                       <div>
-                        <p className="font-semibold text-md text-gray-800">
+                        <p className="font-bold text-md text-gray-800">
                           Zahran Liyasdeen
                         </p>
                         <p className="text-sm font-semibold bg-gradient-to-r from-purple-700 via-pink-600 to-blue-700 bg-clip-text text-transparent">

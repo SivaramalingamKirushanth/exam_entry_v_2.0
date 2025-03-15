@@ -56,27 +56,27 @@ const AdmissionCard = ({
         </h2>
         <div className="flex justify-center font-semibold text-base uppercase space-x-2 items-center flex-wrap leading-[1]">
           {level_ordinal} examination in {batchFullDetailsData?.deg_name} -{" "}
-          {decodeBatchCode.academic_year} - {sem_ordinal}&nbsp;semester -
+          {decodeBatchCode.academic_year} - {sem_ordinal}&nbsp;semester -{" "}
           {formData.date?.map((obj, ind) =>
             ind
-              ? " ," +
+              ? ", " +
                 obj.months
                   .map((month, index) =>
                     index ? `/${months[month]}` : `${months[month]}`
                   )
                   .join("") +
-                " " +
+                "\u00a0" +
                 obj.year
               : obj.months
                   .map((month, index) =>
                     index ? `/${months[month]}` : `${months[month]}`
                   )
                   .join("") +
-                " " +
+                "\u00a0" +
                 obj.year
           )}
         </div>
-        <h3 className="text-xl uppercase font-bold leading-[1.1]">
+        <h3 className="text-xl uppercase font-bold leading-[1.1] font-algerian">
           Admission Card
         </h3>
       </div>

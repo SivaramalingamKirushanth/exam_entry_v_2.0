@@ -21,7 +21,7 @@ const RootLayout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-full flex flex-col flex-grow justify-between">
+    <div className="min-h-full flex flex-col justify-between">
       <DashboardHeader logoutHandler={logoutHandler} />
       <Sidebar />
       <div className="p-3 pt-10 sm:pt-16 h-full w-full">{children}</div>
