@@ -58,11 +58,14 @@ import {
   getBatchById,
   updateBatch,
 } from "@/utils/apiRequests/batch.api";
+import { FaCircleCheck } from "react-icons/fa6";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({});
   const [sidePartEnable, setSidePartEnable] = useState(false);
   const [btnEnable, setBtnEnable] = useState(false);
+  const [lecturersPartValid, setLecturersPartValid] = useState(false);
+  const [datesPartValid, setDatesPartValid] = useState(false);
   const queryClient = useQueryClient();
   const [comboBoxOpen, setComboBoxOpen] = useState({});
 
@@ -143,7 +146,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         ...data,
         old_batch_code: data.batch_code,
         old_subjects: data.subjects,
-        old_status: data.status,
       });
     }
   }, [data]);
@@ -206,9 +208,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         batch_code,
         old_batch_code,
         subjects,
-        status,
         old_subjects,
-        old_status,
         batch_id,
         deg_id,
       } = formData;
@@ -216,15 +216,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         batch_code,
         old_batch_code,
         subjects,
-        status,
         old_subjects,
-        old_status,
         batch_id,
         deg_id,
       });
     } else {
-      const { batch_code, subjects, status, deg_id } = formData;
-      mutate({ batch_code, subjects, status, deg_id });
+      const { batch_code, subjects, deg_id } = formData;
+      mutate({ batch_code, subjects, deg_id });
     }
 
     setFormData({});
@@ -232,14 +230,15 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const onFormReset = () => {
-    setFormData(
-      {
+    if (data) {
+      setFormData({
         ...data,
         old_batch_code: data.batch_code,
         old_subjects: data.subjects,
-        old_status: data.status,
-      } || {}
-    );
+      });
+    } else {
+      setFormData({});
+    }
   };
 
   useEffect(() => {
@@ -271,7 +270,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   }, [formData]);
 
   useEffect(() => {
-    let isFormValid = true;
+    let isLecturersPartValid = true;
 
     if (sidePartEnable) {
       if (curriculumByDegLevSemData?.length) {
@@ -282,22 +281,38 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
           ) {
             Object.values(formData.subjects).forEach((value) => {
               if (!value) {
-                isFormValid = false;
+                isLecturersPartValid = false;
               }
             });
           } else {
-            isFormValid = false;
+            isLecturersPartValid = false;
           }
         } else {
-          isFormValid = false;
+          isLecturersPartValid = false;
         }
       } else {
-        isFormValid = false;
+        isLecturersPartValid = false;
       }
 
-      setBtnEnable(sidePartEnable && isFormValid);
+      setLecturersPartValid(sidePartEnable && isLecturersPartValid);
+
+      let isDatesPartValid =
+        formData.students_end &&
+        formData.lecturers_end &&
+        formData.hod_end &&
+        formData.dean_end;
+
+      setDatesPartValid(sidePartEnable && isDatesPartValid);
     }
   }, [formData]);
+
+  useEffect(() => {
+    if (sidePartEnable && lecturersPartValid && datesPartValid) {
+      setBtnEnable(true);
+    } else {
+      setBtnEnable(false);
+    }
+  }, [sidePartEnable, lecturersPartValid, datesPartValid]);
 
   useEffect(() => {
     editId && refetch();
@@ -352,281 +367,333 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 }}
               />
             </div>
-            <div className="w-full flex flex-col justify-between  h-[80vh]">
-              <div className="flex ">
+            <div className="w-full flex flex-col gap-1 justify-between h-[80vh]">
+              <div className="flex h-[70%] shrink-0 gap-2">
                 <div
-                  className={`flex flex-col justify-start gap-4 sm:max-w-[360px] w-[360px] shrink-0 `}
+                  className={`flex flex-col justify-start shrink-0 border rounded-md ${
+                    sidePartEnable
+                      ? "border-green-300 sm:max-w-[360px] w-[360px]"
+                      : "border-slate-300 w-full"
+                  } p-2`}
                 >
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="batch_code" className="text-right">
-                      Batch Code
-                    </Label>
-                    <Input
-                      id="batch_code"
-                      name="batch_code"
-                      className="col-span-3"
-                      disabled={true}
-                      value={formData.batch_code || "XXXXXXXX"}
+                  <h1 className="font-bold capitalize text-sm mb-1 flex gap-2 items-center">
+                    general
+                    <FaCircleCheck
+                      size={15}
+                      className={
+                        sidePartEnable ? "text-green-600" : "text-slate-400"
+                      }
                     />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="academic_year" className="text-right">
-                      Academic year
-                    </Label>
-                    <input
-                      type="number"
-                      min="2023"
-                      max="2100"
-                      placeholder="Enter year"
-                      className="flex h-9 col-span-3 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                      name="academic_year"
-                      id="academic_year"
-                      onBlur={(e) => onAcadYearChanged(e)}
-                      onChange={(e) => onFormDataChanged(e)}
-                      value={formData.academic_year || ""}
-                    />
-                  </div>
-
-                  <div className={`grid grid-cols-4 items-center gap-4`}>
-                    <Label className="text-right">Faculty</Label>
-                    <Select
-                      onValueChange={(e) => {
-                        setFormData((cur) => ({ ...cur, d_id: "" }));
-                        onFormDataChanged(e);
-                      }}
-                      value={formData.f_id ? "f_id:" + formData.f_id : ""}
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Faculty" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {facultyData?.map((item) => (
-                          <SelectItem
-                            key={item.f_id}
-                            value={`f_id:${item.f_id}`}
-                          >
-                            {item.f_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className={`grid grid-cols-4 items-center gap-4`}>
-                    <Label className="text-right">Department</Label>
-                    <Select
-                      onValueChange={(e) => {
-                        setFormData((cur) => ({ ...cur, deg_id: "" }));
-                        onFormDataChanged(e);
-                      }}
-                      value={formData.d_id ? "d_id:" + formData.d_id : ""}
-                      disabled={!formData.f_id}
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {departmentData?.map((item) => (
-                          <SelectItem
-                            key={item.d_id}
-                            value={`d_id:${item.d_id}`}
-                          >
-                            {item.d_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className={`grid grid-cols-4 items-center gap-4`}>
-                    <Label className="text-right">Degree programme</Label>
-                    <Select
-                      onValueChange={(e) => {
-                        setFormData((cur) => ({
-                          ...cur,
-                          level: "",
-                          sem_no: "",
-                        }));
-                        onFormDataChanged(e);
-                      }}
-                      value={formData.deg_id ? "deg_id:" + formData.deg_id : ""}
-                      disabled={!formData.d_id}
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Degree programme" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {degreeData?.map((item) => (
-                          <SelectItem
-                            key={item.deg_id}
-                            value={`deg_id:${item.deg_id}`}
-                          >
-                            {item.deg_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div
-                    className={`${
-                      specificDegreeData ? "grid" : "hidden"
-                    }  grid-cols-4 gap-4`}
-                  >
-                    <Label className="text-right">Level</Label>
-                    <div className="flex col-span-3 gap-4 flex-wrap">
-                      {specificDegreeData?.levels.map((item) => (
-                        <div className="flex items-center space-x-2" key={item}>
-                          <input
-                            type="radio"
-                            value={item}
-                            id={`l${item}`}
-                            checked={formData.level == item}
-                            name="level"
-                            onChange={(e) => onFormDataChanged(e)}
-                            onBlur={(e) => {
-                              e.target.value = e.target.value.trim();
-                              onFormDataChanged(e);
-                            }}
-                            className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
-                          />
-                          <Label
-                            htmlFor={`l${item}`}
-                            className="cursor-pointer"
-                          >
-                            {item}
-                          </Label>
-                        </div>
-                      ))}
+                  </h1>
+                  <div className="flex flex-col justify-start gap-3 overflow-auto w-full h-full">
+                    <div className="grid grid-cols-4 items-center gap-4 pr-[2px]">
+                      <Label htmlFor="batch_code" className="text-right">
+                        Batch Code
+                      </Label>
+                      <Input
+                        id="batch_code"
+                        name="batch_code"
+                        className="col-span-3"
+                        disabled={true}
+                        value={formData.batch_code || "XXXXXXXX"}
+                      />
                     </div>
-                  </div>
-                  <div
-                    className={`${
-                      specificDegreeData ? "grid" : "hidden"
-                    }  grid-cols-4 gap-4`}
-                  >
-                    <Label className="text-right">Semester</Label>
-                    <div className="flex col-span-3 gap-4 flex-wrap">
-                      {[1, 2].map((item) => (
-                        <div className="flex items-center space-x-2" key={item}>
-                          <input
-                            type="radio"
-                            value={item}
-                            id={`s${item}`}
-                            checked={formData.sem_no == item}
-                            name="sem_no"
-                            onChange={(e) => onFormDataChanged(e)}
-                            onBlur={(e) => {
-                              e.target.value = e.target.value.trim();
-                              onFormDataChanged(e);
-                            }}
-                            className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
-                          />
-                          <Label
-                            htmlFor={`s${item}`}
-                            className="cursor-pointer"
+                    <div className="grid grid-cols-4 items-center gap-4 pr-[2px]">
+                      <Label htmlFor="academic_year" className="text-right">
+                        Academic year
+                      </Label>
+                      <input
+                        type="number"
+                        min="2023"
+                        max="2100"
+                        placeholder="Enter year"
+                        className="flex h-9 col-span-3 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                        name="academic_year"
+                        id="academic_year"
+                        onBlur={(e) => onAcadYearChanged(e)}
+                        onChange={(e) => onFormDataChanged(e)}
+                        value={formData.academic_year || ""}
+                      />
+                    </div>
+
+                    <div
+                      className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
+                    >
+                      <Label className="text-right">Faculty</Label>
+                      <Select
+                        onValueChange={(e) => {
+                          setFormData((cur) => ({ ...cur, d_id: "" }));
+                          onFormDataChanged(e);
+                        }}
+                        value={formData.f_id ? "f_id:" + formData.f_id : ""}
+                      >
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Faculty" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {facultyData?.map((item) => (
+                            <SelectItem
+                              key={item.f_id}
+                              value={`f_id:${item.f_id}`}
+                            >
+                              {item.f_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div
+                      className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
+                    >
+                      <Label className="text-right">Department</Label>
+                      <Select
+                        onValueChange={(e) => {
+                          setFormData((cur) => ({ ...cur, deg_id: "" }));
+                          onFormDataChanged(e);
+                        }}
+                        value={formData.d_id ? "d_id:" + formData.d_id : ""}
+                        disabled={!formData.f_id}
+                      >
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {departmentData?.map((item) => (
+                            <SelectItem
+                              key={item.d_id}
+                              value={`d_id:${item.d_id}`}
+                            >
+                              {item.d_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div
+                      className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
+                    >
+                      <Label className="text-right">Degree programme</Label>
+                      <Select
+                        onValueChange={(e) => {
+                          setFormData((cur) => ({
+                            ...cur,
+                            level: "",
+                            sem_no: "",
+                          }));
+                          onFormDataChanged(e);
+                        }}
+                        value={
+                          formData.deg_id ? "deg_id:" + formData.deg_id : ""
+                        }
+                        disabled={!formData.d_id}
+                      >
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Degree programme" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {degreeData?.map((item) => (
+                            <SelectItem
+                              key={item.deg_id}
+                              value={`deg_id:${item.deg_id}`}
+                            >
+                              {item.deg_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div
+                      className={`${
+                        specificDegreeData ? "grid" : "hidden"
+                      }  grid-cols-4 gap-4`}
+                    >
+                      <Label className="text-right">Level</Label>
+                      <div className="flex col-span-3 gap-4 flex-wrap">
+                        {specificDegreeData?.levels.map((item) => (
+                          <div
+                            className="flex items-center space-x-2"
+                            key={item}
                           >
-                            {item}
-                          </Label>
-                        </div>
-                      ))}
+                            <input
+                              type="radio"
+                              value={item}
+                              id={`l${item}`}
+                              checked={formData.level == item}
+                              name="level"
+                              onChange={(e) => onFormDataChanged(e)}
+                              onBlur={(e) => {
+                                e.target.value = e.target.value.trim();
+                                onFormDataChanged(e);
+                              }}
+                              className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
+                            />
+                            <Label
+                              htmlFor={`l${item}`}
+                              className="cursor-pointer"
+                            >
+                              {item}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div
+                      className={`${
+                        specificDegreeData ? "grid" : "hidden"
+                      }  grid-cols-4 gap-4`}
+                    >
+                      <Label className="text-right">Semester</Label>
+                      <div className="flex col-span-3 gap-4 flex-wrap">
+                        {[1, 2].map((item) => (
+                          <div
+                            className="flex items-center space-x-2"
+                            key={item}
+                          >
+                            <input
+                              type="radio"
+                              value={item}
+                              id={`s${item}`}
+                              checked={formData.sem_no == item}
+                              name="sem_no"
+                              onChange={(e) => onFormDataChanged(e)}
+                              onBlur={(e) => {
+                                e.target.value = e.target.value.trim();
+                                onFormDataChanged(e);
+                              }}
+                              className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
+                            />
+                            <Label
+                              htmlFor={`s${item}`}
+                              className="cursor-pointer"
+                            >
+                              {item}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
                 {sidePartEnable &&
                   (curriculumByDegLevSemData?.length ? (
-                    <div className="container w-[425px] mx-auto h-[70vh] overflow-auto p-1 flex flex-col justify-start gap-4">
-                      {curriculumByDegLevSemData?.map((obj) => {
-                        return (
-                          <div
-                            className={`grid grid-cols-4 items-center gap-4`}
-                            key={obj.sub_id}
-                          >
-                            <Label className="text-right">{obj.sub_code}</Label>
-                            <div className="grid col-span-3">
-                              <Popover
-                                open={comboBoxOpen[obj.sub_id]}
-                                onOpenChange={(bool) => {
-                                  setComboBoxOpen((cur) => ({
-                                    ...cur,
-                                    [obj.sub_id]: bool,
-                                  }));
-                                }}
-                              >
-                                <PopoverTrigger asChild>
-                                  <button
-                                    role="combobox"
-                                    aria-expanded={comboBoxOpen}
-                                    className="col-span-3 flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-white px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer"
-                                  >
-                                    {formData?.subjects?.[obj.sub_id]
-                                      ? managers.find(
-                                          (manager) =>
-                                            manager.m_id ==
-                                            formData.subjects[obj.sub_id]
-                                        )?.name
-                                      : "Select manager"}
-                                    <ChevronsUpDown className="opacity-50 size-[17px] " />
-                                  </button>
-                                </PopoverTrigger>
-                                <PopoverContent className="py-0 px-1 border-none shadow-none w-full">
-                                  <Command className="border shadow-md w-full">
-                                    <CommandInput placeholder="Search manager" />
-                                    <CommandList>
-                                      <CommandEmpty>
-                                        No manager found.
-                                      </CommandEmpty>
-                                      <CommandGroup>
-                                        {managers.map((manager) => (
-                                          <CommandItem
-                                            key={manager.m_id}
-                                            value={
-                                              manager.name +
-                                              ":" +
-                                              manager.m_id.toString()
-                                            }
-                                            onSelect={(currentValue) => {
-                                              setFormData((cur) => ({
-                                                ...cur,
-                                                subjects: {
-                                                  ...cur.subjects,
-                                                  [obj.sub_id]:
-                                                    currentValue.split(
-                                                      ":"
-                                                    )[1] ===
-                                                    cur?.subjects?.[obj.sub_id]
-                                                      ? ""
-                                                      : currentValue.split(
-                                                          ":"
-                                                        )[1],
-                                                },
-                                              }));
-                                              setComboBoxOpen((cur) => ({
-                                                ...cur,
-                                                [obj.sub_id]: false,
-                                              }));
-                                            }}
-                                          >
-                                            {manager.name}
-                                            <Check
-                                              className={cn(
-                                                "ml-auto",
-                                                formData?.subjects?.[
-                                                  obj.sub_id
-                                                ] == manager.m_id
-                                                  ? "opacity-100"
-                                                  : "opacity-0"
-                                              )}
-                                            />
-                                          </CommandItem>
-                                        ))}
-                                      </CommandGroup>
-                                    </CommandList>
-                                  </Command>
-                                </PopoverContent>
-                              </Popover>
+                    <div
+                      className={`flex flex-col justify-start border rounded-md container flex-1 mx-auto ${
+                        lecturersPartValid
+                          ? "border-green-300"
+                          : "border-slate-300"
+                      } p-2`}
+                    >
+                      <h1 className="font-bold capitalize text-sm mb-1 flex gap-2 items-center">
+                        Lecturer in Charge
+                        <FaCircleCheck
+                          size={15}
+                          className={
+                            lecturersPartValid
+                              ? "text-green-600"
+                              : "text-slate-400"
+                          }
+                        />
+                      </h1>
+                      <div className="overflow-auto h-full w-full p-1 flex flex-col justify-start gap-3">
+                        {curriculumByDegLevSemData?.map((obj) => {
+                          return (
+                            <div
+                              className={`grid grid-cols-4 items-center gap-4`}
+                              key={obj.sub_id}
+                            >
+                              <Label className="text-right">
+                                {obj.sub_code}
+                              </Label>
+                              <div className="grid col-span-3">
+                                <Popover
+                                  open={comboBoxOpen[obj.sub_id]}
+                                  onOpenChange={(bool) => {
+                                    setComboBoxOpen((cur) => ({
+                                      ...cur,
+                                      [obj.sub_id]: bool,
+                                    }));
+                                  }}
+                                >
+                                  <PopoverTrigger asChild>
+                                    <button
+                                      role="combobox"
+                                      aria-expanded={comboBoxOpen}
+                                      className="col-span-3 flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-white px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer"
+                                    >
+                                      {formData?.subjects?.[obj.sub_id]
+                                        ? managers.find(
+                                            (manager) =>
+                                              manager.m_id ==
+                                              formData.subjects[obj.sub_id]
+                                          )?.name
+                                        : "Select manager"}
+                                      <ChevronsUpDown className="opacity-50 size-[17px] " />
+                                    </button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="py-0 px-1 border-none shadow-none w-full">
+                                    <Command className="border shadow-md w-full">
+                                      <CommandInput placeholder="Search manager" />
+                                      <CommandList>
+                                        <CommandEmpty>
+                                          No manager found.
+                                        </CommandEmpty>
+                                        <CommandGroup>
+                                          {managers.map((manager) => (
+                                            <CommandItem
+                                              key={manager.m_id}
+                                              value={
+                                                manager.name +
+                                                ":" +
+                                                manager.m_id.toString()
+                                              }
+                                              onSelect={(currentValue) => {
+                                                setFormData((cur) => ({
+                                                  ...cur,
+                                                  subjects: {
+                                                    ...cur.subjects,
+                                                    [obj.sub_id]:
+                                                      currentValue.split(
+                                                        ":"
+                                                      )[1] ===
+                                                      cur?.subjects?.[
+                                                        obj.sub_id
+                                                      ]
+                                                        ? ""
+                                                        : currentValue.split(
+                                                            ":"
+                                                          )[1],
+                                                  },
+                                                }));
+                                                setComboBoxOpen((cur) => ({
+                                                  ...cur,
+                                                  [obj.sub_id]: false,
+                                                }));
+                                              }}
+                                            >
+                                              {manager.name}
+                                              <Check
+                                                className={cn(
+                                                  "ml-auto",
+                                                  formData?.subjects?.[
+                                                    obj.sub_id
+                                                  ] == manager.m_id
+                                                    ? "opacity-100"
+                                                    : "opacity-0"
+                                                )}
+                                              />
+                                            </CommandItem>
+                                          ))}
+                                        </CommandGroup>
+                                      </CommandList>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
                   ) : (
                     <div className="p-3 flex">
@@ -657,7 +724,107 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     </div>
                   ))}
               </div>
-              <div className="flex justify-between space-x-2 mt-4">
+              {sidePartEnable && (
+                <div
+                  className={`flex flex-col justify-between h-[22%] shrink-0 border rounded-md ${
+                    datesPartValid ? "border-green-300" : "border-slate-300"
+                  } p-2`}
+                >
+                  <h1 className="font-bold capitalize text-sm mb-1 flex gap-2 items-center">
+                    Important dates
+                    <FaCircleCheck
+                      size={15}
+                      className={
+                        datesPartValid ? "text-green-600" : "text-slate-400"
+                      }
+                    />
+                  </h1>
+                  <div className="flex flex-col justify-start gap-3 overflow-auto w-full h-full">
+                    <div className="flex justify-center">
+                      <div className="items-center gap-3">
+                        <Label
+                          htmlFor="students_end"
+                          className="w-32 inline-block"
+                        >
+                          Application start
+                        </Label>
+                        <input
+                          type="datetime-local"
+                          id="students_end"
+                          name="students_end"
+                          className="col-span-3"
+                          onChange={(e) => onFormDataChanged(e)}
+                          value={formData.students_end || ""}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-between px-2">
+                      <div className="items-center gap-3">
+                        <Label
+                          htmlFor="students_end"
+                          className="w-32 inline-block"
+                        >
+                          Students deadline
+                        </Label>
+                        <input
+                          type="datetime-local"
+                          id="students_end"
+                          name="students_end"
+                          className="col-span-3"
+                          onChange={(e) => onFormDataChanged(e)}
+                          value={formData.students_end || ""}
+                        />
+                      </div>
+                      <div className="items-center gap-3">
+                        <Label
+                          htmlFor="lecturers_end"
+                          className="w-32 inline-block"
+                        >
+                          Lecturers deadline
+                        </Label>
+                        <input
+                          type="datetime-local"
+                          id="lecturers_end"
+                          name="lecturers_end"
+                          className="col-span-3"
+                          onChange={(e) => onFormDataChanged(e)}
+                          value={formData.lecturers_end || ""}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-between px-2">
+                      <div className="items-center gap-3">
+                        <Label htmlFor="hod_end" className="w-32 inline-block">
+                          HOD deadline
+                        </Label>
+                        <input
+                          type="datetime-local"
+                          id="hod_end"
+                          name="hod_end"
+                          className="col-span-3"
+                          onChange={(e) => onFormDataChanged(e)}
+                          value={formData.hod_end || ""}
+                        />
+                      </div>
+                      <div className="items-center gap-3">
+                        <Label htmlFor="dean_end" className="w-32 inline-block">
+                          Dean deadline
+                        </Label>
+                        <input
+                          type="datetime-local"
+                          id="dean_end"
+                          name="dean_end"
+                          className="col-span-3"
+                          onChange={(e) => onFormDataChanged(e)}
+                          value={formData.dean_end || ""}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-between space-x-2 my-1">
                 <Button
                   type="button"
                   variant="warning"
