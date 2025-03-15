@@ -164,7 +164,7 @@ const CurriculumsDetails = () => {
       <div className="flex justify-between mb-2 items-start">
         <div className="bg-white rounded-md flex relative">
           <Input
-            placeholder="Search by name"
+            placeholder="Search by name or subject code"
             onChange={(e) => onSearchChange(e)}
             value={searchValue}
             className="md:w-60"

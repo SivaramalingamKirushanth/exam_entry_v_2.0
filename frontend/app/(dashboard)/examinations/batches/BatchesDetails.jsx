@@ -360,8 +360,12 @@ const BatchesDetails = () => {
   useEffect(() => {
     if (data) {
       let filtData1 = searchValue
-        ? data.filter((item) =>
-            item.batch_code.toLowerCase().includes(searchValue.toLowerCase())
+        ? data.filter(
+            (item) =>
+              item.batch_code
+                .toLowerCase()
+                .includes(searchValue.toLowerCase()) ||
+              item.degree_name.toLowerCase().includes(searchValue.toLowerCase())
           )
         : data;
       let filtData2 = filtData1.filter((item) => {
@@ -382,7 +386,7 @@ const BatchesDetails = () => {
       <div className="flex justify-between mb-2 items-start">
         <div className="bg-white rounded-md flex relative">
           <Input
-            placeholder="Search by name"
+            placeholder="Search by name or batch code"
             onChange={(e) => onSearchChange(e)}
             value={searchValue}
             className="md:w-60"

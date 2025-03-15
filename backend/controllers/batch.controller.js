@@ -121,7 +121,7 @@ export const getBatchById = async (req, res, next) => {
 };
 
 export const createBatch = async (req, res, next) => {
-  const { batch_code, subjects, status = "true", deg_id } = req.body;
+  const { batch_code, subjects, status = "false", deg_id } = req.body;
 
   try {
     const conn = await pool.getConnection();
@@ -559,7 +559,6 @@ export const getBatchesByStudent = async (req, res, next) => {
 export const setBatchTimePeriod = async (req, res, next) => {
   const { batch_id, students_end, lecturers_end, hod_end, dean_end } = req.body;
 
-
   if (!batch_id || !students_end || !lecturers_end || !hod_end || !dean_end) {
     return next(errorProvider(400, "Missing required fields."));
   }
@@ -629,9 +628,6 @@ export const getBatchTimePeriod = async (req, res, next) => {
         `SELECT user_type, end_date FROM batch_time_periods WHERE batch_id = ?`,
         [batch_id]
       );
-
-
-      
 
       return res.status(200).json(results);
     } catch (error) {
@@ -856,7 +852,7 @@ export const uploadAttendanceSheet = async (req, res, next) => {
               .filter(Boolean)
               .join(", ");
 
-              if (updates) {
+            if (updates) {
               const tableName = `batch_${batchId}_students`;
               await conn.query(
                 `UPDATE ${tableName} SET ${updates} WHERE s_id = ?`,
