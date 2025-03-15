@@ -16,7 +16,7 @@ import "./utils/cronScheduler.js";
 
 dotenv.config();
 
-const port = 8080;
+const PORT = process.env.PORT || "8080";
 
 const app = express();
 app.use(express.json());
@@ -89,6 +89,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`app is listening on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`app is listening on port ${PORT}`);
 });
