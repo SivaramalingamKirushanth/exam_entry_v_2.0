@@ -5,6 +5,7 @@ import Image from "next/image";
 import parse from "html-react-parser";
 import { FaCheck } from "react-icons/fa6";
 import { FaTimes } from "react-icons/fa";
+import UoV_Logo_Base64 from "@/lib/logo_base";
 
 let months = {
   0: "January",
@@ -42,7 +43,7 @@ const AdmissionCard = ({
     <div className="p-4 pt-0 max-w-4xl mx-auto font-times bg-white">
       <div className="text-center mb-2 ">
         <Image
-          src={UoV_Logo}
+          src={UoV_Logo_Base64}
           alt="UOV logo"
           height={100}
           width={100}
