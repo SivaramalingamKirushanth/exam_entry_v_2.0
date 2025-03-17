@@ -175,7 +175,7 @@ const AttendanceSheet = ({
         </div>
       </div>
 
-      <h3 className="text-xl my-1 uppercase text-center font-algerian">
+      <h3 className="text-xl my-1 uppercase text-center">
         attendance list
       </h3>
       {/* </div> */}

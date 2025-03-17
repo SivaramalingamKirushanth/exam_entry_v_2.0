@@ -564,9 +564,7 @@ const AttendanceSheetTemplate = ({
         </div>
       </div>
 
-      <h3 className="text-xl mt-1 uppercase text-center font-algerian">
-        attendance list
-      </h3>
+      <h3 className="text-xl mt-1 uppercase text-center">attendance list</h3>
 
       <RichTextEditorIndividual
         setFormData={setFormData}

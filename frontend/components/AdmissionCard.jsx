@@ -47,18 +47,11 @@ const AdmissionCard = ({
           alt="UOV logo"
           height={100}
           width={100}
-          className="mx-auto mb-2"
+          className="mx-auto"
           style={{
             maxWidth: "100px",
             maxHeight: "100px",
             objectFit: "contain",
-          }}
-          onLoad={() => {
-            // Image loaded successfully
-            console.log("Logo loaded successfully");
-          }}
-          onError={() => {
-            console.error("Error loading logo");
           }}
         />
         <h1 className="font-bold text-lg uppercase leading-[1]">
@@ -89,9 +82,7 @@ const AdmissionCard = ({
                 obj.year
           )}
         </div>
-        <h3 className="text-xl uppercase font-bold leading-[1.1] font-algerian">
-          Admission Card
-        </h3>
+        <h3 className="text-xl uppercase font-bold l">Admission Card</h3>
       </div>
 
       <div className="flex justify-between mb-2 text-sm">

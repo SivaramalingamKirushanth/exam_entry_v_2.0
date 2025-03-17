@@ -60,10 +60,12 @@ export const fetchEmailsForUserType = async (conn, batchId, userType) => {
     let values;
 
     if (userType === "4") {
-      query = `SELECT u.email, btp.end_date FROM batch_curriculum_lecturer bcl
+      console.log();
+      query = `SELECT u.email, btp.end_date, b.application_open FROM batch_curriculum_lecturer bcl
                JOIN manager m ON bcl.m_id = m.m_id
                JOIN user u ON m.user_id = u.user_id
                JOIN batch_time_periods btp ON btp.batch_id = bcl.batch_id
+               JOIN batch b ON b.batch_id = btp.batch_id
                WHERE bcl.batch_id = ? AND btp.user_type = ?`;
       values = [batchId, userType];
     } else if (userType === "3") {

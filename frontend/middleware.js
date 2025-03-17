@@ -29,9 +29,7 @@ export async function middleware(req) {
 
   try {
     // Verify JWT token
-    const secretKey = new TextEncoder().encode(
-      process.env.NEXT_PUBLIC_JWT_SECRET
-    );
+    const secretKey = new TextEncoder().encode(process.env.JWT_SECRET);
     const { payload: user } = await jwtVerify(token, secretKey);
 
     if (!user) {

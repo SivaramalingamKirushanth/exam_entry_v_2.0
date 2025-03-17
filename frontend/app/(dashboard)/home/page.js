@@ -241,60 +241,89 @@ const dashboard = () => {
       console.error("This function can only run in a browser environment.");
       return;
     }
-    setGenerating(true);
-    const pdf = new jsPDF("p", "mm", "a4");
 
-    // Create a div element to render the admission card
-    const container = document.createElement("div");
-    container.style.width = "210mm"; // A4 width
-    container.style.height = "297mm"; // A4 height
-    container.style.padding = "20px";
-    container.style.backgroundColor = "#fff";
-    container.id = `admission-card-${studentData?.s_id}`;
-    document.body.appendChild(container);
+    try {
+      setGenerating(true);
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
+      // Create a div element to render the admission card
+      const container = document.createElement("div");
+      container.style.width = "210mm";
+      container.style.padding = "10mm";
+      container.style.backgroundColor = "#fff";
+      container.style.boxSizing = "border-box";
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.id = `admission-card-${studentData?.s_id}`;
+      document.body.appendChild(container);
 
-    // Render the Admission Card
-    const root = createRoot(container);
-    const renderComplete = new Promise((resolve) => {
-      root.render(
-        <AdmissionCard
-          student={studentData}
-          type="P"
-          level_ordinal={level_ordinal}
-          batchFullDetailsData={batchFullDetailsData}
-          decodeBatchCode={decodeBatchCode}
-          formData={formData}
-          sem_ordinal={sem_ordinal}
-          subjectObject={subjectObject}
-          onRenderComplete={resolve}
-        />
-      );
-    });
+      // Render the Admission Card
+      const root = createRoot(container);
+      const renderComplete = new Promise((resolve) => {
+        root.render(
+          <AdmissionCard
+            student={studentData}
+            type="P"
+            level_ordinal={level_ordinal}
+            batchFullDetailsData={batchFullDetailsData}
+            decodeBatchCode={decodeBatchCode}
+            formData={formData}
+            sem_ordinal={sem_ordinal}
+            subjectObject={subjectObject}
+            onRenderComplete={resolve}
+          />
+        );
+      });
 
-    await renderComplete;
+      await renderComplete;
 
-    // Convert the admission card to canvas
-    const canvas = await html2canvas(container, {
-      scale: 2, // Enhance image quality
-      useCORS: true, // Enable cross-origin image handling
-    });
+      // Convert the admission card to canvas
+      const canvas = await html2canvas(container, {
+        scale: 2, // Enhance image quality
+        useCORS: true, // Enable cross-origin image handling
+        logging: false,
+        allowTaint: true,
+      });
 
-    const imgData = canvas.toDataURL("image/png");
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
+      // Calculate dimensions to fit the page
+      const imgWidth = pdf.internal.pageSize.getWidth();
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    // Add the image to the PDF
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      // Check if the content exceeds page height
+      const pageHeight = pdf.internal.pageSize.getHeight();
 
-    // pdf.addPage();
+      // Add image to PDF - ensure it fits on one page
+      const contentHeight = Math.min(imgHeight, pageHeight - 10); // Subtract margin
+      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, contentHeight);
 
-    // Clean up the DOM after rendering the canvas
-    document.body.removeChild(container);
+      // Handle content that exceeds page height by adding additional pages
+      if (imgHeight > pageHeight) {
+        let heightLeft = imgHeight - pageHeight;
+        let position = -pageHeight;
 
-    // Save the PDF for the current exam type
-    pdf.save(`${studentData.index_num}_admission_card.pdf`);
-    setGenerating(false);
+        while (heightLeft > 0) {
+          position = position - pageHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+      }
+
+      // Clean up the DOM after rendering the canvas
+      document.body.removeChild(container);
+
+      // Save the PDF for the current exam type
+      pdf.save(`${studentData.index_num}_admission_card.pdf`);
+    } catch (error) {
+      console.error("Error generating PDFs:", error);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   useEffect(() => {

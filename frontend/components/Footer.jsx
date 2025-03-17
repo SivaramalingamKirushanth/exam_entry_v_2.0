@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { FaGithub, FaLinkedin } from "react-icons/fa";
+import {
+  FaGithub,
+  FaLinkedin,
+  FaRegTimesCircle,
+  FaTimes,
+  FaTimesCircle,
+} from "react-icons/fa";
 
 const devs = [
   {
@@ -94,20 +100,7 @@ export default function Footer() {
                   className="absolute -top-1 -right-4 text-gray-400 hover:text-gray-600 transition-colors"
                   aria-label="Close modal"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="#ec4899"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <FaRegTimesCircle className="h-6 w-6 text-pink-500 hover:text-purple-500" />
                 </button>
               </div>
             </div>

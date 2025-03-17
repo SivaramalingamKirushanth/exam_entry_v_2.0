@@ -52,63 +52,6 @@ const AdmissionPage = () => {
       "<p>Senior Asst. Registrar</p><p>Examination &amp; Student Admission</p>",
   });
 
-  // const generateAdmissionCardPDFs = async (studentsData) => {
-  //   if (typeof window === "undefined") {
-  //     console.error("This function can only run in a browser environment.");
-  //     return;
-  //   }
-
-  //   try {
-  //     setGenerating(true);
-
-  //     for (const [type, students] of Object.entries(studentsData)) {
-  //       if (students.length === 0) continue;
-
-  //       // Create a combined PDF with all student cards
-  //       const pdfDoc = (
-  //         <Document>
-  //           {students.map((student, index) => (
-  //             <Page
-  //               key={index}
-  //               size="A4"
-  //               style={{
-  //                 padding: 30,
-  //                 fontFamily: "Helvetica",
-  //               }}
-  //               wrap={false}
-  //             >
-  //               <AdmissionCardPDF
-  //                 student={student}
-  //                 type={type}
-  //                 level_ordinal={level_ordinal}
-  //                 batchFullDetailsData={batchFullDetailsData}
-  //                 decodeBatchCode={decodeBatchCode}
-  //                 formData={formData}
-  //                 sem_ordinal={sem_ordinal}
-  //                 subjectObject={subjectObject}
-  //               />
-  //               {index < students.length - 1 && <Text break />}
-  //             </Page>
-  //           ))}
-  //         </Document>
-  //       );
-
-  //       // Generate PDF blob
-  //       const blob = await pdf(pdfDoc).toBlob();
-
-  //       // Save the PDF
-  //       saveAs(
-  //         blob,
-  //         `${batchFullDetailsData.batch_code}_${type}_admission_cards.pdf`
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Error generating PDFs:", error);
-  //   } finally {
-  //     setGenerating(false);
-  //   }
-  // };
-
   const generateAdmissionCardPDFs = async (studentsData) => {
     if (typeof document === "undefined") {
       console.error("This function can only run in a browser environment.");
@@ -163,7 +106,7 @@ const AdmissionPage = () => {
           });
 
           // Wait for a little extra time to ensure rendering is complete
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          // await new Promise((resolve) => setTimeout(resolve, 500));
 
           // Use html2canvas with better settings
           const canvas = await html2canvas(container, {
@@ -171,7 +114,7 @@ const AdmissionPage = () => {
             useCORS: true,
             logging: false,
             allowTaint: true,
-            imageTimeout: 2000,
+            // imageTimeout: 2000,
           });
 
           // Convert canvas to image
