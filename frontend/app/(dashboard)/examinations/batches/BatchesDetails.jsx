@@ -19,7 +19,6 @@ import {
   updateBatchStatus,
 } from "@/utils/apiRequests/batch.api";
 import StudentModel from "./StudentModel";
-import DeadlineModel from "./DeadlineModel";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import {
@@ -56,15 +55,12 @@ const BatchesDetails = () => {
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
   const [isFeedOpen, setIsFeedOpen] = useState(false);
-  const [isDeadlineOpen, setIsDeadlineOpen] = useState(false);
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
   const modalRef = useRef(null);
   const studentModalRef = useRef(null);
-  const deadlineModalRef = useRef(null);
   const attendanceModalRef = useRef(null);
   const [editId, setEditId] = useState("");
   const [feedId, setFeedId] = useState("");
-  const [deadlineId, setDeadlineId] = useState("");
   const [attendanceId, setAttendanceId] = useState("");
   const [feedDegShort, setFeedDegShort] = useState("");
   const [dropId, setDropId] = useState(null);
@@ -187,74 +183,27 @@ const BatchesDetails = () => {
       },
 
       cell: ({ row }) => {
-        let short = row.original.batch_code.slice(
-          4,
-          row.original.batch_code.length - 2
-        );
         return (
           <div className="flex gap-2">
             <div className="flex justify-center items-center">
-              {row.original.student_count ? (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 cursor-not-allowed">
-                        <FaPen />
-                        &nbsp;Edit
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-white text-black shadow-lg p-2">
-                      <p>
-                        student(s) already applied for the exam. so you can't
-                        edit now
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              ) : (
-                <Button
-                  variant="outline"
-                  className="editBtn"
-                  id={row.original.batch_id}
-                >
-                  <FaPen />
-                  &nbsp;Edit
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                className="editBtn"
+                id={row.original.batch_id}
+              >
+                <FaPen />
+                &nbsp;Edit
+              </Button>
             </div>
             <div className="flex flex-col gap-1">
               <Button
+                className="feedBtn flex justify-between"
                 variant="outline"
-                className="deadlineBtn flex justify-between"
                 id={row.original.batch_id}
               >
-                <FaClock />
-                &nbsp;Set Deadlines
+                <FaUserPlus />
+                &nbsp;Feed Students
               </Button>
-              {row.original.student_count ? (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger className="flex items-center justify-between gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 cursor-not-allowed">
-                      <FaUserPlus />
-                      &nbsp;Feed Students
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-white text-black shadow-lg p-2">
-                      <p>
-                        student(s) already applied for the exam. so you can't
-                        add/remove students now
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              ) : (
-                <Button
-                  className="feedBtn flex justify-between"
-                  id={row.original.batch_id + ":" + short}
-                >
-                  <FaUserPlus />
-                  &nbsp;Feed Students
-                </Button>
-              )}
               <Button
                 variant="outline"
                 className="attendanceBtn flex justify-between"
@@ -310,11 +259,6 @@ const BatchesDetails = () => {
     setStatus(e);
   };
 
-  const toggleDeadlineModal = () => {
-    isDeadlineOpen && setDeadlineId("");
-    setIsDeadlineOpen((prev) => !prev);
-  };
-
   const toggleModal = () => {
     isOpen && setEditId("");
     setIsOpen((prev) => !prev);
@@ -338,13 +282,7 @@ const BatchesDetails = () => {
 
     if (e.target.classList.contains("feedBtn")) {
       setFeedId(e.target.id.split(":")[0]);
-      setFeedDegShort(e.target.id.split(":")[1]);
       toggleFeedModal();
-    }
-
-    if (e.target.classList.contains("deadlineBtn")) {
-      setDeadlineId(e.target.id);
-      toggleDeadlineModal();
     }
 
     if (e.target.classList.contains("attendanceBtn")) {
@@ -421,13 +359,7 @@ const BatchesDetails = () => {
           </div>
         </div>
       </div>
-      <DeadlineModel
-        deadlineId={deadlineId}
-        isDeadlineOpen={isDeadlineOpen}
-        setIsDeadlineOpen={setIsDeadlineOpen}
-        deadlineModalRef={deadlineModalRef}
-        setDeadlineId={setDeadlineId}
-      />
+
       <Modal
         editId={editId}
         isOpen={isOpen}

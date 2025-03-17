@@ -47,6 +47,18 @@ const AdmissionCard = ({
           height={100}
           width={100}
           className="mx-auto mb-2"
+          style={{
+            maxWidth: "100px",
+            maxHeight: "100px",
+            objectFit: "contain",
+          }}
+          onLoad={() => {
+            // Image loaded successfully
+            console.log("Logo loaded successfully");
+          }}
+          onError={() => {
+            console.error("Error loading logo");
+          }}
         />
         <h1 className="font-bold text-lg uppercase leading-[1]">
           University of Vavuniya

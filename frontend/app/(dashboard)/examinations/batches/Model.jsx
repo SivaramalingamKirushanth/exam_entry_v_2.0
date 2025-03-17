@@ -56,12 +56,40 @@ import { FaExclamation } from "react-icons/fa";
 import {
   createBatch,
   getBatchById,
+  getBatchTimePeriod,
+  setBatchTimePeriod,
   updateBatch,
 } from "@/utils/apiRequests/batch.api";
 import { FaCircleCheck } from "react-icons/fa6";
+import { convertUTCToLocal } from "@/utils/functions";
+
+const extractEndDates = (batchTimePeriodData) => {
+  if (batchTimePeriodData && batchTimePeriodData.length) {
+    let students_end = convertUTCToLocal(
+      batchTimePeriodData?.filter((obj) => obj.user_type == "5")[0]?.end_date
+    );
+    let lecturers_end = convertUTCToLocal(
+      batchTimePeriodData?.filter((obj) => obj.user_type == "4")[0]?.end_date
+    );
+    let hod_end = convertUTCToLocal(
+      batchTimePeriodData?.filter((obj) => obj.user_type == "3")[0]?.end_date
+    );
+    let dean_end = convertUTCToLocal(
+      batchTimePeriodData?.filter((obj) => obj.user_type == "2")[0]?.end_date
+    );
+
+    return {
+      students_end,
+      lecturers_end,
+      hod_end,
+      dean_end,
+    };
+  }
+};
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({});
+  const [timePeriods, setTimePeriods] = useState({});
   const [sidePartEnable, setSidePartEnable] = useState(false);
   const [btnEnable, setBtnEnable] = useState(false);
   const [lecturersPartValid, setLecturersPartValid] = useState(false);
@@ -73,6 +101,19 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     mutationFn: editId ? updateBatch : createBatch,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["batches"]);
+      toast.success(res.message);
+      setEditId("");
+    },
+    onError: (err) => {
+      setEditId("");
+      toast.error("Operation failed");
+    },
+  });
+
+  const { mutate: batchTimePeriodMutate } = useMutation({
+    mutationFn: setBatchTimePeriod,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries(["batches", "timePeriod", editId]);
       toast.success(res.message);
       setEditId("");
     },
@@ -107,6 +148,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     ],
     enabled: false,
   });
+
+  const { data: batchTimePeriodData, refetch: batchTimePeriodRefetch } =
+    useQuery({
+      queryFn: () => getBatchTimePeriod(editId),
+      queryKey: ["batches", "timePeriod", editId],
+      enabled: false,
+    });
 
   const { data: facultyData } = useQuery({
     queryFn: getAllFaculties,
@@ -146,9 +194,16 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         ...data,
         old_batch_code: data.batch_code,
         old_subjects: data.subjects,
+        application_open: convertUTCToLocal(data.application_open),
       });
     }
   }, [data]);
+
+  useEffect(() => {
+    if (batchTimePeriodData) {
+      setTimePeriods(extractEndDates(batchTimePeriodData));
+    }
+  }, [batchTimePeriodData]);
 
   const onFormDataChanged = (e) => {
     if (e?.target) {
@@ -204,27 +259,52 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   const onFormSubmitted = () => {
     if (editId) {
-      const {
-        batch_code,
-        old_batch_code,
-        subjects,
-        old_subjects,
-        batch_id,
-        deg_id,
-      } = formData;
-      mutate({
-        batch_code,
-        old_batch_code,
-        subjects,
-        old_subjects,
-        batch_id,
-        deg_id,
-      });
+      if (new Date(data?.application_open) < new Date()) {
+        const { students_end, lecturers_end, hod_end, dean_end } = timePeriods;
+
+        batchTimePeriodMutate({
+          batch_id: editId,
+          students_end,
+          lecturers_end,
+          hod_end,
+          dean_end,
+        });
+      } else {
+        const {
+          batch_code,
+          old_batch_code,
+          subjects,
+          old_subjects,
+          batch_id,
+          deg_id,
+          application_open,
+        } = formData;
+        mutate({
+          batch_code,
+          old_batch_code,
+          subjects,
+          old_subjects,
+          batch_id,
+          deg_id,
+          application_open,
+        });
+
+        const { students_end, lecturers_end, hod_end, dean_end } = timePeriods;
+
+        batchTimePeriodMutate({
+          batch_id: editId,
+          students_end,
+          lecturers_end,
+          hod_end,
+          dean_end,
+        });
+      }
     } else {
-      const { batch_code, subjects, deg_id } = formData;
-      mutate({ batch_code, subjects, deg_id });
+      const { batch_code, subjects, deg_id, application_open } = formData;
+      mutate({ batch_code, subjects, deg_id, application_open });
     }
 
+    setTimePeriods({});
     setFormData({});
     setIsOpen(false);
   };
@@ -235,9 +315,16 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         ...data,
         old_batch_code: data.batch_code,
         old_subjects: data.subjects,
+        application_open: convertUTCToLocal(data.application_open),
       });
     } else {
       setFormData({});
+    }
+
+    if (batchTimePeriodData) {
+      setTimePeriods(extractEndDates(batchTimePeriodData));
+    } else {
+      setTimePeriods({});
     }
   };
 
@@ -263,6 +350,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       formData.level;
 
     if (isFormValid) {
+      batchTimePeriodRefetch();
       curriculumByDegLevSemRefetch();
     }
 
@@ -297,14 +385,15 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setLecturersPartValid(sidePartEnable && isLecturersPartValid);
 
       let isDatesPartValid =
-        formData.students_end &&
-        formData.lecturers_end &&
-        formData.hod_end &&
-        formData.dean_end;
+        formData.application_open &&
+        timePeriods.students_end &&
+        timePeriods.lecturers_end &&
+        timePeriods.hod_end &&
+        timePeriods.dean_end;
 
       setDatesPartValid(sidePartEnable && isDatesPartValid);
     }
-  }, [formData]);
+  }, [formData, timePeriods]);
 
   useEffect(() => {
     if (sidePartEnable && lecturersPartValid && datesPartValid) {
@@ -315,7 +404,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   }, [sidePartEnable, lecturersPartValid, datesPartValid]);
 
   useEffect(() => {
-    editId && refetch();
+    if (editId) {
+      refetch();
+    }
   }, [editId]);
 
   useEffect(() => {
@@ -333,20 +424,25 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   }, [formData?.deg_id]);
 
   useEffect(() => {
-    if (specificDegreeData) {
-      setFormData((curData) => ({
-        ...curData,
-        batch_code: `${formData.academic_year || "XXXX"}${
-          specificDegreeData?.short || "XX"
-        }${formData.level || "X"}${formData.sem_no || "X"}`,
-      }));
-    }
-  }, [specificDegreeData]);
+    setFormData((curData) => ({
+      ...curData,
+      batch_code: `${formData.academic_year || "XXXX"}${
+        specificDegreeData?.short || "XX"
+      }${formData.level || "X"}${formData.sem_no || "X"}`,
+    }));
+  }, [
+    formData?.f_id,
+    formData?.d_id,
+    formData?.deg_id,
+    formData?.level,
+    formData?.sem_no,
+    specificDegreeData,
+  ]);
 
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ">
           <div
             ref={modalRef}
             className={`${
@@ -363,6 +459,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 onClick={() => {
                   setIsOpen(false);
                   setFormData({});
+                  setTimePeriods({});
                   setEditId("");
                 }}
               />
@@ -413,6 +510,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                         onBlur={(e) => onAcadYearChanged(e)}
                         onChange={(e) => onFormDataChanged(e)}
                         value={formData.academic_year || ""}
+                        disabled={
+                          data
+                            ? new Date(data?.application_open) < new Date()
+                            : false
+                        }
+                        autoFocus
                       />
                     </div>
 
@@ -422,10 +525,22 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                       <Label className="text-right">Faculty</Label>
                       <Select
                         onValueChange={(e) => {
-                          setFormData((cur) => ({ ...cur, d_id: "" }));
+                          setFormData((cur) => ({
+                            ...cur,
+                            d_id: "",
+                            deg_id: "",
+                            level: "",
+                            sem_no: "",
+                            application_open: "",
+                          }));
                           onFormDataChanged(e);
                         }}
                         value={formData.f_id ? "f_id:" + formData.f_id : ""}
+                        disabled={
+                          data
+                            ? new Date(data?.application_open) < new Date()
+                            : false
+                        }
                       >
                         <SelectTrigger className="col-span-3">
                           <SelectValue placeholder="Faculty" />
@@ -448,11 +563,21 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                       <Label className="text-right">Department</Label>
                       <Select
                         onValueChange={(e) => {
-                          setFormData((cur) => ({ ...cur, deg_id: "" }));
+                          setFormData((cur) => ({
+                            ...cur,
+                            deg_id: "",
+                            level: "",
+                            sem_no: "",
+                            application_open: "",
+                          }));
                           onFormDataChanged(e);
                         }}
                         value={formData.d_id ? "d_id:" + formData.d_id : ""}
-                        disabled={!formData.f_id}
+                        disabled={
+                          data
+                            ? new Date(data?.application_open) < new Date()
+                            : !formData.f_id
+                        }
                       >
                         <SelectTrigger className="col-span-3">
                           <SelectValue placeholder="Department" />
@@ -479,13 +604,19 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             ...cur,
                             level: "",
                             sem_no: "",
+                            application_open: "",
                           }));
+                          setTimePeriods({});
                           onFormDataChanged(e);
                         }}
                         value={
                           formData.deg_id ? "deg_id:" + formData.deg_id : ""
                         }
-                        disabled={!formData.d_id}
+                        disabled={
+                          data
+                            ? new Date(data?.application_open) < new Date()
+                            : !formData.d_id
+                        }
                       >
                         <SelectTrigger className="col-span-3">
                           <SelectValue placeholder="Degree programme" />
@@ -527,10 +658,20 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                 onFormDataChanged(e);
                               }}
                               className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
+                              disabled={
+                                data
+                                  ? new Date(data?.application_open) <
+                                    new Date()
+                                  : false
+                              }
                             />
                             <Label
                               htmlFor={`l${item}`}
-                              className="cursor-pointer"
+                              className={`cursor-pointer ${
+                                data &&
+                                new Date(data?.application_open) < new Date() &&
+                                "text-slate-400"
+                              }`}
                             >
                               {item}
                             </Label>
@@ -562,10 +703,20 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                 onFormDataChanged(e);
                               }}
                               className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
+                              disabled={
+                                data
+                                  ? new Date(data?.application_open) <
+                                    new Date()
+                                  : false
+                              }
                             />
                             <Label
                               htmlFor={`s${item}`}
-                              className="cursor-pointer"
+                              className={`cursor-pointer ${
+                                data &&
+                                new Date(data?.application_open) < new Date() &&
+                                "text-slate-400"
+                              }`}
                             >
                               {item}
                             </Label>
@@ -615,7 +766,15 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                     }));
                                   }}
                                 >
-                                  <PopoverTrigger asChild>
+                                  <PopoverTrigger
+                                    asChild
+                                    disabled={
+                                      data
+                                        ? new Date(data?.application_open) <
+                                          new Date()
+                                        : false
+                                    }
+                                  >
                                     <button
                                       role="combobox"
                                       aria-expanded={comboBoxOpen}
@@ -743,18 +902,35 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     <div className="flex justify-center">
                       <div className="items-center gap-3">
                         <Label
-                          htmlFor="students_end"
+                          htmlFor="application_open"
                           className="w-32 inline-block"
                         >
-                          Application start
+                          Application open
                         </Label>
                         <input
                           type="datetime-local"
-                          id="students_end"
-                          name="students_end"
-                          className="col-span-3"
-                          onChange={(e) => onFormDataChanged(e)}
-                          value={formData.students_end || ""}
+                          id="application_open"
+                          name="application_open"
+                          className={`col-span-3 ${
+                            data &&
+                            new Date(data?.application_open) < new Date() &&
+                            "text-slate-400"
+                          }`}
+                          onChange={(e) => {
+                            if (new Date(e.target.value) > new Date()) {
+                              onFormDataChanged(e);
+                            } else {
+                              toast.error(
+                                "Invalid date. Choose a future date."
+                              );
+                            }
+                          }}
+                          value={formData.application_open || ""}
+                          disabled={
+                            data
+                              ? new Date(data?.application_open) < new Date()
+                              : false
+                          }
                         />
                       </div>
                     </div>
@@ -764,15 +940,20 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                           htmlFor="students_end"
                           className="w-32 inline-block"
                         >
-                          Students deadline
+                          Students' deadline
                         </Label>
                         <input
                           type="datetime-local"
                           id="students_end"
                           name="students_end"
                           className="col-span-3"
-                          onChange={(e) => onFormDataChanged(e)}
-                          value={formData.students_end || ""}
+                          onChange={(e) =>
+                            setTimePeriods((cur) => ({
+                              ...cur,
+                              [e.target.name]: e.target.value,
+                            }))
+                          }
+                          value={timePeriods.students_end || ""}
                         />
                       </div>
                       <div className="items-center gap-3">
@@ -780,43 +961,58 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                           htmlFor="lecturers_end"
                           className="w-32 inline-block"
                         >
-                          Lecturers deadline
+                          Lecturers' deadline
                         </Label>
                         <input
                           type="datetime-local"
                           id="lecturers_end"
                           name="lecturers_end"
                           className="col-span-3"
-                          onChange={(e) => onFormDataChanged(e)}
-                          value={formData.lecturers_end || ""}
+                          onChange={(e) =>
+                            setTimePeriods((cur) => ({
+                              ...cur,
+                              [e.target.name]: e.target.value,
+                            }))
+                          }
+                          value={timePeriods.lecturers_end || ""}
                         />
                       </div>
                     </div>
                     <div className="flex justify-between px-2">
                       <div className="items-center gap-3">
                         <Label htmlFor="hod_end" className="w-32 inline-block">
-                          HOD deadline
+                          HOD's deadline
                         </Label>
                         <input
                           type="datetime-local"
                           id="hod_end"
                           name="hod_end"
                           className="col-span-3"
-                          onChange={(e) => onFormDataChanged(e)}
-                          value={formData.hod_end || ""}
+                          onChange={(e) =>
+                            setTimePeriods((cur) => ({
+                              ...cur,
+                              [e.target.name]: e.target.value,
+                            }))
+                          }
+                          value={timePeriods.hod_end || ""}
                         />
                       </div>
                       <div className="items-center gap-3">
                         <Label htmlFor="dean_end" className="w-32 inline-block">
-                          Dean deadline
+                          Dean's deadline
                         </Label>
                         <input
                           type="datetime-local"
                           id="dean_end"
                           name="dean_end"
                           className="col-span-3"
-                          onChange={(e) => onFormDataChanged(e)}
-                          value={formData.dean_end || ""}
+                          onChange={(e) =>
+                            setTimePeriods((cur) => ({
+                              ...cur,
+                              [e.target.name]: e.target.value,
+                            }))
+                          }
+                          value={timePeriods.dean_end || ""}
                         />
                       </div>
                     </div>

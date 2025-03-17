@@ -9,15 +9,15 @@ import mailer from "../utils/mailer.js";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import { dirname, join } from "path";
+import { dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const JWT_SECRET = process.env.JWT_SECRET || "abc123";
-const FRONTEND_SERVER = process.env.FRONTEND_SERVER || "localhost";
-const FRONTEND_PORT = process.env.FRONTEND_PORT || "3000";
+const JWT_SECRET = process.env.JWT_SECRET;
+const FRONTEND_SERVER = process.env.FRONTEND_SERVER;
+const FRONTEND_PORT = process.env.FRONTEND_PORT;
 const MAX_FAILED_ATTEMPTS = 10;
-const LOCKOUT_DURATION_MINUTES = 15; // Lockout duration in minutes
+const LOCKOUT_DURATION_MINUTES = 15;
 
 export const studentRegister = async (req, res, next) => {
   const {

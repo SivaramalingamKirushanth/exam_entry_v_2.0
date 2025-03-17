@@ -117,6 +117,13 @@ export const getDeadlinesForBatch = async (batch_id) => {
   return response.data;
 };
 
+export const getBatchOpenDate = async (batch_id) => {
+  const response = await axiosInstance.post("/batch/getBatchOpenDate", {
+    batch_id,
+  });
+  return response.data;
+};
+
 export const uploadAttendanceSheet = async (data) => {
   try {
     const response = await axios.post(

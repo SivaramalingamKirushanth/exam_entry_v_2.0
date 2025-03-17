@@ -39,7 +39,7 @@ export async function middleware(req) {
     }
 
     //Allow everyone to the Home apge
-    if (pathname == `/home`) {
+    if (pathname == `/home` || pathname == `/change%20password`) {
       return NextResponse.next();
     }
 
@@ -71,7 +71,7 @@ export async function middleware(req) {
       }
     }
 
-    //check if the user is lecturer and he visiting a allowed page
+    //check if the user is dean or hod and he visiting a allowed page
     const deanHodAllowedPages = ["home/batches", "report"];
     const isdeanHodAllowedPage = deanHodAllowedPages.some((page) =>
       pathname.startsWith(`/${page}`)

@@ -105,6 +105,7 @@ export const getBatchById = async (req, res, next) => {
         ...degFacDepResults[0][0],
         subjects,
         batch_id,
+        application_open: batch[0][0].application_open,
       });
     } catch (error) {
       console.error("Error retrieving batch:", error);
@@ -121,16 +122,28 @@ export const getBatchById = async (req, res, next) => {
 };
 
 export const createBatch = async (req, res, next) => {
-  const { batch_code, subjects, status = "false", deg_id } = req.body;
+  const {
+    batch_code,
+    subjects,
+    status = "false",
+    deg_id,
+    application_open,
+  } = req.body;
 
   try {
     const conn = await pool.getConnection();
     try {
-      if (!batch_code || !status || !Object.keys(subjects).length || !deg_id) {
+      if (
+        !batch_code ||
+        !status ||
+        !Object.keys(subjects).length ||
+        !deg_id ||
+        !application_open
+      ) {
         return next(
           errorProvider(
             400,
-            "All fields (batch_code, status, subjects, deg_id) are required"
+            "All fields (batch_code, status, subjects, deg_id, application_open) are required"
           )
         );
       }
@@ -150,8 +163,14 @@ export const createBatch = async (req, res, next) => {
 
       // Insert batch and retrieve batch_id
       const [batchResult] = await conn.query(
-        "CALL InsertBatch(?, ?, ?, ?, @batch_id); SELECT @batch_id AS batch_id;",
-        [batch_code, Object.keys(subjects).join(","), status, deg_id]
+        "CALL InsertBatch(?, ?, ?, ?, ?, @batch_id); SELECT @batch_id AS batch_id;",
+        [
+          batch_code,
+          Object.keys(subjects).join(","),
+          status,
+          deg_id,
+          application_open,
+        ]
       );
       const batch_id = batchResult[1][0].batch_id;
 
@@ -179,7 +198,7 @@ export const createBatch = async (req, res, next) => {
         ),
       ]);
 
-      let desc = `Batch created with batch_id=${batch_id}, sub_ids=${Object.keys(
+      let desc = `Batch created with batch_id=${batch_id}, application_open=${application_open}, sub_ids=${Object.keys(
         subjects
       ).join(",")}, m_ids=${Object.values(subjects).join(",")}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
@@ -207,7 +226,14 @@ export const createBatch = async (req, res, next) => {
 };
 
 export const updateBatch = async (req, res, next) => {
-  const { old_subjects, batch_code, subjects, batch_id, deg_id } = req.body;
+  const {
+    old_subjects,
+    batch_code,
+    subjects,
+    batch_id,
+    deg_id,
+    application_open,
+  } = req.body;
 
   try {
     const conn = await pool.getConnection();
@@ -216,12 +242,13 @@ export const updateBatch = async (req, res, next) => {
         !batch_id ||
         !batch_code ||
         !Object.keys(subjects).length ||
-        !deg_id
+        !deg_id ||
+        !application_open
       ) {
         return next(
           errorProvider(
             400,
-            "All fields (batch_id, status, batch_code, subjects, deg_id) are required"
+            "All fields (batch_id, status, batch_code, subjects, deg_id, application_open) are required"
           )
         );
       }
@@ -240,11 +267,12 @@ export const updateBatch = async (req, res, next) => {
       }
 
       // Update batch details
-      await conn.query("CALL UpdateBatchDetails(?, ?, ?, ?);", [
+      await conn.query("CALL UpdateBatchDetails(?, ?, ?, ?, ?);", [
         batch_id,
         batch_code,
         Object.keys(subjects).join(","),
         deg_id,
+        application_open,
       ]);
 
       // Drop old tables and columns if subjects changed
@@ -284,7 +312,7 @@ export const updateBatch = async (req, res, next) => {
         ),
       ]);
 
-      let desc = `Batch updated with batch_id=${batch_id}, sub_ids=${Object.keys(
+      let desc = `Batch updated with batch_id=${batch_id}, application_open=${application_open}, sub_ids=${Object.keys(
         subjects
       ).join(",")}, m_ids=${Object.values(subjects).join(",")}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
@@ -368,10 +396,12 @@ export const getStudentsByBatchId = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
-      const query = `SELECT s_id FROM batch_${batch_id}_students`;
+      const tableName = `batch_${batch_id}_students`;
 
       if (batch_id) {
-        const [StudentsInTheBatch] = await conn.execute(query);
+        const [StudentsInTheBatch] = await conn.query(`SELECT s_id FROM ??`, [
+          tableName,
+        ]);
 
         if (!StudentsInTheBatch.length) {
           return res.status(200).json([]);
@@ -1087,6 +1117,40 @@ export const getAllActiveBatchesProgesses = async (req, res, next) => {
       );
 
       res.status(200).json(faculty[0]);
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getBatchOpenDate = async (req, res, next) => {
+  const { batch_id } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      // Call the first stored procedure to get batch details
+      const [batch] = await conn.query("CALL GetBatchOpenDate(?)", [batch_id]);
+
+      if (!batch[0].length) {
+        return next(errorProvider(404, "No Batches found"));
+      }
+
+      // Parse batch_code in Node.js
+      const application_open = batch[0][0].application_open;
+
+      return res.status(200).json({ application_open });
+    } catch (error) {
+      console.error("Error retrieving batch application_open date:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while retrieving batch application_open date"
+        )
+      );
     } finally {
       conn.release();
     }

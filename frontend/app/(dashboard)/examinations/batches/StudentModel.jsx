@@ -90,6 +90,7 @@ const StudentModel = ({
                 feedDegShort={feedDegShort}
                 oldDataRefetch={oldDataRefetch}
                 feedId={feedId}
+                oldData={oldData}
               />
               <div className="flex justify-between space-x-2 mt-4">
                 <Button

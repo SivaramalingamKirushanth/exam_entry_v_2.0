@@ -321,7 +321,7 @@ export const getLatestAdmissionTemplate = async (req, res, next) => {
       }
 
       const response = rows[0][0];
-      if (response.data) {
+      if (response?.data) {
         response.data = JSON.parse(response.data);
       }
 
@@ -607,7 +607,7 @@ export const getLatestAttendanceTemplate = async (req, res, next) => {
 
       const response = rows[0][0];
 
-      if (response.data) {
+      if (response?.data) {
         response.data = JSON.parse(response.data);
       }
 
