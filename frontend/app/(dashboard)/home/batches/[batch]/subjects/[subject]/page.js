@@ -11,7 +11,7 @@ const page = () => {
 
   return (
     <div className="flex justify-end md:justify-center overflow-hidden">
-      <div className="md:w-[85%] lg:w-[70%]">
+      <div className="w-[80%] md:w-[85%] lg:w-[90%]">
         <StudentDetails sub_id={sub_id} batch_id={batch_id} />
       </div>
     </div>

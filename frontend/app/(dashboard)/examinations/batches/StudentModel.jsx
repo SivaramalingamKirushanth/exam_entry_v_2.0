@@ -14,6 +14,7 @@ import {
   addStudentsToTheBatchTable,
   getStudentsByBatchId,
 } from "@/utils/apiRequests/batch.api";
+import { getFacStudentByBatchId } from "@/utils/apiRequests/user.api";
 
 const StudentModel = ({
   feedId,
@@ -27,12 +28,22 @@ const StudentModel = ({
   const [selectedStudents, setSelectedStudents] = useState([]);
   const queryClient = useQueryClient();
 
-  const { data: oldData, refetch: oldDataRefetch } = useQuery({
+  const {
+    data: oldData,
+    refetch: oldDataRefetch,
+    isLoading: isLoadingOldData,
+  } = useQuery({
     queryFn: () => {
       return getStudentsByBatchId(feedId);
     },
     queryKey: ["students", "batch", feedId],
     enabled: false,
+  });
+
+  const { data: stuData, isLoading: isLoadingStuData } = useQuery({
+    queryFn: () => getFacStudentByBatchId(feedId),
+    queryKey: ["students", "faculty", "batch", feedId],
+    enabled: Boolean(feedId),
   });
 
   const { status, mutate } = useMutation({
@@ -83,28 +94,40 @@ const StudentModel = ({
                 }}
               />
             </div>
-            <div className="w-full flex flex-col justify-between h-[80vh]">
-              <StudentSelection
-                setSelectedStudents={setSelectedStudents}
-                selectedStudents={selectedStudents}
-                feedDegShort={feedDegShort}
-                oldDataRefetch={oldDataRefetch}
-                feedId={feedId}
-                oldData={oldData}
-              />
-              <div className="flex justify-between space-x-2 mt-4">
-                <Button
-                  type="button"
-                  variant="warning"
-                  onClick={() => onFormReset()}
-                >
-                  Reset
-                </Button>
-                <Button type="button" onClick={onFormSubmitted}>
-                  Add students to the batch
-                </Button>
+
+            {!isLoadingOldData && !isLoadingStuData ? (
+              <div className="w-full flex flex-col justify-between h-[80vh]">
+                <StudentSelection
+                  setSelectedStudents={setSelectedStudents}
+                  selectedStudents={selectedStudents}
+                  feedDegShort={feedDegShort}
+                  oldDataRefetch={oldDataRefetch}
+                  feedId={feedId}
+                  oldData={oldData}
+                  stuData={stuData}
+                />
+                <div className="flex justify-between space-x-2 mt-4">
+                  <Button
+                    type="button"
+                    variant="warning"
+                    onClick={() => onFormReset()}
+                  >
+                    Reset
+                  </Button>
+                  <Button type="button" onClick={onFormSubmitted}>
+                    Add students to the batch
+                  </Button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="h-full w-full flex justify-center items-center">
+                <img
+                  className="w-20 h-20 animate-spin "
+                  src="https://www.svgrepo.com/show/491270/loading-spinner.svg"
+                  alt="Loading icon"
+                />
+              </div>
+            )}
           </div>
         </div>
       )}

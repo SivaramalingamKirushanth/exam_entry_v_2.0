@@ -156,7 +156,7 @@ const BatchesDetails = () => {
     },
     {
       id: "Entries",
-      header: "Proper entries",
+      header: "Students Count",
       cell: ({ row }) => {
         return <p className="text-center">{row.original.student_count}</p>;
       },
@@ -321,7 +321,7 @@ const BatchesDetails = () => {
 
   return (
     <>
-      <div className="flex justify-between mb-2 items-start">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between mb-2 items-center sm:items-start">
         <div className="bg-white rounded-md flex relative">
           <Input
             placeholder="Search by name or batch code"

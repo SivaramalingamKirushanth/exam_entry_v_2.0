@@ -40,7 +40,7 @@ const StudentSelection = ({
   setSelectedStudents,
   feedId,
   oldDataRefetch,
-  oldData,
+  oldData,stuData
 }) => {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
@@ -50,11 +50,7 @@ const StudentSelection = ({
   const [searchValue, setSearchValue] = useState("");
   const [isOpenDatePassed, setIsOpenDatePassed] = useState(true);
 
-  const { data: stuData, refetch } = useQuery({
-    queryFn: () => getFacStudentByBatchId(feedId),
-    queryKey: ["students", "faculty", "batch", feedId],
-    enabled: Boolean(feedId),
-  });
+ 
 
   const { data } = useQuery({
     queryFn: () => getBatchOpenDate(feedId),

@@ -1,3 +1,4 @@
+"use client";
 import { getAllActiveBatchesProgesses } from "@/utils/apiRequests/batch.api";
 import { useQuery } from "@tanstack/react-query";
 import SummaryCard from "./SummaryCard";
@@ -10,8 +11,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import BatchProgress from "./BatchProgress";
+import { getSummaryData } from "@/utils/apiRequests/user.api";
+import { useState } from "react";
 
 const AdminHome = () => {
+  const [showMore, setShowMore] = useState(false);
+
   const { data: adminSummaryData } = useQuery({
     queryFn: getSummaryData,
     queryKey: ["adminSummary"],
@@ -24,7 +29,7 @@ const AdminHome = () => {
 
   return (
     <div className="flex justify-end md:justify-center">
-      <div className="md:w-[70%]">
+      <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
         {adminSummaryData && (
           <div className="flex gap-6 flex-wrap items-center justify-center mb-8">
             <SummaryCard title={adminSummaryData.batch_count} desc="Batches" />
@@ -60,7 +65,7 @@ const AdminHome = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[200px]">Batch</TableHead>
+                    <TableHead className="sm:w-[200px]">Batch</TableHead>
                     <TableHead className="text-center">Progress</TableHead>
                   </TableRow>
                 </TableHeader>
