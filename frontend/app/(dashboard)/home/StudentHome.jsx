@@ -321,6 +321,11 @@ const StudentHome = () => {
                           <span className="font-semibold">
                             New exam coming soon!
                           </span>
+                          <h1 className="font-base uppercase text-center">
+                            {level_ordinal} examination in {batch.deg_name} -{" "}
+                            {decodeBatchCode.academic_year} - {sem_ordinal}
+                            &nbsp;semester
+                          </h1>
                           <span className="font-sans">
                             Get ready to apply and give your best shot to
                             succeed!
@@ -428,6 +433,11 @@ const StudentHome = () => {
                   className="w-full h-48 rounded-md flex flex-col justify-center items-center p-4 text-center"
                 >
                   <span className="font-semibold">New exam coming soon!</span>
+                  <h1 className="font-base uppercase text-center">
+                    {level_ordinal} examination in {batch.deg_name} -{" "}
+                    {decodeBatchCode.academic_year} - {sem_ordinal}
+                    &nbsp;semester
+                  </h1>
                   <span className="font-sans">
                     Get ready to apply and give your best shot to succeed!
                   </span>

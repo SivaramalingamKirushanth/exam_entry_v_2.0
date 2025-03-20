@@ -217,7 +217,7 @@ const BatchesDetails = () => {
               <Drawer>
                 <DrawerTrigger className="flex items-center justify-between gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-red-400 bg-red-500 active:bg-red-400/75 text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 ">
                   <FaTrash />
-                  &nbsp;Drop Entries
+                  &nbsp;Finish Exam
                 </DrawerTrigger>
                 <DrawerContent>
                   <div className="mx-auto w-full max-w-sm">
