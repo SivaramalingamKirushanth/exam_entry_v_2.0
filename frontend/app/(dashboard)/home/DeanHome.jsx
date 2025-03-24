@@ -42,8 +42,8 @@ const DeanHome = () => {
         {batchesOfFacultyData && batchesOfFacultyData.length ? (
           batchesOfFacultyData.map((obj) => {
             const decodeBatchCode = parseString(obj.batch_code);
-            const level_ordinal = numberToOrdinalWord(decodeBatchCode.level);
-            const sem_ordinal = numberToOrdinalWord(decodeBatchCode.sem_no);
+            const level_ordinal = numberToOrdinalWord(obj.level);
+            const sem_ordinal = numberToOrdinalWord(obj.sem);
             return (
               <Link
                 href={{
