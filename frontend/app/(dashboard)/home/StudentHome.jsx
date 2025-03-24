@@ -308,12 +308,8 @@ const StudentHome = () => {
             {bathchesOfStudentData?.length &&
               bathchesOfStudentData?.map((batch) => {
                 const decodeBatchCode = parseString(batch.batch_code);
-                const level_ordinal = numberToOrdinalWord(
-                  bathchesOfStudentData.level
-                );
-                const sem_ordinal = numberToOrdinalWord(
-                  bathchesOfStudentData.sem
-                );
+                const level_ordinal = numberToOrdinalWord(batch.level);
+                const sem_ordinal = numberToOrdinalWord(batch.sem);
 
                 if (new Date(batch.application_open) > new Date()) {
                   return (
@@ -422,10 +418,8 @@ const StudentHome = () => {
         {bathchesOfStudentData?.length &&
           bathchesOfStudentData?.map((batch) => {
             const decodeBatchCode = parseString(batch.batch_code);
-            const level_ordinal = numberToOrdinalWord(
-              bathchesOfStudentData.level
-            );
-            const sem_ordinal = numberToOrdinalWord(bathchesOfStudentData.sem);
+            const level_ordinal = numberToOrdinalWord(batch.level);
+            const sem_ordinal = numberToOrdinalWord(batch.sem);
             if (new Date(batch.application_open) > new Date()) {
               return (
                 <Skeleton

@@ -57,7 +57,7 @@ const DeanHome = () => {
               >
                 <Card>
                   <CardHeader>
-                    <CardTitle className="capitalize text-center">
+                    <CardTitle className="uppercase text-center">
                       <p>
                         {level_ordinal} examination in {obj.deg_name}
                       </p>
@@ -65,7 +65,7 @@ const DeanHome = () => {
                       <br />
                       <p>{sem_ordinal} semester</p>
                     </CardTitle>
-                    <CardDescription className="capitalize text-center">
+                    <CardDescription className="uppercase text-center">
                       {obj.batch_code}
                     </CardDescription>
                   </CardHeader>

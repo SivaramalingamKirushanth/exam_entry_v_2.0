@@ -49,8 +49,8 @@ const faculties = () => {
         {batchesByFacultyData &&
           batchesByFacultyData.map((obj) => {
             const decodeBatchCode = parseString(obj.batch_code);
-            const level_ordinal = numberToOrdinalWord(decodeBatchCode.level);
-            const sem_ordinal = numberToOrdinalWord(decodeBatchCode.sem_no);
+            const level_ordinal = numberToOrdinalWord(obj.level);
+            const sem_ordinal = numberToOrdinalWord(obj.sem);
             const endDate = new Date(obj.end_date);
             const now = new Date();
             return (
@@ -66,7 +66,7 @@ const faculties = () => {
               >
                 <Card>
                   <CardHeader>
-                    <CardTitle className="capitalize text-center">
+                    <CardTitle className="uppercase text-center">
                       <p>
                         {level_ordinal} examination in {obj.deg_name}
                       </p>
@@ -74,7 +74,7 @@ const faculties = () => {
                       <br />
                       <p>{sem_ordinal} semester</p>
                     </CardTitle>
-                    <CardDescription className="capitalize text-center">
+                    <CardDescription className="uppercase text-center">
                       {obj.batch_code}
                     </CardDescription>
                   </CardHeader>
