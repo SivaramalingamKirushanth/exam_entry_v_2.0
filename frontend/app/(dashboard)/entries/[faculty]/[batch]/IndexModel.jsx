@@ -98,6 +98,7 @@ const IndexModel = ({
                 onClick={() => {
                   setIsIndexOpen(false);
                   setFormData({});
+                  queryClient.invalidateQueries(["lastAssignedIndexNumber"]);
                 }}
               />
             </div>
@@ -135,7 +136,14 @@ const IndexModel = ({
                       name="course"
                       className="w-full"
                       placeholder="IT"
-                      onChange={(e) => onFormDataChanged(e)}
+                      onChange={(e) => {
+                        setFormData((cur) => ({
+                          ...cur,
+                          startsFrom: "",
+                          batch: "",
+                        }));
+                        onFormDataChanged(e);
+                      }}
                       onBlur={(e) => {
                         e.target.value = e.target.value.trim();
                         if (formData.course && formData.batch) {
@@ -151,7 +159,10 @@ const IndexModel = ({
                       name="batch"
                       className="w-full"
                       placeholder="16"
-                      onChange={(e) => onFormDataChanged(e)}
+                      onChange={(e) => {
+                        setFormData((cur) => ({ ...cur, startsFrom: "" }));
+                        onFormDataChanged(e);
+                      }}
                       onBlur={(e) => {
                         e.target.value = e.target.value.trim();
                         if (formData.course && formData.batch) {

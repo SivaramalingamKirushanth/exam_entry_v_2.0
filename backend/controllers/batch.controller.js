@@ -125,9 +125,15 @@ export const createBatch = async (req, res, next) => {
   const {
     batch_code,
     subjects,
-    status = "false",
+    status = "true",
     deg_id,
     application_open,
+    level,
+    sem_no,
+    students_end,
+    lecturers_end,
+    hod_end,
+    dean_end,
   } = req.body;
 
   try {
@@ -138,14 +144,15 @@ export const createBatch = async (req, res, next) => {
         !status ||
         !Object.keys(subjects).length ||
         !deg_id ||
-        !application_open
+        !application_open ||
+        !level ||
+        !sem_no ||
+        !students_end ||
+        !lecturers_end ||
+        !hod_end ||
+        !dean_end
       ) {
-        return next(
-          errorProvider(
-            400,
-            "All fields (batch_code, status, subjects, deg_id, application_open) are required"
-          )
-        );
+        return next(errorProvider(400, "All fields are required"));
       }
 
       await conn.beginTransaction();
@@ -163,13 +170,15 @@ export const createBatch = async (req, res, next) => {
 
       // Insert batch and retrieve batch_id
       const [batchResult] = await conn.query(
-        "CALL InsertBatch(?, ?, ?, ?, ?, @batch_id); SELECT @batch_id AS batch_id;",
+        "CALL InsertBatch(?, ?, ?, ?, ?, ?, ?, @batch_id); SELECT @batch_id AS batch_id;",
         [
           batch_code,
           Object.keys(subjects).join(","),
           status,
           deg_id,
           application_open,
+          level,
+          sem_no,
         ]
       );
       const batch_id = batchResult[1][0].batch_id;
@@ -198,14 +207,42 @@ export const createBatch = async (req, res, next) => {
         ),
       ]);
 
-      let desc = `Batch created with batch_id=${batch_id}, application_open=${application_open}, sub_ids=${Object.keys(
+      await conn.execute(
+        `INSERT INTO batch_time_periods (batch_id, user_type, end_date)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE end_date = ?`,
+        [batch_id, "5", students_end, students_end]
+      );
+
+      await conn.execute(
+        `INSERT INTO batch_time_periods (batch_id, user_type, end_date)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE end_date = ?`,
+        [batch_id, "4", lecturers_end, lecturers_end]
+      );
+
+      await conn.execute(
+        `INSERT INTO batch_time_periods (batch_id, user_type, end_date)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE end_date = ?`,
+        [batch_id, "3", hod_end, hod_end]
+      );
+
+      await conn.execute(
+        `INSERT INTO batch_time_periods (batch_id, user_type, end_date)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE end_date = ?`,
+        [batch_id, "2", dean_end, dean_end]
+      );
+
+      let desc = `Batch created with batch_id=${batch_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, sub_ids=${Object.keys(
         subjects
       ).join(",")}, m_ids=${Object.values(subjects).join(",")}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
       return res.status(201).json({
-        message: "Batch and batch subject details created successfully",
+        message: "Batch created successfully",
       });
     } catch (error) {
       await conn.rollback();
@@ -233,6 +270,8 @@ export const updateBatch = async (req, res, next) => {
     batch_id,
     deg_id,
     application_open,
+    level,
+    sem_no,
   } = req.body;
 
   try {

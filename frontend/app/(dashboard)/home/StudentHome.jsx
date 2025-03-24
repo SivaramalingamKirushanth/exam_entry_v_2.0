@@ -326,10 +326,6 @@ const StudentHome = () => {
                             {decodeBatchCode.academic_year} - {sem_ordinal}
                             &nbsp;semester
                           </h1>
-                          <span className="font-sans">
-                            Get ready to apply and give your best shot to
-                            succeed!
-                          </span>
                         </Skeleton>
                       </td>
                     </TableRow>
@@ -438,9 +434,6 @@ const StudentHome = () => {
                     {decodeBatchCode.academic_year} - {sem_ordinal}
                     &nbsp;semester
                   </h1>
-                  <span className="font-sans">
-                    Get ready to apply and give your best shot to succeed!
-                  </span>
                 </Skeleton>
               );
             }
