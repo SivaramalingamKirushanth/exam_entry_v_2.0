@@ -50,7 +50,7 @@ const StudentHome = () => {
   });
   const [level_ordinal, setLevel_ordinal] = useState("");
   const [sem_ordinal, setSem_ordinal] = useState("");
-  const [decodeBatchCode, setDecodeBatchCode] = useState({});
+  const [academicYear, setAcademicYear] = useState("");
   const [subjectObject, setSubjectObject] = useState({});
   const [generating, setGenerating] = useState(false);
 
@@ -150,16 +150,11 @@ const StudentHome = () => {
 
   useEffect(() => {
     if (batchFullDetailsData) {
-      setDecodeBatchCode(parseString(batchFullDetailsData.batch_code));
+      setLevel_ordinal(numberToOrdinalWord(batchFullDetailsData.level));
+      setSem_ordinal(numberToOrdinalWord(batchFullDetailsData.sem));
+      setAcademicYear(batchFullDetailsData.academic_year);
     }
   }, [batchFullDetailsData]);
-
-  useEffect(() => {
-    if (decodeBatchCode) {
-      setLevel_ordinal(numberToOrdinalWord(decodeBatchCode.level));
-      setSem_ordinal(numberToOrdinalWord(decodeBatchCode.sem_no));
-    }
-  }, [decodeBatchCode]);
 
   const generateAdmissionCardPDFs = async (studentData) => {
     setDownloadBatchId(null);
@@ -196,7 +191,7 @@ const StudentHome = () => {
             type="P"
             level_ordinal={level_ordinal}
             batchFullDetailsData={batchFullDetailsData}
-            decodeBatchCode={decodeBatchCode}
+            academicYear={academicYear}
             formData={formData}
             sem_ordinal={sem_ordinal}
             subjectObject={subjectObject}
@@ -260,22 +255,20 @@ const StudentHome = () => {
       Object.keys(batchAdmissionDetailsData).length &&
       subjectObject &&
       Object.keys(subjectObject).length &&
-      decodeBatchCode &&
-      Object.keys(decodeBatchCode).length &&
+      sem_ordinal &&
+      level_ordinal &&
+      academicYear &&
       batchFullDetailsData &&
       Object.keys(batchFullDetailsData).length &&
       generateAdmissionCardPDFs(studentWithSubjectsData);
   }, [
     downloadBatchId,
     studentWithSubjectsData,
-    studentWithSubjectsData,
-    batchAdmissionDetailsData,
     batchAdmissionDetailsData,
     subjectObject,
-    subjectObject,
-    decodeBatchCode,
-    decodeBatchCode,
-    batchFullDetailsData,
+    sem_ordinal,
+    level_ordinal,
+    academicYear,
     batchFullDetailsData,
   ]);
 
@@ -307,7 +300,6 @@ const StudentHome = () => {
           <TableBody>
             {bathchesOfStudentData?.length &&
               bathchesOfStudentData?.map((batch) => {
-                const decodeBatchCode = parseString(batch.batch_code);
                 const level_ordinal = numberToOrdinalWord(batch.level);
                 const sem_ordinal = numberToOrdinalWord(batch.sem);
 
@@ -321,7 +313,7 @@ const StudentHome = () => {
                           </span>
                           <h1 className="font-base uppercase text-center">
                             {level_ordinal} examination in {batch.deg_name} -{" "}
-                            {decodeBatchCode.academic_year} - {sem_ordinal}
+                            {batch.academic_year} - {sem_ordinal}
                             &nbsp;semester
                           </h1>
                         </Skeleton>
@@ -334,7 +326,7 @@ const StudentHome = () => {
                   <TableRow key={batch.batch_id}>
                     <TableCell className="font-medium uppercase">
                       {level_ordinal} examination in {batch.deg_name} -{" "}
-                      {decodeBatchCode.academic_year} - {sem_ordinal}
+                      {batch.academic_year} - {sem_ordinal}
                       &nbsp;semester
                     </TableCell>
                     <TableCell>
@@ -359,7 +351,7 @@ const StudentHome = () => {
                           <Button
                             variant="outline"
                             className="uppercase"
-                            data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${decodeBatchCode.academic_year} - ${sem_ordinal} semester`}
+                            data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${batch.academic_year} - ${sem_ordinal} semester`}
                             onClick={(e) => onApplyClick(e)}
                           >
                             apply
@@ -417,7 +409,6 @@ const StudentHome = () => {
 
         {bathchesOfStudentData?.length &&
           bathchesOfStudentData?.map((batch) => {
-            const decodeBatchCode = parseString(batch.batch_code);
             const level_ordinal = numberToOrdinalWord(batch.level);
             const sem_ordinal = numberToOrdinalWord(batch.sem);
             if (new Date(batch.application_open) > new Date()) {
@@ -429,7 +420,7 @@ const StudentHome = () => {
                   <span className="font-semibold">New exam coming soon!</span>
                   <h1 className="font-base uppercase text-center">
                     {level_ordinal} examination in {batch.deg_name} -{" "}
-                    {decodeBatchCode.academic_year} - {sem_ordinal}
+                    {batch.academic_year} - {sem_ordinal}
                     &nbsp;semester
                   </h1>
                 </Skeleton>
@@ -443,7 +434,7 @@ const StudentHome = () => {
               >
                 <h1 className="font-medium uppercase text-center">
                   {level_ordinal} examination in {batch.deg_name} -{" "}
-                  {decodeBatchCode.academic_year} - {sem_ordinal}
+                  {batch.academic_year} - {sem_ordinal}
                   &nbsp;semester{" "}
                   <Badge
                     variant={
@@ -466,7 +457,7 @@ const StudentHome = () => {
                       variant="outline"
                       className="uppercase"
                       size="sm"
-                      data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${decodeBatchCode.academic_year} - ${sem_ordinal} semester`}
+                      data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${batch.academic_year} - ${sem_ordinal} semester`}
                       onClick={(e) => onApplyClick(e)}
                     >
                       apply

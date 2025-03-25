@@ -288,6 +288,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
           application_open,
           level,
           sem_no,
+          academic_year,
         } = formData;
         const { students_end, lecturers_end, hod_end, dean_end } = timePeriods;
 
@@ -299,6 +300,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
           batch_id,
           deg_id,
           application_open,
+          academic_year,
           level,
           sem_no,
           students_end,
@@ -308,8 +310,15 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         });
       }
     } else {
-      const { batch_code, subjects, deg_id, application_open, level, sem_no } =
-        formData;
+      const {
+        batch_code,
+        subjects,
+        deg_id,
+        application_open,
+        level,
+        sem_no,
+        academic_year,
+      } = formData;
       const { students_end, lecturers_end, hod_end, dean_end } = timePeriods;
 
       mutate({
@@ -317,6 +326,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         subjects,
         deg_id,
         application_open,
+        academic_year,
         level,
         sem_no,
         students_end,

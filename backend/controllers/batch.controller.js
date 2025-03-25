@@ -128,6 +128,7 @@ export const createBatch = async (req, res, next) => {
     status = "true",
     deg_id,
     application_open,
+    academic_year,
     level,
     sem_no,
     students_end,
@@ -145,6 +146,7 @@ export const createBatch = async (req, res, next) => {
         !Object.keys(subjects).length ||
         !deg_id ||
         !application_open ||
+        !academic_year ||
         !level ||
         !sem_no ||
         !students_end ||
@@ -170,13 +172,14 @@ export const createBatch = async (req, res, next) => {
 
       // Insert batch and retrieve batch_id
       const [batchResult] = await conn.query(
-        "CALL InsertBatch(?, ?, ?, ?, ?, ?, ?, @batch_id); SELECT @batch_id AS batch_id;",
+        "CALL InsertBatch(?, ?, ?, ?, ?, ?, ?, ?, @batch_id); SELECT @batch_id AS batch_id;",
         [
           batch_code,
           Object.keys(subjects).join(","),
           status,
           deg_id,
           application_open,
+          academic_year,
           level,
           sem_no,
         ]
@@ -270,6 +273,7 @@ export const updateBatch = async (req, res, next) => {
     batch_id,
     deg_id,
     application_open,
+    academic_year,
     level,
     sem_no,
     students_end,
@@ -287,6 +291,7 @@ export const updateBatch = async (req, res, next) => {
         !Object.keys(subjects).length ||
         !deg_id ||
         !application_open ||
+        !academic_year ||
         !level ||
         !sem_no ||
         !students_end ||
@@ -311,12 +316,13 @@ export const updateBatch = async (req, res, next) => {
       }
 
       // Update batch details
-      await conn.query("CALL UpdateBatchDetails(?, ?, ?, ?, ?, ?, ?);", [
+      await conn.query("CALL UpdateBatchDetails(?, ?, ?, ?, ?, ?, ?, ?);", [
         batch_id,
         batch_code,
         Object.keys(subjects).join(","),
         deg_id,
         application_open,
+        academic_year,
         level,
         sem_no,
       ]);

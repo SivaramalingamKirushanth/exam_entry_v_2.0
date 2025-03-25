@@ -123,7 +123,7 @@ const BatchesDetails = () => {
         );
       },
       cell: ({ row }) => {
-        let academic_year = row.original.batch_code.slice(0, 4);
+        let academic_year = row.original.academic_year;
         return <p className="text-center">{academic_year}</p>;
       },
     },
@@ -136,10 +136,7 @@ const BatchesDetails = () => {
 
       header: "Level",
       cell: ({ row }) => {
-        let level = row.original.batch_code.slice(
-          row.original.batch_code.length - 2,
-          row.original.batch_code.length - 1
-        );
+        let level = row.original.level;
         return <p className="text-center">{level}</p>;
       },
     },
@@ -148,9 +145,7 @@ const BatchesDetails = () => {
 
       header: "Semester",
       cell: ({ row }) => {
-        let sem = row.original.batch_code.slice(
-          row.original.batch_code.length - 1
-        );
+        let sem = row.original.sem;
         return <p className="text-center">{sem}</p>;
       },
     },
