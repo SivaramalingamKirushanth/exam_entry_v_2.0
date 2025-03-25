@@ -187,14 +187,14 @@ const AdminHome = () => {
                               );
                             }
                           })}
-                        <h1>
-                          <p
-                            className="cursor-pointer text-blue-600"
+                        <TableRow>
+                          <TableCell
+                            className="cursor-pointer text-blue-600 inline-block"
                             onClick={() => setShowMore(true)}
                           >
                             Show more
-                          </p>
-                        </h1>
+                          </TableCell>
+                        </TableRow>
                       </>
                     ) : (
                       <>
@@ -310,14 +310,14 @@ const AdminHome = () => {
                           }
                         })}
                         {allActiveBatchesProgessesData.length > 5 ? (
-                          <h1>
-                            <p
-                              className="cursor-pointer text-blue-600"
+                          <TableRow>
+                            <TableCell
+                              className="cursor-pointer text-blue-600 inline-block"
                               onClick={() => setShowMore(false)}
                             >
                               Show less
-                            </p>
-                          </h1>
+                            </TableCell>
+                          </TableRow>
                         ) : (
                           ""
                         )}
