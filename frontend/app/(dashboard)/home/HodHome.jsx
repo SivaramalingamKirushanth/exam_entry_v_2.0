@@ -43,7 +43,6 @@ const HodHome = () => {
       <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
         {batchesOfDepartmentData && batchesOfDepartmentData.length ? (
           batchesOfDepartmentData.map((obj) => {
-            const decodeBatchCode = parseString(obj.batch_code);
             const level_ordinal = numberToOrdinalWord(obj.level);
             const sem_ordinal = numberToOrdinalWord(obj.sem);
             return (
@@ -63,7 +62,7 @@ const HodHome = () => {
                       <p>
                         {level_ordinal} examination in {obj.deg_name}
                       </p>
-                      <p>{decodeBatchCode.academic_year}</p>
+                      <p>{obj.academic_year}</p>
                       <br />
                       <p>{sem_ordinal} semester</p>
                     </CardTitle>

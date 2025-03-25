@@ -90,9 +90,22 @@ const AdminHome = () => {
                               );
                             }
 
-                            if (obj.btp_data) {
-                              const btpData = obj.btp_data
-                                .split(",")
+                            if (new Date() < new Date(obj.application_open)) {
+                              return (
+                                <TableRow key={i}>
+                                  <TableCell className="font-medium">
+                                    {obj.batch_code}
+                                  </TableCell>
+                                  <TableCell>
+                                    <BatchProgress task="" />
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            }
+
+                            if (obj.btpData) {
+                              const btpData = obj?.btp_data
+                                ?.split(",")
                                 .map((pair) => [
                                   pair.split(";")[0].trim(),
                                   pair.split(";")[1].trim(),
@@ -172,17 +185,6 @@ const AdminHome = () => {
                                   </TableCell>
                                 </TableRow>
                               );
-                            } else {
-                              return (
-                                <TableRow key={i}>
-                                  <TableCell className="font-medium">
-                                    {obj.batch_code}
-                                  </TableCell>
-                                  <TableCell>
-                                    <BatchProgress task="" />
-                                  </TableCell>
-                                </TableRow>
-                              );
                             }
                           })}
                         <h1>
@@ -210,9 +212,22 @@ const AdminHome = () => {
                             );
                           }
 
-                          if (obj.btp_data) {
-                            const btpData = obj.btp_data
-                              .split(",")
+                          if (new Date() < new Date(obj.application_open)) {
+                            return (
+                              <TableRow key={i}>
+                                <TableCell className="font-medium">
+                                  {obj.batch_code}
+                                </TableCell>
+                                <TableCell>
+                                  <BatchProgress task="" />
+                                </TableCell>
+                              </TableRow>
+                            );
+                          }
+
+                          if (obj.btpData) {
+                            const btpData = obj?.btp_data
+                              ?.split(",")
                               .map((pair) => [
                                 pair.split(";")[0].trim(),
                                 pair.split(";")[1].trim(),
@@ -289,17 +304,6 @@ const AdminHome = () => {
                                 </TableCell>
                                 <TableCell>
                                   <BatchProgress task="stu" />
-                                </TableCell>
-                              </TableRow>
-                            );
-                          } else {
-                            return (
-                              <TableRow key={i}>
-                                <TableCell className="font-medium">
-                                  {obj.batch_code}
-                                </TableCell>
-                                <TableCell>
-                                  <BatchProgress task="" />
                                 </TableCell>
                               </TableRow>
                             );
