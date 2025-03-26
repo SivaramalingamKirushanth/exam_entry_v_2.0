@@ -113,7 +113,7 @@ const Model = ({
                   <TableHead className="w-24 text-center">Type</TableHead>
                   {curriculumsOfBatchData &&
                     curriculumsOfBatchData.map((obj) => (
-                      <TableHead key={obj.sub_id} className="w-16">
+                      <TableHead key={obj.sub_id} className="space-x-2">
                         {obj.sub_code}
                       </TableHead>
                     ))}

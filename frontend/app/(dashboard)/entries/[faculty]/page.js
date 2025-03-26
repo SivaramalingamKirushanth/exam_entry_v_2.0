@@ -63,7 +63,7 @@ const faculties = () => {
                 className="sm:w-[30%] sm:max-w-[30%] hover:shadow-md rounded-xl overflow-hidden"
                 key={obj.batch_id}
               >
-                <Card>
+                <Card className="h-full flex flex-col justify-between">
                   <CardHeader>
                     <CardTitle className="uppercase text-center">
                       <p>
