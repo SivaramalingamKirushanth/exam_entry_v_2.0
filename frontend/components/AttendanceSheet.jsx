@@ -87,11 +87,9 @@ const AttendanceSheet = ({
         <div className="w-36 flex justify-between shrink-0">
           Examination <span>:&nbsp;</span>
         </div>
-        <div className="flex flex-wrap items-center">
-          {titleCase(
-            `${level_ordinal} examination in ${batchFullDetailsData?.deg_name} - ${academicYear} - ${sem_ordinal} semester -`
-          )}
-          &nbsp;
+        <div className="flex flex-wrap items-center uppercase">
+          {level_ordinal} examination in {batchFullDetailsData?.deg_name} -{" "}
+          {academicYear} - {sem_ordinal} semester - &nbsp;
           {formData.date?.map((obj, ind) =>
             ind
               ? " ," +
