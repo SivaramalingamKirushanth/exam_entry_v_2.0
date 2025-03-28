@@ -789,9 +789,10 @@ export const getDegreeById = async (req, res, next) => {
         );
       }
 
-      return res
-        .status(200)
-        .json({ ...results[0][0], levels: results[0][0].levels.split(":") }); // First result set, first record
+      return res.status(200).json({
+        ...results[0][0],
+        levels: results[0][0].levels.split(":"),
+      }); // First result set, first record
     } catch (error) {
       console.error("Error fetching degree by ID:", error);
       return next(errorProvider(500, "Failed to fetch degree by ID"));

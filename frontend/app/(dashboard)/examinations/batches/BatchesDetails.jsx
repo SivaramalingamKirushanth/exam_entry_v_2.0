@@ -123,7 +123,7 @@ const BatchesDetails = () => {
         );
       },
       cell: ({ row }) => {
-        let academic_year = row.original.batch_code.slice(0, 4);
+        let academic_year = row.original.academic_year;
         return <p className="text-center">{academic_year}</p>;
       },
     },
@@ -136,10 +136,7 @@ const BatchesDetails = () => {
 
       header: "Level",
       cell: ({ row }) => {
-        let level = row.original.batch_code.slice(
-          row.original.batch_code.length - 2,
-          row.original.batch_code.length - 1
-        );
+        let level = row.original.level;
         return <p className="text-center">{level}</p>;
       },
     },
@@ -148,9 +145,7 @@ const BatchesDetails = () => {
 
       header: "Semester",
       cell: ({ row }) => {
-        let sem = row.original.batch_code.slice(
-          row.original.batch_code.length - 1
-        );
+        let sem = row.original.sem;
         return <p className="text-center">{sem}</p>;
       },
     },
@@ -217,7 +212,7 @@ const BatchesDetails = () => {
               <Drawer>
                 <DrawerTrigger className="flex items-center justify-between gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-red-400 bg-red-500 active:bg-red-400/75 text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 ">
                   <FaTrash />
-                  &nbsp;Drop Entries
+                  &nbsp;Finish Exam
                 </DrawerTrigger>
                 <DrawerContent>
                   <div className="mx-auto w-full max-w-sm">

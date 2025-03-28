@@ -31,7 +31,7 @@ function arrayPadEnd(array) {
 const AttendanceSheet = ({
   level_ordinal,
   batchFullDetailsData,
-  decodeBatchCode,
+  academicYear,
   formData,
   sem_ordinal,
   onRenderComplete,
@@ -87,11 +87,9 @@ const AttendanceSheet = ({
         <div className="w-36 flex justify-between shrink-0">
           Examination <span>:&nbsp;</span>
         </div>
-        <div className="flex flex-wrap items-center">
-          {titleCase(
-            `${level_ordinal} examination in ${batchFullDetailsData?.deg_name} - ${decodeBatchCode.academic_year} - ${sem_ordinal} semester -`
-          )}
-          &nbsp;
+        <div className="flex flex-wrap items-center uppercase">
+          {level_ordinal} examination in {batchFullDetailsData?.deg_name} -{" "}
+          {academicYear} - {sem_ordinal} semester - &nbsp;
           {formData.date?.map((obj, ind) =>
             ind
               ? " ," +
@@ -175,9 +173,7 @@ const AttendanceSheet = ({
         </div>
       </div>
 
-      <h3 className="text-xl my-1 uppercase text-center">
-        attendance list
-      </h3>
+      <h3 className="text-xl my-1 uppercase text-center">attendance list</h3>
       {/* </div> */}
 
       <div className="text-sm">{parse(formData.description) || ""}</div>

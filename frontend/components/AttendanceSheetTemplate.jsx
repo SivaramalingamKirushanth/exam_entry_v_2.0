@@ -110,7 +110,7 @@ const AttendanceSheetTemplate = ({
   latestAttendanceTemplateData,
   level_ordinal,
   sem_ordinal,
-  decodeBatchCode,
+  academicYear,
   sub_name,
   sub_code,
   pageArr,
@@ -311,7 +311,7 @@ const AttendanceSheetTemplate = ({
         </div>
         <div className="flex flex-wrap">
           {titleCase(
-            `${level_ordinal} examination in ${batchFullDetailsData?.deg_name} - ${decodeBatchCode.academic_year} -${sem_ordinal} semester -`
+            `${level_ordinal} examination in ${batchFullDetailsData?.deg_name} - ${academicYear} - ${sem_ordinal} semester -`
           )}
           <div className="flex space-x-2 items-center flex-wrap">
             {formData.date?.map((yearBlock, yearIndex) => (

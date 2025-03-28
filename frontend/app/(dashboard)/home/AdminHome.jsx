@@ -90,9 +90,22 @@ const AdminHome = () => {
                               );
                             }
 
-                            if (obj.btp_data) {
-                              const btpData = obj.btp_data
-                                .split(",")
+                            if (new Date() < new Date(obj.application_open)) {
+                              return (
+                                <TableRow key={i}>
+                                  <TableCell className="font-medium">
+                                    {obj.batch_code}
+                                  </TableCell>
+                                  <TableCell>
+                                    <BatchProgress task="" />
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            }
+
+                            if (obj.btpData) {
+                              const btpData = obj?.btp_data
+                                ?.split(",")
                                 .map((pair) => [
                                   pair.split(";")[0].trim(),
                                   pair.split(";")[1].trim(),
@@ -172,27 +185,16 @@ const AdminHome = () => {
                                   </TableCell>
                                 </TableRow>
                               );
-                            } else {
-                              return (
-                                <TableRow key={i}>
-                                  <TableCell className="font-medium">
-                                    {obj.batch_code}
-                                  </TableCell>
-                                  <TableCell>
-                                    <BatchProgress task="" />
-                                  </TableCell>
-                                </TableRow>
-                              );
                             }
                           })}
-                        <h1>
-                          <p
-                            className="cursor-pointer text-blue-600"
+                        <TableRow>
+                          <TableCell
+                            className="cursor-pointer text-blue-600 inline-block"
                             onClick={() => setShowMore(true)}
                           >
                             Show more
-                          </p>
-                        </h1>
+                          </TableCell>
+                        </TableRow>
                       </>
                     ) : (
                       <>
@@ -210,9 +212,22 @@ const AdminHome = () => {
                             );
                           }
 
-                          if (obj.btp_data) {
-                            const btpData = obj.btp_data
-                              .split(",")
+                          if (new Date() < new Date(obj.application_open)) {
+                            return (
+                              <TableRow key={i}>
+                                <TableCell className="font-medium">
+                                  {obj.batch_code}
+                                </TableCell>
+                                <TableCell>
+                                  <BatchProgress task="" />
+                                </TableCell>
+                              </TableRow>
+                            );
+                          }
+
+                          if (obj.btpData) {
+                            const btpData = obj?.btp_data
+                              ?.split(",")
                               .map((pair) => [
                                 pair.split(";")[0].trim(),
                                 pair.split(";")[1].trim(),
@@ -292,28 +307,17 @@ const AdminHome = () => {
                                 </TableCell>
                               </TableRow>
                             );
-                          } else {
-                            return (
-                              <TableRow key={i}>
-                                <TableCell className="font-medium">
-                                  {obj.batch_code}
-                                </TableCell>
-                                <TableCell>
-                                  <BatchProgress task="" />
-                                </TableCell>
-                              </TableRow>
-                            );
                           }
                         })}
                         {allActiveBatchesProgessesData.length > 5 ? (
-                          <h1>
-                            <p
-                              className="cursor-pointer text-blue-600"
+                          <TableRow>
+                            <TableCell
+                              className="cursor-pointer text-blue-600 inline-block"
                               onClick={() => setShowMore(false)}
                             >
                               Show less
-                            </p>
-                          </h1>
+                            </TableCell>
+                          </TableRow>
                         ) : (
                           ""
                         )}

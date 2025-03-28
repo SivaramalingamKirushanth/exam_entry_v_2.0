@@ -27,7 +27,7 @@ const AdmissionCard = ({
   type,
   level_ordinal,
   batchFullDetailsData,
-  decodeBatchCode,
+  academicYear,
   formData,
   sem_ordinal,
   subjectObject,
@@ -62,7 +62,7 @@ const AdmissionCard = ({
         </h2>
         <div className="flex justify-center font-semibold text-base uppercase space-x-2 items-center flex-wrap leading-[1]">
           {level_ordinal} examination in {batchFullDetailsData?.deg_name} -{" "}
-          {decodeBatchCode.academic_year} - {sem_ordinal}&nbsp;semester -{" "}
+          {academicYear} - {sem_ordinal}&nbsp;semester -{" "}
           {formData.date?.map((obj, ind) =>
             ind
               ? ", " +

@@ -43,9 +43,8 @@ const HodHome = () => {
       <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
         {batchesOfDepartmentData && batchesOfDepartmentData.length ? (
           batchesOfDepartmentData.map((obj) => {
-            const decodeBatchCode = parseString(obj.batch_code);
-            const level_ordinal = numberToOrdinalWord(decodeBatchCode.level);
-            const sem_ordinal = numberToOrdinalWord(decodeBatchCode.sem_no);
+            const level_ordinal = numberToOrdinalWord(obj.level);
+            const sem_ordinal = numberToOrdinalWord(obj.sem);
             return (
               <Link
                 href={{
@@ -57,17 +56,17 @@ const HodHome = () => {
                 className="sm:w-[30%] sm:max-w-[30%] hover:shadow-md rounded-xl"
                 key={obj.batch_id}
               >
-                <Card>
+                <Card className="h-full flex flex-col justify-between">
                   <CardHeader>
-                    <CardTitle className="capitalize text-center">
+                    <CardTitle className="uppercase text-center">
                       <p>
                         {level_ordinal} examination in {obj.deg_name}
                       </p>
-                      <p>{decodeBatchCode.academic_year}</p>
+                      <p>{obj.academic_year}</p>
                       <br />
                       <p>{sem_ordinal} semester</p>
                     </CardTitle>
-                    <CardDescription className="capitalize text-center">
+                    <CardDescription className="uppercase text-center">
                       {obj.batch_code}
                     </CardDescription>
                   </CardHeader>

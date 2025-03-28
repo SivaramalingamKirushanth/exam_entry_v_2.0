@@ -53,7 +53,7 @@ const ManagerHome = () => {
               className="sm:w-[30%] sm:max-w-[30%] hover:shadow-md rounded-xl"
               key={obj.sub_id}
             >
-              <Card>
+              <Card className="h-full flex flex-col justify-between">
                 <CardHeader>
                   <CardTitle>{titleCase(obj.sub_name)}</CardTitle>
                   <CardDescription>{obj.sub_code}</CardDescription>
