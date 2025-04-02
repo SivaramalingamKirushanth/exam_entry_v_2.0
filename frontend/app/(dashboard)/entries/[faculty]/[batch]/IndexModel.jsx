@@ -76,6 +76,13 @@ const IndexModel = ({
     setBtnEnable(isFormValid);
   }, [formData]);
 
+  useEffect(() => {
+    setFormData((cur) => ({
+      ...cur,
+      startsFrom: lastAssignedIndexNumberData?.lastIndex + 1 || 1,
+    }));
+  }, [lastAssignedIndexNumberData]);
+
   const onFormSubmitted = () => {
     mutate({ ...formData, batch_id });
     setIsIndexOpen(false);
