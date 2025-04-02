@@ -38,7 +38,7 @@ function divideStudents(totalStudents, noOfGroups) {
   return groupSize;
 }
 
-const Page = () => {
+const Attendance = () => {
   const searchParams = useSearchParams();
   const batch_id = searchParams.get("batch_id");
   const sub_id = searchParams.get("sub_id");
@@ -281,7 +281,7 @@ const Page = () => {
           generating ? "fixed" : "hidden"
         } left-0 top-0 w-full h-full flex justify-center items-center bg-white/35 z-50`}
       >
-        <img
+        <Image
           className="w-20 h-20 animate-spin "
           src="https://www.svgrepo.com/show/491270/loading-spinner.svg"
           alt="Loading icon"
@@ -339,4 +339,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default Attendance;

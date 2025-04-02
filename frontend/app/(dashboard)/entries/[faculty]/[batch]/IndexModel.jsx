@@ -114,8 +114,10 @@ const IndexModel = ({
               {studentsWithoutIndexNumberData.count} students.
             </h3>
             <ScrollArea className="h-[100px] w-[95%] rounded-md border p-4">
-              {studentsWithoutIndexNumberData.user_names.map((user_name) => (
-                <Badge className="mr-2">{user_name}</Badge>
+              {studentsWithoutIndexNumberData.user_names.map((user_name, i) => (
+                <Badge key={i} className="mr-2">
+                  {user_name}
+                </Badge>
               ))}
             </ScrollArea>
 
@@ -173,7 +175,7 @@ const IndexModel = ({
                       onBlur={(e) => {
                         e.target.value = e.target.value.trim();
                         if (formData.course && formData.batch) {
-                          lastAssignedIndexNumberDataRefetch();
+                          +lastAssignedIndexNumberDataRefetch();
                         }
                       }}
                       value={formData.batch || ""}

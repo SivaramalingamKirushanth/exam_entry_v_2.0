@@ -34,6 +34,8 @@ import { useUser } from "@/utils/useUser";
 const StudentDetails = ({ sub_id, batch_id }) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
+  const [remark, setRemark] = useState("");
+  const triggerRef = useRef(null);
   const [searchValue, setSearchValue] = useState("");
   const [deadlineObj, setDeadlineObj] = useState({
     lec_deadline: "",
@@ -158,9 +160,6 @@ const StudentDetails = ({ sub_id, batch_id }) => {
     {
       id: "Eligibility",
       header: () => {
-        const [remark, setRemark] = useState("");
-        const triggerRef = useRef(null);
-
         const isAnyoneNotEligible = filteredData.some(
           (stu) => stu.eligibility == "false"
         );
@@ -210,8 +209,6 @@ const StudentDetails = ({ sub_id, batch_id }) => {
         );
       },
       cell: ({ row }) => {
-        const [remark, setRemark] = useState("");
-
         return (
           <Popover>
             <PopoverTrigger className="trigger flex justify-center w-full">

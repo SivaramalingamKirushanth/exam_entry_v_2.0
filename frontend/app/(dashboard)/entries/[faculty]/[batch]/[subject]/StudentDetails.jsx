@@ -36,7 +36,8 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [endDate, setEndDate] = useState(null);
-
+  const [remark, setRemark] = useState("");
+  const triggerRef = useRef(null);
   const [roleId, setRoleID] = useState(null);
   const { data: user, isLoading } = useUser();
 
@@ -155,9 +156,6 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
     {
       id: "Eligibility",
       header: () => {
-        const [remark, setRemark] = useState("");
-        const triggerRef = useRef(null);
-
         const isAnyoneNotEligible = filteredData.some(
           (stu) => stu.eligibility == "false"
         );
@@ -207,8 +205,6 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
         );
       },
       cell: ({ row }) => {
-        const [remark, setRemark] = useState("");
-
         return (
           <Popover>
             <PopoverTrigger className="trigger flex justify-center w-full">
