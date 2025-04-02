@@ -32,6 +32,7 @@ import html2canvas from "html2canvas";
 import { createRoot } from "react-dom/client";
 import AttendanceSheetTemplate from "@/components/AttendanceSheetTemplate";
 import AttendanceSheet from "@/components/AttendanceSheet";
+import Image from "next/image";
 
 function divideStudents(totalStudents, noOfGroups) {
   const groupSize = Math.ceil(totalStudents / noOfGroups);
