@@ -251,3 +251,234 @@ BEGIN
     DEALLOCATE PREPARE stmt;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `ApplyExam`(
+    IN `p_user_id` INT, 
+    IN `p_removed_subjects` VARCHAR(255), -- Comma-separated subject IDs to skip
+    OUT `out_batch_id` INT
+)
+ae:BEGIN
+    DECLARE p_s_id INT;
+    DECLARE p_batch_id INT;
+    DECLARE p_applied_to_exam VARCHAR(50);
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE sub_col_name VARCHAR(255);
+    DECLARE current_sub_id VARCHAR(10);
+    DECLARE attendance_value INT;
+    DECLARE eligibility_value VARCHAR(50);
+    DECLARE student_deadline DATETIME;
+    DECLARE open_date DATETIME;
+    
+    -- New variables for entry_summary
+    DECLARE v_batch_code VARCHAR(100);
+    DECLARE v_academic_year VARCHAR(50);
+    DECLARE v_level INT;
+    DECLARE v_sem INT;
+    DECLARE v_proper_subs TEXT DEFAULT '';
+    DECLARE existing_entry_count INT;
+
+    -- Cursor for getting all subject columns (sub_* columns)
+    DECLARE sub_cursor CURSOR FOR 
+        SELECT COLUMN_NAME 
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_NAME = CONCAT('batch_', p_batch_id, '_students') 
+          AND COLUMN_NAME LIKE 'sub_%';
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Step 1: Get s_id from student table using user_id
+    SELECT s_id INTO p_s_id
+    FROM student
+    WHERE user_id = p_user_id;
+
+    IF p_s_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Student ID not found for the given user_id.';
+    END IF;
+
+    -- Step 2: Get batch_ids from student_detail and extract the last batch_id
+    SELECT CAST(SUBSTRING_INDEX(batch_ids, ',', -1) AS UNSIGNED) INTO p_batch_id
+    FROM student_detail
+    WHERE s_id = p_s_id;
+
+    IF p_batch_id IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Batch ID not found for the student.';
+    END IF;
+
+    -- Set the OUT parameter with the batch_id
+    SET out_batch_id = p_batch_id;
+
+    -- Get batch information
+    SELECT batch_code, level, sem, academic_year 
+    INTO v_batch_code, v_level, v_sem, v_academic_year
+    FROM batch 
+    WHERE batch_id = p_batch_id;
+
+    -- Step 3: Check student deadline
+    SELECT end_date INTO student_deadline
+    FROM batch_time_periods
+    WHERE batch_id = p_batch_id AND user_type = '5'; -- User type '5' is for students
+
+    IF NOW() > student_deadline THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The application deadline for this batch has passed.';
+    END IF;
+    
+    -- Step 4: Check application open date
+    SELECT application_open INTO open_date
+    FROM batch
+    WHERE batch_id = p_batch_id; 
+
+    IF NOW() < open_date THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The application not opened yet.';
+    END IF;
+
+    -- Step 5: Check if student already applied to exam
+    SET @table_name = CONCAT('batch_', p_batch_id, '_students');
+    
+    -- Check if the dynamic table exists
+    SET @check_table_query = CONCAT('SHOW TABLES LIKE "', @table_name, '"');
+    PREPARE stmt FROM @check_table_query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+
+    -- If table doesn't exist, raise an error
+    IF FOUND_ROWS() = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The batch table does not exist.';
+    END IF;
+
+    -- Check if the student has already applied to the exam
+    SET @check_applied_query = CONCAT(
+        'SELECT applied_to_exam INTO @p_applied_to_exam FROM ', @table_name, ' WHERE s_id = ', p_s_id
+    );
+    PREPARE stmt FROM @check_applied_query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+
+    -- If already applied, exit the procedure
+    IF @p_applied_to_exam = 'true' THEN
+        LEAVE ae;
+    END IF;
+
+    -- Step 6: Iterate over all subject columns for the batch
+    OPEN sub_cursor;
+
+    subject_loop: LOOP
+        FETCH sub_cursor INTO sub_col_name;
+
+        IF done THEN
+            LEAVE subject_loop;
+        END IF;
+
+        -- Extract the subject ID from the column name (e.g., 'sub_5' -> '5')
+        SET current_sub_id = SUBSTRING(sub_col_name, 5);
+        
+        -- Check if this subject should be skipped
+        IF p_removed_subjects IS NOT NULL AND FIND_IN_SET(current_sub_id, p_removed_subjects) > 0 THEN
+            -- Skip this subject
+            ITERATE subject_loop;
+        END IF;
+
+        -- Get the attendance value for the subject
+        SET @attendance_query = CONCAT(
+            'SELECT ', sub_col_name, ' INTO @attendance_value 
+            FROM ', @table_name, ' 
+            WHERE s_id = ', p_s_id
+        );
+        PREPARE stmt FROM @attendance_query;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+
+        -- Determine eligibility based on attendance
+        IF @attendance_value >= 80 THEN
+            SET eligibility_value = 'true';
+        ELSE
+            SET eligibility_value = 'false';
+        END IF;
+
+        -- Insert eligibility value into respective subject table (if not exists)
+        SET @insert_query = CONCAT(
+            'INSERT IGNORE INTO batch_', p_batch_id, '_sub_', current_sub_id, 
+            ' (s_id, eligibility, exam_type) VALUES (', p_s_id, ', "', eligibility_value, '", "P")'
+        );
+        PREPARE stmt FROM @insert_query;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+
+        -- Collect proper subjects (not skipped)
+        IF v_proper_subs = '' THEN
+            SET v_proper_subs = current_sub_id;
+        ELSE
+            SET v_proper_subs = CONCAT(v_proper_subs, ',', current_sub_id);
+        END IF;
+    END LOOP;
+
+    CLOSE sub_cursor;
+
+    -- Step 7: Update applied_to_exam to 'true' for the student
+    SET @update_query = CONCAT(
+        'UPDATE ', @table_name, ' 
+         SET applied_to_exam = "true" 
+         WHERE s_id = ', p_s_id
+    );
+    PREPARE stmt FROM @update_query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+
+    -- Step 8: Handle entry_summary
+    -- Check if an entry already exists
+    SELECT COUNT(*) INTO existing_entry_count
+    FROM entry_summary
+    WHERE s_id = p_s_id 
+      AND academic_year = v_academic_year 
+      AND level = v_level 
+      AND sem = v_sem;
+
+    -- If entry exists, update proper_subs
+    IF existing_entry_count > 0 THEN
+        UPDATE entry_summary 
+        SET proper_subs = v_proper_subs
+        WHERE s_id = p_s_id 
+          AND academic_year = v_academic_year 
+          AND level = v_level 
+          AND sem = v_sem;
+    ELSE
+        -- If no entry exists, insert a new record
+        INSERT INTO entry_summary (
+            s_id, 
+            academic_year, 
+            level, 
+            sem, 
+            proper_subs, 
+            medical_subs, 
+            resit_subs
+        ) VALUES (
+            p_s_id,
+            v_academic_year,
+            v_level,
+            v_sem,
+            v_proper_subs,
+            NULL,
+            NULL
+        );
+    END IF;
+
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CheckForDuplicateDegree`(IN `p_deg_name` VARCHAR(255), IN `p_short` VARCHAR(50), IN `p_deg_id` INT, OUT `p_exists` INT)
+BEGIN
+    SELECT COUNT(*) INTO p_exists
+    FROM degree
+    WHERE (deg_name = p_deg_name OR short = p_short) AND deg_id != p_deg_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CheckIfDegreeExists`(IN `p_deg_name` VARCHAR(255), IN `p_short` VARCHAR(50), OUT `p_exists` INT)
+BEGIN
+    SELECT COUNT(*) INTO p_exists
+    FROM degree
+    WHERE deg_name = p_deg_name OR short = p_short;
+END$$
+DELIMITER ;
