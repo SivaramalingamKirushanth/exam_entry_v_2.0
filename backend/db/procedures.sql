@@ -627,3 +627,57 @@ BEGIN
     SET p_user_id = LAST_INSERT_ID();
 END$$
 DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CreateFaculty`(IN `p_f_name` VARCHAR(255), IN `p_user_id` INT, IN `p_contact_no` VARCHAR(50), IN `p_status` VARCHAR(50))
+BEGIN
+    INSERT INTO faculty (f_name, user_id, contact_no, status)
+    VALUES (p_f_name, p_user_id, p_contact_no, p_status);
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CreateFacultyUser`(IN `p_email` VARCHAR(255), IN `p_password` VARCHAR(255), OUT `p_user_id` INT)
+BEGIN
+    INSERT INTO user(user_name, email, password, role_id)
+    VALUES (p_email, p_email, p_password, '2');
+    
+    SET p_user_id = LAST_INSERT_ID();
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CreateNewBatchSubjectTables`(IN `p_batch_id` INT, IN `p_subjects` JSON)
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    DECLARE sub_id INT;
+    DECLARE create_table_sql TEXT;
+
+    WHILE i < JSON_LENGTH(p_subjects) DO
+        SET sub_id = JSON_VALUE(p_subjects, CONCAT('$[', i, '].sub_id'));
+        
+        SET create_table_sql = CONCAT(
+            'CREATE TABLE batch_', 
+            p_batch_id, 
+            '_sub_', 
+            sub_id, 
+            ' (
+                s_id INT(11) NOT NULL,
+                eligibility VARCHAR(50) NOT NULL
+            )'
+        );
+        PREPARE stmt FROM create_table_sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+        
+        SET i = i + 1;
+    END WHILE;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `DeleteBatchCurriculumLecturerRows`(IN `p_batch_id` INT)
+BEGIN
+    DELETE FROM batch_curriculum_lecturer WHERE batch_id = p_batch_id;
+END$$
+DELIMITER ;
