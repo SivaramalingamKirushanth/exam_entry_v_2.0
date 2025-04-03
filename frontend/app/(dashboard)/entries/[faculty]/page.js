@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { numberToOrdinalWord, parseString } from "@/utils/functions";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const faculties = () => {
+const Faculties = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -32,9 +32,12 @@ const faculties = () => {
   if (isBatchesByFacultyDataLoading)
     return (
       <div className="flex justify-end md:justify-center">
-        <div className="md:w-[70%] flex gap-6 flex-wrap">
+        <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
           {[1, 2, 3, 4, 5, 6].map((_, i) => (
-            <Skeleton key={i} className="w-[30%] h-32 max-w-[30%] rounded-xl" />
+            <Skeleton
+              key={i}
+              className="sm:w-[30%] h-32 sm:max-w-[30%] rounded-xl"
+            />
           ))}
         </div>
       </div>
@@ -42,12 +45,11 @@ const faculties = () => {
 
   return (
     <div className="flex justify-end md:justify-center">
-      <div className="md:w-[70%] flex gap-6 flex-wrap">
+      <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
         {batchesByFacultyData &&
           batchesByFacultyData.map((obj) => {
-            const decodeBatchCode = parseString(obj.batch_code);
-            const level_ordinal = numberToOrdinalWord(decodeBatchCode.level);
-            const sem_ordinal = numberToOrdinalWord(decodeBatchCode.sem_no);
+            const level_ordinal = numberToOrdinalWord(obj.level);
+            const sem_ordinal = numberToOrdinalWord(obj.sem);
             const endDate = new Date(obj.end_date);
             const now = new Date();
             return (
@@ -58,20 +60,20 @@ const faculties = () => {
                     batch_id: obj.batch_id,
                   },
                 }}
-                className="min-w-[30%] max-w-[30%] hover:shadow-md rounded-xl overflow-hidden"
+                className="sm:w-[30%] sm:max-w-[30%] hover:shadow-md rounded-xl overflow-hidden"
                 key={obj.batch_id}
               >
-                <Card>
+                <Card className="h-full flex flex-col justify-between">
                   <CardHeader>
-                    <CardTitle className="capitalize text-center">
+                    <CardTitle className="uppercase text-center">
                       <p>
                         {level_ordinal} examination in {obj.deg_name}
                       </p>
-                      <p>{decodeBatchCode.academic_year}</p>
+                      <p>{obj.academic_year}</p>
                       <br />
                       <p>{sem_ordinal} semester</p>
                     </CardTitle>
-                    <CardDescription className="capitalize text-center">
+                    <CardDescription className="uppercase text-center">
                       {obj.batch_code}
                     </CardDescription>
                   </CardHeader>
@@ -80,7 +82,7 @@ const faculties = () => {
                       Ready to print
                     </CardFooter>
                   ) : (
-                    <CardFooter className="bg-red-500 flex justify-center items-center text-white pt-3">
+                    <CardFooter className="bg-red-500 flex justify-center items-center text-white pt-3 text-center">
                       {endDate
                         .toString()
                         .slice(4, endDate.toString().indexOf("GMT"))}
@@ -95,4 +97,4 @@ const faculties = () => {
   );
 };
 
-export default faculties;
+export default Faculties;

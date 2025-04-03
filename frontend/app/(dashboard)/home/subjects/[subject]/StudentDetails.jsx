@@ -25,8 +25,13 @@ import {
   getAppliedStudentsForSubjectOfDepartment,
   getAppliedStudentsForSubjectOfFaculty,
 } from "@/utils/apiRequests/entry.api";
-import { getDeadlinesForBatch } from "@/utils/apiRequests/batch.api";
+import {
+  getBatchOpenDate,
+  getDeadlinesForBatch,
+} from "@/utils/apiRequests/batch.api";
 import { useUser } from "@/utils/useUser";
+import EligibilityHeader from "@/components/EligibilityHeader";
+import EligibilityCell from "@/components/EligibilityCell";
 
 const StudentDetails = ({ sub_id, batch_id }) => {
   const queryClient = useQueryClient();
@@ -46,6 +51,11 @@ const StudentDetails = ({ sub_id, batch_id }) => {
       setRoleID(user?.role_id);
     }
   }, [user]);
+
+  const { data: openDateData } = useQuery({
+    queryFn: () => getBatchOpenDate(batch_id),
+    queryKey: ["batch", "openDate", batch_id],
+  });
 
   const { data, error } = useQuery({
     queryFn: () =>
@@ -145,99 +155,19 @@ const StudentDetails = ({ sub_id, batch_id }) => {
     },
     {
       id: "Eligibility",
-      header: () => {
-        const [remark, setRemark] = useState("");
-        const triggerRef = useRef(null);
+      header: () => (
+        <EligibilityHeader
+          filteredData={filteredData}
+          onMultipleEligibilityChanged={onMultipleEligibilityChanged}
+        />
+      ),
 
-        const isAnyoneNotEligible = filteredData.some(
-          (stu) => stu.eligibility == "false"
-        );
-        return (
-          <div className="flex justify-between">
-            <span>Eligibility</span>
-            <Switch
-              onClick={(e) => {
-                e.preventDefault();
-                triggerRef.current.click();
-              }}
-              checked={filteredData.length && !isAnyoneNotEligible}
-              disabled={!filteredData.length}
-            />
-            <Popover>
-              <PopoverTrigger
-                ref={triggerRef}
-                className="w-[0px]"
-              ></PopoverTrigger>
-              <PopoverContent className="w-64 h-40 flex flex-col gap-2 items-start">
-                <p className="font-semibold flex justify-between text-sm w-full">
-                  <span>Enter Remark</span>
-                  <span>All/Filtered Students</span>
-                </p>
-                <Textarea
-                  onChange={(e) => setRemark(e.target.value)}
-                  onBlur={() => setRemark("")}
-                  value={remark}
-                />
-                <Button
-                  className="self-end changeEli"
-                  onMouseDown={() => {
-                    if (remark) {
-                      onMultipleEligibilityChanged(
-                        isAnyoneNotEligible + "",
-                        remark
-                      );
-                    }
-                  }}
-                  disabled={!remark}
-                >
-                  Change Eligibility
-                </Button>
-              </PopoverContent>
-            </Popover>
-          </div>
-        );
-      },
-      cell: ({ row }) => {
-        const [remark, setRemark] = useState("");
-
-        return (
-          <Popover>
-            <PopoverTrigger className="trigger flex justify-center w-full">
-              <Switch
-                id={row.original.s_id}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.target.parentElement.click();
-                }}
-                checked={row.original.eligibility == "true"}
-              />
-            </PopoverTrigger>
-            <PopoverContent className="w-64 h-40 flex flex-col gap-2 items-start">
-              <p className="font-semibold flex justify-between text-sm w-full">
-                <span>Enter Remark</span>
-                <span>{row.original.user_name}</span>
-              </p>
-              <Textarea
-                onChange={(e) => setRemark(e.target.value)}
-                onBlur={() => setRemark("")}
-                value={remark}
-              />
-              <Button
-                className="self-end changeEli"
-                onMouseDown={() => {
-                  if (remark) {
-                    const val = row.original.eligibility == "true";
-                    onEligibilityChanged(row.original.s_id, !val + "", remark);
-                  }
-                }}
-                disabled={!remark}
-              >
-                Change Eligibility
-              </Button>
-            </PopoverContent>
-          </Popover>
-        );
-      },
+      cell: ({ row }) => (
+        <EligibilityCell
+          row={row}
+          onEligibilityChanged={onEligibilityChanged}
+        />
+      ),
     },
   ];
 
@@ -278,12 +208,23 @@ const StudentDetails = ({ sub_id, batch_id }) => {
 
   return (
     <>
-      <div className="flex gap-2 px-5 mb-4">
+      <div className="flex px-1 mb-4 text-xs lg:text-sm">
+        <div className="self-center text-wrap w-16 text-center text-slate-600">
+          {new Date(openDateData?.application_open)
+            .toString()
+            .slice(
+              4,
+              new Date(openDateData?.application_open).toString().indexOf("GMT")
+            )}
+        </div>
         <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
-          <div className="text-green-900 font-serif">Student Submission</div>
+          <div className="bg-gradient-to-r from-green-100 to-blue-300 h-1 w-full mt-6 mb-1"></div>
           <div className="bg-gradient-to-r from-green-100 to-green-500 h-1 w-full"></div>
-          <div className="bg-green-500 h-6 w-1 self-end"></div>
-          <div className="absolute right-0 translate-x-1/2 bottom-0 text-green-700  font-semibold text-sm font-mono">
+          <div className="flex justify-end self-stretch gap-3">
+            <div className="text-green-900 font-serif ">Student Submission</div>
+            <div className="bg-green-500 h-6 w-1"></div>
+          </div>
+          <div className="absolute right-0 translate-x-1/2 bottom-0 text-green-700  font-semibold  font-mono">
             {new Date(deadlineObj.stu_deadline)
               .toString()
               .slice(
@@ -293,7 +234,7 @@ const StudentDetails = ({ sub_id, batch_id }) => {
           </div>
         </div>
         <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
-          <div className="absolute right-0 translate-x-1/2 top-0 text-blue-700  font-semibold text-sm font-mono">
+          <div className="absolute right-0 translate-x-1/2 top-0 text-blue-700  font-semibold  font-mono">
             {new Date(deadlineObj.lec_deadline)
               .toString()
               .slice(
@@ -301,15 +242,20 @@ const StudentDetails = ({ sub_id, batch_id }) => {
                 new Date(deadlineObj.lec_deadline).toString().indexOf("GMT")
               )}{" "}
           </div>
-          <div className="bg-blue-500 h-6 w-1 self-end"></div>
-          <div className="bg-gradient-to-r from-blue-100 to-blue-500 h-1 w-full"></div>
-          <div className="text-blue-900 font-serif">Lecturer Review</div>
+          <div className="flex justify-end self-stretch gap-3 items-end">
+            <div className="text-blue-900 font-serif">Lecturer Review</div>
+            <div className="bg-blue-500 h-6 w-1"></div>
+          </div>
+
+          <div className="bg-gradient-to-r from-blue-300 to-blue-500 h-1 w-full"></div>
         </div>
         <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
-          <div className="text-orange-900 font-serif">HOD Approval</div>
-          <div className="bg-gradient-to-r from-orange-100 to-orange-500 h-1 w-full"></div>
-          <div className="bg-orange-500 h-6 w-1 self-end"></div>
-          <div className="absolute right-0 translate-x-1/2 bottom-0 text-orange-700  font-semibold text-sm font-mono">
+          <div className="bg-gradient-to-r from-orange-100 to-orange-500 h-1 w-full mt-8"></div>
+          <div className="flex justify-end self-stretch gap-3 ">
+            <div className="text-orange-900 font-serif">HOD Approval</div>
+            <div className="bg-orange-500 h-6 w-1"></div>
+          </div>
+          <div className="absolute right-0 translate-x-1/2 bottom-0 text-orange-700  font-semibold  font-mono">
             {new Date(deadlineObj.hod_deadline)
               .toString()
               .slice(
@@ -319,7 +265,7 @@ const StudentDetails = ({ sub_id, batch_id }) => {
           </div>
         </div>
         <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
-          <div className="absolute right-0 translate-x-1/2 top-0 text-red-700  font-semibold text-sm font-mono">
+          <div className="absolute right-0 translate-x-1/4 top-0 text-red-700  font-semibold  font-mono">
             {new Date(deadlineObj.dean_deadline)
               .toString()
               .slice(
@@ -327,9 +273,12 @@ const StudentDetails = ({ sub_id, batch_id }) => {
                 new Date(deadlineObj.dean_deadline).toString().indexOf("GMT")
               )}{" "}
           </div>
-          <div className="bg-red-500 h-6 w-1 self-end"></div>
+          <div className="flex justify-end self-stretch gap-3 items-end">
+            <div className="text-orange-900 font-serif">Dean Approval</div>
+            <div className="bg-red-500 h-6 w-1"></div>
+          </div>
+
           <div className="bg-gradient-to-r from-red-100 to-red-500 h-1 w-full"></div>
-          <div className="text-red-900 font-serif">Dean Approval</div>
         </div>
       </div>
       <div className="flex items-start mb-3">
@@ -343,7 +292,7 @@ const StudentDetails = ({ sub_id, batch_id }) => {
           <span
             className={`${
               searchValue ? "opacity-100 inline-block" : "opacity-0 hidden"
-            } text-sm font-medium text-slate-700 absolute top-2 right-2 transition-all duration-200`}
+            } font-medium text-slate-700 absolute top-2 right-2 transition-all duration-200`}
             onClick={onClearClicked}
           >
             <MdCancel className="size-5 cursor-pointer" />

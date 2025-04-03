@@ -32,13 +32,14 @@ import html2canvas from "html2canvas";
 import { createRoot } from "react-dom/client";
 import AttendanceSheetTemplate from "@/components/AttendanceSheetTemplate";
 import AttendanceSheet from "@/components/AttendanceSheet";
+import Image from "next/image";
 
 function divideStudents(totalStudents, noOfGroups) {
   const groupSize = Math.ceil(totalStudents / noOfGroups);
   return groupSize;
 }
 
-const Page = () => {
+const Attendance = () => {
   const searchParams = useSearchParams();
   const batch_id = searchParams.get("batch_id");
   const sub_id = searchParams.get("sub_id");
@@ -47,7 +48,7 @@ const Page = () => {
 
   const [level_ordinal, setLevel_ordinal] = useState("");
   const [sem_ordinal, setSem_ordinal] = useState("");
-  const [decodeBatchCode, setDecodeBatchCode] = useState({});
+  const [academicYear, setAcademicYear] = useState("");
 
   const [generating, setGenerating] = useState(false);
   const [groupsCount, setGroupsCount] = useState(1);
@@ -101,7 +102,7 @@ const Page = () => {
             <AttendanceSheet
               level_ordinal={level_ordinal}
               batchFullDetailsData={batchFullDetailsData}
-              decodeBatchCode={decodeBatchCode}
+              academicYear={academicYear}
               formData={formData}
               sem_ordinal={sem_ordinal}
               onRenderComplete={resolve}
@@ -268,16 +269,11 @@ const Page = () => {
 
   useEffect(() => {
     if (batchFullDetailsData) {
-      setDecodeBatchCode(parseString(batchFullDetailsData.batch_code));
+      setLevel_ordinal(numberToOrdinalWord(batchFullDetailsData.level));
+      setSem_ordinal(numberToOrdinalWord(batchFullDetailsData.sem));
+      setAcademicYear(batchFullDetailsData.academic_year);
     }
   }, [batchFullDetailsData]);
-
-  useEffect(() => {
-    if (decodeBatchCode) {
-      setLevel_ordinal(numberToOrdinalWord(decodeBatchCode.level));
-      setSem_ordinal(numberToOrdinalWord(decodeBatchCode.sem_no));
-    }
-  }, [decodeBatchCode]);
 
   return (
     <>
@@ -286,10 +282,12 @@ const Page = () => {
           generating ? "fixed" : "hidden"
         } left-0 top-0 w-full h-full flex justify-center items-center bg-white/35 z-50`}
       >
-        <img
+        <Image
           className="w-20 h-20 animate-spin "
           src="https://www.svgrepo.com/show/491270/loading-spinner.svg"
           alt="Loading icon"
+          width={80}
+          height={80}
         />
       </div>
       <div className="w-[80%] mx-auto flex justify-center mb-4">
@@ -319,7 +317,7 @@ const Page = () => {
             latestAttendanceTemplateData={latestAttendanceTemplateData}
             level_ordinal={level_ordinal}
             sem_ordinal={sem_ordinal}
-            decodeBatchCode={decodeBatchCode}
+            academicYear={academicYear}
             sub_name={sub_name}
             sub_code={sub_code}
             pageArr={pageArr}
@@ -344,4 +342,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default Attendance;

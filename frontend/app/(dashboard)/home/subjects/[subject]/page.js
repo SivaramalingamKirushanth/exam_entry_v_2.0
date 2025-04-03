@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { checkSubjectExist } from "@/utils/apiRequests/curriculum.api";
 import { useUser } from "@/utils/useUser";
 
-const page = () => {
+const Subjects = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [roleId, setRoleID] = useState(null);
@@ -35,12 +35,12 @@ const page = () => {
   }, [subjectExistData]);
 
   return (
-    <div className="flex justify-end md:justify-center">
-      <div className="md:w-[70%] ">
+    <div className="flex justify-center overflow-hidden">
+      <div className="w-[90%]">
         <StudentDetails sub_id={sub_id} batch_id={batch_id} />
       </div>
     </div>
   );
 };
 
-export default page;
+export default Subjects;

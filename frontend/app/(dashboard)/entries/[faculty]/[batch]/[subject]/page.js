@@ -3,7 +3,7 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import StudentDetails from "./StudentDetails";
 
-const users = () => {
+const Students = () => {
   const searchParams = useSearchParams();
 
   const sub_id = searchParams.get("sub_id");
@@ -13,7 +13,7 @@ const users = () => {
 
   return (
     <div className="flex justify-end md:justify-center">
-      <div className="md:w-[70%] ">
+      <div className="w-[95%] md:w-[85%] lg:w-[70%]">
         <StudentDetails
           sub_id={sub_id}
           sub_name={sub_name}
@@ -25,4 +25,4 @@ const users = () => {
   );
 };
 
-export default users;
+export default Students;
