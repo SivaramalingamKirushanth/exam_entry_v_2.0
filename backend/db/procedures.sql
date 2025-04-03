@@ -513,3 +513,82 @@ BEGIN
     END IF;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CheckSubjectExist`(IN `p_batch_id` INT(11), IN `p_sub_id` INT(11), IN `p_user_id` INT(11), OUT `p_exists` BOOLEAN)
+BEGIN
+    SELECT COUNT(*) > 0 INTO p_exists 
+    FROM batch_curriculum_lecturer bcl 
+    JOIN manager m
+    ON bcl.m_id=m.m_id
+    WHERE bcl.batch_id = p_batch_id AND bcl.sub_id = p_sub_id AND m.user_id=p_user_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CheckUserExists`(IN `p_user_name` VARCHAR(255), IN `p_email` VARCHAR(255), OUT `p_exists` BOOLEAN)
+BEGIN
+    SELECT COUNT(*) > 0 INTO p_exists 
+    FROM user 
+    WHERE user_name = p_user_name OR email = p_email;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CreateBatchStudentsTable`(IN `p_batch_id` INT, IN `p_subjects` JSON)
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    DECLARE sub_id INT;
+    DECLARE columns_sql TEXT;
+
+    SET columns_sql = 'id INT AUTO_INCREMENT PRIMARY KEY, s_id INT(11) NOT NULL, applied_to_exam VARCHAR(50) DEFAULT "false"';
+
+    WHILE i < JSON_LENGTH(p_subjects) DO
+        SET sub_id = JSON_VALUE(p_subjects, CONCAT('$[', i, '].sub_id'));
+        SET columns_sql = CONCAT(columns_sql, ', sub_', sub_id, ' VARCHAR(50) NOT NULL');
+        SET i = i + 1;
+    END WHILE;
+
+    SET @create_table_sql = CONCAT(
+        'CREATE TABLE IF NOT EXISTS batch_', 
+        p_batch_id, 
+        '_students (', 
+        columns_sql, 
+        ')'
+    );
+
+    PREPARE stmt FROM @create_table_sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CreateBatchSubjectTables`(IN `p_batch_id` INT, IN `p_subjects` JSON)
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    DECLARE sub_id INT;
+    DECLARE create_table_sql TEXT;
+
+    WHILE i < JSON_LENGTH(p_subjects) DO
+        SET sub_id = JSON_VALUE(p_subjects, CONCAT('$[', i, '].sub_id'));
+        SET create_table_sql = CONCAT(
+            'CREATE TABLE IF NOT EXISTS batch_', 
+            p_batch_id, 
+            '_sub_', 
+            sub_id, 
+            ' (
+             	id INT AUTO_INCREMENT PRIMARY KEY,
+                s_id INT(11) NOT NULL,
+                eligibility VARCHAR(50) NOT NULL,
+            	exam_type VARCHAR(10) NOT NULL,
+            	UNIQUE (s_id)
+            )'
+        );
+        PREPARE stmt FROM create_table_sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+        SET i = i + 1;
+    END WHILE;
+END$$
+DELIMITER ;
