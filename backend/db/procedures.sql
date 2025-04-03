@@ -1069,3 +1069,90 @@ BEGIN
     DEALLOCATE PREPARE stmt;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetActiveBatchesWithinDeadline`(IN `p_deg_id` INT, IN `p_role_id` VARCHAR(50))
+BEGIN
+    DECLARE pre_role_id VARCHAR(50) DEFAULT NULL;
+    DECLARE sql_query TEXT;
+
+    -- Determine the previous role ID based on p_role_id
+    IF p_role_id = '3' THEN 
+        SET pre_role_id = '4';
+    ELSEIF p_role_id = '2' THEN 
+        SET pre_role_id = '3';
+    ELSE
+        SET pre_role_id = NULL;  -- Explicitly handle unexpected role_id values
+    END IF;
+
+    -- If pre_role_id is NULL, raise an error
+    IF pre_role_id IS NOT NULL THEN 
+        -- Construct the SQL query
+        SET sql_query = CONCAT(
+            'SELECT b.batch_id, b.batch_code, b.academic_year, b.level, b.sem 
+            FROM batch b 
+            INNER JOIN batch_time_periods btp ON b.batch_id = btp.batch_id 
+            WHERE b.deg_id = ', p_deg_id, ' 
+            AND b.status = ''true'' 
+            AND btp.user_type = ''', p_role_id, ''' 
+            AND btp.end_date > NOW() 
+            AND EXISTS (
+                SELECT 1 
+                FROM batch_time_periods 
+                WHERE batch_time_periods.batch_id = b.batch_id 
+                AND batch_time_periods.user_type = ''', pre_role_id, ''' 
+                AND batch_time_periods.end_date < NOW()
+            ) 
+            ORDER BY b.batch_code DESC'
+        );
+
+        -- Prepare, execute, and clean up the query
+        PREPARE stmt FROM sql_query;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    ELSE
+        -- Handle cases where pre_role_id is NULL
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid role ID provided';
+    END IF;
+
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetActiveDegrees`(`department_ids` TEXT)
+BEGIN
+    SET @query = CONCAT('SELECT deg_id, short FROM dep_deg WHERE d_id IN (', department_ids, ') AND status = ''true''');
+    PREPARE stmt FROM @query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetActiveDegreesInDepartment`(IN `p_d_id` INT)
+BEGIN
+    SELECT 
+        deg.deg_id,
+        deg.deg_name,
+        deg.levels,
+        deg.short
+    FROM degree deg
+    LEFT JOIN dep_deg dd ON deg.deg_id = dd.deg_id
+    WHERE dd.d_id = p_d_id AND deg.status = 'true';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetActiveDepartmentsWithDegreesCount`(IN `p_f_id` INT)
+BEGIN
+    SELECT 
+        d.d_id,
+        d.d_name,
+        COUNT(dd.deg_id) AS degrees_count
+    FROM department d
+    LEFT JOIN dep_deg dd ON d.d_id = dd.d_id
+    LEFT JOIN fac_dep fd ON d.d_id = fd.d_id
+    WHERE fd.f_id = p_f_id AND d.status = 'true'
+    GROUP BY d.d_id;
+END$$
+DELIMITER ;
