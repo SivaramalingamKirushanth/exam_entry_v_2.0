@@ -592,3 +592,38 @@ BEGIN
     END WHILE;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CreateCurriculum`(IN `p_sub_code` VARCHAR(100), IN `p_sub_name` VARCHAR(150), IN `p_sem_no` INT, IN `p_deg_id` INT, IN `p_level` INT, IN `p_status` VARCHAR(50))
+BEGIN
+    INSERT INTO curriculum (sub_code, sub_name, sem_no, deg_id, level, status)
+    VALUES (p_sub_code, p_sub_name, p_sem_no, p_deg_id, p_level, p_status);
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CreateDegree`(IN `p_deg_name` VARCHAR(255), IN `p_short` VARCHAR(50), IN `p_levels` VARCHAR(255), IN `p_no_of_sem_per_year` VARCHAR(10), IN `p_status` VARCHAR(50), OUT `p_deg_id` INT)
+BEGIN
+    INSERT INTO degree(deg_name, short, levels, no_of_sem_per_year, status)
+    VALUES (p_deg_name, p_short, p_levels, p_no_of_sem_per_year, p_status);
+    SET p_deg_id = LAST_INSERT_ID();
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CreateDepartment`(IN `p_d_name` VARCHAR(255), IN `p_user_id` INT, IN `p_contact_no` VARCHAR(50), IN `p_status` VARCHAR(50), OUT `p_d_id` INT)
+BEGIN
+    INSERT INTO department(d_name, user_id, contact_no, status)
+    VALUES (p_d_name, p_user_id, p_contact_no, p_status);
+    SET p_d_id = LAST_INSERT_ID();
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CreateDepartmentUser`(IN `p_email` VARCHAR(255), IN `p_password` VARCHAR(255), OUT `p_user_id` INT)
+BEGIN
+    INSERT INTO user(user_name, email, password, role_id)
+    VALUES (p_email, p_email, p_password, '3');
+    SET p_user_id = LAST_INSERT_ID();
+END$$
+DELIMITER ;
