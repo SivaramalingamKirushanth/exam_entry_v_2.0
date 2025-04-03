@@ -851,3 +851,221 @@ BEGIN
   DEALLOCATE PREPARE stmt3;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `FetchStudentsWithSubjects`(IN `p_batch_id` INT)
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE temp_sub_id INT;
+    DECLARE cur CURSOR FOR
+        SELECT sub_id
+        FROM curriculum
+        WHERE sub_id IN (
+            SELECT sub_id
+            FROM batch_curriculum_lecturer
+            WHERE batch_id = p_batch_id
+        );
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Temporary table to collect results
+    CREATE TEMPORARY TABLE IF NOT EXISTS temp_results (
+        s_id INT,
+        name VARCHAR(255),
+        index_num VARCHAR(255),
+        user_name VARCHAR(255),
+        exam_type VARCHAR(50),
+        sub_id INT,
+        eligibility VARCHAR(50)
+    );
+
+    -- Iterate over all subjects for the batch
+    OPEN cur;
+
+    subject_loop: LOOP
+        FETCH cur INTO temp_sub_id;
+
+        IF done THEN
+            LEAVE subject_loop;
+        END IF;
+
+        SET @query = CONCAT(
+            'INSERT INTO temp_results (s_id, name, index_num, user_name, exam_type, sub_id, eligibility) ',
+            'SELECT sd.s_id, sd.name, sd.index_num, u.user_name, bsub.exam_type, ', temp_sub_id, ' AS sub_id, bsub.eligibility ',
+            'FROM batch_', p_batch_id, '_sub_', temp_sub_id, ' bsub ',
+            'JOIN student_detail sd ON bsub.s_id = sd.s_id ',
+            'JOIN student st ON sd.s_id = st.s_id ',
+            'JOIN user u ON st.user_id = u.user_id'
+        );
+
+        PREPARE stmt FROM @query;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END LOOP;
+
+    CLOSE cur;
+
+    -- Fetch all data from the temporary table
+    SELECT * FROM temp_results ORDER BY index_num ASC;
+
+    -- Drop the temporary table
+    DROP TEMPORARY TABLE temp_results;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `FillProperSummary`(IN p_batch_id INT)
+BEGIN
+    DECLARE v_batch_code VARCHAR(100);
+    DECLARE v_description VARCHAR(500);
+    DECLARE v_deg_id INT;
+    DECLARE v_no_of_sem_per_year VARCHAR(10);
+    DECLARE v_academic_year VARCHAR(50);
+    DECLARE v_sem VARCHAR(10);
+    
+    -- 1. Get batch information and extract academic_year and sem
+    SELECT batch_code, deg_id, description 
+    INTO v_batch_code, v_deg_id, v_description
+    FROM batch 
+    WHERE batch_id = p_batch_id;
+    
+    -- Get the number of semesters per year from degree table
+    SELECT no_of_sem_per_year 
+    INTO v_no_of_sem_per_year
+    FROM degree 
+    WHERE deg_id = v_deg_id;
+    
+    -- Extract academic_year (first four characters of batch_code)
+    SET v_academic_year = LEFT(v_batch_code, 4);
+    
+    -- Extract sem based on no_of_sem_per_year
+    IF CAST(v_no_of_sem_per_year AS UNSIGNED) < 10 THEN
+        SET v_sem = RIGHT(v_batch_code, 1);
+    ELSE
+        SET v_sem = RIGHT(v_batch_code, 2);
+    END IF;
+    
+    -- 2. First execute the INSERT operation
+    SET @insert_query = CONCAT('
+        INSERT INTO entry_summary (s_id, academic_year, sem, proper_subs, medical_subs, resit_subs)
+        SELECT 
+            s.s_id, 
+            ''', v_academic_year, ''', 
+            ''', v_sem, ''', 
+            ''', v_description, ''',
+            '''', -- Empty medical_subs
+            ''''  -- Empty resit_subs
+        FROM 
+            batch_', p_batch_id, '_students s
+        WHERE 
+            NOT EXISTS (
+                SELECT 1 
+                FROM entry_summary e
+                WHERE e.s_id = s.s_id 
+                AND e.academic_year = ''', v_academic_year, '''
+                AND e.sem = ''', v_sem, '''
+            )
+    ');
+    
+    PREPARE stmt FROM @insert_query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+    
+    -- 3. Then execute the UPDATE operation separately
+    SET @update_query = CONCAT('
+        UPDATE entry_summary e
+        JOIN batch_', p_batch_id, '_students s ON e.s_id = s.s_id
+        SET e.proper_subs = ''', v_description, '''
+        WHERE e.academic_year = ''', v_academic_year, '''
+        AND e.sem = ''', v_sem, '''
+    ');
+    
+    PREPARE stmt FROM @update_query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+    
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GenerateIndexNumbers`(IN `p_batch_id` INT, IN `p_course` VARCHAR(50), IN `p_batch` VARCHAR(50), IN `p_startsFrom` INT)
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE student_s_id INT;
+    DECLARE student_user_name VARCHAR(250);
+    DECLARE index_counter INT DEFAULT p_startsFrom;
+    DECLARE cursor_students CURSOR FOR SELECT s_id, user_name FROM temp_students;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Temporary table to hold students without index numbers
+    CREATE TEMPORARY TABLE IF NOT EXISTS temp_students (
+        s_id INT,
+        user_name VARCHAR(250)
+    );
+
+    -- Construct and execute the query to populate the temporary table
+    SET @query = CONCAT(
+        'INSERT INTO temp_students (s_id, user_name) ',
+        'SELECT sd.s_id, u.user_name ',
+        'FROM batch_', p_batch_id, '_students bs ',
+        'JOIN student_detail sd ON bs.s_id = sd.s_id ',
+        'JOIN student st ON sd.s_id = st.s_id ',
+        'JOIN user u ON st.user_id = u.user_id ',
+        'WHERE bs.applied_to_exam = "true" AND (sd.index_num IS NULL OR sd.index_num = "") ',
+        'ORDER BY u.user_name ASC'
+    );
+    PREPARE stmt FROM @query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+
+    -- Open cursor on the temporary table
+    OPEN cursor_students;
+
+    -- Iterate through the students and assign index numbers
+    subject_loop: LOOP
+        FETCH cursor_students INTO student_s_id, student_user_name;
+
+        IF done THEN
+            LEAVE subject_loop;
+        END IF;
+
+        -- Generate the new index number
+        SET @new_index = CONCAT(p_course, " ", p_batch, LPAD(index_counter, 3, '0'));
+
+        -- Update the student's index number
+        UPDATE student_detail
+        SET index_num = @new_index
+        WHERE s_id = student_s_id;
+
+        -- Increment the index counter
+        SET index_counter = index_counter + 1;
+    END LOOP;
+
+    -- Close cursor
+    CLOSE cursor_students;
+
+    -- Fetch and return the updated students
+    SELECT sd.s_id, sd.index_num, u.user_name
+    FROM student_detail sd
+    JOIN student st ON sd.s_id = st.s_id
+    JOIN user u ON st.user_id = u.user_id
+    WHERE sd.index_num LIKE CONCAT(p_course, " ", p_batch, "%")
+    AND sd.index_num IS NOT NULL AND sd.index_num != ""
+    ORDER BY sd.index_num ASC;
+
+    -- Drop the temporary table
+    DROP TEMPORARY TABLE IF EXISTS temp_students;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetActiveBatches`(IN `p_deg_id` INT)
+BEGIN
+    SET @query = CONCAT(
+        'SELECT b.batch_id, b.batch_code FROM batch b INNER JOIN admission a ON b.batch_id=a.batch_id WHERE b.deg_id = ',p_deg_id,'  AND b.status = ''true'' ORDER BY b.batch_code DESC'
+    );
+    PREPARE stmt FROM @query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END$$
+DELIMITER ;
