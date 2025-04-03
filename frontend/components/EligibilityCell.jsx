@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 
-const EligibilityCell = ({ row }) => {
+const EligibilityCell = ({ row, onEligibilityChanged }) => {
   const [remark, setRemark] = useState("");
 
   return (
