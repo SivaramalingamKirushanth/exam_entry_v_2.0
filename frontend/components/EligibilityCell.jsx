@@ -1,3 +1,9 @@
+import { useState, useRef } from "react";
+import { Switch } from "./ui/switch";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Textarea } from "./ui/textarea";
+import { Button } from "./ui/button";
+
 const EligibilityCell = ({ row }) => {
   const [remark, setRemark] = useState("");
 
@@ -39,3 +45,5 @@ const EligibilityCell = ({ row }) => {
     </Popover>
   );
 };
+
+export default EligibilityCell;

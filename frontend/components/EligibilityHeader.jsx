@@ -1,3 +1,9 @@
+import { useState, useRef } from "react";
+import { Switch } from "./ui/switch";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Textarea } from "./ui/textarea";
+import { Button } from "./ui/button";
+
 const EligibilityHeader = ({ filteredData, onMultipleEligibilityChanged }) => {
   const [remark, setRemark] = useState("");
   const triggerRef = useRef(null);
@@ -45,3 +51,5 @@ const EligibilityHeader = ({ filteredData, onMultipleEligibilityChanged }) => {
     </div>
   );
 };
+
+export default EligibilityHeader;
