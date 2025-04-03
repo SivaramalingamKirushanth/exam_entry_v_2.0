@@ -482,3 +482,34 @@ BEGIN
     WHERE deg_name = p_deg_name OR short = p_short;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CheckIfDepartmentExists`(IN `p_d_name` VARCHAR(255), IN `p_email` VARCHAR(255), OUT `p_exists` INT)
+BEGIN
+    SELECT COUNT(*) INTO p_exists
+    FROM department d
+    LEFT JOIN user u ON d.user_id = u.user_id
+    WHERE d.d_name = p_d_name OR u.user_name = p_email OR u.email = p_email;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CheckIfFacultyExists`(IN `p_f_name` VARCHAR(255), IN `p_email` VARCHAR(255), OUT `p_exists` INT)
+BEGIN
+    SELECT COUNT(*) INTO p_exists
+    FROM faculty f
+    LEFT JOIN user u ON f.user_id = u.user_id
+    WHERE f.f_name = p_f_name OR u.user_name = p_email;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CheckIndexNoExists`(IN `p_index_no` VARCHAR(255), OUT `p_exists` BOOLEAN)
+BEGIN
+    IF p_index_no = '' THEN
+        SELECT FALSE INTO p_exists; 
+    ELSE
+        SELECT EXISTS (SELECT 1 FROM student_detail WHERE index_num = p_index_no) INTO p_exists;
+    END IF;
+END$$
+DELIMITER ;
