@@ -681,3 +681,173 @@ BEGIN
     DELETE FROM batch_curriculum_lecturer WHERE batch_id = p_batch_id;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `DeleteBatchSubjectEntries`(IN `p_batch_id` INT)
+BEGIN
+    DECLARE sub_id INT;
+    DECLARE done INT DEFAULT FALSE;
+
+    -- Cursor declaration
+    DECLARE cursor_subjects CURSOR FOR 
+        SELECT sub_id 
+        FROM batch_curriculum_lecturer 
+        WHERE batch_id = p_batch_id;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Start transaction
+    START TRANSACTION;
+
+    -- Open cursor
+    OPEN cursor_subjects;
+
+    subject_loop: LOOP
+        FETCH cursor_subjects INTO sub_id;
+
+        IF done THEN
+            LEAVE subject_loop;
+        END IF;
+
+        -- Construct the dynamic table name
+        SET @table_name = CONCAT('batch_', p_batch_id, '_sub_', sub_id);
+
+        -- Delete all rows from the dynamically constructed table
+        SET @delete_query = CONCAT('DELETE FROM ', @table_name);
+        PREPARE delete_stmt FROM @delete_query;
+        EXECUTE delete_stmt;
+        DEALLOCATE PREPARE delete_stmt;
+    END LOOP;
+
+    -- Close cursor
+    CLOSE cursor_subjects;
+
+    -- Commit transaction
+    COMMIT;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `DropOldBatchTablesAndColumns`(IN `p_batch_id` INT, IN `p_old_subjects` JSON)
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    DECLARE sub_id INT;
+    DECLARE drop_table_sql TEXT;
+    DECLARE drop_column_sql TEXT;
+
+    SET drop_column_sql = CONCAT('ALTER TABLE batch_', p_batch_id, '_students ');
+
+    WHILE i < JSON_LENGTH(p_old_subjects) DO
+        SET sub_id = JSON_VALUE(p_old_subjects, CONCAT('$[', i, '].sub_id'));
+        
+        -- Drop old tables
+        SET drop_table_sql = CONCAT('DROP TABLE IF EXISTS batch_', p_batch_id, '_sub_', sub_id);
+        PREPARE stmt FROM drop_table_sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+
+        -- Prepare column drop SQL
+        IF i > 0 THEN
+            SET drop_column_sql = CONCAT(drop_column_sql, ',');
+        END IF;
+        SET drop_column_sql = CONCAT(drop_column_sql, ' DROP COLUMN sub_', sub_id);
+        
+        SET i = i + 1;
+    END WHILE;
+
+    -- Execute column drop SQL
+    PREPARE stmt FROM drop_column_sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `FetchStudentEligibilityByBatchIdAndSId`(IN `p_batch_id` INT, IN `p_s_id` INT)
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE temp_sub_id INT;
+    DECLARE cur CURSOR FOR
+        SELECT sub_id
+        FROM batch_curriculum_lecturer
+        WHERE batch_id = p_batch_id;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Temporary table to collect results
+    CREATE TEMPORARY TABLE IF NOT EXISTS temp_eligibility_results (
+        sub_id INT,
+        eligibility VARCHAR(50)
+    );
+
+    -- Iterate over all subjects for the batch
+    OPEN cur;
+
+    subject_loop: LOOP
+        FETCH cur INTO temp_sub_id;
+
+        IF done THEN
+            LEAVE subject_loop;
+        END IF;
+
+        -- Construct dynamic query to fetch eligibility
+        SET @query = CONCAT(
+            'INSERT INTO temp_eligibility_results (sub_id, eligibility) ',
+            'SELECT ', temp_sub_id, ' AS sub_id, COALESCE(bsub.eligibility, "N/A") ',
+            'FROM batch_', p_batch_id, '_sub_', temp_sub_id, ' bsub ',
+            'WHERE bsub.s_id = ', p_s_id
+        );
+
+        PREPARE stmt FROM @query;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END LOOP;
+
+    CLOSE cur;
+
+    -- Fetch all data from the temporary table
+    SELECT * FROM temp_eligibility_results;
+
+    -- Drop the temporary table
+    DROP TEMPORARY TABLE temp_eligibility_results;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `FetchStudentWithSubjectsByUserId`(IN `batch_id` INT, IN `user_id` INT)
+BEGIN
+  -- Declare variables for dynamic table and column names
+  DECLARE dynamic_students_table VARCHAR(255);
+  DECLARE query_students TEXT;
+  DECLARE query_subjects TEXT;
+
+  -- Set the dynamic table name for students
+  SET dynamic_students_table = CONCAT('batch_', batch_id, '_students');
+
+  -- Get the student details from the student_detail table, joined with student table to get user_name
+  SET query_students = 'SELECT sd.s_id, sd.name, u.user_name, sd.index_num ' 
+                       'FROM student_detail sd '
+                       'JOIN student s ON s.s_id = sd.s_id '
+                       'JOIN user u ON u.user_id = s.user_id '
+                       'WHERE u.user_id = ?';
+
+  -- Execute the query to fetch student data
+  PREPARE stmt FROM query_students;
+  EXECUTE stmt USING user_id;
+  DEALLOCATE PREPARE stmt;
+
+  -- Fetch all subjects and attendance from the dynamic students table
+  SET query_subjects = CONCAT(
+    'SELECT bcl.sub_id, c.sub_name, c.sub_code ',
+    'FROM batch_curriculum_lecturer bcl ',
+    'JOIN curriculum c ON c.sub_id = bcl.sub_id ',
+    'LEFT JOIN ', dynamic_students_table, ' bs ON bs.s_id = ? ',
+    'WHERE bcl.batch_id = ?'
+  );
+
+  -- Execute the query to fetch subjects and attendance
+  PREPARE stmt3 FROM query_subjects;
+  EXECUTE stmt3 USING user_id, batch_id;
+  DEALLOCATE PREPARE stmt3;
+END$$
+DELIMITER ;
