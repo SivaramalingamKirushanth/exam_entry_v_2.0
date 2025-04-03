@@ -30,12 +30,12 @@ import {
   getDeadlinesForBatch,
 } from "@/utils/apiRequests/batch.api";
 import { useUser } from "@/utils/useUser";
+import EligibilityHeader from "@/components/EligibilityHeader";
+import EligibilityCell from "@/components/EligibilityCell";
 
 const StudentDetails = ({ sub_id, batch_id }) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
-  const [remark, setRemark] = useState("");
-  const triggerRef = useRef(null);
   const [searchValue, setSearchValue] = useState("");
   const [deadlineObj, setDeadlineObj] = useState({
     lec_deadline: "",
@@ -159,94 +159,19 @@ const StudentDetails = ({ sub_id, batch_id }) => {
     },
     {
       id: "Eligibility",
-      header: () => {
-        const isAnyoneNotEligible = filteredData.some(
-          (stu) => stu.eligibility == "false"
-        );
-        return (
-          <div className="flex justify-between">
-            <span>Eligibility</span>
-            <Switch
-              onClick={(e) => {
-                e.preventDefault();
-                triggerRef.current.click();
-              }}
-              checked={filteredData.length && !isAnyoneNotEligible}
-              disabled={!filteredData.length}
-            />
-            <Popover>
-              <PopoverTrigger
-                ref={triggerRef}
-                className="w-[0px]"
-              ></PopoverTrigger>
-              <PopoverContent className="w-64 h-40 flex flex-col gap-2 items-start">
-                <p className="font-semibold flex justify-between text-sm w-full">
-                  <span>Enter Remark</span>
-                  <span>All/Filtered Students</span>
-                </p>
-                <Textarea
-                  onChange={(e) => setRemark(e.target.value)}
-                  onBlur={() => setRemark("")}
-                  value={remark}
-                />
-                <Button
-                  className="self-end changeEli"
-                  onMouseDown={() => {
-                    if (remark) {
-                      onMultipleEligibilityChanged(
-                        isAnyoneNotEligible + "",
-                        remark
-                      );
-                    }
-                  }}
-                  disabled={!remark}
-                >
-                  Change Eligibility
-                </Button>
-              </PopoverContent>
-            </Popover>
-          </div>
-        );
-      },
-      cell: ({ row }) => {
-        return (
-          <Popover>
-            <PopoverTrigger className="trigger flex justify-center w-full">
-              <Switch
-                id={row.original.s_id}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.target.parentElement.click();
-                }}
-                checked={row.original.eligibility == "true"}
-              />
-            </PopoverTrigger>
-            <PopoverContent className="w-64 h-40 flex flex-col gap-2 items-start">
-              <p className="font-semibold flex justify-between text-sm w-full">
-                <span>Enter Remark</span>
-                <span>{row.original.user_name}</span>
-              </p>
-              <Textarea
-                onChange={(e) => setRemark(e.target.value)}
-                onBlur={() => setRemark("")}
-                value={remark}
-              />
-              <Button
-                className="self-end changeEli"
-                onMouseDown={() => {
-                  if (remark) {
-                    const val = row.original.eligibility == "true";
-                    onEligibilityChanged(row.original.s_id, !val + "", remark);
-                  }
-                }}
-                disabled={!remark}
-              >
-                Change Eligibility
-              </Button>
-            </PopoverContent>
-          </Popover>
-        );
-      },
+      header: () => (
+        <EligibilityHeader
+          filteredData={filteredData}
+          onMultipleEligibilityChanged={onMultipleEligibilityChanged}
+        />
+      ),
+
+      cell: ({ row }) => (
+        <EligibilityCell
+          row={row}
+          onEligibilityChanged={onEligibilityChanged}
+        />
+      ),
     },
   ];
 

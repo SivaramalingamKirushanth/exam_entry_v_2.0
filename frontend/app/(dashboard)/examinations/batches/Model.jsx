@@ -1081,6 +1081,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     className="w-20 h-20 animate-spin "
                     src="https://www.svgrepo.com/show/491270/loading-spinner.svg"
                     alt="Loading icon"
+                    width={80}
+                    height={80}
                   />
                 </div>
               )
