@@ -15,7 +15,7 @@ const connectionConfig = {
   connectionLimit: 10,
   queueLimit: 0,
   multipleStatements: true,
-  connectTimeout: 1000,
+  connectTimeout: 10000,
 };
 
 // Create the connection pool with the complete config
