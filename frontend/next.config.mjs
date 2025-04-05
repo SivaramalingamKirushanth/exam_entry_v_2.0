@@ -8,7 +8,7 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*", // When frontend calls "/api/..."
-        destination: `${server}:${port}/api1/:path*`, // Forward request to backend
+        destination: `http://${server}:${port}/api1/:path*`, // Forward request to backend
       },
     ];
   },
