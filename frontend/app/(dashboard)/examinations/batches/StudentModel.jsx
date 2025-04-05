@@ -83,7 +83,7 @@ const StudentModel = ({
             className={`sm:max-w-[575px] w-full transition-all duration-300 bg-white rounded-lg shadow-lg p-6 h-[95vh]`}
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
-              <h3 className="text-lg font-semibold">Batch</h3>
+              <h3 className="text-lg font-semibold">Students</h3>
 
               <GiCancel
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
