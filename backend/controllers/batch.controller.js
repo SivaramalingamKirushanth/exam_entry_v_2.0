@@ -471,6 +471,7 @@ export const updateBatchStatus = async (req, res, next) => {
 };
 
 export const getStudentsByBatchId = async (req, res, next) => {
+  console.log(11111111111);
   const { batch_id } = req.body;
 
   try {
