@@ -743,10 +743,21 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                     name="sem_no"
                                     onChange={(e) => onFormDataChanged(e)}
                                     className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
+                                    disabled={
+                                      data
+                                        ? new Date(data?.application_open) <
+                                          new Date()
+                                        : false
+                                    }
                                   />
                                   <Label
                                     htmlFor={`s${ind + 1}`}
-                                    className="cursor-pointer"
+                                    className={`cursor-pointer ${
+                                      data &&
+                                      new Date(data?.application_open) <
+                                        new Date() &&
+                                      "text-slate-400"
+                                    }`}
                                   >
                                     {ind + 1}
                                   </Label>
@@ -1328,10 +1339,21 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                   name="sem_no"
                                   onChange={(e) => onFormDataChanged(e)}
                                   className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
+                                  disabled={
+                                    data
+                                      ? new Date(data?.application_open) <
+                                        new Date()
+                                      : false
+                                  }
                                 />
                                 <Label
                                   htmlFor={`s${ind + 1}`}
-                                  className="cursor-pointer"
+                                  className={`cursor-pointer ${
+                                    data &&
+                                    new Date(data?.application_open) <
+                                      new Date() &&
+                                    "text-slate-400"
+                                  }`}
                                 >
                                   {ind + 1}
                                 </Label>
