@@ -39,10 +39,8 @@ const StudentSelection = ({
   selectedStudents,
   setSelectedStudents,
   feedId,
-  oldDataRefetch,
   oldData,
   stuData,
-  isFeedOpen,
 }) => {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
@@ -200,12 +198,6 @@ const StudentSelection = ({
       rowSelection,
     },
   });
-
-  useEffect(() => {
-    if (feedId) {
-      oldDataRefetch();
-    }
-  }, [feedId, isFeedOpen]);
 
   return (
     <div className="w-full h-[60vh] mb-2">

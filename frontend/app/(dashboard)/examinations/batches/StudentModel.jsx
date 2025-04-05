@@ -34,7 +34,7 @@ const StudentModel = ({
     refetch: oldDataRefetch,
     isLoading: isLoadingOldData,
   } = useQuery({
-    queryFn: () => feedId && getStudentsByBatchId(feedId),
+    queryFn: () => getStudentsByBatchId(feedId),
     queryKey: ["students", "batch", feedId],
     enabled: false,
   });
@@ -69,6 +69,12 @@ const StudentModel = ({
   };
 
   useEffect(() => {
+    if (feedId) {
+      oldDataRefetch();
+    }
+  }, [feedId, isFeedOpen]);
+
+  useEffect(() => {
     if (oldData && oldData.length) setSelectedStudents(oldData);
   }, [oldData]);
 
@@ -101,9 +107,7 @@ const StudentModel = ({
                   setSelectedStudents={setSelectedStudents}
                   selectedStudents={selectedStudents}
                   feedDegShort={feedDegShort}
-                  oldDataRefetch={oldDataRefetch}
                   feedId={feedId}
-                  isFeedOpen={isFeedOpen}
                   oldData={oldData}
                   stuData={stuData}
                 />
