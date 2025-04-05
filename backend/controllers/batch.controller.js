@@ -478,6 +478,7 @@ export const getStudentsByBatchId = async (req, res, next) => {
     const conn = await pool.getConnection();
     try {
       const tableName = `batch_${batch_id}_students`;
+      console.log(tableName);
 
       if (batch_id) {
         const [StudentsInTheBatch] = await conn.query(`SELECT s_id FROM ??`, [
