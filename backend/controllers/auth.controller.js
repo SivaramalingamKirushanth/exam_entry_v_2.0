@@ -399,12 +399,7 @@ export const login = async (req, res, next) => {
       console.log("Setting cookie in", process.env.NODE_ENV);
 
       return res
-        .cookie("access-token", token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production", // Only send cookie over HTTPS in production
-          sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // Required for cross-site cookies
-          maxAge: remember_me ? 2 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // 2 days or 1 hour
-        })
+        .cookie("access-token", token, { httpOnly: true })
         .status(200)
         .json({ message: "Login successful" });
     } catch (error) {
