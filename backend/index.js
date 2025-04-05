@@ -25,9 +25,10 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
+console.log(`Setting CORS for origin: ${FRONTEND_SERVER}`);
 app.use(
   cors({
-    origin: `${FRONTEND_SERVER}`,
+    origin: FRONTEND_SERVER,
     credentials: true,
   })
 );
