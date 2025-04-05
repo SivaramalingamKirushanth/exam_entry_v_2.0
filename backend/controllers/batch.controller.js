@@ -492,7 +492,6 @@ export const getStudentsByBatchId = async (req, res, next) => {
           return s_id;
         });
 
-        console.log(StudentsInTheBatchArr);
         return res.status(200).json(StudentsInTheBatchArr);
       }
     } catch (error) {

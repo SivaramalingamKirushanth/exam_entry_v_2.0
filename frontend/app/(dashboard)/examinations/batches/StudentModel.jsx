@@ -50,8 +50,7 @@ const StudentModel = ({
   const { status, mutate } = useMutation({
     mutationFn: addStudentsToTheBatchTable,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["batches"]);
-      queryClient.invalidateQueries(["students", "batch", feedId]);
+      queryClient.invalidateQueries(["batches"], ["students", "batch", feedId]);
       setFeedId("");
       setFeedDegShort("");
       toast.success(res.message);
