@@ -395,22 +395,18 @@ export const login = async (req, res, next) => {
         expiresIn: remember_me ? "2 days" : "1h",
       });
 
-      // Get the domain from environment or use default
-      const frontendDomain =
-        process.env.FRONTEND_SERVER || "https://exm-entry.vercel.app";
-      const domain = new URL(frontendDomain).hostname;
-
-      // Set cookie with proper options for cross-domain and production
-      res.cookie("access-token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Use secure in production
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Required for cross-domain in production
-        maxAge: remember_me ? 2 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // Convert to milliseconds
-        path: "/", // Make sure cookie is available on all paths
-      });
-
       // Send response
-      return res.status(200).json({ message: "Login successful" });
+      console.log("Setting cookie in", process.env.NODE_ENV);
+
+      return res
+        .cookie("access-token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production", // Only send cookie over HTTPS in production
+          sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // Required for cross-site cookies
+          maxAge: remember_me ? 2 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // 2 days or 1 hour
+        })
+        .status(200)
+        .json({ message: "Login successful" });
     } catch (error) {
       console.error("Error during login:", error);
       return next(errorProvider(500, "An error occurred during login"));
