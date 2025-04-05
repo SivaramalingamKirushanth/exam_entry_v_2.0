@@ -484,6 +484,8 @@ export const getStudentsByBatchId = async (req, res, next) => {
           tableName,
         ]);
 
+        console.log(StudentsInTheBatch);
+
         if (!StudentsInTheBatch.length) {
           return res.status(200).json([]);
         }
