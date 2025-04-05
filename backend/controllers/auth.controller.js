@@ -555,7 +555,7 @@ export const forgotPassword = async (req, res, next) => {
       );
 
       // Send email
-      const resetLink = `http://${FRONTEND_SERVER}/reset-password?token=${resetToken}`;
+      const resetLink = `${FRONTEND_SERVER}/reset-password?token=${resetToken}`;
       const htmlContent = `<p>You are receiving this email because you have requested a password reset for your account.</p>
                            <p>Please click on the following link to reset your password:</p>
                            <a href="${resetLink}">Reset Password</a>
