@@ -471,21 +471,17 @@ export const updateBatchStatus = async (req, res, next) => {
 };
 
 export const getStudentsByBatchId = async (req, res, next) => {
-  console.log(11111111111);
   const { batch_id } = req.body;
 
   try {
     const conn = await pool.getConnection();
     try {
       const tableName = `batch_${batch_id}_students`;
-      console.log(tableName);
 
       if (batch_id) {
         const [StudentsInTheBatch] = await conn.query(`SELECT s_id FROM ??`, [
           tableName,
         ]);
-
-        console.log(StudentsInTheBatch);
 
         if (!StudentsInTheBatch.length) {
           return res.status(200).json([]);

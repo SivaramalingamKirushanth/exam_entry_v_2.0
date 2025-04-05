@@ -51,6 +51,7 @@ const StudentModel = ({
     mutationFn: addStudentsToTheBatchTable,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["batches"]);
+      queryClient.invalidateQueries(["students", "batch", feedId]);
       setFeedId("");
       setFeedDegShort("");
       toast.success(res.message);
