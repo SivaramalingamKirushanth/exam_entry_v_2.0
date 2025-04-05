@@ -20,8 +20,8 @@ const devs = [
   {
     name: "Awishka Piyumal",
     regNo: "2020/ICT/24",
-    github: "https://github.com/piumal302",
-    linkedin: "https://www.linkedin.com/in/awishka-piyumal-579721293/",
+    github: "https://github.com/AwishkaPiyumal",
+    linkedin: "http://www.linkedin.com/in/awishka-piyumal",
   },
   {
     name: "Ilma Ismail",
