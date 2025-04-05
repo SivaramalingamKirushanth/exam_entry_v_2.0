@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
+
 const server = process.env.BACKEND_SERVER;
+
 const nextConfig = {
   async rewrites() {
     return [

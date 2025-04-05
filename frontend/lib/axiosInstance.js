@@ -1,18 +1,14 @@
 import axios from "axios";
 
-// In development, use the proxy through Next.js (/api)
-// In production, use the full backend URL
-const baseURL =
-  process.env.NODE_ENV === "production"
-    ? process.env.NEXT_PUBLIC_BACKEND_URL
-    : "/api";
+// Use the same route for both dev and prod
+const baseURL = "/api";
 
 const axiosInstance = axios.create({
   baseURL,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
+  withCredentials: true, // Enables cookie handling
 });
 
 export default axiosInstance;
