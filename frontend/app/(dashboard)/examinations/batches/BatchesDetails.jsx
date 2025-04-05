@@ -275,7 +275,6 @@ const BatchesDetails = () => {
     }
 
     if (e.target.classList.contains("feedBtn")) {
-      console.log(e.target.id.split(":")[0]);
       setFeedId(e.target.id.split(":")[0]);
       toggleFeedModal();
     }

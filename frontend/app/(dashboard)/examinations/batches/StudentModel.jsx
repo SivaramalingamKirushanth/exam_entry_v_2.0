@@ -72,9 +72,6 @@ const StudentModel = ({
     if (oldData && oldData.length) setSelectedStudents(oldData);
   }, [oldData]);
 
-  useEffect(() => {
-    console.log(feedId);
-  }, [feedId]);
   return (
     <>
       {isFeedOpen && (
@@ -106,6 +103,7 @@ const StudentModel = ({
                   feedDegShort={feedDegShort}
                   oldDataRefetch={oldDataRefetch}
                   feedId={feedId}
+                  isFeedOpen={isFeedOpen}
                   oldData={oldData}
                   stuData={stuData}
                 />
