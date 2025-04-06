@@ -22,6 +22,7 @@ import {
   getDeadlinesForBatch,
   getAllActiveBatchesProgesses,
   getBatchOpenDate,
+  uploadAttendanceSheet,
 } from "../controllers/batch.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -80,5 +81,6 @@ router.post(
   verifyUser(["1", "2", "3", "4"]),
   getBatchOpenDate
 );
+router.post("/uploadAttendanceSheet", verifyUser(["1"]), uploadAttendanceSheet);
 
 export default router;
