@@ -1,6 +1,5 @@
 import express from "express";
 import multer from "multer";
-const upload = multer({ storage: multer.memoryStorage() });
 import {
   addStudentsToTheBatchTable,
   createBatch,
@@ -26,6 +25,7 @@ import {
 } from "../controllers/batch.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
+const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
 
 router.get("/getAllBatches", verifyUser(["1"]), getAllBatches);
@@ -81,6 +81,12 @@ router.post(
   verifyUser(["1", "2", "3", "4"]),
   getBatchOpenDate
 );
-router.post("/uploadAttendanceSheet", verifyUser(["1"]), uploadAttendanceSheet);
+
+router.post(
+  "/uploadAttendanceSheet",
+  verifyUser(["1"]),
+  upload.single("file"),
+  uploadAttendanceSheet
+);
 
 export default router;
