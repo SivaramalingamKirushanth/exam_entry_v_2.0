@@ -26,7 +26,7 @@ export const sendBatchNotifications = async () => {
         if (!nextUserType) continue;
 
         const data = await fetchEmailsForUserType(conn, batch_id, nextUserType);
-        console.log(2, data);
+
         if (data.length > 0) {
           const dealine = new Date(data[0].endDate)
             .toString()
@@ -43,10 +43,6 @@ export const sendBatchNotifications = async () => {
             await conn.execute(
               `UPDATE batch_time_periods SET mail_sent = 1 WHERE id = ?`,
               [id]
-            );
-
-            console.log(
-              `Mail sent to user type ${nextUserType} for batch ${batch_id}`
             );
           } catch (mailError) {
             console.error(

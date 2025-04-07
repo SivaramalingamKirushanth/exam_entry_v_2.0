@@ -15,7 +15,6 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const JWT_SECRET = process.env.JWT_SECRET;
 const FRONTEND_SERVER = process.env.FRONTEND_SERVER;
-const FRONTEND_PORT = process.env.FRONTEND_PORT;
 const MAX_FAILED_ATTEMPTS = 10;
 const LOCKOUT_DURATION_MINUTES = 15;
 
@@ -396,9 +395,15 @@ export const login = async (req, res, next) => {
         expiresIn: remember_me ? "2 days" : "1h",
       });
 
-      // Send response
+      // Send response     
+
       return res
-        .cookie("access-token", token, { httpOnly: true })
+        .cookie("access-token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production", // Only use HTTPS in production
+          sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // Allow cross-site cookie
+          maxAge: remember_me ? 2 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // 2d or 1h
+        })
         .status(200)
         .json({ message: "Login successful" });
     } catch (error) {
@@ -556,7 +561,7 @@ export const forgotPassword = async (req, res, next) => {
       );
 
       // Send email
-      const resetLink = `http://${FRONTEND_SERVER}:${FRONTEND_PORT}/reset-password?token=${resetToken}`;
+      const resetLink = `${FRONTEND_SERVER}/reset-password?token=${resetToken}`;
       const htmlContent = `<p>You are receiving this email because you have requested a password reset for your account.</p>
                            <p>Please click on the following link to reset your password:</p>
                            <a href="${resetLink}">Reset Password</a>

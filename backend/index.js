@@ -18,7 +18,6 @@ dotenv.config();
 
 const PORT = process.env.PORT;
 const FRONTEND_SERVER = process.env.FRONTEND_SERVER;
-const FRONTEND_PORT = process.env.FRONTEND_PORT;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
@@ -26,9 +25,10 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
+console.log(`Setting CORS for origin: ${FRONTEND_SERVER}`);
 app.use(
   cors({
-    origin: `http://${FRONTEND_SERVER}:${FRONTEND_PORT}`,
+    origin: FRONTEND_SERVER,
     credentials: true,
   })
 );
