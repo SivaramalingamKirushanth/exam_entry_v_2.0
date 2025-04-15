@@ -1,0 +1,56 @@
+# General Node.js ignores
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+*.log
+.DS_Store
+.env
+.env*.local
+
+# Main project build artifacts and config caches
+/build
+*.tsbuildinfo
+
+# Coverage directories
+/coverage
+.nyc_output
+
+# Ignore npm/yarn integrity and history files
+.yarn-integrity
+.node_repl_history
+
+# Frontend folder ignores (Next.js)
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/.yarn/
+frontend/coverage/
+frontend/.env
+frontend/.env*.local
+frontend/.pnp/
+frontend.pnp.js
+frontend.yarn-debug.log*
+frontend.yarn-error.log*
+
+# Backend folder ignores (Node.js)
+backend/node_modules/
+backend/.yarn/
+backend/coverage/
+backend/.env
+backend/.env*.local
+backend/.pnp/
+backend.pnp.js
+backend.yarn-debug.log*
+backend.yarn-error.log*
+
+# Additional cache and temporary directories
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.cache
+.parcel-cache
+.next/

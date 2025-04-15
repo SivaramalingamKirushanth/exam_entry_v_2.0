@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/SivaramalingamKirushanth/exm_entry/issues"
   },
-  "homepage": "https://github.com/SivaramalingamKirushanth/exm_entry#readme"
+  "homepage": "https://github.com/SivaramalingamKirushanth/exm_entry#readme",
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "mysql": "^2.18.1"
+  }
 }
