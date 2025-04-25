@@ -651,7 +651,7 @@ export const deleteBatchSubjectEntries = async (req, res, next) => {
 
       // Step 1: Fetch all sub_ids for the given batch_id
       const [subjects] = await conn.query(
-        "SELECT sub_id FROM batch_curriculum_lecturer WHERE batch_id = ?",
+        "SELECT sub_id FROM batch_subject_lecturer WHERE batch_id = ?",
         [batch_id]
       );
 

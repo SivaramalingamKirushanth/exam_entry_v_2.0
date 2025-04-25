@@ -7,17 +7,17 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getNoOfBatches } from "@/utils/apiRequests/batch.api";
-import { getNoOfCurriculums } from "@/utils/apiRequests/curriculum.api";
+import { getNoOfSubjects } from "@/utils/apiRequests/curriculum.api";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const Examination = () => {
   const pathname = usePathname();
-  const { data: noOfCurriculumsData, isLoading: isNoOfCurriculumsDataLoading } =
+  const { data: noOfSubjectsData, isLoading: isNoOfSubjectsDataLoading } =
     useQuery({
-      queryFn: getNoOfCurriculums,
-      queryKey: ["noOfCurriculums"],
+      queryFn: getNoOfSubjects,
+      queryKey: ["noOfSubjects"],
     });
 
   const { data: noOfBatchesData, isLoading: isNoOfBatchesDataLoading } =
@@ -26,11 +26,11 @@ const Examination = () => {
       queryKey: ["noOfBatches"],
     });
 
-  if (isNoOfCurriculumsDataLoading || isNoOfBatchesDataLoading)
+  if (isNoOfSubjectsDataLoading || isNoOfBatchesDataLoading)
     return (
       <div className="flex justify-end md:justify-center">
         <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
-          {[1, 2].map((_, i) => (
+          {[1, 2, 3].map((_, i) => (
             <Skeleton
               key={i}
               className="sm:w-[30%] h-32 sm:max-w-[30%] rounded-xl"
@@ -44,15 +44,27 @@ const Examination = () => {
     <div className="flex justify-end md:justify-center">
       <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
         <Link
-          href={`${pathname}/curriculums`}
+          href={`${pathname}/syllabi`}
           className="sm:w-[30%] sm:max-w-[30%] hover:shadow-md rounded-xl"
         >
           <Card>
             <CardHeader>
-              <CardTitle>Curriculums</CardTitle>
+              <CardTitle>Syllabi</CardTitle>
               <CardDescription>
-                {noOfCurriculumsData?.count}{" "}
-                {noOfCurriculumsData && "Curriculums"}
+                {noOfSubjectsData?.count} {noOfSubjectsData && "Syllabi"}
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link
+          href={`${pathname}/subjects`}
+          className="sm:w-[30%] sm:max-w-[30%] hover:shadow-md rounded-xl"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Subjects</CardTitle>
+              <CardDescription>
+                {noOfSubjectsData?.count} {noOfSubjectsData && "Subjects"}
               </CardDescription>
             </CardHeader>
           </Card>

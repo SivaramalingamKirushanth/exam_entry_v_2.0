@@ -1,27 +1,27 @@
 import axiosInstance from "@/lib/axiosInstance";
 
-export const getAllCurriculums = async () => {
-  const response = await axiosInstance.get("/curriculum/getAllCurriculums");
+export const getAllSubjects = async () => {
+  const response = await axiosInstance.get("/curriculum/getAllSubjects");
   return response.data;
 };
 
-export const getAllCurriculumsWithExtraDetails = async () => {
+export const getAllSubjectsWithExtraDetails = async () => {
   const response = await axiosInstance.get(
-    "/curriculum/getAllCurriculumsWithExtraDetails"
+    "/curriculum/getAllSubjectsWithExtraDetails"
   );
   return response.data;
 };
 
-export const getCurriculumById = async (sub_id) => {
-  const response = await axiosInstance.post("/curriculum/getCurriculumById", {
+export const getSubjectById = async (sub_id) => {
+  const response = await axiosInstance.post("/curriculum/getSubjectById", {
     sub_id,
   });
   return response.data;
 };
 
-export const getCurriculumByDegLevSem = async (deg_id, level, sem_no) => {
+export const getSubjectByDegLevSem = async (deg_id, level, sem_no) => {
   const response = await axiosInstance.post(
-    "/curriculum/getCurriculumByDegLevSem",
+    "/curriculum/getSubjectByDegLevSem",
     {
       deg_id,
       level,
@@ -31,48 +31,41 @@ export const getCurriculumByDegLevSem = async (deg_id, level, sem_no) => {
   return response.data;
 };
 
-export const getCurriculumsByLecId = async () => {
-  const response = await axiosInstance.get("/curriculum/getCurriculumsByLecId");
+export const getSubjectsByLecId = async () => {
+  const response = await axiosInstance.get("/curriculum/getSubjectsByLecId");
   return response.data;
 };
-export const getCurriculumsByHodId = async () => {
-  const response = await axiosInstance.get("/curriculum/getCurriculumsByHodId");
+export const getSubjectsByHodId = async () => {
+  const response = await axiosInstance.get("/curriculum/getSubjectsByHodId");
   return response.data;
 };
-export const createCurriculum = async (data) => {
-  const response = await axiosInstance.post(
-    "/curriculum/createCurriculum",
-    data
-  );
+export const createSubject = async (data) => {
+  const response = await axiosInstance.post("/curriculum/createSubject", data);
   return response.data;
 };
 
-export const updateCurriculum = async (data) => {
+export const updateSubject = async (data) => {
+  const response = await axiosInstance.put("/curriculum/updateSubject", data);
+  return response.data;
+};
+
+export const updateSubjectStatus = async (data) => {
   const response = await axiosInstance.put(
-    "/curriculum/updateCurriculum",
+    "/curriculum/updateSubjectStatus",
     data
   );
   return response.data;
 };
 
-export const updateCurriculumStatus = async (data) => {
-  const response = await axiosInstance.put(
-    "/curriculum/updateCurriculumStatus",
-    data
-  );
+export const getNoOfSubjects = async () => {
+  const response = await axiosInstance.get("/curriculum/getNoOfSubjects");
   return response.data;
 };
 
-export const getNoOfCurriculums = async () => {
-  const response = await axiosInstance.get("/curriculum/getNoOfCurriculums");
-  return response.data;
-};
-
-export const getCurriculumBybatchId = async (batch_id) => {
-  const response = await axiosInstance.post(
-    "/curriculum/getCurriculumBybatchId",
-    { batch_id }
-  );
+export const getSubjectBybatchId = async (batch_id) => {
+  const response = await axiosInstance.post("/curriculum/getSubjectBybatchId", {
+    batch_id,
+  });
   return response.data;
 };
 
@@ -91,9 +84,9 @@ export const checkSubjectExist = async (data) => {
   return response.data;
 };
 
-export const getAllSubjectsForManager = async () => {
+export const getAllSubjectsForLecturer = async () => {
   const response = await axiosInstance.get(
-    "/curriculum/getAllSubjectsForManager"
+    "/curriculum/getAllSubjectsForLecturer"
   );
   return response.data;
 };

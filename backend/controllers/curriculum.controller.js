@@ -1,17 +1,17 @@
 import pool from "../config/db.js";
 import errorProvider from "../utils/errorProvider.js";
 
-export const getAllCurriculums = async (req, res, next) => {
+export const getAllSubjects = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
 
     try {
-      const [results] = await conn.query("CALL GetAllCurriculums();");
+      const [results] = await conn.query("CALL GetAllSubjects();");
 
       return res.status(200).json(results[0]); // First result set contains the data
     } catch (error) {
-      console.error("Error fetching curriculum details:", error);
-      return next(errorProvider(500, "Failed to fetch curriculum details"));
+      console.error("Error fetching subject details:", error);
+      return next(errorProvider(500, "Failed to fetch subject details"));
     } finally {
       conn.release();
     }
@@ -21,7 +21,7 @@ export const getAllCurriculums = async (req, res, next) => {
   }
 };
 
-export const getCurriculumById = async (req, res, next) => {
+export const getSubjectById = async (req, res, next) => {
   const { sub_id } = req.body;
 
   if (!sub_id) {
@@ -32,20 +32,18 @@ export const getCurriculumById = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const [results] = await conn.query("CALL GetCurriculumById(?);", [
-        sub_id,
-      ]);
+      const [results] = await conn.query("CALL GetSubjectById(?);", [sub_id]);
 
       if (results[0].length === 0) {
         return res.status(404).json({
-          message: "No curriculum details found for the given sub_id.",
+          message: "No subject details found for the given sub_id.",
         });
       }
 
       return res.status(200).json(results[0][0]); // First result set, first record
     } catch (error) {
-      console.error("Error fetching curriculum details:", error);
-      return next(errorProvider(500, "Failed to fetch curriculum details"));
+      console.error("Error fetching subject details:", error);
+      return next(errorProvider(500, "Failed to fetch subject details"));
     } finally {
       conn.release();
     }
@@ -55,19 +53,19 @@ export const getCurriculumById = async (req, res, next) => {
   }
 };
 
-export const getAllCurriculumsWithExtraDetails = async (req, res, next) => {
+export const getAllSubjectsWithExtraDetails = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
 
     try {
       const [results] = await conn.query(
-        "CALL GetAllCurriculumsWithExtraDetails();"
+        "CALL GetAllSubjectsWithExtraDetails();"
       );
 
       return res.status(200).json(results[0]); // First result set contains the data
     } catch (error) {
-      console.error("Error fetching curriculum details:", error);
-      return next(errorProvider(500, "Failed to fetch curriculum details"));
+      console.error("Error fetching subject details:", error);
+      return next(errorProvider(500, "Failed to fetch subject details"));
     } finally {
       conn.release();
     }
@@ -77,7 +75,7 @@ export const getAllCurriculumsWithExtraDetails = async (req, res, next) => {
   }
 };
 
-export const getCurriculumByDegLevSem = async (req, res, next) => {
+export const getSubjectByDegLevSem = async (req, res, next) => {
   const { deg_id, level, sem_no } = req.body;
 
   if (!deg_id || !level || !sem_no) {
@@ -89,14 +87,14 @@ export const getCurriculumByDegLevSem = async (req, res, next) => {
 
     try {
       const [results] = await conn.query(
-        "CALL GetCurriculumByDegLevSem(?, ?, ?);",
+        "CALL GetSubjectByDegLevSem(?, ?, ?);",
         [deg_id, level, sem_no]
       );
 
       return res.status(200).json(results[0]); // First result set contains the data
     } catch (error) {
-      console.error("Error fetching curriculum details:", error);
-      return next(errorProvider(500, "Failed to fetch curriculum details"));
+      console.error("Error fetching subject details:", error);
+      return next(errorProvider(500, "Failed to fetch subject details"));
     } finally {
       conn.release();
     }
@@ -106,7 +104,7 @@ export const getCurriculumByDegLevSem = async (req, res, next) => {
   }
 };
 
-export const getCurriculumsByLecId = async (req, res, next) => {
+export const getSubjectsByLecId = async (req, res, next) => {
   const { m_id } = req.user;
 
   if (!m_id) {
@@ -117,20 +115,18 @@ export const getCurriculumsByLecId = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const [results] = await conn.query("CALL GetCurriculumsByLecId(?);", [
-        m_id,
-      ]);
+      const [results] = await conn.query("CALL GetSubjectsByLecId(?);", [m_id]);
 
       if (results[0].length === 0) {
         return res
           .status(404)
-          .json({ message: "No curriculum details found for the given m_id." });
+          .json({ message: "No subject details found for the given m_id." });
       }
 
-      return res.status(200).json({ curriculum: results[0] }); // First result set contains the data
+      return res.status(200).json({ subject: results[0] }); // First result set contains the data
     } catch (error) {
-      console.error("Error fetching curriculum details:", error);
-      return next(errorProvider(500, "Failed to fetch curriculum details"));
+      console.error("Error fetching subject details:", error);
+      return next(errorProvider(500, "Failed to fetch subject details"));
     } finally {
       conn.release();
     }
@@ -140,7 +136,7 @@ export const getCurriculumsByLecId = async (req, res, next) => {
   }
 };
 
-export const getCurriculumsByDid = async (req, res, next) => {
+export const getSubjectsByDid = async (req, res, next) => {
   const { m_id } = req.user;
 
   if (!m_id) {
@@ -151,23 +147,21 @@ export const getCurriculumsByDid = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const [results] = await conn.query("CALL GetCurriculumsByDid(?);", [
-        m_id,
-      ]);
+      const [results] = await conn.query("CALL GetSubjectsByDid(?);", [m_id]);
 
       if (results[0].length === 0) {
         return res.status(404).json({
-          message: "No curriculum details found for the given hod_id.",
+          message: "No subject details found for the given hod_id.",
         });
       }
 
-      return res.status(200).json({ curriculum: results[0] }); // First result set contains the data
+      return res.status(200).json({ subject: results[0] }); // First result set contains the data
     } catch (error) {
-      console.error("Error fetching curriculum details by hod_id:", error);
+      console.error("Error fetching subject details by hod_id:", error);
       return next(
         errorProvider(
           500,
-          "Failed to fetch curriculum details for the given hod_id"
+          "Failed to fetch subject details for the given hod_id"
         )
       );
     } finally {
@@ -179,7 +173,7 @@ export const getCurriculumsByDid = async (req, res, next) => {
   }
 };
 
-export const createCurriculum = async (req, res, next) => {
+export const createSubject = async (req, res, next) => {
   const {
     sub_code,
     sub_name,
@@ -197,7 +191,7 @@ export const createCurriculum = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      await conn.query("CALL CreateCurriculum(?, ?, ?, ?, ?, ?);", [
+      await conn.query("CALL CreateSubject(?, ?, ?, ?, ?, ?);", [
         sub_code,
         sub_name,
         sem_no,
@@ -206,18 +200,18 @@ export const createCurriculum = async (req, res, next) => {
         status,
       ]);
 
-      let desc = `Curriculum created sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, deg_id=${deg_id}, level=${level}`;
+      let desc = `Subject created sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, deg_id=${deg_id}, level=${level}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(201).json({
-        message: "Curriculum record created successfully",
+        message: "subject record created successfully",
       });
     } catch (error) {
-      console.error("Error creating curriculum:", error);
+      console.error("Error creating subject:", error);
       return next(
         errorProvider(
           500,
-          "An error occurred while creating the curriculum record"
+          "An error occurred while creating the subject record"
         )
       );
     } finally {
@@ -229,7 +223,7 @@ export const createCurriculum = async (req, res, next) => {
   }
 };
 
-export const updateCurriculum = async (req, res, next) => {
+export const updateSubject = async (req, res, next) => {
   const { sub_code, sub_name, sem_no, deg_id, level, sub_id } = req.body;
 
   if (!sub_id) {
@@ -241,28 +235,26 @@ export const updateCurriculum = async (req, res, next) => {
 
     try {
       const [result] = await conn.query(
-        "CALL UpdateCurriculum(?, ?, ?, ?, ?, ?);",
+        "CALL UpdateSubject(?, ?, ?, ?, ?, ?);",
         [sub_id, sub_code, sub_name, sem_no, deg_id, level]
       );
 
       if (result.affectedRows === 0) {
         return next(
-          errorProvider(404, "Curriculum record not found or no changes made")
+          errorProvider(404, "Subject record not found or no changes made")
         );
       }
 
-      let desc = `Curriculum updated for sub_id=${sub_id}, sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, deg_id=${deg_id}, level=${level}`;
+      let desc = `Subject updated for sub_id=${sub_id}, sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, deg_id=${deg_id}, level=${level}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
-      return res
-        .status(200)
-        .json({ message: "Curriculum updated successfully" });
+      return res.status(200).json({ message: "Subject updated successfully" });
     } catch (error) {
-      console.error("Error updating curriculum:", error);
+      console.error("Error updating subject:", error);
       return next(
         errorProvider(
           500,
-          "An error occurred while updating the curriculum record"
+          "An error occurred while updating the subject record"
         )
       );
     } finally {
@@ -274,7 +266,7 @@ export const updateCurriculum = async (req, res, next) => {
   }
 };
 
-export const updateCurriculumStatus = async (req, res, next) => {
+export const updateSubjectStatus = async (req, res, next) => {
   const { status, id: sub_id } = req.body;
 
   if (!sub_id || !status) {
@@ -285,29 +277,29 @@ export const updateCurriculumStatus = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const [result] = await conn.query("CALL updateCurriculumStatus(?, ?);", [
+      const [result] = await conn.query("CALL updateSubjectStatus(?, ?);", [
         sub_id,
         status,
       ]);
 
       if (result.affectedRows === 0) {
         return next(
-          errorProvider(404, "Curriculum record not found or no changes made")
+          errorProvider(404, "Subject record not found or no changes made")
         );
       }
 
-      let desc = `Curriculum status changed for sub_id=${sub_id} to status=${status}`;
+      let desc = `Subject status changed for sub_id=${sub_id} to status=${status}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res
         .status(200)
-        .json({ message: "Curriculum status updated successfully" });
+        .json({ message: "subject status updated successfully" });
     } catch (error) {
-      console.error("Error updating curriculum:", error);
+      console.error("Error updating subject:", error);
       return next(
         errorProvider(
           500,
-          "An error occurred while updating the curriculum record"
+          "An error occurred while updating the subject record"
         )
       );
     } finally {
@@ -319,16 +311,16 @@ export const updateCurriculumStatus = async (req, res, next) => {
   }
 };
 
-export const getNoOfCurriculums = async (req, res, next) => {
+export const getNoOfSubjects = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
-      const [result] = await conn.query("CALL GetNoOfCurriculums();");
-      return res.status(200).json({ count: result[0][0].curriculum_count });
+      const [result] = await conn.query("CALL GetNoOfSubjects();");
+      return res.status(200).json({ count: result[0][0].subject_count });
     } catch (error) {
-      console.error("Error retrieving number of curriculums:", error);
+      console.error("Error retrieving number of subjects:", error);
       return next(
-        errorProvider(500, "An error occurred while fetching curriculum count")
+        errorProvider(500, "An error occurred while fetching subject count")
       );
     } finally {
       conn.release();
@@ -339,7 +331,7 @@ export const getNoOfCurriculums = async (req, res, next) => {
   }
 };
 
-export const getCurriculumBybatchId = async (req, res, next) => {
+export const getSubjectBybatchId = async (req, res, next) => {
   const { batch_id } = req.body;
 
   if (!batch_id) {
@@ -349,14 +341,14 @@ export const getCurriculumBybatchId = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
-      const [results] = await conn.query("CALL GetCurriculumByBatchId(?);", [
+      const [results] = await conn.query("CALL GetSubjectByBatchId(?);", [
         batch_id,
       ]);
 
       return res.status(200).json(results[0]);
     } catch (error) {
-      console.error("Error fetching curriculum details:", error);
-      return next(errorProvider(500, "Failed to fetch curriculum details"));
+      console.error("Error fetching subject details:", error);
+      return next(errorProvider(500, "Failed to fetch subject details"));
     } finally {
       conn.release();
     }
@@ -444,7 +436,7 @@ export const getStudentApplicationDetails = async (req, res, next) => {
   }
 };
 
-export const getAllSubjectsForManager = async (req, res, next) => {
+export const getAllSubjectsForLecturer = async (req, res, next) => {
   const { user_id } = req.user;
 
   if (!user_id) {
@@ -455,9 +447,10 @@ export const getAllSubjectsForManager = async (req, res, next) => {
     const conn = await pool.getConnection();
     try {
       // Call the stored procedure
-      const [subjects] = await conn.query("CALL GetAllSubjectsForManager(?);", [
-        user_id,
-      ]);
+      const [subjects] = await conn.query(
+        "CALL GetAllSubjectsForLecturer(?);",
+        [user_id]
+      );
 
       if (!subjects.length) {
         return res.status(404).json({
@@ -467,7 +460,7 @@ export const getAllSubjectsForManager = async (req, res, next) => {
 
       return res.status(200).json(subjects[0]);
     } catch (error) {
-      console.error("Error fetching subjects for manager:", error);
+      console.error("Error fetching subjects for Lecturer:", error);
 
       if (error.code === "45000") {
         return next(errorProvider(400, error.sqlMessage));
@@ -476,7 +469,7 @@ export const getAllSubjectsForManager = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching subjects for the manager."
+          "An error occurred while fetching subjects for the Lecturer."
         )
       );
     } finally {

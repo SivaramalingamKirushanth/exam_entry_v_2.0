@@ -87,13 +87,13 @@ export const getBatchById = async (req, res, next) => {
         [details.degree_name_short]
       );
 
-      // Fetch curriculum and lecturer details for the batch
+      // Fetch subject and lecturer details for the batch
       const [batCurLecResult] = await conn.query(
-        "SELECT bcl.* FROM batch_curriculum_lecturer bcl INNER JOIN curriculum c ON bcl.sub_id = c.sub_id WHERE bcl.batch_id = ? AND c.status = 'true'",
+        "SELECT bcl.* FROM batch_subject_lecturer bcl INNER JOIN subject c ON bcl.sub_id = c.sub_id WHERE bcl.batch_id = ? AND c.status = 'true'",
         [batch_id]
       );
 
-      // Transform curriculum and lecturer details into a key-value map
+      // Transform subject and lecturer details into a key-value map
       const subjects = {};
       batCurLecResult.forEach((obj) => {
         subjects[obj.sub_id] = obj.m_id.toString();
@@ -186,8 +186,8 @@ export const createBatch = async (req, res, next) => {
       );
       const batch_id = batchResult[1][0].batch_id;
 
-      // Insert batch curriculum lecturer details
-      await conn.query("CALL InsertBatchCurriculumLecturer(?, ?);", [
+      // Insert batch subject lecturer details
+      await conn.query("CALL InsertBatchSubjectLecturer(?, ?);", [
         batch_id,
         JSON.stringify(
           Object.entries(subjects).map(([sub_id, m_id]) => ({ sub_id, m_id }))
@@ -351,13 +351,13 @@ export const updateBatch = async (req, res, next) => {
         ]);
       }
 
-      // Delete old batch curriculum lecturer rows
-      await conn.query("CALL DeleteBatchCurriculumLecturerRows(?);", [
+      // Delete old batch subject lecturer rows
+      await conn.query("CALL DeleteBatchSubjectLecturerRows(?);", [
         batch_id,
       ]);
 
-      // Re-insert batch curriculum lecturer details
-      await conn.query("CALL InsertBatchCurriculumLecturer(?, ?);", [
+      // Re-insert batch subject lecturer details
+      await conn.query("CALL InsertBatchSubjectLecturer(?, ?);", [
         batch_id,
         JSON.stringify(
           Object.entries(subjects).map(([sub_id, m_id]) => ({ sub_id, m_id }))
@@ -900,7 +900,7 @@ export const uploadAttendanceSheet = async (req, res, next) => {
 
           // Fetch subject IDs from DB for the batch
           const [dbSubjectRows] = await conn.query(
-            "SELECT bcl.sub_id, c.sub_code FROM batch_curriculum_lecturer bcl join curriculum c ON bcl.sub_id=c.sub_id WHERE bcl.batch_id = ?",
+            "SELECT bcl.sub_id, c.sub_code FROM batch_subject_lecturer bcl join subject c ON bcl.sub_id=c.sub_id WHERE bcl.batch_id = ?",
             [batchId]
           );
 
