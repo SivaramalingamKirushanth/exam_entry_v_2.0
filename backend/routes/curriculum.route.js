@@ -18,6 +18,7 @@ import {
   checkSubjectExist,
   getAllSubjectsForDepartment,
   getAllSubjectsForFaculty,
+  createSyllabus,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -75,5 +76,6 @@ router.put(
   updateMultipleEligibility
 );
 router.post("/checkSubjectExist", verifyUser(["4"]), checkSubjectExist);
+router.post("/createSyllabus", verifyUser(["1"]), createSyllabus);
 
 export default router;

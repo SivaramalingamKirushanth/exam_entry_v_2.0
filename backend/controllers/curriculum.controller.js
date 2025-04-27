@@ -842,3 +842,51 @@ export const checkSubjectExist = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection."));
   }
 };
+
+export const createSyllabus = async (req, res, next) => {
+  const {
+    deg_id,
+    commenced_year,
+    expired_year = "",
+    status = "true",
+  } = req.body;
+
+  if (!deg_id || !commenced_year || !status) {
+    return res
+      .status(400)
+      .json({ message: "deg_id, commenced_year, status fields are required" });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      await conn.query("CALL CreateSyllabus(?, ?, ?, ?);", [
+        deg_id,
+        commenced_year,
+        expired_year,
+        status,
+      ]);
+
+      let desc = `Syllabus created deg_id=${deg_id}, commenced_year=${commenced_year}, expired_year=${expired_year}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      return res.status(201).json({
+        message: "syllabus created successfully",
+      });
+    } catch (error) {
+      console.error("Error creating syllabus:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while creating the subject record"
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};

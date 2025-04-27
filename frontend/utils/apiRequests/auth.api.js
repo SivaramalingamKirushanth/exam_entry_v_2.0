@@ -1,8 +1,8 @@
 import axiosInstance from "@/lib/axiosInstance";
 import axios from "axios";
 
-export const managerRegister = async (data) => {
-  const response = await axiosInstance.post("/auth/managerRegister", data);
+export const lecturerRegister = async (data) => {
+  const response = await axiosInstance.post("/auth/lecturerRegister", data);
   return response.data;
 };
 

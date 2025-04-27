@@ -274,7 +274,7 @@ export const multipleStudentsRegister = async (req, res, next) => {
   }
 };
 
-export const managerRegister = async (req, res, next) => {
+export const lecturerRegister = async (req, res, next) => {
   const { user_name, name, email, contact_no, status = "true" } = req.body;
   const role_id = 4;
 
@@ -395,7 +395,7 @@ export const login = async (req, res, next) => {
         expiresIn: remember_me ? "2 days" : "1h",
       });
 
-      // Send response     
+      // Send response
 
       return res
         .cookie("access-token", token, {

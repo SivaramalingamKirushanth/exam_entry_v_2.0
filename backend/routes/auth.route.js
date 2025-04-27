@@ -1,7 +1,7 @@
 import express from "express";
 import {
   studentRegister,
-  managerRegister,
+  lecturerRegister,
   login,
   me,
   logout,
@@ -23,7 +23,7 @@ router.post(
   upload.single("file"),
   multipleStudentsRegister
 );
-router.post("/managerRegister", verifyUser(["1"]), managerRegister);
+router.post("/lecturerRegister", verifyUser(["1"]), lecturerRegister);
 router.get("/me", verifyUser(["1", "2", "3", "4", "5"]), me);
 router.post("/login", login);
 router.post("/logout", logout);

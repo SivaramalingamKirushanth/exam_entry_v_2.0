@@ -14,8 +14,8 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Modal from "./Model";
 import {
-  getAllCurriculumsWithExtraDetails,
-  updateCurriculumStatus,
+  getAllSubjectsWithExtraDetails,
+  updateSubjectStatus,
 } from "@/utils/apiRequests/curriculum.api";
 import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import { FaPen } from "react-icons/fa6";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
-const CurriculumsDetails = () => {
+const SubjectsDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
@@ -34,14 +34,14 @@ const CurriculumsDetails = () => {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
-    queryFn: getAllCurriculumsWithExtraDetails,
-    queryKey: ["curriculumsExtra"],
+    queryFn: getAllSubjectsWithExtraDetails,
+    queryKey: ["subjectssExtra"],
   });
 
   const { mutate } = useMutation({
-    mutationFn: updateCurriculumStatus,
+    mutationFn: updateSubjectStatus,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["curriculumsExtra"]);
+      queryClient.invalidateQueries(["subjectssExtra"]);
       setEditId("");
       toast.success(res.message);
     },
@@ -219,4 +219,4 @@ const CurriculumsDetails = () => {
   );
 };
 
-export default CurriculumsDetails;
+export default SubjectsDetails;

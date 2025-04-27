@@ -23,20 +23,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  createCurriculum,
-  getCurriculumById,
-  updateCurriculum,
+  createSubject,
+  createSyllabus,
+  getSubjectById,
+  updateSubject,
 } from "@/utils/apiRequests/curriculum.api";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    commenced_year: new Date().getFullYear(),
+  });
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
 
+  const onCommencedYearChanged = (e) => {
+    let value = +e.target.value;
+    if (value < +e.target.min) {
+      value = +e.target.min;
+    } else if (value > +e.target.max) {
+      value = +e.target.max;
+    }
+
+    setFormData((curData) => ({
+      ...curData,
+      commenced_year: value,
+    }));
+    e.target.value = value;
+  };
+
   const { status, mutate } = useMutation({
-    mutationFn: editId ? updateCurriculum : createCurriculum,
+    mutationFn: editId ? updateSubject : createSyllabus,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["curriculumsExtra"]);
+      queryClient.invalidateQueries(["syllabusExtra"]);
       setEditId("");
       toast.success(res.message);
     },
@@ -47,8 +65,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   });
 
   const { data, refetch } = useQuery({
-    queryFn: () => getCurriculumById(editId),
-    queryKey: ["curriculums", editId],
+    queryFn: () => getSubjectById(editId),
+    queryKey: ["subjects", editId],
     enabled: false,
   });
 
@@ -107,13 +125,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   useEffect(() => {
     const isFormValid =
-      formData.sub_code &&
-      formData.sub_name &&
       formData.f_id &&
       formData.d_id &&
       formData.deg_id &&
-      formData.sem_no &&
-      formData.level;
+      formData.commenced_year;
     setBtnEnable(isFormValid);
   }, [formData]);
 
@@ -142,7 +157,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
-              <h3 className="text-lg font-semibold">Subject</h3>
+              <h3 className="text-lg font-semibold">Syllabus</h3>
 
               <GiCancel
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
@@ -154,38 +169,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               />
             </div>
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="sub_code" className="text-right">
-                  Subject Code
-                </Label>
-                <Input
-                  id="sub_code"
-                  name="sub_code"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  onBlur={(e) => {
-                    e.target.value = e.target.value.trim();
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.sub_code || ""}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="sub_name" className="text-right">
-                  Subject name
-                </Label>
-                <Input
-                  id="sub_name"
-                  name="sub_name"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  onBlur={(e) => {
-                    e.target.value = e.target.value.trim();
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.sub_name || ""}
-                />
-              </div>
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Faculty</Label>
                 <Select
@@ -253,64 +236,38 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectContent>
                 </Select>
               </div>
-
-              <div
-                className={`${
-                  degreeLevelsData ? "grid" : "hidden"
-                }  grid-cols-4 gap-4`}
-              >
-                <Label className="text-right">Level</Label>
-                <div className="flex col-span-3 gap-4 flex-wrap">
-                  {degreeLevelsData?.levels.map((item) => (
-                    <div className="flex items-center space-x-2" key={item}>
-                      <input
-                        type="radio"
-                        value={item}
-                        id={`l${item}`}
-                        checked={formData.level == item}
-                        name="level"
-                        onChange={(e) => onFormDataChanged(e)}
-                        className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
-                      />
-                      <Label htmlFor={`l${item}`} className="cursor-pointer">
-                        {item}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="commenced_year" className="text-right">
+                  Commenced year
+                </Label>
+                <input
+                  type="number"
+                  min="2000"
+                  max="2100"
+                  placeholder="Enter year"
+                  className="flex h-9 col-span-3 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  name="commenced_year"
+                  id="commenced_year"
+                  onBlur={(e) => onCommencedYearChanged(e)}
+                  onChange={(e) => onFormDataChanged(e)}
+                  value={formData.commenced_year || ""}
+                />
               </div>
-              <div
-                className={`${
-                  degreeLevelsData ? "grid" : "hidden"
-                }  grid-cols-4 gap-4`}
-              >
-                <Label className="text-right">Semester</Label>
-                <div className="flex col-span-3 gap-4 flex-wrap">
-                  {Array(+degreeLevelsData?.no_of_sem_per_year || 0)
-                    .fill(1)
-                    .map((_, ind) => (
-                      <div
-                        className="flex items-center space-x-2"
-                        key={ind + 1}
-                      >
-                        <input
-                          type="radio"
-                          value={ind + 1}
-                          id={`s${ind + 1}`}
-                          checked={formData.sem_no == ind + 1}
-                          name="sem_no"
-                          onChange={(e) => onFormDataChanged(e)}
-                          className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
-                        />
-                        <Label
-                          htmlFor={`s${ind + 1}`}
-                          className="cursor-pointer"
-                        >
-                          {ind + 1}
-                        </Label>
-                      </div>
-                    ))}
-                </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="expired_year" className="text-right">
+                  Expired year <br /> (optional)
+                </Label>
+                <input
+                  type="number"
+                  min="2000"
+                  max="2100"
+                  placeholder="Enter year"
+                  className="flex h-9 col-span-3 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  name="expired_year"
+                  id="expired_year"
+                  onChange={(e) => onFormDataChanged(e)}
+                  value={formData.expired_year || ""}
+                />
               </div>
             </div>
             <div className="flex justify-between space-x-2 mt-4">

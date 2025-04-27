@@ -23,9 +23,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  createCurriculum,
-  getCurriculumById,
-  updateCurriculum,
+  createSubject,
+  getSubjectById,
+  updateSubject,
 } from "@/utils/apiRequests/curriculum.api";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
@@ -34,9 +34,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const queryClient = useQueryClient();
 
   const { status, mutate } = useMutation({
-    mutationFn: editId ? updateCurriculum : createCurriculum,
+    mutationFn: editId ? updateSubject : createSubject,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["curriculumsExtra"]);
+      queryClient.invalidateQueries(["subjectsExtra"]);
       setEditId("");
       toast.success(res.message);
     },
@@ -47,8 +47,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   });
 
   const { data, refetch } = useQuery({
-    queryFn: () => getCurriculumById(editId),
-    queryKey: ["curriculums", editId],
+    queryFn: () => getSubjectById(editId),
+    queryKey: ["subjects", editId],
     enabled: false,
   });
 

@@ -120,3 +120,8 @@ export const updateMultipleEligibility = async (data) => {
   );
   return response.data;
 };
+
+export const createSyllabus = async (data) => {
+  const response = await axiosInstance.post("/curriculum/createSyllabus", data);
+  return response.data;
+};
