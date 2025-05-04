@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  getAllManagers,
-  updateManagerStatus,
+  getAllLecturers,
+  updateLecturerStatus,
 } from "@/utils/apiRequests/user.api";
 import Modal from "./Model";
 import { DataTable } from "@/components/DataTable";
@@ -24,7 +24,7 @@ import { FaPen } from "react-icons/fa6";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
-const ManagerDetails = () => {
+const LecturerDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
@@ -34,14 +34,14 @@ const ManagerDetails = () => {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
-    queryFn: getAllManagers,
-    queryKey: ["managers"],
+    queryFn: getAllLecturers,
+    queryKey: ["lecturers"],
   });
 
   const { mutate } = useMutation({
-    mutationFn: updateManagerStatus,
+    mutationFn: updateLecturerStatus,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["managers"]);
+      queryClient.invalidateQueries(["lecturers"]);
       setEditId("");
       toast.success(res.message);
     },
@@ -96,9 +96,9 @@ const ManagerDetails = () => {
       cell: ({ row }) => {
         return (
           <Switch
-            id={row.original.m_id}
+            id={row.original.l_id}
             onCheckedChange={(e) =>
-              onStatusChanged(row.original.m_id + ":" + e)
+              onStatusChanged(row.original.l_id + ":" + e)
             }
             checked={row.original.status == "true"}
           />
@@ -217,11 +217,11 @@ const ManagerDetails = () => {
           data={filteredData}
           onEditClicked={onEditClicked}
           toggleModal={toggleModal}
-          btnText="Create manager"
+          btnText="Create lecturer"
         />
       </div>
     </>
   );
 };
 
-export default ManagerDetails;
+export default LecturerDetails;

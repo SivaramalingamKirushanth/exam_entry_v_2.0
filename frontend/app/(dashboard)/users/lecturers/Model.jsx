@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { managerRegister } from "@/utils/apiRequests/auth.api";
-import { getManagerById, updateManager } from "@/utils/apiRequests/user.api";
+import { lecturerRegister } from "@/utils/apiRequests/auth.api";
+import { getLecturerById, updateLecturer } from "@/utils/apiRequests/user.api";
 import { GiCancel } from "react-icons/gi";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
@@ -17,9 +17,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const queryClient = useQueryClient();
 
   const { status, mutate } = useMutation({
-    mutationFn: editId ? updateManager : managerRegister,
+    mutationFn: editId ? updateLecturer : lecturerRegister,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["managers"]);
+      queryClient.invalidateQueries(["lecturers"]);
       setEditId("");
       toast.success(res.message);
     },
@@ -30,8 +30,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   });
 
   const { data, refetch } = useQuery({
-    queryFn: () => getManagerById(editId),
-    queryKey: ["managers", editId],
+    queryFn: () => getLecturerById(editId),
+    queryKey: ["lecturers", editId],
     enabled: false,
   });
 
@@ -78,7 +78,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
-              <h3 className="text-lg font-semibold">Manager</h3>
+              <h3 className="text-lg font-semibold">Lecturer</h3>
 
               <GiCancel
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"

@@ -246,9 +246,9 @@ export const updateStudentStatus = async (req, res, next) => {
 };
 
 export const updateLecturer = async (req, res, next) => {
-  const { name, email, contact_no, m_id, user_name } = req.body;
+  const { name, email, contact_no, l_id, user_name } = req.body;
 
-  if (!m_id || !name || !email || !contact_no || !user_name) {
+  if (!l_id || !name || !email || !contact_no || !user_name) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
@@ -260,10 +260,10 @@ export const updateLecturer = async (req, res, next) => {
         email,
         user_name,
         contact_no,
-        m_id,
+        l_id,
       ]);
 
-      let desc = `Lecturer updated for m_id=${m_id}, name=${name}, email=${email}, user_name=${user_name}, contact_no=${contact_no}`;
+      let desc = `Lecturer updated for l_id=${l_id}, name=${name}, email=${email}, user_name=${user_name}, contact_no=${contact_no}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(200).json({ message: "Lecturer updated successfully" });
@@ -285,18 +285,19 @@ export const updateLecturer = async (req, res, next) => {
 };
 
 export const updateLecturerStatus = async (req, res, next) => {
-  const { status, id: m_id } = req.body;
+  const { status, id: l_id } = req.body;
 
-  if (!m_id || !status) {
+  if (!l_id || !status) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
   try {
     const conn = await pool.getConnection();
     try {
-      await conn.query("CALL updateLecturerStatus(?, ?);", [status, m_id]);
+      console.log();
+      await conn.query("CALL updateLecturerStatus(?, ?);", [status, l_id]);
 
-      let desc = `Lecturer status changed for m_id=${m_id} to status=${status}`;
+      let desc = `Lecturer status changed for l_id=${l_id} to status=${status}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res
