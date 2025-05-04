@@ -35,13 +35,13 @@ const SubjectsDetails = () => {
 
   const { data, isLoading, error } = useQuery({
     queryFn: getAllSubjectsWithExtraDetails,
-    queryKey: ["subjectssExtra"],
+    queryKey: ["subjectsExtra"],
   });
 
   const { mutate } = useMutation({
     mutationFn: updateSubjectStatus,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["subjectssExtra"]);
+      queryClient.invalidateQueries(["subjectsExtra"]);
       setEditId("");
       toast.success(res.message);
     },

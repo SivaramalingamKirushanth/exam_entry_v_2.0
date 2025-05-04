@@ -15,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Modal from "./Model";
 import {
   getAllSubjectsWithExtraDetails,
+  getAllSyllabiWithExtraDetails,
   updateSubjectStatus,
 } from "@/utils/apiRequests/curriculum.api";
 import { DataTable } from "@/components/DataTable";
@@ -34,14 +35,14 @@ const Syllabi = () => {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
-    queryFn: getAllSubjectsWithExtraDetails,
-    queryKey: ["subjectssExtra"],
+    queryFn: getAllSyllabiWithExtraDetails,
+    queryKey: ["syllabiExtra"],
   });
 
   const { mutate } = useMutation({
     mutationFn: updateSubjectStatus,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["subjectssExtra"]);
+      queryClient.invalidateQueries(["syllabiExtra"]);
       setEditId("");
       toast.success(res.message);
     },
@@ -58,34 +59,44 @@ const Syllabi = () => {
   };
   const columns = [
     {
-      accessorKey: "sub_code",
-      header: "Subject code",
-    },
-    {
-      accessorKey: "sub_name",
+      accessorKey: "degree_name",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Subject Name
+            Degree programme
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
     },
     {
-      accessorKey: "degree_name",
-      header: "Degree programme",
+      accessorKey: "commenced_year",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Commenced Year
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        return <p className="text-center">{row.original.commenced_year}</p>;
+      },
     },
     {
-      accessorKey: "level",
-      header: "Level",
-    },
-    {
-      accessorKey: "sem_no",
-      header: "Semester",
+      accessorKey: "expired_year",
+      header: "Expired Year",
+      cell: ({ row }) => {
+        return (
+          <p className="text-center">{row.original.expired_year || "Live"}</p>
+        );
+      },
     },
     {
       accessorKey: "status",
@@ -93,9 +104,9 @@ const Syllabi = () => {
       cell: ({ row }) => {
         return (
           <Switch
-            id={row.original.sub_id}
+            id={row.original.syl_id}
             onCheckedChange={(e) =>
-              onStatusChanged(row.original.sub_id + ":" + e)
+              onStatusChanged(row.original.syl_id + ":" + e)
             }
             checked={row.original.status == "true"}
           />
@@ -111,7 +122,7 @@ const Syllabi = () => {
           <Button
             variant="outline"
             className="editBtn"
-            id={row.original.sub_id}
+            id={row.original.syl_id}
           >
             <FaPen />
             &nbsp;Edit

@@ -13,7 +13,6 @@ import {
   createDegree,
   getAllFaculties,
   getDegreeById,
-  getDepartmentsByFacultyId,
   updateDegree,
 } from "@/utils/apiRequests/course.api";
 import {
@@ -57,12 +56,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const { data: facultyData } = useQuery({
     queryFn: getAllFaculties,
     queryKey: ["activeFaculties"],
-  });
-
-  const { data: departmentData, refetch: departmentDataRefetch } = useQuery({
-    queryFn: () => getDepartmentsByFacultyId(formData.f_id),
-    queryKey: ["activeDepartments", "faculty", formData.f_id],
-    enabled: false,
   });
 
   useEffect(() => {
@@ -118,7 +111,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       formData.deg_name &&
       formData.short &&
       formData.f_id &&
-      formData.d_id &&
       formData.no_of_sem_per_year &&
       formData.levels.length;
     setBtnEnable(isFormValid);
@@ -128,10 +120,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     editId && refetch();
   }, [editId]);
 
-  useEffect(() => {
-    if (formData?.f_id) departmentDataRefetch();
-  }, [formData?.f_id]);
-
+ 
   return (
     <>
       {isOpen && (
@@ -199,7 +188,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 <Label className="text-right">Faculty</Label>
                 <Select
                   onValueChange={(e) => {
-                    setFormData((cur) => ({ ...cur, d_id: "" }));
                     onFormDataChanged(e);
                   }}
                   value={formData.f_id ? "f_id:" + formData.f_id : ""}
@@ -211,27 +199,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     {facultyData?.map((item) => (
                       <SelectItem key={item.f_id} value={`f_id:${item.f_id}`}>
                         {item.f_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className={`grid grid-cols-4 items-center gap-4`}>
-                <Label className="text-right">Department</Label>
-                <Select
-                  onValueChange={(e) => {
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.d_id ? "d_id:" + formData.d_id : ""}
-                  disabled={!formData.f_id}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departmentData?.map((item) => (
-                      <SelectItem key={item.d_id} value={`d_id:${item.d_id}`}>
-                        {item.d_name}
                       </SelectItem>
                     ))}
                   </SelectContent>

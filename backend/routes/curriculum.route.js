@@ -19,6 +19,9 @@ import {
   getAllSubjectsForDepartment,
   getAllSubjectsForFaculty,
   createSyllabus,
+  getAllSyllabiWithExtraDetails,
+  updateSyllabusStatus,
+  getSyllabusById,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -77,5 +80,12 @@ router.put(
 );
 router.post("/checkSubjectExist", verifyUser(["4"]), checkSubjectExist);
 router.post("/createSyllabus", verifyUser(["1"]), createSyllabus);
+router.get(
+  "/getAllSyllabiWithExtraDetails",
+  verifyUser(["1"]),
+  getAllSyllabiWithExtraDetails
+);
+router.put("/updateSyllabusStatus", verifyUser(["1"]), updateSyllabusStatus);
+router.post("/getSyllabusById", verifyUser(["1"]), getSyllabusById);
 
 export default router;

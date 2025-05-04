@@ -30,9 +30,7 @@ import {
 } from "@/utils/apiRequests/curriculum.api";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
-  const [formData, setFormData] = useState({
-    commenced_year: new Date().getFullYear(),
-  });
+  const [formData, setFormData] = useState({});
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
 

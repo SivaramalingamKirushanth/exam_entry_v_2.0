@@ -81,10 +81,6 @@ const DegreeDetails = () => {
       header: "Faculty",
     },
     {
-      accessorKey: "department_name",
-      header: "Department",
-    },
-    {
       accessorKey: "levels",
       header: "Levels",
       cell: ({ row }) => {

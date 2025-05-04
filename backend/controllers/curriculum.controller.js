@@ -890,3 +890,102 @@ export const createSyllabus = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const getAllSyllabiWithExtraDetails = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [results] = await conn.query(
+        "CALL GetAllSyllabiWithExtraDetails();"
+      );
+
+      return res.status(200).json(results[0]); // First result set contains the data
+    } catch (error) {
+      console.error("Error fetching Syllabi details:", error);
+      return next(errorProvider(500, "Failed to fetch Syllabi details"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const updateSyllabusStatus = async (req, res, next) => {
+  const { status, id: syl_id } = req.body;
+
+  if (!syl_id || !status) {
+    return next(errorProvider(400, "Syllabus ID (syl_id) is required"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [result] = await conn.query("CALL updateSyllabusStatus(?, ?);", [
+        syl_id,
+        status,
+      ]);
+
+      if (result.affectedRows === 0) {
+        return next(
+          errorProvider(404, "Subject record not found or no changes made")
+        );
+      }
+
+      let desc = `Subject status changed for syl_id=${syl_id} to status=${status}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      return res
+        .status(200)
+        .json({ message: "subject status updated successfully" });
+    } catch (error) {
+      console.error("Error updating subject:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while updating the subject record"
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getSyllabusById = async (req, res, next) => {
+  const { syl_id } = req.body;
+
+  if (!syl_id) {
+    return next(errorProvider(400, "Missing syl_id."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [results] = await conn.query("CALL GetSyllabusById(?);", [syl_id]);
+
+      if (results[0].length === 0) {
+        return res.status(404).json({
+          message: "No syllabus details found for the given syl_id.",
+        });
+      }
+
+      return res.status(200).json(results[0][0]); // First result set, first record
+    } catch (error) {
+      console.error("Error fetching syllabus details:", error);
+      return next(errorProvider(500, "Failed to fetch syllabus details"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};

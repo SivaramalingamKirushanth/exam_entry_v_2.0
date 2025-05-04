@@ -380,12 +380,12 @@ export const createDegree = async (req, res, next) => {
     levels: levelsArr,
     no_of_sem_per_year,
     status = "true",
-    d_id,
+    f_id,
   } = req.body;
 
   const levels = levelsArr.sort((a, b) => a - b).join(":");
 
-  if (!deg_name || !short || !levels || !no_of_sem_per_year || !d_id) {
+  if (!deg_name || !short || !levels || !no_of_sem_per_year || !f_id) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
@@ -414,10 +414,10 @@ export const createDegree = async (req, res, next) => {
       );
       const deg_id = degreeResult[1][0].deg_id;
 
-      // Step 3: Link the degree with the department
-      await conn.query("CALL LinkDegreeWithDepartment(?, ?);", [d_id, deg_id]);
+      // Step 3: Link the degree with the Faculty
+      await conn.query("CALL LinkDegreeWithFaculty(?, ?);", [f_id, deg_id]);
 
-      let desc = `Degree created with deg_id=${deg_id} for d_id=${d_id}, deg_name=${deg_name}, short=${short}, levels=${levels}, no_of_sem_per_year=${no_of_sem_per_year}`;
+      let desc = `Degree created with deg_id=${deg_id} for f_id=${f_id}, deg_name=${deg_name}, short=${short}, levels=${levels}, no_of_sem_per_year=${no_of_sem_per_year}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
@@ -448,7 +448,7 @@ export const updateDegree = async (req, res, next) => {
     short,
     levels: levelsArr,
     no_of_sem_per_year,
-    d_id,
+    f_id,
   } = req.body;
 
   const levels = levelsArr.join(":");
@@ -459,7 +459,7 @@ export const updateDegree = async (req, res, next) => {
     !short ||
     !levels ||
     !no_of_sem_per_year ||
-    !d_id
+    !f_id
   ) {
     return next(errorProvider(400, "Missing required fields"));
   }
@@ -504,9 +504,9 @@ export const updateDegree = async (req, res, next) => {
       ]);
 
       // Step 4: Update department-degree link
-      await conn.query("CALL UpdateDepDeg(?, ?);", [d_id, deg_id]);
+      await conn.query("CALL UpdateFacDeg(?, ?);", [f_id, deg_id]);
 
-      let desc = `Degree updated for deg_id=${deg_id} with deg_name=${deg_name}, short=${short}, levels=${levels}, no_of_sem_per_year=${no_of_sem_per_year}`;
+      let desc = `Degree updated for deg_id=${deg_id} with deg_name=${f_id}, deg_name=${deg_name}, short=${short}, levels=${levels}, no_of_sem_per_year=${no_of_sem_per_year}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();

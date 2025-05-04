@@ -125,3 +125,25 @@ export const createSyllabus = async (data) => {
   const response = await axiosInstance.post("/curriculum/createSyllabus", data);
   return response.data;
 };
+
+export const getAllSyllabiWithExtraDetails = async () => {
+  const response = await axiosInstance.get(
+    "/curriculum/getAllSyllabiWithExtraDetails"
+  );
+  return response.data;
+};
+
+export const updateSyllabusStatus = async (data) => {
+  const response = await axiosInstance.put(
+    "/curriculum/updateSyllabusStatus",
+    data
+  );
+  return response.data;
+};
+
+export const getSyllabusById = async (syl_id) => {
+  const response = await axiosInstance.post("/curriculum/getSyllabusById", {
+    syl_id,
+  });
+  return response.data;
+};
