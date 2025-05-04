@@ -78,7 +78,7 @@ const DegreeDetails = () => {
     },
     {
       accessorKey: "faculty_name",
-      header: "Faculty",
+      header: "Awarding Faculty",
     },
     {
       accessorKey: "levels",

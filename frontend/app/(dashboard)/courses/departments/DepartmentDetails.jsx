@@ -72,11 +72,7 @@ const DepartmentDetails = () => {
     },
     {
       accessorKey: "faculty_name",
-      header: "Faculty",
-    },
-    {
-      accessorKey: "degree_count",
-      header: "No of Degree programmes",
+      header: "Parent Faculty",
     },
     {
       id: "email",
@@ -88,6 +84,15 @@ const DepartmentDetails = () => {
     {
       accessorKey: "contact_no",
       header: "Contact No",
+      cell: ({ row }) => {
+        return (
+          <p>
+            {row.original.contact_no.slice(0, 3)}{" "}
+            {row.original.contact_no.slice(3, 6)}{" "}
+            {row.original.contact_no.slice(6)}
+          </p>
+        );
+      },
     },
     {
       accessorKey: "status",

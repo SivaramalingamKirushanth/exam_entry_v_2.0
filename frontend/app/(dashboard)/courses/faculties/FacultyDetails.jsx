@@ -73,12 +73,16 @@ const FacultyDetails = () => {
       },
     },
     {
-      accessorKey: "department_count",
       header: "No of departments",
+      cell: ({ row }) => {
+        return <p className="text-center">{row.original.department_count}</p>;
+      },
     },
     {
-      accessorKey: "degree_count",
       header: "No of Degree programmes",
+      cell: ({ row }) => {
+        return <p className="text-center">{row.original.degree_count}</p>;
+      },
     },
     {
       id: "email",
@@ -90,6 +94,15 @@ const FacultyDetails = () => {
     {
       accessorKey: "contact_no",
       header: "Contact No",
+      cell: ({ row }) => {
+        return (
+          <p>
+            {row.original.contact_no.slice(0, 3)}{" "}
+            {row.original.contact_no.slice(3, 6)}{" "}
+            {row.original.contact_no.slice(6)}
+          </p>
+        );
+      },
     },
     {
       accessorKey: "status",
