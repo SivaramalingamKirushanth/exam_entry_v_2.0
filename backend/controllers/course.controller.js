@@ -871,7 +871,7 @@ export const getDepartmentsByFacultyId = async (req, res, next) => {
   }
 };
 
-export const getDegreesByDepartmentId = async (req, res, next) => {
+export const getDegreesByFacultyId = async (req, res, next) => {
   const { d_id } = req.body;
 
   if (!d_id) {
@@ -882,7 +882,7 @@ export const getDegreesByDepartmentId = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      const [results] = await conn.query("CALL GetDegreesByDepartmentId(?);", [
+      const [results] = await conn.query("CALL GetDegreesByFacultyId(?);", [
         d_id,
       ]);
 

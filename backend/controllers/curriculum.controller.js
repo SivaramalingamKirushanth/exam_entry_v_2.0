@@ -989,3 +989,37 @@ export const getSyllabusById = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const getSyllabiByDegreeId = async (req, res, next) => {
+  const { deg_id } = req.body;
+
+  if (!deg_id) {
+    return next(errorProvider(400, "Missing deg_id."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [results] = await conn.query("CALL GetSyllabiByDegreeId(?);", [
+        deg_id,
+      ]);
+
+      if (results[0].length === 0) {
+        return next(
+          errorProvider(404, `No syllabi found for deg_id: ${deg_id}`)
+        );
+      }
+
+      return res.status(200).json(results[0]); // First result set contains data
+    } catch (error) {
+      console.error("Error fetching syllabi by deg_id:", error);
+      return next(errorProvider(500, "Failed to fetch syllabi by deg_id"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};

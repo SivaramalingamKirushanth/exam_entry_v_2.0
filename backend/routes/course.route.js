@@ -13,7 +13,7 @@ import {
   getDegreeById,
   getAllDegrees,
   getDepartmentsByFacultyId,
-  getDegreesByDepartmentId,
+  getDegreesByFacultyId,
   getNoOfFaculty,
   getNoOfDepartments,
   getNoOfDegrees,
@@ -105,11 +105,7 @@ router.put("/updateDegree", verifyUser(["1"]), updateDegree);
 router.put("/updateDegreeStatus", verifyUser(["1"]), updateDegreeStatus);
 router.get("/getAllDegrees", verifyUser(["1"]), getAllDegrees);
 router.post("/getDegreeById", verifyUser(["1"]), getDegreeById);
-router.post(
-  "/getDegreesByDepartmentId",
-  verifyUser(["1"]),
-  getDegreesByDepartmentId
-);
+router.post("/getDegreesByFacultyId", verifyUser(["1"]), getDegreesByFacultyId);
 router.get("/getNoOfDegrees", verifyUser(["1"]), getNoOfDegrees);
 router.post(
   "/getNoOfDegreesByLevel/:levels",

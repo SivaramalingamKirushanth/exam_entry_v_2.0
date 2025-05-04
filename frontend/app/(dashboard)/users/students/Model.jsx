@@ -17,7 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAllFaculties } from "@/utils/apiRequests/course.api";
+import {
+  getAllFaculties,
+  getDegreesByFacultyId,
+} from "@/utils/apiRequests/course.api";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({});
@@ -46,6 +49,26 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const { data: facultyData } = useQuery({
     queryFn: getAllFaculties,
     queryKey: ["faculties"],
+  });
+
+  const {
+    data: degreeData,
+    refetch: degreeDataRefetch,
+    isLoading: isLoadingDegreeData,
+  } = useQuery({
+    queryFn: () => getDegreesByFacultyId(formData.f_id),
+    queryKey: ["activeDegrees", "faculty", formData.f_id],
+    enabled: false,
+  });
+
+  const {
+    data: syllabusData,
+    refetch: syllabusDataRefetch,
+    isLoading: isLoadingSyllabusData,
+  } = useQuery({
+    queryFn: () => getSyllabiByDegreeId(formData.deg_id),
+    queryKey: ["activeSyllabi", "degree", formData.deg_id],
+    enabled: false,
   });
 
   useEffect(() => {
@@ -89,6 +112,14 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   useEffect(() => {
     editId && refetch();
   }, [editId]);
+
+  useEffect(() => {
+    if (formData?.f_id) degreeDataRefetch();
+  }, [formData?.f_id]);
+
+  useEffect(() => {
+    if (formData?.deg_id) syllabusDataRefetch();
+  }, [formData?.deg_id]);
 
   return (
     <>
@@ -206,6 +237,64 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     {facultyData?.map((item) => (
                       <SelectItem key={item.f_id} value={`f_id:${item.f_id}`}>
                         {item.f_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}>
+                <Label className="text-right">Degree programme</Label>
+                <Select
+                  onValueChange={(e) => {
+                    onFormDataChanged(e);
+                  }}
+                  value={formData.deg_id ? "deg_id:" + formData.deg_id : ""}
+                  disabled={!degreeData}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue
+                      placeholder={
+                        isLoadingDegreeData ? "Loading..." : "Degree programme"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {degreeData?.map((item) => (
+                      <SelectItem
+                        key={item.deg_id}
+                        value={`deg_id:${item.deg_id}`}
+                      >
+                        {item.deg_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}>
+                <Label className="text-right">Syllabus</Label>
+                <Select
+                  onValueChange={(e) => {
+                    onFormDataChanged(e);
+                  }}
+                  value={formData.syl_id ? "syl_id:" + formData.syl_id : ""}
+                  disabled={!syllabusData}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue
+                      placeholder={
+                        isLoadingSyllabusData
+                          ? "Loading..."
+                          : "Degree programme"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {syllabusData?.map((item) => (
+                      <SelectItem
+                        key={item.syl_id}
+                        value={`syl_id:${item.syl_id}`}
+                      >
+                        {item.deg_name}
                       </SelectItem>
                     ))}
                   </SelectContent>
