@@ -1,4 +1,4 @@
-import CurriculumsDetails from "./CurriculumsDetails";
+import CurriculumsDetails from "./GroupsDetails";
 
 const Curriculums = () => {
   return (

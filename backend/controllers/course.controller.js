@@ -657,7 +657,7 @@ export const getAllDepartments = async (req, res, next) => {
         return next(errorProvider(404, "No departments found."));
       }
 
-      return res.status(200).json({ departments: results[0] }); // First result set contains data
+      return res.status(200).json(results[0]); // First result set contains data
     } catch (error) {
       console.error("Error fetching all departments:", error);
       return next(errorProvider(500, "Failed to fetch all departments"));

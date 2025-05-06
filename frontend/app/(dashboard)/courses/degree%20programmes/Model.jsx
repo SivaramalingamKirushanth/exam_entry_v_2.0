@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LabelSearchCombobox } from "@/components/ui/customCommand";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({
@@ -53,7 +54,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     enabled: false,
   });
 
-  const { data: facultyData } = useQuery({
+  const {
+    data: facultyData,
+    isLoading: isFacultyDataLoading,
+    isError: isFacultyDataError,
+  } = useQuery({
     queryFn: getAllFaculties,
     queryKey: ["activeFaculties"],
   });
@@ -72,11 +77,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setFormData((curData) => ({
         ...curData,
         [e.target?.name]: e.target?.value,
-      }));
-    } else {
-      setFormData((curData) => ({
-        ...curData,
-        [e.split(":")[0]]: e.split(":")[1],
       }));
     }
   };
@@ -120,7 +120,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     editId && refetch();
   }, [editId]);
 
- 
   return (
     <>
       {isOpen && (
@@ -186,23 +185,19 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               </div>
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Faculty</Label>
-                <Select
-                  onValueChange={(e) => {
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.f_id ? "f_id:" + formData.f_id : ""}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Faculty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {facultyData?.map((item) => (
-                      <SelectItem key={item.f_id} value={`f_id:${item.f_id}`}>
-                        {item.f_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="col-span-3">
+                  <LabelSearchCombobox
+                    name="f_id"
+                    items={facultyData}
+                    labelField="f_name"
+                    valueField="f_id"
+                    placeholder="Search faculty..."
+                    buttonText="Select faculty"
+                    onValueChange={onFormDataChanged}
+                    value={formData.f_id || null}
+                    disabled={isFacultyDataLoading || isFacultyDataError}
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-4 gap-4">

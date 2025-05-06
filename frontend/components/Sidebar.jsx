@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { RiHome2Line } from "react-icons/ri";
+import { RiGraduationCapLine, RiHome2Line } from "react-icons/ri";
 import { LucideBook, LucideUser2 } from "lucide-react";
 import { PiNotePencil, PiNoteDuotone } from "react-icons/pi";
 import { useUser } from "@/utils/useUser";
 import { useEffect, useState } from "react";
-import { LuChartColumn } from "react-icons/lu";
+import { LuChartColumn, LuGraduationCap } from "react-icons/lu";
 
 const Sidebar = () => {
   const [roleId, setRoleID] = useState(null);
@@ -43,8 +43,15 @@ const Sidebar = () => {
               href="/courses"
               className="flex gap-3 uppercase items-center p-3 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150"
             >
-              <LucideBook size={25} className="shrink-0" />
+              <RiGraduationCapLine size={25} className="shrink-0" />
               Courses
+            </Link>
+            <Link
+              href="/curriculums"
+              className="flex gap-3 uppercase items-center p-3 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150"
+            >
+              <LucideBook size={25} className="shrink-0" />
+              curriculums
             </Link>
             <Link
               href="/users"
