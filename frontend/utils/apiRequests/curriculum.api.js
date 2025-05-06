@@ -147,3 +147,13 @@ export const getSyllabusById = async (syl_id) => {
   });
   return response.data;
 };
+
+export const getSyllabiByDegreeId = async (deg_id) => {
+  const response = await axiosInstance.post(
+    "/curriculum/getSyllabiByDegreeId",
+    {
+      deg_id,
+    }
+  );
+  return response.data;
+};

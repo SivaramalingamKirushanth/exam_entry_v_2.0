@@ -992,6 +992,7 @@ export const getSyllabusById = async (req, res, next) => {
 
 export const getSyllabiByDegreeId = async (req, res, next) => {
   const { deg_id } = req.body;
+  console.log(deg_id);
 
   if (!deg_id) {
     return next(errorProvider(400, "Missing deg_id."));
@@ -1010,6 +1011,7 @@ export const getSyllabiByDegreeId = async (req, res, next) => {
           errorProvider(404, `No syllabi found for deg_id: ${deg_id}`)
         );
       }
+      console.log(results[0]);
 
       return res.status(200).json(results[0]); // First result set contains data
     } catch (error) {

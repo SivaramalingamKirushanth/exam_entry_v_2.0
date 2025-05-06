@@ -22,6 +22,7 @@ import {
   getAllSyllabiWithExtraDetails,
   updateSyllabusStatus,
   getSyllabusById,
+  getSyllabiByDegreeId,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -87,5 +88,6 @@ router.get(
 );
 router.put("/updateSyllabusStatus", verifyUser(["1"]), updateSyllabusStatus);
 router.post("/getSyllabusById", verifyUser(["1"]), getSyllabusById);
+router.post("/getSyllabiByDegreeId", verifyUser(["1"]), getSyllabiByDegreeId);
 
 export default router;

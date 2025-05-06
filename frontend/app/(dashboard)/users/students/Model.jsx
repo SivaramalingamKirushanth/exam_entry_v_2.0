@@ -21,6 +21,7 @@ import {
   getAllFaculties,
   getDegreesByFacultyId,
 } from "@/utils/apiRequests/course.api";
+import { getSyllabiByDegreeId } from "@/utils/apiRequests/curriculum.api";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({});
@@ -55,6 +56,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     data: degreeData,
     refetch: degreeDataRefetch,
     isLoading: isLoadingDegreeData,
+    error: degreeDataError,
   } = useQuery({
     queryFn: () => getDegreesByFacultyId(formData.f_id),
     queryKey: ["activeDegrees", "faculty", formData.f_id],
@@ -65,6 +67,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     data: syllabusData,
     refetch: syllabusDataRefetch,
     isLoading: isLoadingSyllabusData,
+    error: syllabusDataError,
   } = useQuery({
     queryFn: () => getSyllabiByDegreeId(formData.deg_id),
     queryKey: ["activeSyllabi", "degree", formData.deg_id],
@@ -105,7 +108,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       formData.user_name &&
       formData.email &&
       formData.contact_no &&
-      formData.f_id;
+      formData.f_id &&
+      formData.deg_id &&
+      formData.syl_id;
     setBtnEnable(isFormValid);
   }, [formData]);
 
@@ -227,7 +232,14 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Faculty</Label>
                 <Select
-                  onValueChange={(e) => onFormDataChanged(e)}
+                  onValueChange={(e) => {
+                    setFormData((cur) => ({
+                      ...cur,
+                      deg_id: "",
+                      syl_id: "",
+                    }));
+                    onFormDataChanged(e);
+                  }}
                   value={formData.f_id ? "f_id:" + formData.f_id : ""}
                 >
                   <SelectTrigger className="col-span-3">
@@ -242,10 +254,14 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}>
+              <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Degree programme</Label>
                 <Select
                   onValueChange={(e) => {
+                    setFormData((cur) => ({
+                      ...cur,
+                      syl_id: "",
+                    }));
                     onFormDataChanged(e);
                   }}
                   value={formData.deg_id ? "deg_id:" + formData.deg_id : ""}
@@ -254,7 +270,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   <SelectTrigger className="col-span-3">
                     <SelectValue
                       placeholder={
-                        isLoadingDegreeData ? "Loading..." : "Degree programme"
+                        degreeDataError
+                          ? "Not found"
+                          : isLoadingDegreeData
+                          ? "Loading..."
+                          : "Degree programme"
                       }
                     />
                   </SelectTrigger>
@@ -270,7 +290,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}>
+              <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Syllabus</Label>
                 <Select
                   onValueChange={(e) => {
@@ -282,9 +302,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   <SelectTrigger className="col-span-3">
                     <SelectValue
                       placeholder={
-                        isLoadingSyllabusData
+                        syllabusDataError
+                          ? "Not found"
+                          : isLoadingSyllabusData
                           ? "Loading..."
-                          : "Degree programme"
+                          : "Syllabus"
                       }
                     />
                   </SelectTrigger>
@@ -294,7 +316,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                         key={item.syl_id}
                         value={`syl_id:${item.syl_id}`}
                       >
-                        {item.deg_name}
+                        {item.commenced_year}
                       </SelectItem>
                     ))}
                   </SelectContent>

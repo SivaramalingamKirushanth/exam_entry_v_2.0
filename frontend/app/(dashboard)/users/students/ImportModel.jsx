@@ -15,12 +15,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAllFaculties } from "@/utils/apiRequests/course.api";
+import {
+  getAllFaculties,
+  getDegreesByFacultyId,
+} from "@/utils/apiRequests/course.api";
+import { getSyllabiByDegreeId } from "@/utils/apiRequests/curriculum.api";
 
 const ImportModel = ({ isImportOpen, setIsImportOpen, importModalRef }) => {
   const [file, setFile] = useState(null);
-  const [f_id, setF_id] = useState(null);
+  const [formData, setFormData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: facultyData } = useQuery({
@@ -28,11 +33,48 @@ const ImportModel = ({ isImportOpen, setIsImportOpen, importModalRef }) => {
     queryKey: ["faculties"],
   });
 
+  const {
+    data: degreeData,
+    refetch: degreeDataRefetch,
+    isLoading: isLoadingDegreeData,
+    error: degreeDataError,
+  } = useQuery({
+    queryFn: () => getDegreesByFacultyId(formData.f_id),
+    queryKey: ["activeDegrees", "faculty", formData.f_id],
+    enabled: false,
+  });
+
+  const {
+    data: syllabusData,
+    refetch: syllabusDataRefetch,
+    isLoading: isLoadingSyllabusData,
+    error: syllabusDataError,
+  } = useQuery({
+    queryFn: () => getSyllabiByDegreeId(formData.deg_id),
+    queryKey: ["activeSyllabi", "degree", formData.deg_id],
+    enabled: false,
+  });
+
+  const onFormDataChanged = (e) => {
+    if (e.target) {
+      setFormData((curData) => ({
+        ...curData,
+        [e.target?.name]: e.target?.value,
+      }));
+    } else {
+      setFormData((curData) => ({
+        ...curData,
+        [e.split(":")[0]]: e.split(":")[1],
+      }));
+    }
+  };
+
   const onFormSubmitted = async () => {
     setIsLoading(true);
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("f_id", f_id);
+    formData.append("f_id", formData.f_id);
+    formData.append("syl_id", formData.syl_id);
 
     try {
       const result = await multipleStudentsRegister(formData);
@@ -48,11 +90,24 @@ const ImportModel = ({ isImportOpen, setIsImportOpen, importModalRef }) => {
     } finally {
       queryClient.invalidateQueries(["students"]);
       setFile(null);
-      setF_id(null);
+      setFormData({});
       setIsLoading(false);
       setIsImportOpen(false);
     }
   };
+
+  useEffect(() => {
+    const isFormValid = formData.f_id && formData.deg_id && formData.syl_id;
+    setBtnEnable(isFormValid);
+  }, [formData]);
+
+  useEffect(() => {
+    if (formData?.f_id) degreeDataRefetch();
+  }, [formData?.f_id]);
+
+  useEffect(() => {
+    if (formData?.deg_id) syllabusDataRefetch();
+  }, [formData?.deg_id]);
 
   return (
     <>
@@ -69,26 +124,107 @@ const ImportModel = ({ isImportOpen, setIsImportOpen, importModalRef }) => {
                 onClick={() => {
                   setIsImportOpen(false);
                   setFile(null);
-                  setF_id(null);
+                  setFormData({});
                 }}
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Faculty</Label>
-              <Select onValueChange={(e) => setF_id(e)} value={f_id || ""}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Faculty" />
-                </SelectTrigger>
-                <SelectContent>
-                  {facultyData?.map((item) => (
-                    <SelectItem key={item.f_id} value={item.f_id}>
-                      {item.f_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid gap-1 py-1">
+              <div className={`grid grid-cols-4 items-center gap-4`}>
+                <Label className="text-right">Faculty</Label>
+                <Select
+                  onValueChange={(e) => {
+                    setFormData((cur) => ({
+                      ...cur,
+                      deg_id: "",
+                      syl_id: "",
+                    }));
+                    onFormDataChanged(e);
+                  }}
+                  value={formData.f_id ? "f_id:" + formData.f_id : ""}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Faculty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {facultyData?.map((item) => (
+                      <SelectItem key={item.f_id} value={`f_id:${item.f_id}`}>
+                        {item.f_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className={`grid grid-cols-4 items-center gap-4`}>
+                <Label className="text-right">Degree programme</Label>
+                <Select
+                  onValueChange={(e) => {
+                    setFormData((cur) => ({
+                      ...cur,
+                      syl_id: "",
+                    }));
+                    onFormDataChanged(e);
+                  }}
+                  value={formData.deg_id ? "deg_id:" + formData.deg_id : ""}
+                  disabled={!degreeData}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue
+                      placeholder={
+                        degreeDataError
+                          ? "Not found"
+                          : isLoadingDegreeData
+                          ? "Loading..."
+                          : "Degree programme"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {degreeData?.map((item) => (
+                      <SelectItem
+                        key={item.deg_id}
+                        value={`deg_id:${item.deg_id}`}
+                      >
+                        {item.deg_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className={`grid grid-cols-4 items-center gap-4`}>
+                <Label className="text-right">Syllabus</Label>
+                <Select
+                  onValueChange={(e) => {
+                    onFormDataChanged(e);
+                  }}
+                  value={formData.syl_id ? "syl_id:" + formData.syl_id : ""}
+                  disabled={!syllabusData}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue
+                      placeholder={
+                        syllabusDataError
+                          ? "Not found"
+                          : isLoadingSyllabusData
+                          ? "Loading..."
+                          : "Syllabus"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {syllabusData?.map((item) => (
+                      <SelectItem
+                        key={item.syl_id}
+                        value={`syl_id:${item.syl_id}`}
+                      >
+                        {item.commenced_year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="font-bahnschriftCon pl-5 mt-3">
+
+            <div className="font-bahnschriftCon pl-5 mt-1">
               <h2 className="font-semibold">Instructions</h2>
               <ul className="list-disc text-sm">
                 <li>Ensure the file is in CSV format.</li>
@@ -119,13 +255,13 @@ const ImportModel = ({ isImportOpen, setIsImportOpen, importModalRef }) => {
               </ul>
             </div>
 
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-2">
               <Dropzone file={file} setFile={setFile} />
             </div>
             <div className="flex justify-end space-x-2 mt-4">
               <Button
                 type="button"
-                disabled={!file || !f_id || isLoading}
+                disabled={!file || !btnEnable || isLoading}
                 onClick={onFormSubmitted}
               >
                 {isLoading ? "Importing..." : "Import"}

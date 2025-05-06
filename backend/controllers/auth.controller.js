@@ -23,6 +23,7 @@ export const studentRegister = async (req, res, next) => {
     user_name,
     name,
     f_id,
+    syl_id,
     email,
     contact_no,
     index_num = "",
@@ -30,7 +31,15 @@ export const studentRegister = async (req, res, next) => {
   } = req.body;
   const role_id = 5;
 
-  if (!user_name || !name || !f_id || !email || !status || !contact_no) {
+  if (
+    !user_name ||
+    !name ||
+    !f_id ||
+    !syl_id ||
+    !email ||
+    !status ||
+    !contact_no
+  ) {
     return next(errorProvider(400, "Missing credentials"));
   }
 
@@ -76,15 +85,15 @@ export const studentRegister = async (req, res, next) => {
 
       // Insert student details
       const [studentResult] = await conn.query(
-        "CALL InsertStudentDetail( ?, ?, ?, ? ,?, @sId);SELECT @sId AS sId;",
-        [name, f_id, status, index_num, contact_no]
+        "CALL InsertStudentDetail( ?, ?, ?, ?, ? ,?, @sId);SELECT @sId AS sId;",
+        [name, f_id, syl_id, status, index_num, contact_no]
       );
 
       const s_id = studentResult[1][0].sId;
 
       await conn.query("CALL InsertStudent(?, ?);", [user_id, s_id]);
 
-      let desc = `Student created with user_id=${user_id}, s_id=${s_id}, name=${name}, f_id=${f_id}, index_num=${index_num}, contact_no=${contact_no}`;
+      let desc = `Student created with user_id=${user_id}, s_id=${s_id}, name=${name}, f_id=${f_id}, syl_id=${syl_id}, index_num=${index_num}, contact_no=${contact_no}`;
 
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
@@ -125,11 +134,17 @@ export const multipleStudentsRegister = async (req, res, next) => {
 
   try {
     // Check if file exists
-    if (!req.file || !req.file.buffer || !req.body.f_id) {
-      return next(errorProvider(400, "No file uploaded"));
+    if (!req.file || !req.file.buffer || !req.body.f_id || !req.body.syl_id) {
+      return next(
+        errorProvider(
+          400,
+          "No file uploaded or missing required data(f_id, syl_id)"
+        )
+      );
     }
 
     let f_id = req.body.f_id;
+    let syl_id = req.body.syl_id;
 
     const buffer = req.file.buffer; // Access the file buffer
     const stream = streamifier.createReadStream(buffer); // Convert buffer to readable stream
@@ -155,7 +170,7 @@ export const multipleStudentsRegister = async (req, res, next) => {
             } = record;
 
             // Validate fields
-            if (!user_name || !name || !f_id || !email || !contact_no) {
+            if (!user_name || !name || !email || !contact_no) {
               failedRecords.push({ record, error: "Missing credentials" });
               continue;
             }
@@ -195,15 +210,15 @@ export const multipleStudentsRegister = async (req, res, next) => {
 
             // Insert student details
             const [studentResult] = await conn.query(
-              "CALL InsertStudentDetail( ?, ?, ?,? ,?, @sId);SELECT @sId AS sId;",
-              [name, f_id, status, index_num, contact_no]
+              "CALL InsertStudentDetail( ?, ?, ?, ?,? ,?, @sId);SELECT @sId AS sId;",
+              [name, f_id, syl_id, status, index_num, contact_no]
             );
 
             const s_id = studentResult[1][0].sId;
 
             await conn.query("CALL InsertStudent(?, ?);", [user_id, s_id]);
 
-            let desc = `Student created with user_id=${user_id}, s_id=${s_id}, name=${name}, f_id=${f_id}, index_num=${index_num}, contact_no=${contact_no}`;
+            let desc = `Student created with user_id=${user_id}, s_id=${s_id}, name=${name}, f_id=${f_id}, syl_id=${syl_id}, index_num=${index_num}, contact_no=${contact_no}`;
 
             await conn.query("CALL LogAdminAction(?);", [desc]);
 
