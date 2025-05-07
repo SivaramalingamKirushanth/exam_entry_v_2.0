@@ -1,4 +1,4 @@
-import CurriculumsDetails from "./CurriculumsDetails";
+import CurriculumsDetails from "./SyllabiDetails";
 
 const Curriculums = () => {
   return (

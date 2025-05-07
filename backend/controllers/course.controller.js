@@ -20,7 +20,7 @@ export const createFaculty = async (req, res, next) => {
         "CALL CheckIfFacultyExists(?, ?, @exists); SELECT @exists AS faculty_exists;",
         [f_name, email]
       );
-      const { faculty_exists } = facultyExistsResult[0];
+      const { faculty_exists } = facultyExistsResult[1][0];
 
       if (faculty_exists > 0) {
         conn.release();

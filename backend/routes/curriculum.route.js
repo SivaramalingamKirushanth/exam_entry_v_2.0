@@ -15,7 +15,6 @@ import {
   updateEligibility,
   updateSubjectStatus,
   updateMultipleEligibility,
-  checkSubjectExist,
   getAllSubjectsForDepartment,
   getAllSubjectsForFaculty,
   createSyllabus,
@@ -23,6 +22,8 @@ import {
   updateSyllabusStatus,
   getSyllabusById,
   getSyllabiByDegreeId,
+  updateSyllabus,
+  checkSubjectExistOnBSL,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -79,7 +80,11 @@ router.put(
   verifyUser(["1", "2", "3", "4"]),
   updateMultipleEligibility
 );
-router.post("/checkSubjectExist", verifyUser(["4"]), checkSubjectExist);
+router.post(
+  "/checkSubjectExistOnBSL",
+  verifyUser(["4"]),
+  checkSubjectExistOnBSL
+);
 router.post("/createSyllabus", verifyUser(["1"]), createSyllabus);
 router.get(
   "/getAllSyllabiWithExtraDetails",
@@ -89,5 +94,6 @@ router.get(
 router.put("/updateSyllabusStatus", verifyUser(["1"]), updateSyllabusStatus);
 router.post("/getSyllabusById", verifyUser(["1"]), getSyllabusById);
 router.post("/getSyllabiByDegreeId", verifyUser(["1"]), getSyllabiByDegreeId);
+router.put("/updateSyllabus", verifyUser(["1"]), updateSyllabus);
 
 export default router;

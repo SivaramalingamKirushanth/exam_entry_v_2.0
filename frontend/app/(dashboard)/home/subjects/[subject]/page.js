@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import StudentDetails from "./StudentDetails";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { checkSubjectExist } from "@/utils/apiRequests/curriculum.api";
+import { checkSubjectExistOnBSL } from "@/utils/apiRequests/curriculum.api";
 import { useUser } from "@/utils/useUser";
 
 const Subjects = () => {
@@ -23,7 +23,7 @@ const Subjects = () => {
   const batch_id = searchParams.get("batch_id");
 
   const { data: subjectExistData } = useQuery({
-    queryFn: () => checkSubjectExist({ batch_id, sub_id }),
+    queryFn: () => checkSubjectExistOnBSL({ batch_id, sub_id }),
     queryKey: ["subjectDataDetails", sub_id, batch_id],
     enabled: roleId == "4",
   });

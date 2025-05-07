@@ -178,12 +178,21 @@ export const createSubject = async (req, res, next) => {
     sub_code,
     sub_name,
     sem_no,
-    deg_id,
+    syl_id,
+    d_id,
     level,
     status = "true",
   } = req.body;
 
-  if (!sub_code || !sub_name || !sem_no || !deg_id || !level || !status) {
+  if (
+    !sub_code ||
+    !sub_name ||
+    !sem_no ||
+    !syl_id ||
+    !d_id ||
+    !level ||
+    !status
+  ) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -191,16 +200,30 @@ export const createSubject = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      await conn.query("CALL CreateSubject(?, ?, ?, ?, ?, ?);", [
+      const [subjectExistsResult] = await conn.query(
+        "CALL CheckSubjectExist(?, ?, @exists); SELECT @exists AS subject_exists;",
+        [sub_code, syl_id]
+      );
+      const { subject_exists } = subjectExistsResult[1][0];
+
+      if (subject_exists > 0) {
+        conn.release();
+        return next(
+          errorProvider(409, "Subject code already exists on the syllabus")
+        );
+      }
+
+      await conn.query("CALL CreateSubject(?, ?, ?, ?, ?, ?, ?);", [
         sub_code,
         sub_name,
         sem_no,
-        deg_id,
+        syl_id,
+        d_id,
         level,
         status,
       ]);
 
-      let desc = `Subject created sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, deg_id=${deg_id}, level=${level}`;
+      let desc = `Subject created sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, syl_id=${syl_id}, d_id=${d_id}, level=${level}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(201).json({
@@ -224,7 +247,7 @@ export const createSubject = async (req, res, next) => {
 };
 
 export const updateSubject = async (req, res, next) => {
-  const { sub_code, sub_name, sem_no, deg_id, level, sub_id } = req.body;
+  const { sub_code, sub_name, sem_no, syl_id, d_id, level, sub_id } = req.body;
 
   if (!sub_id) {
     return next(errorProvider(400, "Subject ID (sub_id) is required"));
@@ -235,8 +258,8 @@ export const updateSubject = async (req, res, next) => {
 
     try {
       const [result] = await conn.query(
-        "CALL UpdateSubject(?, ?, ?, ?, ?, ?);",
-        [sub_id, sub_code, sub_name, sem_no, deg_id, level]
+        "CALL UpdateSubject(?, ?, ?, ?, ?, ?, ?);",
+        [sub_id, sub_code, sub_name, sem_no, syl_id, d_id, level]
       );
 
       if (result.affectedRows === 0) {
@@ -245,7 +268,7 @@ export const updateSubject = async (req, res, next) => {
         );
       }
 
-      let desc = `Subject updated for sub_id=${sub_id}, sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, deg_id=${deg_id}, level=${level}`;
+      let desc = `Subject updated for sub_id=${sub_id}, sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, syl_id=${syl_id}, d_id=${d_id}, level=${level}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(200).json({ message: "Subject updated successfully" });
@@ -806,7 +829,7 @@ export const updateMultipleEligibility = async (req, res, next) => {
   }
 };
 
-export const checkSubjectExist = async (req, res, next) => {
+export const checkSubjectExistOnBSL = async (req, res, next) => {
   const { user_id } = req.user;
   const { batch_id, sub_id } = req.body;
 
@@ -818,7 +841,7 @@ export const checkSubjectExist = async (req, res, next) => {
     const conn = await pool.getConnection();
     try {
       const [subjectExistsResult] = await conn.query(
-        "CALL CheckSubjectExist(?, ?, ?, @subjectExists); SELECT @subjectExists AS subjectExists;",
+        "CALL CheckSubjectExistOnBSL(?, ?, ?, @subjectExists); SELECT @subjectExists AS subjectExists;",
         [batch_id, sub_id, user_id]
       );
 
@@ -861,6 +884,17 @@ export const createSyllabus = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
+      const [syllabusExistsResult] = await conn.query(
+        "CALL CheckSyllabusExist(?, ?, @exists); SELECT @exists AS syllabus_exists;",
+        [deg_id, commenced_year]
+      );
+      const { syllabus_exists } = syllabusExistsResult[1][0];
+
+      if (syllabus_exists > 0) {
+        conn.release();
+        return next(errorProvider(409, "syllabus already exists"));
+      }
+
       await conn.query("CALL CreateSyllabus(?, ?, ?, ?);", [
         deg_id,
         commenced_year,
@@ -931,22 +965,22 @@ export const updateSyllabusStatus = async (req, res, next) => {
 
       if (result.affectedRows === 0) {
         return next(
-          errorProvider(404, "Subject record not found or no changes made")
+          errorProvider(404, "Syllabus record not found or no changes made")
         );
       }
 
-      let desc = `Subject status changed for syl_id=${syl_id} to status=${status}`;
+      let desc = `Syllabus status changed for syl_id=${syl_id} to status=${status}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res
         .status(200)
-        .json({ message: "subject status updated successfully" });
+        .json({ message: "Syllabus status updated successfully" });
     } catch (error) {
-      console.error("Error updating subject:", error);
+      console.error("Error updating Syllabus:", error);
       return next(
         errorProvider(
           500,
-          "An error occurred while updating the subject record"
+          "An error occurred while updating the Syllabus record"
         )
       );
     } finally {
@@ -1022,6 +1056,51 @@ export const getSyllabiByDegreeId = async (req, res, next) => {
     }
   } catch (error) {
     console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const updateSyllabus = async (req, res, next) => {
+  const { deg_id, commenced_year, expired_year, syl_id } = req.body;
+
+  if (!syl_id) {
+    return next(errorProvider(400, "Syllabus ID (syl_id) is required"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [result] = await conn.query("CALL UpdateSyllabus(?, ?, ?, ?);", [
+        deg_id,
+        commenced_year,
+        expired_year,
+        syl_id,
+      ]);
+
+      if (result.affectedRows === 0) {
+        return next(
+          errorProvider(404, "Syllabus record not found or no changes made")
+        );
+      }
+
+      let desc = `Syllabus updated for syl_id=${syl_id}, deg_id=${deg_id}, commenced_year=${commenced_year}, expired_year=${expired_year}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      return res.status(200).json({ message: "Syllabus updated successfully" });
+    } catch (error) {
+      console.error("Error updating Syllabus:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while updating the Syllabus record"
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };

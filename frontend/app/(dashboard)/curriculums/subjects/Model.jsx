@@ -263,6 +263,64 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   />
                 </div>
               </div>
+              <div
+                className={`${
+                  degreeLevelsData ? "grid" : "hidden"
+                }  grid-cols-4 gap-4`}
+              >
+                <Label className="text-right">Level</Label>
+                <div className="flex col-span-3 gap-4 flex-wrap">
+                  {degreeLevelsData?.levels.map((item) => (
+                    <div className="flex items-center space-x-2" key={item}>
+                      <input
+                        type="radio"
+                        value={item}
+                        id={`l${item}`}
+                        checked={formData.level == item}
+                        name="level"
+                        onChange={(e) => onFormDataChanged(e)}
+                        className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
+                      />
+                      <Label htmlFor={`l${item}`} className="cursor-pointer">
+                        {item}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div
+                className={`${
+                  degreeLevelsData ? "grid" : "hidden"
+                }  grid-cols-4 gap-4`}
+              >
+                <Label className="text-right">Semester</Label>
+                <div className="flex col-span-3 gap-4 flex-wrap">
+                  {Array(+degreeLevelsData?.no_of_sem_per_year || 0)
+                    .fill(1)
+                    .map((_, ind) => (
+                      <div
+                        className="flex items-center space-x-2"
+                        key={ind + 1}
+                      >
+                        <input
+                          type="radio"
+                          value={ind + 1}
+                          id={`s${ind + 1}`}
+                          checked={formData.sem_no == ind + 1}
+                          name="sem_no"
+                          onChange={(e) => onFormDataChanged(e)}
+                          className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
+                        />
+                        <Label
+                          htmlFor={`s${ind + 1}`}
+                          className="cursor-pointer"
+                        >
+                          {ind + 1}
+                        </Label>
+                      </div>
+                    ))}
+                </div>
+              </div>{" "}
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Syllabus</Label>
                 <div className="col-span-3">
@@ -320,64 +378,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                       isDepartmentDataError
                     }
                   />
-                </div>
-              </div>
-              <div
-                className={`${
-                  degreeLevelsData ? "grid" : "hidden"
-                }  grid-cols-4 gap-4`}
-              >
-                <Label className="text-right">Level</Label>
-                <div className="flex col-span-3 gap-4 flex-wrap">
-                  {degreeLevelsData?.levels.map((item) => (
-                    <div className="flex items-center space-x-2" key={item}>
-                      <input
-                        type="radio"
-                        value={item}
-                        id={`l${item}`}
-                        checked={formData.level == item}
-                        name="level"
-                        onChange={(e) => onFormDataChanged(e)}
-                        className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
-                      />
-                      <Label htmlFor={`l${item}`} className="cursor-pointer">
-                        {item}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div
-                className={`${
-                  degreeLevelsData ? "grid" : "hidden"
-                }  grid-cols-4 gap-4`}
-              >
-                <Label className="text-right">Semester</Label>
-                <div className="flex col-span-3 gap-4 flex-wrap">
-                  {Array(+degreeLevelsData?.no_of_sem_per_year || 0)
-                    .fill(1)
-                    .map((_, ind) => (
-                      <div
-                        className="flex items-center space-x-2"
-                        key={ind + 1}
-                      >
-                        <input
-                          type="radio"
-                          value={ind + 1}
-                          id={`s${ind + 1}`}
-                          checked={formData.sem_no == ind + 1}
-                          name="sem_no"
-                          onChange={(e) => onFormDataChanged(e)}
-                          className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
-                        />
-                        <Label
-                          htmlFor={`s${ind + 1}`}
-                          className="cursor-pointer"
-                        >
-                          {ind + 1}
-                        </Label>
-                      </div>
-                    ))}
                 </div>
               </div>
             </div>

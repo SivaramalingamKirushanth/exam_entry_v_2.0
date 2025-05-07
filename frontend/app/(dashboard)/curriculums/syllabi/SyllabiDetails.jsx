@@ -17,6 +17,7 @@ import {
   getAllSubjectsWithExtraDetails,
   getAllSyllabiWithExtraDetails,
   updateSubjectStatus,
+  updateSyllabusStatus,
 } from "@/utils/apiRequests/curriculum.api";
 import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ const Syllabi = () => {
   });
 
   const { mutate } = useMutation({
-    mutationFn: updateSubjectStatus,
+    mutationFn: updateSyllabusStatus,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["syllabiExtra"]);
       setEditId("");
@@ -159,10 +160,15 @@ const Syllabi = () => {
       let filtData1 = searchValue
         ? data.filter(
             (item) =>
-              item.sub_name.toLowerCase().includes(searchValue.toLowerCase()) ||
-              item.sub_code.toLowerCase().includes(searchValue.toLowerCase())
+              item.degree_name
+                .toLowerCase()
+                .includes(searchValue.toLowerCase()) ||
+              String(item.commenced_year)
+                .toLowerCase()
+                .includes(searchValue.toLowerCase())
           )
         : data;
+
       let filtData2 = filtData1.filter((item) => {
         return status == "all" ? true : item.status == status;
       });

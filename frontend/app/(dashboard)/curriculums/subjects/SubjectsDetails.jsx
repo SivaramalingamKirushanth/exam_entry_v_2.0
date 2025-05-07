@@ -80,6 +80,23 @@ const SubjectsDetails = () => {
       header: "Degree programme",
     },
     {
+      accessorKey: "d_name",
+      header: "Offering department",
+    },
+    {
+      accessorKey: "commenced_year",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Syllabus <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+    },
+    {
       accessorKey: "level",
       header: "Level",
     },

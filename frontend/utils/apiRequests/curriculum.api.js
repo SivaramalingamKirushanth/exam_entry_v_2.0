@@ -76,6 +76,14 @@ export const getStudentApplicationDetails = async () => {
   return response.data;
 };
 
+export const checkSubjectExistOnBSL = async (data) => {
+  const response = await axiosInstance.post(
+    "/curriculum/checkSubjectExistOnBSL",
+    data
+  );
+  return response.data;
+};
+
 export const checkSubjectExist = async (data) => {
   const response = await axiosInstance.post(
     "/curriculum/checkSubjectExist",
@@ -155,5 +163,10 @@ export const getSyllabiByDegreeId = async (deg_id) => {
       deg_id,
     }
   );
+  return response.data;
+};
+
+export const updateSyllabus = async (data) => {
+  const response = await axiosInstance.put("/curriculum/updateSyllabus", data);
   return response.data;
 };

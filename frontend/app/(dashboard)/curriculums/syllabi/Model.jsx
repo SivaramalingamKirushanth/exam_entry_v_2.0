@@ -13,6 +13,7 @@ import {
   getAllFaculties,
   getDegreeById,
   getDegreesByDepartmentId,
+  getDegreesByFacultyId,
   getDepartmentsByFacultyId,
 } from "@/utils/apiRequests/course.api";
 import {
@@ -26,8 +27,11 @@ import {
   createSubject,
   createSyllabus,
   getSubjectById,
+  getSyllabusById,
   updateSubject,
+  updateSyllabus,
 } from "@/utils/apiRequests/curriculum.api";
+import { LabelSearchCombobox } from "@/components/ui/customCommand";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({});
@@ -50,7 +54,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const { status, mutate } = useMutation({
-    mutationFn: editId ? updateSubject : createSyllabus,
+    mutationFn: editId ? updateSyllabus : createSyllabus,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["syllabusExtra"]);
       setEditId("");
@@ -63,35 +67,30 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   });
 
   const { data, refetch } = useQuery({
-    queryFn: () => getSubjectById(editId),
-    queryKey: ["subjects", editId],
+    queryFn: () => getSyllabusById(editId),
+    queryKey: ["syllabus", editId],
     enabled: false,
   });
 
-  const { data: facultyData } = useQuery({
+  const {
+    data: facultyData,
+    isLoading: isFacultyDataLoading,
+    isError: isFacultyDataError,
+  } = useQuery({
     queryFn: getAllFaculties,
     queryKey: ["activeFaculties"],
   });
 
-  const { data: departmentData, refetch: departmentDataRefetch } = useQuery({
-    queryFn: () => getDepartmentsByFacultyId(formData.f_id),
-    queryKey: ["activeDepartments", "faculty", formData.f_id],
+  const {
+    data: degreeData,
+    refetch: degreeDataRefetch,
+    isLoading: isDegreeDataLoading,
+    isError: isDegreeDataError,
+  } = useQuery({
+    queryFn: () => getDegreesByFacultyId(formData.f_id),
+    queryKey: ["activeDegrees", "faculty", formData.f_id],
     enabled: false,
   });
-
-  const { data: degreeData, refetch: degreeDataRefetch } = useQuery({
-    queryFn: () => getDegreesByDepartmentId(formData.d_id),
-    queryKey: ["activeDegrees", "department", formData.d_id],
-    enabled: false,
-  });
-
-  const { data: degreeLevelsData, refetch: degreeLevelsDataRefetch } = useQuery(
-    {
-      queryFn: () => getDegreeById(formData.deg_id),
-      queryKey: ["degrees", formData.deg_id],
-      enabled: false,
-    }
-  );
 
   useEffect(() => {
     if (data) setFormData(data);
@@ -123,10 +122,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   useEffect(() => {
     const isFormValid =
-      formData.f_id &&
-      formData.d_id &&
-      formData.deg_id &&
-      formData.commenced_year;
+      formData.f_id && formData.deg_id && formData.commenced_year;
     setBtnEnable(isFormValid);
   }, [formData]);
 
@@ -135,16 +131,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   }, [editId]);
 
   useEffect(() => {
-    if (formData?.f_id) departmentDataRefetch();
+    if (formData?.f_id) degreeDataRefetch();
   }, [formData?.f_id]);
-
-  useEffect(() => {
-    if (formData?.d_id) degreeDataRefetch();
-  }, [formData?.d_id]);
-
-  useEffect(() => {
-    if (formData?.deg_id) degreeLevelsDataRefetch();
-  }, [formData?.deg_id]);
 
   return (
     <>
@@ -169,70 +157,48 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
             <div className="grid gap-4 py-4">
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Faculty</Label>
-                <Select
-                  onValueChange={(e) => {
-                    setFormData((cur) => ({ ...cur, d_id: "" }));
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.f_id ? "f_id:" + formData.f_id : ""}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Faculty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {facultyData?.map((item) => (
-                      <SelectItem value={`f_id:${item.f_id}`} key={item.f_id}>
-                        {item.f_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className={`grid grid-cols-4 items-center gap-4`}>
-                <Label className="text-right">Department</Label>
-                <Select
-                  onValueChange={(e) => {
-                    setFormData((cur) => ({ ...cur, deg_id: "" }));
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.d_id ? "d_id:" + formData.d_id : ""}
-                  disabled={!formData.f_id}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departmentData?.map((item) => (
-                      <SelectItem key={item.d_id} value={`d_id:${item.d_id}`}>
-                        {item.d_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="col-span-3">
+                  <LabelSearchCombobox
+                    name="f_id"
+                    items={facultyData}
+                    labelField="f_name"
+                    valueField="f_id"
+                    placeholder="Search faculty..."
+                    buttonText="Select faculty"
+                    onValueChange={(e) => {
+                      setFormData((cur) => ({ ...cur, deg_id: "" }));
+                      onFormDataChanged(e);
+                    }}
+                    value={formData.f_id || null}
+                    disabled={isFacultyDataLoading || isFacultyDataError}
+                  />
+                </div>
               </div>
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Degree programme</Label>
-                <Select
-                  onValueChange={(e) => {
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.deg_id ? "deg_id:" + formData.deg_id : ""}
-                  disabled={!formData.d_id}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Degree programme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {degreeData?.map((item) => (
-                      <SelectItem
-                        key={item.deg_id}
-                        value={`deg_id:${item.deg_id}`}
-                      >
-                        {item.deg_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="col-span-3">
+                  <LabelSearchCombobox
+                    name="deg_id"
+                    items={degreeData}
+                    labelField="deg_name"
+                    valueField="deg_id"
+                    placeholder="Search degree..."
+                    buttonText={
+                      isDegreeDataError
+                        ? "Not found"
+                        : isDegreeDataLoading
+                        ? "Loading..."
+                        : "Select degree"
+                    }
+                    onValueChange={(e) => {
+                      onFormDataChanged(e);
+                    }}
+                    value={formData.deg_id || null}
+                    disabled={
+                      !degreeData || isDegreeDataLoading || isDegreeDataError
+                    }
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="commenced_year" className="text-right">
