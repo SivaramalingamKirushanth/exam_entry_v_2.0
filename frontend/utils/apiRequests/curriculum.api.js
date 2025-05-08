@@ -170,3 +170,48 @@ export const updateSyllabus = async (data) => {
   const response = await axiosInstance.put("/curriculum/updateSyllabus", data);
   return response.data;
 };
+
+export const getAllSubjectsForGroupCreation = async (
+  f_id,
+  syl_id,
+  level,
+  sem_no
+) => {
+  const response = await axiosInstance.post(
+    "/curriculum/getAllSubjectsForGroupCreation",
+    {
+      f_id,
+      syl_id,
+      level,
+      sem_no,
+    }
+  );
+  return response.data;
+};
+
+export const createGroup = async (data) => {
+  const response = await axiosInstance.post("/curriculum/createGroup", data);
+  return response.data;
+};
+
+export const getAllGroupsWithExtraDetails = async () => {
+  const response = await axiosInstance.get(
+    "/curriculum/getAllGroupsWithExtraDetails"
+  );
+  return response.data;
+};
+
+export const updateGroupStatus = async (data) => {
+  const response = await axiosInstance.put(
+    "/curriculum/updateGroupStatus",
+    data
+  );
+  return response.data;
+};
+
+export const getGroupById = async (grp_id) => {
+  const response = await axiosInstance.post("/curriculum/getGroupById", {
+    grp_id,
+  });
+  return response.data;
+};

@@ -70,7 +70,7 @@ const Examination = () => {
           </Card>
         </Link>
         <Link
-          href={`${pathname}/batches`}
+          href={`${pathname}/groups`}
           className="sm:w-[30%] sm:max-w-[30%] hover:shadow-md rounded-xl"
         >
           <Card>

@@ -24,6 +24,11 @@ import {
   getSyllabiByDegreeId,
   updateSyllabus,
   checkSubjectExistOnBSL,
+  getAllSubjectsForGroupCreation,
+  createGroup,
+  getAllGroupsWithExtraDetails,
+  updateGroupStatus,
+  getGroupById,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -95,5 +100,18 @@ router.put("/updateSyllabusStatus", verifyUser(["1"]), updateSyllabusStatus);
 router.post("/getSyllabusById", verifyUser(["1"]), getSyllabusById);
 router.post("/getSyllabiByDegreeId", verifyUser(["1"]), getSyllabiByDegreeId);
 router.put("/updateSyllabus", verifyUser(["1"]), updateSyllabus);
+router.post(
+  "/getAllSubjectsForGroupCreation",
+  verifyUser(["1"]),
+  getAllSubjectsForGroupCreation
+);
+router.post("/createGroup", verifyUser(["1"]), createGroup);
+router.get(
+  "/getAllGroupsWithExtraDetails",
+  verifyUser(["1"]),
+  getAllGroupsWithExtraDetails
+);
+router.put("/updateGroupStatus", verifyUser(["1"]), updateGroupStatus);
+router.post("/getGroupById", verifyUser(["1"]), getGroupById);
 
 export default router;

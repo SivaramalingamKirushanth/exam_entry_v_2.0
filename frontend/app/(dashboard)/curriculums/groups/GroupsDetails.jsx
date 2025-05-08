@@ -13,18 +13,18 @@ import {
 } from "@/components/ui/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Modal from "./Model";
-import {
-  getAllSubjectsWithExtraDetails,
-  updateSubjectStatus,
-} from "@/utils/apiRequests/curriculum.api";
 import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { FaPen } from "react-icons/fa6";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import {
+  getAllGroupsWithExtraDetails,
+  updateGroupStatus,
+} from "@/utils/apiRequests/curriculum.api";
 
-const SubjectsDetails = () => {
+const GroupsDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
@@ -34,14 +34,14 @@ const SubjectsDetails = () => {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
-    queryFn: getAllSubjectsWithExtraDetails,
-    queryKey: ["subjectsExtra"],
+    queryFn: getAllGroupsWithExtraDetails,
+    queryKey: ["groupsExtra"],
   });
 
   const { mutate } = useMutation({
-    mutationFn: updateSubjectStatus,
+    mutationFn: updateGroupStatus,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["subjectsExtra"]);
+      queryClient.invalidateQueries(["groupsExtra"]);
       setEditId("");
       toast.success(res.message);
     },
@@ -58,26 +58,25 @@ const SubjectsDetails = () => {
   };
   const columns = [
     {
-      accessorKey: "sub_code",
-      header: "Subject code",
+      accessorKey: "grp_code",
+      header: "Group code",
     },
     {
-      accessorKey: "sub_name",
+      accessorKey: "degree_name",
+      header: "Degree programme",
+    },
+    {
+      accessorKey: "commenced_year",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Subject Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            Syllabus <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
-    },
-    {
-      accessorKey: "degree_name",
-      header: "Degree programme",
     },
     {
       accessorKey: "level",
@@ -93,9 +92,9 @@ const SubjectsDetails = () => {
       cell: ({ row }) => {
         return (
           <Switch
-            id={row.original.sub_id}
+            id={row.original.grp_id}
             onCheckedChange={(e) =>
-              onStatusChanged(row.original.sub_id + ":" + e)
+              onStatusChanged(row.original.grp_id + ":" + e)
             }
             checked={row.original.status == "true"}
           />
@@ -111,7 +110,7 @@ const SubjectsDetails = () => {
           <Button
             variant="outline"
             className="editBtn"
-            id={row.original.sub_id}
+            id={row.original.grp_id}
           >
             <FaPen />
             &nbsp;Edit
@@ -148,8 +147,8 @@ const SubjectsDetails = () => {
       let filtData1 = searchValue
         ? data.filter(
             (item) =>
-              item.sub_name.toLowerCase().includes(searchValue.toLowerCase()) ||
-              item.sub_code.toLowerCase().includes(searchValue.toLowerCase())
+              item.deg_name.toLowerCase().includes(searchValue.toLowerCase()) ||
+              item.grp_code.toLowerCase().includes(searchValue.toLowerCase())
           )
         : data;
       let filtData2 = filtData1.filter((item) => {
@@ -164,7 +163,7 @@ const SubjectsDetails = () => {
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between mb-2 items-center sm:items-start">
         <div className="bg-white rounded-md flex relative">
           <Input
-            placeholder="Search by name or subject code"
+            placeholder="Search by group code  or degree programme"
             onChange={(e) => onSearchChange(e)}
             value={searchValue}
             className="md:w-60"
@@ -212,11 +211,11 @@ const SubjectsDetails = () => {
           data={filteredData}
           onEditClicked={onEditClicked}
           toggleModal={toggleModal}
-          btnText="Create subject"
+          btnText="Create group"
         />
       </div>
     </>
   );
 };
 
-export default SubjectsDetails;
+export default GroupsDetails;

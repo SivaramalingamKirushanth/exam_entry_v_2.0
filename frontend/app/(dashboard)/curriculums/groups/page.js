@@ -1,10 +1,10 @@
-import CurriculumsDetails from "./GroupsDetails";
+import GroupsDetails from "./GroupsDetails";
 
 const Curriculums = () => {
   return (
     <div className="flex justify-end md:justify-center">
       <div className="w-[80%] md:w-[85%] lg:w-[90%]">
-        <CurriculumsDetails />
+        <GroupsDetails />
       </div>
     </div>
   );
