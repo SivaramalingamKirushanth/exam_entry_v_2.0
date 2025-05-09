@@ -32,6 +32,7 @@ import {
   getGroupById,
   getSubjectById,
   getSyllabiByDegreeId,
+  updateGroup,
   updateSubject,
 } from "@/utils/apiRequests/curriculum.api";
 import { LabelSearchCombobox } from "@/components/ui/customCommand";
@@ -41,25 +42,25 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({ subjects: [] });
   const [subjectsArr, setSubjectArr] = useState([]);
   const [btnEnable, setBtnEnable] = useState(false);
+  const [subjectsUpdated, setSubjectsUpdated] = useState(true);
   const queryClient = useQueryClient();
 
   const handleChange = (selectedOptions) => {
-    console.log(selectedOptions);
     setFormData((prev) => ({
       ...prev,
-      subjects: selectedOptions.map((obj) => obj.value),
+      subjects: selectedOptions,
     }));
   };
 
   const handleRemove = (value) => {
     setFormData((prev) => ({
       ...prev,
-      subjects: prev.subjects.filter((item) => item != value),
+      subjects: prev.subjects.filter((item) => item.value !== value),
     }));
   };
 
   const { status, mutate } = useMutation({
-    mutationFn: editId ? updateSubject : createGroup,
+    mutationFn: editId ? updateGroup : createGroup,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["groupsExtra"]);
       setEditId("");
@@ -76,8 +77,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     queryKey: ["groups", editId],
     enabled: false,
   });
-
-  console.log(data);
 
   const {
     data: facultyData,
@@ -143,12 +142,33 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   useEffect(() => {
     if (data) {
-      const subjects = data.subIds.split(",");
       const { subIds, ...res } = data;
 
-      setFormData({ ...res, subjects });
+      setFormData(res);
+      setSubjectsUpdated(false);
     }
   }, [data]);
+
+  useEffect(() => {
+    if (data) {
+      if (data.subIds && subjectsData && !subjectsUpdated) {
+        const subjects = data.subIds.split(",").map((subId) => {
+          const subObj = subjectsData.find((obj) => obj.sub_id == subId);
+
+          return {
+            value: subObj?.sub_id,
+            label: `${subObj?.sub_code} - ${subObj?.sub_name}`,
+          };
+        });
+
+        setFormData((cur) => ({ ...cur, subjects }));
+        setSubjectsUpdated(true);
+      } else if (!data.subIds || !subjectsData) {
+        const subjects = [];
+        setFormData((cur) => ({ ...cur, subjects }));
+      }
+    }
+  }, [subjectsData, subjectsUpdated]);
 
   const onFormDataChanged = (e) => {
     if (e?.target) {
@@ -160,6 +180,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   };
 
   const onFormSubmitted = () => {
+    const mod = formData.subjects?.map((obj) => obj.value);
     const grp_code = `Group-${
       degreeData?.find((deg) => deg.deg_id == formData.deg_id)?.short || "XX"
     }${formData.level || "X"}${formData.sem_no || "X"}-${
@@ -171,15 +192,24 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       syl_id: formData.syl_id,
       level: formData.level,
       sem_no: formData.sem_no,
-      subjects: formData.subjects,
+      subjects: mod || [],
       grp_code,
+      grp_id: formData.grp_id || null,
     });
     setFormData({ subjects: [] });
     setIsOpen(false);
+    setSubjectsUpdated(true);
   };
 
   const onFormReset = () => {
-    setFormData(data || { subjects: [] });
+    if (data) {
+      const { subIds, ...res } = data;
+
+      setFormData(res);
+      setSubjectsUpdated(false);
+    } else {
+      setFormData({ subjects: [] });
+    }
   };
 
   useEffect(() => {
@@ -252,6 +282,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                   setIsOpen(false);
                   setFormData({ subjects: [] });
                   setEditId("");
+                  setSubjectsUpdated(true);
                 }}
               />
             </div>
@@ -408,7 +439,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                           </div>
                         ))}
                     </div>
-                  </div>
+                  </div>{" "}
                   <div className={`grid grid-cols-4 items-center gap-4`}>
                     <Label className="text-right">Syllabus</Label>
                     <div className="col-span-3">
@@ -491,20 +522,15 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     {/* Custom display of selected items */}
                     <div className="flex flex-col gap-2 h-[45vh] overflow-y-scroll border-2 p-2 border-slate-300 rounded-sm">
                       {formData.subjects?.length && subjectsData ? (
-                        formData.subjects?.map((subject, i) => {
-                          const obj = subjectsData.find(
-                            (obj) => obj?.sub_id == subject
-                          );
-                          const label = `${obj?.sub_code} - ${obj?.sub_name}`;
-                          console.log(subject);
+                        formData.subjects?.map((subject) => {
                           return (
                             <div
-                              key={subject}
+                              key={subject.value}
                               className="flex justify-between items-center bg-gray-100 px-3 py-2 rounded-md text-sm"
                             >
-                              {label}
+                              {subject.label}
                               <button
-                                onClick={() => handleRemove(subject)}
+                                onClick={() => handleRemove(subject.value)}
                                 className="ml-2 text-gray-500 hover:text-red-500"
                                 type="button"
                               >

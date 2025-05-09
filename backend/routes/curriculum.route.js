@@ -29,6 +29,9 @@ import {
   getAllGroupsWithExtraDetails,
   updateGroupStatus,
   getGroupById,
+  updateGroup,
+  getNoOfGroups,
+  getNoOfSyllabi,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -113,5 +116,8 @@ router.get(
 );
 router.put("/updateGroupStatus", verifyUser(["1"]), updateGroupStatus);
 router.post("/getGroupById", verifyUser(["1"]), getGroupById);
+router.put("/updateGroup", verifyUser(["1"]), updateGroup);
+router.get("/getNoOfGroups", verifyUser(["1"]), getNoOfGroups);
+router.get("/getNoOfSyllabi", verifyUser(["1"]), getNoOfSyllabi);
 
 export default router;

@@ -1296,3 +1296,114 @@ export const getGroupById = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const updateGroup = async (req, res, next) => {
+  const { syl_id, level, sem_no, subjects, grp_code, grp_id } = req.body;
+
+  if (!syl_id || !level || !sem_no || !subjects || !grp_code || !grp_id) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      await conn.beginTransaction();
+
+      const [groupExistsResult] = await conn.query(
+        "CALL CheckGroupExist(?, @exists); SELECT @exists AS group_exists;",
+        [grp_id]
+      );
+      const { group_exists } = groupExistsResult[1][0];
+
+      if (!group_exists) {
+        conn.release();
+        return next(errorProvider(404, "group not found"));
+      }
+
+      const [duplicateGroupResult] = await conn.query(
+        "CALL CheckForDuplicateGroup(?, ?, @exists); SELECT @exists AS duplicate;",
+        [grp_code, grp_id]
+      );
+      const { duplicate } = duplicateGroupResult[1][0];
+
+      if (duplicate > 0) {
+        conn.release();
+        return next(errorProvider(409, "group already exists"));
+      }
+
+      await conn.query("CALL UpdateGroup(?, ?, ?, ?);", [
+        grp_id,
+        grp_code,
+        level,
+        sem_no,
+      ]);
+
+      await conn.query("CALL UpdateSylGrp(?, ?);", [syl_id, grp_id]);
+
+      await conn.query("CALL DeleteGrpSubjects(?);", [grp_id]);
+
+      for (const sub_id of subjects) {
+        await conn.query("CALL LinkSubjectWithGroup(?, ?);", [sub_id, grp_id]);
+      }
+
+      let desc = `group updated for grp_id=${grp_id} with syl_id=${syl_id}, sem_no=${sem_no}, level=${level}, grp_code=${grp_code}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      await conn.commit();
+
+      return res.status(200).json({ message: "group updated successfully" });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error while updating group:", error);
+      return next(
+        errorProvider(500, "An error occurred while updating the group")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getNoOfSyllabi = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.query("CALL GetNoOfSyllabi();");
+      return res.status(200).json({ count: result[0][0].syllabus_count });
+    } catch (error) {
+      console.error("Error retrieving number of syllabi:", error);
+      return next(
+        errorProvider(500, "An error occurred while fetching syllabi count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getNoOfGroups = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [result] = await conn.query("CALL GetNoOfGroups();");
+      return res.status(200).json({ count: result[0][0].grp_count });
+    } catch (error) {
+      console.error("Error retrieving number of groups:", error);
+      return next(
+        errorProvider(500, "An error occurred while fetching groups count")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};

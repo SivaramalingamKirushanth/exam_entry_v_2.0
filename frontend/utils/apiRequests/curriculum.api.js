@@ -215,3 +215,18 @@ export const getGroupById = async (grp_id) => {
   });
   return response.data;
 };
+
+export const updateGroup = async (data) => {
+  const response = await axiosInstance.put("/curriculum/updateGroup", data);
+  return response.data;
+};
+
+export const getNoOfSyllabi = async () => {
+  const response = await axiosInstance.get("/curriculum/getNoOfSyllabi");
+  return response.data;
+};
+
+export const getNoOfGroups = async () => {
+  const response = await axiosInstance.get("/curriculum/getNoOfGroups");
+  return response.data;
+};

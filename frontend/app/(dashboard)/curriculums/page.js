@@ -7,26 +7,37 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getNoOfBatches } from "@/utils/apiRequests/batch.api";
-import { getNoOfSubjects } from "@/utils/apiRequests/curriculum.api";
+import {
+  getNoOfGroups,
+  getNoOfSubjects,
+  getNoOfSyllabi,
+} from "@/utils/apiRequests/curriculum.api";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const Examination = () => {
   const pathname = usePathname();
+  const { data: noOfSyllabiData, isLoading: isNoOfSyllabiDataLoading } =
+    useQuery({
+      queryFn: getNoOfSyllabi,
+      queryKey: ["noOfSyllabi"],
+    });
   const { data: noOfSubjectsData, isLoading: isNoOfSubjectsDataLoading } =
     useQuery({
       queryFn: getNoOfSubjects,
       queryKey: ["noOfSubjects"],
     });
+  const { data: noOfGroupData, isLoading: isNoOfGroupDataLoading } = useQuery({
+    queryFn: getNoOfGroups,
+    queryKey: ["noOfGroup"],
+  });
 
-  const { data: noOfBatchesData, isLoading: isNoOfBatchesDataLoading } =
-    useQuery({
-      queryFn: getNoOfBatches,
-      queryKey: ["noOfBatches"],
-    });
-
-  if (isNoOfSubjectsDataLoading || isNoOfBatchesDataLoading)
+  if (
+    isNoOfSyllabiDataLoading ||
+    isNoOfSubjectsDataLoading ||
+    isNoOfGroupDataLoading
+  )
     return (
       <div className="flex justify-end md:justify-center">
         <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
@@ -51,7 +62,7 @@ const Examination = () => {
             <CardHeader>
               <CardTitle>Syllabi</CardTitle>
               <CardDescription>
-                {noOfSubjectsData?.count} {noOfSubjectsData && "Syllabi"}
+                {noOfSyllabiData?.count} {noOfSyllabiData && "Syllabi"}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -77,7 +88,7 @@ const Examination = () => {
             <CardHeader>
               <CardTitle>Groups</CardTitle>
               <CardDescription>
-                {noOfBatchesData?.count} {noOfBatchesData && "Groups"}
+                {noOfGroupData?.count} {noOfGroupData && "Groups"}
               </CardDescription>
             </CardHeader>
           </Card>
