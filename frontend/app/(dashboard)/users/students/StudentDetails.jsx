@@ -17,7 +17,6 @@ import {
   updateStudentStatus,
 } from "@/utils/apiRequests/user.api";
 import Modal from "./Model";
-import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { FaPen } from "react-icons/fa6";

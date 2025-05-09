@@ -4,19 +4,11 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { studentRegister } from "@/utils/apiRequests/auth.api";
 import { getStudentById, updateStudent } from "@/utils/apiRequests/user.api";
 import { GiCancel } from "react-icons/gi";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   getAllFaculties,
   getDegreesByFacultyId,

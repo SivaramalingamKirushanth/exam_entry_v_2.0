@@ -3,7 +3,7 @@
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { multipleStudentsRegister } from "@/utils/apiRequests/auth.api";
 import { GiCancel } from "react-icons/gi";
 import Dropzone from "@/components/Dropzone";
