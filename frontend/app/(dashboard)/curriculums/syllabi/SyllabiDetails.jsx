@@ -14,9 +14,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Modal from "./Model";
 import {
-  getAllSubjectsWithExtraDetails,
   getAllSyllabiWithExtraDetails,
-  updateSubjectStatus,
   updateSyllabusStatus,
 } from "@/utils/apiRequests/curriculum.api";
 import { DataTable } from "@/components/DataTable";
@@ -26,7 +24,7 @@ import { FaPen } from "react-icons/fa6";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
-const Syllabi = () => {
+const SyllabiDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
@@ -236,4 +234,4 @@ const Syllabi = () => {
   );
 };
 
-export default Syllabi;
+export default SyllabiDetails;

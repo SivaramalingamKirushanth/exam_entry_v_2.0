@@ -4,36 +4,23 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GiCancel } from "react-icons/gi";
 import ReactSelect from "react-select";
 
 import {
-  getAllDepartments,
   getAllFaculties,
   getDegreeById,
-  getDegreesByDepartmentId,
   getDegreesByFacultyId,
-  getDepartmentsByFacultyId,
 } from "@/utils/apiRequests/course.api";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   createGroup,
-  createSubject,
   getAllSubjectsForGroupCreation,
   getGroupById,
-  getSubjectById,
   getSyllabiByDegreeId,
   updateGroup,
-  updateSubject,
 } from "@/utils/apiRequests/curriculum.api";
 import { LabelSearchCombobox } from "@/components/ui/customCommand";
 import { FaTimes } from "react-icons/fa";
@@ -258,9 +245,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     }
   }, [subjectsData]);
 
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
   return (
     <>
       {isOpen && (

@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GiCancel } from "react-icons/gi";
@@ -14,7 +13,6 @@ import {
   updateFaculty,
 } from "@/utils/apiRequests/course.api";
 
-import { getAllActiveManagers } from "@/utils/apiRequests/user.api";
 
 const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [formData, setFormData] = useState({});

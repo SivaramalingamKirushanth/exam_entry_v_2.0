@@ -23,6 +23,7 @@ import { ArrowUpDown } from "lucide-react";
 import { FaPen } from "react-icons/fa6";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+
 const DepartmentDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
