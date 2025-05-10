@@ -75,7 +75,7 @@ export const getAllSubjectsWithExtraDetails = async (req, res, next) => {
   }
 };
 
-export const getSubjectsBySylLevSem = async (req, res, next) => {
+export const getGroupsBySylLevSem = async (req, res, next) => {
   const { syl_id, level, sem_no } = req.body;
 
   if (!syl_id || !level || !sem_no) {
@@ -87,7 +87,7 @@ export const getSubjectsBySylLevSem = async (req, res, next) => {
 
     try {
       const [results] = await conn.query(
-        "CALL GetSubjectsBySylLevSem(?, ?, ?);",
+        "CALL GetGroupsBySylLevSem(?, ?, ?);",
         [syl_id, level, sem_no]
       );
 
@@ -1145,10 +1145,20 @@ export const createGroup = async (req, res, next) => {
     sem_no,
     subjects,
     grp_code,
+    course_title,
+    custom_suffix,
     status = "true",
   } = req.body;
 
-  if (!syl_id || !level || !sem_no || !subjects || !grp_code || !status) {
+  if (
+    !syl_id ||
+    !level ||
+    !sem_no ||
+    !subjects ||
+    !grp_code ||
+    !course_title ||
+    !status
+  ) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -1168,8 +1178,8 @@ export const createGroup = async (req, res, next) => {
       }
 
       const [groupResult] = await conn.query(
-        "CALL CreateGroup(?, ?, ?, ?, @grp_id); SELECT @grp_id AS grp_id;",
-        [grp_code, level, sem_no, status]
+        "CALL CreateGroup(?, ?, ?, ?, ?, ?, @grp_id); SELECT @grp_id AS grp_id;",
+        [grp_code, level, sem_no, status, custom_suffix, course_title]
       );
       const grp_id = groupResult[1][0].grp_id;
 
@@ -1179,7 +1189,7 @@ export const createGroup = async (req, res, next) => {
         await conn.query("CALL LinkSubjectWithGroup(?, ?);", [sub_id, grp_id]);
       }
 
-      let desc = `Group created grp_code=${grp_code}, sem_no=${sem_no}, syl_id=${syl_id}, level=${level}`;
+      let desc = `Group created grp_code=${grp_code}, sem_no=${sem_no}, syl_id=${syl_id}, level=${level}, custom_suffix=${custom_suffix}, course_title=${course_title}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(201).json({
@@ -1294,9 +1304,26 @@ export const getGroupById = async (req, res, next) => {
 };
 
 export const updateGroup = async (req, res, next) => {
-  const { syl_id, level, sem_no, subjects, grp_code, grp_id } = req.body;
+  const {
+    syl_id,
+    level,
+    sem_no,
+    subjects,
+    grp_code,
+    grp_id,
+    course_title,
+    custom_suffix,
+  } = req.body;
 
-  if (!syl_id || !level || !sem_no || !subjects || !grp_code || !grp_id) {
+  if (
+    !syl_id ||
+    !level ||
+    !sem_no ||
+    !subjects ||
+    !grp_code ||
+    !course_title ||
+    !grp_id
+  ) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -1328,11 +1355,13 @@ export const updateGroup = async (req, res, next) => {
         return next(errorProvider(409, "group already exists"));
       }
 
-      await conn.query("CALL UpdateGroup(?, ?, ?, ?);", [
+      await conn.query("CALL UpdateGroup(?, ?, ?, ?, ?, ?);", [
         grp_id,
         grp_code,
         level,
         sem_no,
+        custom_suffix,
+        course_title,
       ]);
 
       await conn.query("CALL UpdateSylGrp(?, ?);", [syl_id, grp_id]);
@@ -1400,6 +1429,32 @@ export const getNoOfGroups = async (req, res, next) => {
     }
   } catch (error) {
     console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getSubjectsByGrp = async (req, res, next) => {
+  const { grp_id } = req.body;
+
+  if (!grp_id) {
+    return next(errorProvider(400, "Missing required fields."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [results] = await conn.query("CALL GetSubjectsByGrp(?);", [grp_id]);
+
+      return res.status(200).json(results[0]);
+    } catch (error) {
+      console.error("Error fetching subject details:", error);
+      return next(errorProvider(500, "Failed to fetch subject details"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };

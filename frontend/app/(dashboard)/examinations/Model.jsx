@@ -14,7 +14,8 @@ import {
 } from "@/utils/apiRequests/course.api";
 
 import {
-  getSubjectsBySylLevSem,
+  getGroupsBySylLevSem,
+  getSubjectsByGrp,
   getSyllabiByDegreeId,
 } from "@/utils/apiRequests/curriculum.api";
 import { getAllActiveLecturers } from "@/utils/apiRequests/user.api";
@@ -63,7 +64,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const [lecturersPartValid, setLecturersPartValid] = useState(false);
   const [datesPartValid, setDatesPartValid] = useState(false);
   const queryClient = useQueryClient();
-  const [comboBoxOpen, setComboBoxOpen] = useState({});
 
   const { status, mutate } = useMutation({
     mutationFn: editId ? updateBatch : createBatch,
@@ -94,17 +94,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   const { data, refetch, isLoading } = useQuery({
     queryFn: () => getBatchById(editId),
     queryKey: ["batches", editId],
-    enabled: false,
-  });
-
-  const {
-    data: subjectsBySylLevSemData,
-    refetch: subjectsBySylLevSemRefetch,
-    isLoading: isLoadingSubjectsBySylLevSem,
-  } = useQuery({
-    queryFn: () =>
-      getSubjectsBySylLevSem(formData.syl_id, formData.level, formData.sem_no),
-    queryKey: ["subjects", formData.syl_id, formData.level, formData.sem_no],
     enabled: false,
   });
 
@@ -155,6 +144,30 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       queryKey: ["degrees", formData.deg_id],
       enabled: false,
     });
+
+  const {
+    data: groupsBySylLevSemData,
+    refetch: groupsBySylLevSemRefetch,
+    isLoading: isGroupsBySylLevSemLoading,
+    isError: isGroupsBySylLevSemError,
+  } = useQuery({
+    queryFn: () =>
+      getGroupsBySylLevSem(formData.syl_id, formData.level, formData.sem_no),
+    queryKey: ["groups", formData.syl_id, formData.level, formData.sem_no],
+    enabled: false,
+  });
+
+  const {
+    data: subjectsByGrpData,
+    refetch: subjectsByGrpRefetch,
+    isLoading: isSubjectsByGrpLoading,
+    isError: isSubjectsByGrpError,
+  } = useQuery({
+    queryFn: () => getSubjectsByGrp(formData.grp_id),
+    queryKey: ["subjects", "group", formData.grp_id],
+    enabled: false,
+  });
+
   const {
     data: lecturers,
     isLoading: isLecturersLoading,
@@ -246,6 +259,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
           sem_no,
           academic_year,
           payment_end,
+          grp_id,
         } = formData;
         const { students_end, lecturers_end, hod_end, dean_end } = timePeriods;
 
@@ -266,6 +280,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
           hod_end,
           dean_end,
           payment_end,
+          grp_id,
         });
       }
     } else {
@@ -279,6 +294,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         sem_no,
         academic_year,
         payment_end,
+        grp_id,
       } = formData;
       const { students_end, lecturers_end, hod_end, dean_end } = timePeriods;
 
@@ -296,6 +312,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         hod_end,
         dean_end,
         payment_end,
+        grp_id,
       });
     }
 
@@ -328,13 +345,22 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     if (
       data?.sem_no == formData.sem_no &&
       data?.level == formData.level &&
-      data?.deg_id == formData.deg_id
+      data?.deg_id == formData.deg_id &&
+      data?.syl_id == formData.syl_id &&
+      data?.grp_id == formData.grp_id
     ) {
       setFormData((cur) => ({ ...cur }));
     } else {
       setFormData((cur) => ({ ...cur, subjects: {} }));
     }
-  }, [formData.sem_no, formData.level, formData.deg_id, , formData.syl_id]);
+  }, [
+    formData.sem_no,
+    formData.level,
+    formData.deg_id,
+    ,
+    formData.syl_id,
+    formData.grp_id,
+  ]);
 
   useEffect(() => {
     let isFormValid =
@@ -343,11 +369,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       formData.f_id &&
       formData.deg_id &&
       formData.sem_no &&
-      formData.level;
+      formData.level &&
+      formData.grp_id;
 
     if (isFormValid) {
       editId && batchTimePeriodRefetch();
-      subjectsBySylLevSemRefetch();
+      subjectsByGrpRefetch();
     }
 
     setSidePartEnable(isFormValid);
@@ -357,11 +384,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     let isLecturersPartValid = true;
 
     if (sidePartEnable) {
-      if (subjectsBySylLevSemData?.length) {
+      if (subjectsByGrpData?.length) {
         if (formData.subjects) {
           if (
-            Object.values(formData.subjects).length ==
-            subjectsBySylLevSemData.length
+            Object.values(formData.subjects).length == subjectsByGrpData.length
           ) {
             Object.values(formData.subjects).forEach((value) => {
               if (!value) {
@@ -415,6 +441,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   }, [formData?.deg_id]);
 
   useEffect(() => {
+    if (formData?.syl_id && formData?.level && formData?.sem_no)
+      groupsBySylLevSemRefetch();
+  }, [formData?.syl_id, formData?.level, formData?.sem_no]);
+
+  useEffect(() => {
     if (formData?.deg_id) {
       specificDegreeDataRefetch();
     }
@@ -464,7 +495,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
             {editId ? (
               !isLoading &&
               !isLoadingBatchTimePeriod &&
-              !isLoadingSubjectsBySylLevSem &&
+              !isSubjectsByGrpLoading &&
               !isDegreeDataLoading &&
               !isFacultyDataLoading &&
               !isLecturersLoading ? (
@@ -486,7 +517,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                           }
                         />
                       </h1>
-                      <div className="flex flex-col justify-start gap-3 overflow-auto w-full h-full">
+                      <div className="flex flex-col justify-start gap-3 overflow-auto pb-2 w-full h-full">
                         <div className="grid grid-cols-4 items-center gap-4 pr-[2px]">
                           <Label htmlFor="batch_code" className="text-right">
                             Batch Code
@@ -570,6 +601,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                   syl_id: "",
                                   level: "",
                                   sem_no: "",
+                                  grp_id: "",
                                 }));
                                 onFormDataChanged(e);
                               }}
@@ -604,6 +636,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                   : "Select syllabus"
                               }
                               onValueChange={(e) => {
+                                setFormData((cur) => ({
+                                  ...cur,
+                                  grp_id: "",
+                                }));
                                 onFormDataChanged(e);
                               }}
                               value={formData.syl_id || null}
@@ -634,7 +670,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                   id={`l${item}`}
                                   checked={formData.level == item}
                                   name="level"
-                                  onChange={(e) => onFormDataChanged(e)}
+                                  onChange={(e) => {
+                                    setFormData((cur) => ({
+                                      ...cur,
+                                      grp_id: "",
+                                    }));
+                                    onFormDataChanged(e);
+                                  }}
                                   onBlur={(e) => {
                                     e.target.value = e.target.value.trim();
                                     onFormDataChanged(e);
@@ -682,7 +724,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                     id={`s${ind + 1}`}
                                     checked={formData.sem_no == ind + 1}
                                     name="sem_no"
-                                    onChange={(e) => onFormDataChanged(e)}
+                                    onChange={(e) => {
+                                      setFormData((cur) => ({
+                                        ...cur,
+                                        grp_id: "",
+                                      }));
+                                      onFormDataChanged(e);
+                                    }}
                                     className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
                                     disabled={
                                       data
@@ -706,10 +754,40 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                               ))}
                           </div>
                         </div>
+                        <div
+                          className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
+                        >
+                          <Label className="text-right">Group</Label>
+                          <div className="col-span-3">
+                            <LabelSearchCombobox
+                              name="grp_id"
+                              items={groupsBySylLevSemData}
+                              labelField="grp_code"
+                              valueField="grp_id"
+                              placeholder="Search group..."
+                              buttonText={
+                                isGroupsBySylLevSemError
+                                  ? "Not found"
+                                  : isGroupsBySylLevSemLoading
+                                  ? "Loading..."
+                                  : "Select group"
+                              }
+                              onValueChange={(e) => {
+                                onFormDataChanged(e);
+                              }}
+                              value={formData.grp_id || null}
+                              disabled={
+                                !groupsBySylLevSemData ||
+                                isGroupsBySylLevSemLoading ||
+                                isGroupsBySylLevSemError
+                              }
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                     {sidePartEnable &&
-                      (subjectsBySylLevSemData?.length ? (
+                      (subjectsByGrpData?.length ? (
                         <div
                           className={`flex flex-col justify-start border rounded-md container flex-1 mx-auto ${
                             lecturersPartValid
@@ -728,8 +806,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                               }
                             />
                           </h1>
-                          <div className="overflow-auto h-full w-full p-1 flex flex-col justify-start gap-3">
-                            {subjectsBySylLevSemData?.map((obj) => {
+                          <div className="overflow-auto pb-2 h-full w-full p-1 flex flex-col justify-start gap-3">
+                            {subjectsByGrpData?.map((obj) => {
                               return (
                                 <div
                                   className={`grid grid-cols-4 items-center gap-4`}
@@ -823,7 +901,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                           }
                         />
                       </h1>
-                      <div className="flex flex-col justify-start gap-3 overflow-auto w-full h-full">
+                      <div className="flex flex-col justify-start gap-3 overflow-auto pb-2 w-full h-full">
                         <div className="flex justify-between px-2">
                           <div className="items-center gap-3">
                             <Label
@@ -1015,7 +1093,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                         }
                       />
                     </h1>
-                    <div className="flex flex-col justify-start gap-3 overflow-auto w-full h-full">
+                    <div className="flex flex-col justify-start gap-3 overflow-auto pb-2 w-full h-full">
                       <div className="grid grid-cols-4 items-center gap-4 pr-[2px]">
                         <Label htmlFor="batch_code" className="text-right">
                           Batch Code
@@ -1099,6 +1177,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                 syl_id: "",
                                 level: "",
                                 sem_no: "",
+                                grp_id: "",
                               }));
                               onFormDataChanged(e);
                             }}
@@ -1133,6 +1212,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                 : "Select syllabus"
                             }
                             onValueChange={(e) => {
+                              setFormData((cur) => ({
+                                ...cur,
+                                grp_id: "",
+                              }));
                               onFormDataChanged(e);
                             }}
                             value={formData.syl_id || null}
@@ -1166,7 +1249,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                   id={`l${item}`}
                                   checked={formData.level == item}
                                   name="level"
-                                  onChange={(e) => onFormDataChanged(e)}
+                                  onChange={(e) => {
+                                    setFormData((cur) => ({
+                                      ...cur,
+                                      grp_id: "",
+                                    }));
+                                    onFormDataChanged(e);
+                                  }}
                                   onBlur={(e) => {
                                     e.target.value = e.target.value.trim();
                                     onFormDataChanged(e);
@@ -1214,7 +1303,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                   id={`s${ind + 1}`}
                                   checked={formData.sem_no == ind + 1}
                                   name="sem_no"
-                                  onChange={(e) => onFormDataChanged(e)}
+                                  onChange={(e) => {
+                                    setFormData((cur) => ({
+                                      ...cur,
+                                      grp_id: "",
+                                    }));
+                                    onFormDataChanged(e);
+                                  }}
                                   className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
                                   disabled={
                                     data
@@ -1238,10 +1333,40 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             ))}
                         </div>
                       </div>
+                      <div
+                        className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
+                      >
+                        <Label className="text-right">Group</Label>
+                        <div className="col-span-3">
+                          <LabelSearchCombobox
+                            name="grp_id"
+                            items={groupsBySylLevSemData}
+                            labelField="grp_code"
+                            valueField="grp_id"
+                            placeholder="Search group..."
+                            buttonText={
+                              isGroupsBySylLevSemError
+                                ? "Not found"
+                                : isGroupsBySylLevSemLoading
+                                ? "Loading..."
+                                : "Select group"
+                            }
+                            onValueChange={(e) => {
+                              onFormDataChanged(e);
+                            }}
+                            value={formData.grp_id || null}
+                            disabled={
+                              !groupsBySylLevSemData ||
+                              isGroupsBySylLevSemLoading ||
+                              isGroupsBySylLevSemError
+                            }
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                   {sidePartEnable &&
-                    (subjectsBySylLevSemData?.length ? (
+                    (subjectsByGrpData?.length ? (
                       <div
                         className={`flex flex-col justify-start border rounded-md container flex-1 mx-auto ${
                           lecturersPartValid
@@ -1260,8 +1385,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             }
                           />
                         </h1>
-                        <div className="overflow-auto h-full w-full p-1 flex flex-col justify-start gap-3">
-                          {subjectsBySylLevSemData?.map((obj) => {
+                        <div className="overflow-auto pb-2 h-full w-full p-1 flex flex-col justify-start gap-3">
+                          {subjectsByGrpData?.map((obj) => {
                             return (
                               <div
                                 className={`grid grid-cols-4 items-center gap-4`}
@@ -1355,7 +1480,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                         }
                       />
                     </h1>
-                    <div className="flex flex-col justify-start gap-3 overflow-auto w-full h-full">
+                    <div className="flex flex-col justify-start gap-3 overflow-auto pb-2 w-full h-full">
                       <div className="flex justify-between px-2">
                         <div className="items-center gap-3">
                           <Label

@@ -168,12 +168,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   const onFormSubmitted = () => {
     const mod = formData.subjects?.map((obj) => obj.value);
-    const grp_code = `Group-${
+    const grp_code = `G-${
       degreeData?.find((deg) => deg.deg_id == formData.deg_id)?.short || "XX"
     }${formData.level || "X"}${formData.sem_no || "X"}-${
       syllabusData?.find((syl) => syl.syl_id == formData.syl_id)
         ?.commenced_year || "XXXX"
-    }`;
+    }${formData.custom_suffix ? "-" + formData.custom_suffix : ""}`;
 
     mutate({
       syl_id: formData.syl_id,
@@ -182,6 +182,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       subjects: mod || [],
       grp_code,
       grp_id: formData.grp_id || null,
+      custom_suffix: formData.custom_suffix || "",
+      course_title: formData.course_title,
     });
     setFormData({ subjects: [] });
     setIsOpen(false);
@@ -205,6 +207,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       formData.deg_id &&
       formData.syl_id &&
       formData.sem_no &&
+      formData.course_title &&
       formData.level;
     setBtnEnable(isFormValid);
   }, [formData]);
@@ -244,6 +247,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setSubjectArr(modifiedArr);
     }
   }, [subjectsData]);
+
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
 
   return (
     <>
@@ -291,14 +298,37 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                         onFormDataChanged(e);
                       }}
                       disabled={true}
-                      value={`Group-${
+                      value={`G-${
                         degreeData?.find((deg) => deg.deg_id == formData.deg_id)
                           ?.short || "XX"
                       }${formData.level || "X"}${formData.sem_no || "X"}-${
                         syllabusData?.find(
                           (syl) => syl.syl_id == formData.syl_id
                         )?.commenced_year || "XXXX"
+                      }${
+                        formData.custom_suffix
+                          ? "-" + formData.custom_suffix
+                          : ""
                       }`}
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="custom_suffix" className="text-right">
+                      Custom suffix (optional)
+                    </Label>
+                    <Input
+                      id="custom_suffix"
+                      name="custom_suffix"
+                      className="col-span-3"
+                      onChange={(e) => {
+                        e.target.value = e.target.value.toUpperCase();
+                        onFormDataChanged(e);
+                      }}
+                      onBlur={(e) => {
+                        e.target.value = e.target.value.trim().toUpperCase();
+                        onFormDataChanged(e);
+                      }}
+                      value={formData.custom_suffix || ""}
                     />
                   </div>
                   <div className={`grid grid-cols-4 items-center gap-4`}>
@@ -342,6 +372,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             syl_id: "",
                             level: "",
                             sem_no: "",
+                            course_title: e.target.item.deg_name,
                           }));
                           onFormDataChanged(e);
                         }}
@@ -353,6 +384,22 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                         }
                       />
                     </div>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="course_title" className="text-right">
+                      Course title
+                    </Label>
+                    <Input
+                      id="course_title"
+                      name="course_title"
+                      className="col-span-3"
+                      onChange={(e) => onFormDataChanged(e)}
+                      onBlur={(e) => {
+                        e.target.value = e.target.value.trim();
+                        onFormDataChanged(e);
+                      }}
+                      value={formData.course_title || ""}
+                    />
                   </div>
                   <div className={`grid grid-cols-4 items-center gap-4`}>
                     <Label className="text-right">Syllabus</Label>

@@ -62,8 +62,8 @@ const GroupsDetails = () => {
       header: "Group code",
     },
     {
-      accessorKey: "degree_name",
-      header: "Degree programme",
+      accessorKey: "course_title",
+      header: "Course title",
     },
     {
       accessorKey: "commenced_year",

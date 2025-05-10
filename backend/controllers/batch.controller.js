@@ -137,6 +137,7 @@ export const createBatch = async (req, res, next) => {
     hod_end,
     dean_end,
     payment_end,
+    grp_id,
   } = req.body;
 
   try {
@@ -148,6 +149,7 @@ export const createBatch = async (req, res, next) => {
         !Object.keys(subjects).length ||
         !deg_id ||
         !syl_id ||
+        !grp_id ||
         !application_open ||
         !academic_year ||
         !level ||
@@ -176,7 +178,7 @@ export const createBatch = async (req, res, next) => {
 
       // Insert batch and retrieve batch_id
       const [batchResult] = await conn.query(
-        "CALL InsertBatch(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @batch_id); SELECT @batch_id AS batch_id;",
+        "CALL InsertBatch(?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, @batch_id); SELECT @batch_id AS batch_id;",
         [
           batch_code,
           Object.keys(subjects).join(","),
@@ -188,6 +190,7 @@ export const createBatch = async (req, res, next) => {
           level,
           sem_no,
           payment_end,
+          grp_id,
         ]
       );
       const batch_id = batchResult[1][0].batch_id;
@@ -244,7 +247,7 @@ export const createBatch = async (req, res, next) => {
         [batch_id, "2", dean_end, dean_end]
       );
 
-      let desc = `Batch created with batch_id=${batch_id}, syl_id=${syl_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, sub_ids=${Object.keys(
+      let desc = `Batch created with batch_id=${batch_id}, syl_id=${syl_id}, grp_id=${grp_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, sub_ids=${Object.keys(
         subjects
       ).join(",")}, l_ids=${Object.values(subjects).join(",")}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
@@ -288,6 +291,7 @@ export const updateBatch = async (req, res, next) => {
     hod_end,
     dean_end,
     payment_end,
+    grp_id,
   } = req.body;
 
   try {
@@ -299,6 +303,7 @@ export const updateBatch = async (req, res, next) => {
         !Object.keys(subjects).length ||
         !deg_id ||
         !syl_id ||
+        !grp_id ||
         !application_open ||
         !academic_year ||
         !level ||
@@ -327,7 +332,7 @@ export const updateBatch = async (req, res, next) => {
 
       // Update batch details
       await conn.query(
-        "CALL UpdateBatchDetails(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+        "CALL UpdateBatchDetails(?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);",
         [
           batch_id,
           batch_code,
@@ -339,6 +344,7 @@ export const updateBatch = async (req, res, next) => {
           level,
           sem_no,
           payment_end,
+          grp_id,
         ]
       );
 
@@ -405,7 +411,7 @@ export const updateBatch = async (req, res, next) => {
         [batch_id, "2", dean_end, dean_end]
       );
 
-      let desc = `Batch updated with batch_id=${batch_id}, syl_id=${syl_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, sub_ids=${Object.keys(
+      let desc = `Batch updated with batch_id=${batch_id}, syl_id=${syl_id}, grp_id=${grp_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, sub_ids=${Object.keys(
         subjects
       ).join(",")}, l_ids=${Object.values(subjects).join(",")}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
@@ -1004,8 +1010,13 @@ export const uploadAttendanceSheet = async (req, res, next) => {
     VALUES (${insertVals.join(", ")})
     ON DUPLICATE KEY UPDATE ${updateParts.join(", ")}
   `;
-              upsertedStudents.push(user_name);
               await conn.query(query);
+              await conn.query("CALL UpdateStudentBatchIds(?,?);", [
+                batchId,
+                s_id,
+              ]);
+
+              upsertedStudents.push(user_name);
             }
           }
 

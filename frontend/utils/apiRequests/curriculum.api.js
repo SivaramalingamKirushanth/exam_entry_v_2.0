@@ -19,9 +19,9 @@ export const getSubjectById = async (sub_id) => {
   return response.data;
 };
 
-export const getSubjectsBySylLevSem = async (syl_id, level, sem_no) => {
+export const getGroupsBySylLevSem = async (syl_id, level, sem_no) => {
   const response = await axiosInstance.post(
-    "/curriculum/getSubjectsBySylLevSem",
+    "/curriculum/getGroupsBySylLevSem",
     {
       syl_id,
       level,
@@ -228,5 +228,12 @@ export const getNoOfSyllabi = async () => {
 
 export const getNoOfGroups = async () => {
   const response = await axiosInstance.get("/curriculum/getNoOfGroups");
+  return response.data;
+};
+
+export const getSubjectsByGrp = async (grp_id) => {
+  const response = await axiosInstance.post("/curriculum/getSubjectsByGrp", {
+    grp_id,
+  });
   return response.data;
 };
