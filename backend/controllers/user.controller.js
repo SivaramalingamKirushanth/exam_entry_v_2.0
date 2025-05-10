@@ -294,7 +294,6 @@ export const updateLecturerStatus = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
-      console.log();
       await conn.query("CALL updateLecturerStatus(?, ?);", [status, l_id]);
 
       let desc = `Lecturer status changed for l_id=${l_id} to status=${status}`;

@@ -4,54 +4,20 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GiCancel } from "react-icons/gi";
-
 import {
   getAllFaculties,
   getDegreeById,
-  getDegreesByDepartmentId,
-  getDepartmentsByFacultyId,
+  getDegreesByFacultyId,
 } from "@/utils/apiRequests/course.api";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  createCurriculum,
-  getCurriculumByDegLevSem,
-  getCurriculumById,
-  updateCurriculum,
-} from "@/utils/apiRequests/curriculum.api";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
-import StudentSelection from "./StudentSelection";
-import { getAllActiveManagers } from "@/utils/apiRequests/user.api";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { cn } from "@/lib/utils";
+  getSubjectsBySylLevSem,
+  getSyllabiByDegreeId,
+} from "@/utils/apiRequests/curriculum.api";
+import { getAllActiveLecturers } from "@/utils/apiRequests/user.api";
 import { FaExclamation } from "react-icons/fa";
 import {
   createBatch,
@@ -63,6 +29,7 @@ import {
 import { FaCircleCheck } from "react-icons/fa6";
 import { convertUTCToLocal } from "@/utils/functions";
 import Image from "next/image";
+import { LabelSearchCombobox } from "@/components/ui/customCommand";
 
 const extractEndDates = (batchTimePeriodData) => {
   if (batchTimePeriodData && batchTimePeriodData.length) {
@@ -131,23 +98,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   });
 
   const {
-    data: curriculumByDegLevSemData,
-    refetch: curriculumByDegLevSemRefetch,
-    isLoading: isLoadingCurriculumByDegLevSem,
+    data: subjectsBySylLevSemData,
+    refetch: subjectsBySylLevSemRefetch,
+    isLoading: isLoadingSubjectsBySylLevSem,
   } = useQuery({
     queryFn: () =>
-      getCurriculumByDegLevSem(
-        formData.deg_id,
-        formData.level,
-        formData.sem_no
-      ),
-    queryKey: [
-      "curriculums",
-      "DegLevSem",
-      formData.deg_id,
-      formData.level,
-      formData.sem_no,
-    ],
+      getSubjectsBySylLevSem(formData.syl_id, formData.level, formData.sem_no),
+    queryKey: ["subjects", formData.syl_id, formData.level, formData.sem_no],
     enabled: false,
   });
 
@@ -161,28 +118,34 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     enabled: false,
   });
 
-  const { data: facultyData, isLoading: isLoadingFacultyData } = useQuery({
+  const {
+    data: facultyData,
+    isLoading: isFacultyDataLoading,
+    isError: isFacultyDataError,
+  } = useQuery({
     queryFn: getAllFaculties,
     queryKey: ["activeFaculties"],
   });
 
   const {
-    data: departmentData,
-    refetch: departmentDataRefetch,
-    isLoading: isLoadingDepartmentData,
+    data: degreeData,
+    refetch: degreeDataRefetch,
+    isLoading: isDegreeDataLoading,
+    isError: isDegreeDataError,
   } = useQuery({
-    queryFn: () => getDepartmentsByFacultyId(formData.f_id),
-    queryKey: ["activeDepartments", "faculty", formData.f_id],
+    queryFn: () => getDegreesByFacultyId(formData.f_id),
+    queryKey: ["activeDegrees", "faculty", formData.f_id],
     enabled: false,
   });
 
   const {
-    data: degreeData,
-    refetch: degreeDataRefetch,
-    isLoading: isLoadingDegreeData,
+    data: syllabusData,
+    refetch: syllabusDataRefetch,
+    isLoading: isSyllabusDataLoading,
+    error: isSyllabusDataError,
   } = useQuery({
-    queryFn: () => getDegreesByDepartmentId(formData.d_id),
-    queryKey: ["activeDegrees", "department", formData.d_id],
+    queryFn: () => getSyllabiByDegreeId(formData.deg_id),
+    queryKey: ["activeSyllabi", "degree", formData.deg_id],
     enabled: false,
   });
 
@@ -192,9 +155,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       queryKey: ["degrees", formData.deg_id],
       enabled: false,
     });
-  const { data: managers, isLoading: isLoadingManagers } = useQuery({
-    queryFn: getAllActiveManagers,
-    queryKey: ["activeManagers"],
+  const {
+    data: lecturers,
+    isLoading: isLecturersLoading,
+    isError: isLecturersError,
+  } = useQuery({
+    queryFn: getAllActiveLecturers,
+    queryKey: ["activeLecturers"],
   });
 
   useEffect(() => {
@@ -204,6 +171,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         old_batch_code: data.batch_code,
         old_subjects: data.subjects,
         application_open: convertUTCToLocal(data.application_open),
+        payment_end: convertUTCToLocal(data.payment_end),
       });
     }
   }, [data]);
@@ -219,20 +187,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setFormData((curData) => ({
         ...curData,
         [e.target?.name]: e.target?.value,
-        batch_code: `${
-          e.target?.name == "academic_year"
-            ? e.target?.value
-            : formData.academic_year || "XXXX"
-        }${specificDegreeData?.short || "XX"}${
-          e.target?.name == "level" ? e.target?.value : formData.level || "X"
-        }${
-          e.target?.name == "sem_no" ? e.target?.value : formData.sem_no || "X"
-        }`,
-      }));
-    } else {
-      setFormData((curData) => ({
-        ...curData,
-        [e.split(":")[0]]: e.split(":")[1],
         batch_code: `${
           e.target?.name == "academic_year"
             ? e.target?.value
@@ -286,10 +240,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
           old_subjects,
           batch_id,
           deg_id,
+          syl_id,
           application_open,
           level,
           sem_no,
           academic_year,
+          payment_end,
         } = formData;
         const { students_end, lecturers_end, hod_end, dean_end } = timePeriods;
 
@@ -300,6 +256,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
           old_subjects,
           batch_id,
           deg_id,
+          syl_id,
           application_open,
           academic_year,
           level,
@@ -308,6 +265,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
           lecturers_end,
           hod_end,
           dean_end,
+          payment_end,
         });
       }
     } else {
@@ -315,10 +273,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         batch_code,
         subjects,
         deg_id,
+        syl_id,
         application_open,
         level,
         sem_no,
         academic_year,
+        payment_end,
       } = formData;
       const { students_end, lecturers_end, hod_end, dean_end } = timePeriods;
 
@@ -326,6 +286,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         batch_code,
         subjects,
         deg_id,
+        syl_id,
         application_open,
         academic_year,
         level,
@@ -334,6 +295,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         lecturers_end,
         hod_end,
         dean_end,
+        payment_end,
       });
     }
 
@@ -349,6 +311,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         old_batch_code: data.batch_code,
         old_subjects: data.subjects,
         application_open: convertUTCToLocal(data.application_open),
+        payment_end: convertUTCToLocal(data.payment_end),
       });
     } else {
       setFormData({});
@@ -371,12 +334,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     } else {
       setFormData((cur) => ({ ...cur, subjects: {} }));
     }
-  }, [formData.sem_no, formData.level, formData.deg_id]);
+  }, [formData.sem_no, formData.level, formData.deg_id, , formData.syl_id]);
 
   useEffect(() => {
     let isFormValid =
       formData.academic_year &&
-      formData.d_id &&
+      formData.syl_id &&
       formData.f_id &&
       formData.deg_id &&
       formData.sem_no &&
@@ -384,7 +347,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
     if (isFormValid) {
       editId && batchTimePeriodRefetch();
-      curriculumByDegLevSemRefetch();
+      subjectsBySylLevSemRefetch();
     }
 
     setSidePartEnable(isFormValid);
@@ -394,11 +357,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     let isLecturersPartValid = true;
 
     if (sidePartEnable) {
-      if (curriculumByDegLevSemData?.length) {
+      if (subjectsBySylLevSemData?.length) {
         if (formData.subjects) {
           if (
             Object.values(formData.subjects).length ==
-            curriculumByDegLevSemData.length
+            subjectsBySylLevSemData.length
           ) {
             Object.values(formData.subjects).forEach((value) => {
               if (!value) {
@@ -418,11 +381,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setLecturersPartValid(sidePartEnable && isLecturersPartValid);
 
       let isDatesPartValid =
-        formData.application_open &&
+        formData?.application_open &&
         timePeriods?.students_end &&
         timePeriods?.lecturers_end &&
         timePeriods?.hod_end &&
-        timePeriods?.dean_end;
+        timePeriods?.dean_end &&
+        formData?.payment_end;
 
       setDatesPartValid(sidePartEnable && isDatesPartValid);
     }
@@ -443,12 +407,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   }, [editId]);
 
   useEffect(() => {
-    if (formData?.f_id) departmentDataRefetch();
+    if (formData?.f_id) degreeDataRefetch();
   }, [formData?.f_id]);
 
   useEffect(() => {
-    if (formData?.d_id) degreeDataRefetch();
-  }, [formData?.d_id]);
+    if (formData?.deg_id) syllabusDataRefetch();
+  }, [formData?.deg_id]);
 
   useEffect(() => {
     if (formData?.deg_id) {
@@ -465,7 +429,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     }));
   }, [
     formData?.f_id,
-    formData?.d_id,
+    formData?.syl_id,
     formData?.deg_id,
     formData?.level,
     formData?.sem_no,
@@ -500,11 +464,10 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
             {editId ? (
               !isLoading &&
               !isLoadingBatchTimePeriod &&
-              !isLoadingCurriculumByDegLevSem &&
-              !isLoadingDegreeData &&
-              !isLoadingDepartmentData &&
-              !isLoadingFacultyData &&
-              !isLoadingManagers ? (
+              !isLoadingSubjectsBySylLevSem &&
+              !isDegreeDataLoading &&
+              !isFacultyDataLoading &&
+              !isLecturersLoading ? (
                 <div className="w-full flex flex-col gap-1 justify-between h-[80vh]">
                   <div className="flex h-[70%] shrink-0 gap-2">
                     <div
@@ -564,115 +527,93 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                           className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
                         >
                           <Label className="text-right">Faculty</Label>
-                          <Select
-                            onValueChange={(e) => {
-                              setFormData((cur) => ({
-                                ...cur,
-                                d_id: "",
-                                deg_id: "",
-                                level: "",
-                                sem_no: "",
-                                application_open: "",
-                              }));
-                              onFormDataChanged(e);
-                            }}
-                            value={formData.f_id ? "f_id:" + formData.f_id : ""}
-                            disabled={
-                              data
-                                ? new Date(data?.application_open) < new Date()
-                                : false
-                            }
-                          >
-                            <SelectTrigger className="col-span-3">
-                              <SelectValue placeholder="Faculty" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {facultyData?.map((item) => (
-                                <SelectItem
-                                  key={item.f_id}
-                                  value={`f_id:${item.f_id}`}
-                                >
-                                  {item.f_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div
-                          className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
-                        >
-                          <Label className="text-right">Department</Label>
-                          <Select
-                            onValueChange={(e) => {
-                              setFormData((cur) => ({
-                                ...cur,
-                                deg_id: "",
-                                level: "",
-                                sem_no: "",
-                                application_open: "",
-                              }));
-                              onFormDataChanged(e);
-                            }}
-                            value={formData.d_id ? "d_id:" + formData.d_id : ""}
-                            disabled={
-                              data
-                                ? new Date(data?.application_open) < new Date()
-                                : !formData.f_id
-                            }
-                          >
-                            <SelectTrigger className="col-span-3">
-                              <SelectValue placeholder="Department" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {departmentData?.map((item) => (
-                                <SelectItem
-                                  key={item.d_id}
-                                  value={`d_id:${item.d_id}`}
-                                >
-                                  {item.d_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="col-span-3">
+                            <LabelSearchCombobox
+                              name="f_id"
+                              items={facultyData}
+                              labelField="f_name"
+                              valueField="f_id"
+                              placeholder="Search faculty..."
+                              buttonText="Select faculty"
+                              onValueChange={(e) => {
+                                setFormData((cur) => ({ ...cur, deg_id: "" }));
+                                onFormDataChanged(e);
+                              }}
+                              value={formData.f_id || null}
+                              disabled={
+                                isFacultyDataLoading || isFacultyDataError
+                              }
+                            />
+                          </div>
                         </div>
                         <div
                           className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
                         >
                           <Label className="text-right">Degree programme</Label>
-                          <Select
-                            onValueChange={(e) => {
-                              setFormData((cur) => ({
-                                ...cur,
-                                level: "",
-                                sem_no: "",
-                                application_open: "",
-                              }));
-                              setTimePeriods({});
-                              onFormDataChanged(e);
-                            }}
-                            value={
-                              formData.deg_id ? "deg_id:" + formData.deg_id : ""
-                            }
-                            disabled={
-                              data
-                                ? new Date(data?.application_open) < new Date()
-                                : !formData.d_id
-                            }
-                          >
-                            <SelectTrigger className="col-span-3">
-                              <SelectValue placeholder="Degree programme" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {degreeData?.map((item) => (
-                                <SelectItem
-                                  key={item.deg_id}
-                                  value={`deg_id:${item.deg_id}`}
-                                >
-                                  {item.deg_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="col-span-3">
+                            <LabelSearchCombobox
+                              name="deg_id"
+                              items={degreeData}
+                              labelField="deg_name"
+                              valueField="deg_id"
+                              placeholder="Search degree..."
+                              buttonText={
+                                isDegreeDataError
+                                  ? "Not found"
+                                  : isDegreeDataLoading
+                                  ? "Loading..."
+                                  : "Select degree"
+                              }
+                              onValueChange={(e) => {
+                                setFormData((cur) => ({
+                                  ...cur,
+                                  syl_id: "",
+                                  level: "",
+                                  sem_no: "",
+                                }));
+                                onFormDataChanged(e);
+                              }}
+                              value={formData.deg_id || null}
+                              disabled={
+                                !degreeData ||
+                                isDegreeDataLoading ||
+                                isDegreeDataError
+                              }
+                            />
+                          </div>
+                        </div>
+                        <div
+                          className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
+                        >
+                          <Label className="text-right">Syllabus</Label>
+                          <div className="col-span-3">
+                            <LabelSearchCombobox
+                              name="syl_id"
+                              items={syllabusData?.map((obj) => ({
+                                ...obj,
+                                commenced_year: obj.commenced_year + "",
+                              }))}
+                              labelField="commenced_year"
+                              valueField="syl_id"
+                              placeholder="Search syllabus..."
+                              buttonText={
+                                isSyllabusDataError
+                                  ? "Not found"
+                                  : isSyllabusDataLoading
+                                  ? "Loading..."
+                                  : "Select syllabus"
+                              }
+                              onValueChange={(e) => {
+                                onFormDataChanged(e);
+                              }}
+                              value={formData.syl_id || null}
+                              disabled={
+                                !syllabusData ||
+                                isSyllabusDataLoading ||
+                                isSyllabusDataError
+                              }
+                            />
+                          </div>
                         </div>
 
                         <div
@@ -768,7 +709,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                       </div>
                     </div>
                     {sidePartEnable &&
-                      (curriculumByDegLevSemData?.length ? (
+                      (subjectsBySylLevSemData?.length ? (
                         <div
                           className={`flex flex-col justify-start border rounded-md container flex-1 mx-auto ${
                             lecturersPartValid
@@ -788,7 +729,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             />
                           </h1>
                           <div className="overflow-auto h-full w-full p-1 flex flex-col justify-start gap-3">
-                            {curriculumByDegLevSemData?.map((obj) => {
+                            {subjectsBySylLevSemData?.map((obj) => {
                               return (
                                 <div
                                   className={`grid grid-cols-4 items-center gap-4`}
@@ -797,98 +738,40 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                   <Label className="text-right">
                                     {obj.sub_code}
                                   </Label>
-                                  <div className="grid col-span-3">
-                                    <Popover
-                                      open={comboBoxOpen[obj.sub_id]}
-                                      onOpenChange={(bool) => {
-                                        setComboBoxOpen((cur) => ({
+                                  <div className="col-span-3">
+                                    <LabelSearchCombobox
+                                      name={"sub-" + obj.sub_id}
+                                      items={lecturers}
+                                      labelField="name"
+                                      valueField="l_id"
+                                      placeholder="Search lecturer..."
+                                      buttonText={
+                                        isLecturersError
+                                          ? "Not found"
+                                          : isLecturersLoading
+                                          ? "Loading..."
+                                          : "Select lecturer"
+                                      }
+                                      onValueChange={(e) => {
+                                        const l_id = e.target.value;
+                                        setFormData((cur) => ({
                                           ...cur,
-                                          [obj.sub_id]: bool,
+                                          subjects: {
+                                            ...cur.subjects,
+                                            [obj.sub_id]: l_id,
+                                          },
                                         }));
                                       }}
-                                    >
-                                      <PopoverTrigger
-                                        asChild
-                                        disabled={
-                                          data
-                                            ? new Date(data?.application_open) <
-                                              new Date()
-                                            : false
-                                        }
-                                      >
-                                        <button
-                                          role="combobox"
-                                          aria-expanded={comboBoxOpen}
-                                          className="col-span-3 flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-white px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer"
-                                        >
-                                          {formData?.subjects?.[obj.sub_id]
-                                            ? managers.find(
-                                                (manager) =>
-                                                  manager.m_id ==
-                                                  formData.subjects[obj.sub_id]
-                                              )?.name
-                                            : "Select manager"}
-                                          <ChevronsUpDown className="opacity-50 size-[17px] " />
-                                        </button>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="py-0 px-1 border-none shadow-none w-full">
-                                        <Command className="border shadow-md w-full">
-                                          <CommandInput placeholder="Search manager" />
-                                          <CommandList>
-                                            <CommandEmpty>
-                                              No manager found.
-                                            </CommandEmpty>
-                                            <CommandGroup>
-                                              {managers.map((manager) => (
-                                                <CommandItem
-                                                  key={manager.m_id}
-                                                  value={
-                                                    manager.name +
-                                                    ":" +
-                                                    manager.m_id.toString()
-                                                  }
-                                                  onSelect={(currentValue) => {
-                                                    setFormData((cur) => ({
-                                                      ...cur,
-                                                      subjects: {
-                                                        ...cur.subjects,
-                                                        [obj.sub_id]:
-                                                          currentValue.split(
-                                                            ":"
-                                                          )[1] ===
-                                                          cur?.subjects?.[
-                                                            obj.sub_id
-                                                          ]
-                                                            ? ""
-                                                            : currentValue.split(
-                                                                ":"
-                                                              )[1],
-                                                      },
-                                                    }));
-                                                    setComboBoxOpen((cur) => ({
-                                                      ...cur,
-                                                      [obj.sub_id]: false,
-                                                    }));
-                                                  }}
-                                                >
-                                                  {manager.name}
-                                                  <Check
-                                                    className={cn(
-                                                      "ml-auto",
-                                                      formData?.subjects?.[
-                                                        obj.sub_id
-                                                      ] == manager.m_id
-                                                        ? "opacity-100"
-                                                        : "opacity-0"
-                                                    )}
-                                                  />
-                                                </CommandItem>
-                                              ))}
-                                            </CommandGroup>
-                                          </CommandList>
-                                        </Command>
-                                      </PopoverContent>
-                                    </Popover>
+                                      value={
+                                        formData?.subjects[obj.sub_id] || null
+                                      }
+                                      disabled={
+                                        data
+                                          ? new Date(data?.application_open) <
+                                            new Date()
+                                          : false
+                                      }
+                                    />
                                   </div>
                                 </div>
                               );
@@ -899,7 +782,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                         <div className="p-3 flex">
                           <FaExclamation className="text-red-700 text-5xl inline-block" />
                           <p>
-                            There is no curriculum available for{" "}
+                            There is no subject group available for{" "}
                             {formData.level}
                             {formData.level == "1" ? (
                               <sup>st</sup>
@@ -941,7 +824,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                         />
                       </h1>
                       <div className="flex flex-col justify-start gap-3 overflow-auto w-full h-full">
-                        <div className="flex justify-center">
+                        <div className="flex justify-between px-2">
                           <div className="items-center gap-3">
                             <Label
                               htmlFor="application_open"
@@ -976,8 +859,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                               }
                             />
                           </div>
-                        </div>
-                        <div className="flex justify-between px-2">
                           <div className="items-center gap-3">
                             <Label
                               htmlFor="students_end"
@@ -999,6 +880,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                               value={timePeriods?.students_end || ""}
                             />
                           </div>
+                        </div>
+                        <div className="flex justify-between px-2">
                           <div className="items-center gap-3">
                             <Label
                               htmlFor="lecturers_end"
@@ -1020,8 +903,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                               value={timePeriods?.lecturers_end || ""}
                             />
                           </div>
-                        </div>
-                        <div className="flex justify-between px-2">
                           <div className="items-center gap-3">
                             <Label
                               htmlFor="hod_end"
@@ -1043,6 +924,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                               value={timePeriods?.hod_end || ""}
                             />
                           </div>
+                        </div>
+                        <div className="flex justify-between px-2">
                           <div className="items-center gap-3">
                             <Label
                               htmlFor="dean_end"
@@ -1062,6 +945,22 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                 }))
                               }
                               value={timePeriods?.dean_end || ""}
+                            />
+                          </div>
+                          <div className="items-center gap-3">
+                            <Label
+                              htmlFor="payment_end"
+                              className="w-32 inline-block"
+                            >
+                              Payment deadline
+                            </Label>
+                            <input
+                              type="datetime-local"
+                              id="payment_end"
+                              name="payment_end"
+                              className="col-span-3"
+                              onChange={(e) => onFormDataChanged(e)}
+                              value={formData.payment_end || ""}
                             />
                           </div>
                         </div>
@@ -1157,115 +1056,93 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                         className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
                       >
                         <Label className="text-right">Faculty</Label>
-                        <Select
-                          onValueChange={(e) => {
-                            setFormData((cur) => ({
-                              ...cur,
-                              d_id: "",
-                              deg_id: "",
-                              level: "",
-                              sem_no: "",
-                              application_open: "",
-                            }));
-                            onFormDataChanged(e);
-                          }}
-                          value={formData.f_id ? "f_id:" + formData.f_id : ""}
-                          disabled={
-                            data
-                              ? new Date(data?.application_open) < new Date()
-                              : false
-                          }
-                        >
-                          <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder="Faculty" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {facultyData?.map((item) => (
-                              <SelectItem
-                                key={item.f_id}
-                                value={`f_id:${item.f_id}`}
-                              >
-                                {item.f_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div
-                        className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
-                      >
-                        <Label className="text-right">Department</Label>
-                        <Select
-                          onValueChange={(e) => {
-                            setFormData((cur) => ({
-                              ...cur,
-                              deg_id: "",
-                              level: "",
-                              sem_no: "",
-                              application_open: "",
-                            }));
-                            onFormDataChanged(e);
-                          }}
-                          value={formData.d_id ? "d_id:" + formData.d_id : ""}
-                          disabled={
-                            data
-                              ? new Date(data?.application_open) < new Date()
-                              : !formData.f_id
-                          }
-                        >
-                          <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder="Department" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {departmentData?.map((item) => (
-                              <SelectItem
-                                key={item.d_id}
-                                value={`d_id:${item.d_id}`}
-                              >
-                                {item.d_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="col-span-3">
+                          <LabelSearchCombobox
+                            name="f_id"
+                            items={facultyData}
+                            labelField="f_name"
+                            valueField="f_id"
+                            placeholder="Search faculty..."
+                            buttonText="Select faculty"
+                            onValueChange={(e) => {
+                              setFormData((cur) => ({ ...cur, deg_id: "" }));
+                              onFormDataChanged(e);
+                            }}
+                            value={formData.f_id || null}
+                            disabled={
+                              isFacultyDataLoading || isFacultyDataError
+                            }
+                          />
+                        </div>
                       </div>
                       <div
                         className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
                       >
                         <Label className="text-right">Degree programme</Label>
-                        <Select
-                          onValueChange={(e) => {
-                            setFormData((cur) => ({
-                              ...cur,
-                              level: "",
-                              sem_no: "",
-                              application_open: "",
-                            }));
-                            setTimePeriods({});
-                            onFormDataChanged(e);
-                          }}
-                          value={
-                            formData.deg_id ? "deg_id:" + formData.deg_id : ""
-                          }
-                          disabled={
-                            data
-                              ? new Date(data?.application_open) < new Date()
-                              : !formData.d_id
-                          }
-                        >
-                          <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder="Degree programme" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {degreeData?.map((item) => (
-                              <SelectItem
-                                key={item.deg_id}
-                                value={`deg_id:${item.deg_id}`}
-                              >
-                                {item.deg_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="col-span-3">
+                          <LabelSearchCombobox
+                            name="deg_id"
+                            items={degreeData}
+                            labelField="deg_name"
+                            valueField="deg_id"
+                            placeholder="Search degree..."
+                            buttonText={
+                              isDegreeDataError
+                                ? "Not found"
+                                : isDegreeDataLoading
+                                ? "Loading..."
+                                : "Select degree"
+                            }
+                            onValueChange={(e) => {
+                              setFormData((cur) => ({
+                                ...cur,
+                                syl_id: "",
+                                level: "",
+                                sem_no: "",
+                              }));
+                              onFormDataChanged(e);
+                            }}
+                            value={formData.deg_id || null}
+                            disabled={
+                              !degreeData ||
+                              isDegreeDataLoading ||
+                              isDegreeDataError
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div
+                        className={`grid grid-cols-4 items-center gap-4 pr-[2px]`}
+                      >
+                        <Label className="text-right">Syllabus</Label>
+                        <div className="col-span-3">
+                          <LabelSearchCombobox
+                            name="syl_id"
+                            items={syllabusData?.map((obj) => ({
+                              ...obj,
+                              commenced_year: obj.commenced_year + "",
+                            }))}
+                            labelField="commenced_year"
+                            valueField="syl_id"
+                            placeholder="Search syllabus..."
+                            buttonText={
+                              isSyllabusDataError
+                                ? "Not found"
+                                : isSyllabusDataLoading
+                                ? "Loading..."
+                                : "Select syllabus"
+                            }
+                            onValueChange={(e) => {
+                              onFormDataChanged(e);
+                            }}
+                            value={formData.syl_id || null}
+                            disabled={
+                              !syllabusData ||
+                              isSyllabusDataLoading ||
+                              isSyllabusDataError
+                            }
+                          />
+                        </div>
                       </div>
 
                       <div
@@ -1364,7 +1241,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                     </div>
                   </div>
                   {sidePartEnable &&
-                    (curriculumByDegLevSemData?.length ? (
+                    (subjectsBySylLevSemData?.length ? (
                       <div
                         className={`flex flex-col justify-start border rounded-md container flex-1 mx-auto ${
                           lecturersPartValid
@@ -1384,7 +1261,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                           />
                         </h1>
                         <div className="overflow-auto h-full w-full p-1 flex flex-col justify-start gap-3">
-                          {curriculumByDegLevSemData?.map((obj) => {
+                          {subjectsBySylLevSemData?.map((obj) => {
                             return (
                               <div
                                 className={`grid grid-cols-4 items-center gap-4`}
@@ -1393,98 +1270,40 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                 <Label className="text-right">
                                   {obj.sub_code}
                                 </Label>
-                                <div className="grid col-span-3">
-                                  <Popover
-                                    open={comboBoxOpen[obj.sub_id]}
-                                    onOpenChange={(bool) => {
-                                      setComboBoxOpen((cur) => ({
+                                <div className="col-span-3">
+                                  <LabelSearchCombobox
+                                    name={"sub-" + obj.sub_id}
+                                    items={lecturers}
+                                    labelField="name"
+                                    valueField="l_id"
+                                    placeholder="Search lecturer..."
+                                    buttonText={
+                                      isLecturersError
+                                        ? "Not found"
+                                        : isLecturersLoading
+                                        ? "Loading..."
+                                        : "Select lecturer"
+                                    }
+                                    onValueChange={(e) => {
+                                      const l_id = e.target.value;
+                                      setFormData((cur) => ({
                                         ...cur,
-                                        [obj.sub_id]: bool,
+                                        subjects: {
+                                          ...cur.subjects,
+                                          [obj.sub_id]: l_id,
+                                        },
                                       }));
                                     }}
-                                  >
-                                    <PopoverTrigger
-                                      asChild
-                                      disabled={
-                                        data
-                                          ? new Date(data?.application_open) <
-                                            new Date()
-                                          : false
-                                      }
-                                    >
-                                      <button
-                                        role="combobox"
-                                        aria-expanded={comboBoxOpen}
-                                        className="col-span-3 flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-white px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer"
-                                      >
-                                        {formData?.subjects?.[obj.sub_id]
-                                          ? managers.find(
-                                              (manager) =>
-                                                manager.m_id ==
-                                                formData.subjects[obj.sub_id]
-                                            )?.name
-                                          : "Select manager"}
-                                        <ChevronsUpDown className="opacity-50 size-[17px] " />
-                                      </button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="py-0 px-1 border-none shadow-none w-full">
-                                      <Command className="border shadow-md w-full">
-                                        <CommandInput placeholder="Search manager" />
-                                        <CommandList>
-                                          <CommandEmpty>
-                                            No manager found.
-                                          </CommandEmpty>
-                                          <CommandGroup>
-                                            {managers.map((manager) => (
-                                              <CommandItem
-                                                key={manager.m_id}
-                                                value={
-                                                  manager.name +
-                                                  ":" +
-                                                  manager.m_id.toString()
-                                                }
-                                                onSelect={(currentValue) => {
-                                                  setFormData((cur) => ({
-                                                    ...cur,
-                                                    subjects: {
-                                                      ...cur.subjects,
-                                                      [obj.sub_id]:
-                                                        currentValue.split(
-                                                          ":"
-                                                        )[1] ===
-                                                        cur?.subjects?.[
-                                                          obj.sub_id
-                                                        ]
-                                                          ? ""
-                                                          : currentValue.split(
-                                                              ":"
-                                                            )[1],
-                                                    },
-                                                  }));
-                                                  setComboBoxOpen((cur) => ({
-                                                    ...cur,
-                                                    [obj.sub_id]: false,
-                                                  }));
-                                                }}
-                                              >
-                                                {manager.name}
-                                                <Check
-                                                  className={cn(
-                                                    "ml-auto",
-                                                    formData?.subjects?.[
-                                                      obj.sub_id
-                                                    ] == manager.m_id
-                                                      ? "opacity-100"
-                                                      : "opacity-0"
-                                                  )}
-                                                />
-                                              </CommandItem>
-                                            ))}
-                                          </CommandGroup>
-                                        </CommandList>
-                                      </Command>
-                                    </PopoverContent>
-                                  </Popover>
+                                    value={
+                                      formData?.subjects[obj.sub_id] || null
+                                    }
+                                    disabled={
+                                      data
+                                        ? new Date(data?.application_open) <
+                                          new Date()
+                                        : false
+                                    }
+                                  />
                                 </div>
                               </div>
                             );
@@ -1495,7 +1314,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                       <div className="p-3 flex">
                         <FaExclamation className="text-red-700 text-5xl inline-block" />
                         <p>
-                          There is no curriculum available for {formData.level}
+                          There is no subject group available for{" "}
+                          {formData.level}
                           {formData.level == "1" ? (
                             <sup>st</sup>
                           ) : formData.level == "2" ? (
@@ -1536,7 +1356,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                       />
                     </h1>
                     <div className="flex flex-col justify-start gap-3 overflow-auto w-full h-full">
-                      <div className="flex justify-center">
+                      <div className="flex justify-between px-2">
                         <div className="items-center gap-3">
                           <Label
                             htmlFor="application_open"
@@ -1570,8 +1390,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             }
                           />
                         </div>
-                      </div>
-                      <div className="flex justify-between px-2">
                         <div className="items-center gap-3">
                           <Label
                             htmlFor="students_end"
@@ -1593,6 +1411,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             value={timePeriods?.students_end || ""}
                           />
                         </div>
+                      </div>
+                      <div className="flex justify-between px-2">
                         <div className="items-center gap-3">
                           <Label
                             htmlFor="lecturers_end"
@@ -1614,8 +1434,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             value={timePeriods?.lecturers_end || ""}
                           />
                         </div>
-                      </div>
-                      <div className="flex justify-between px-2">
                         <div className="items-center gap-3">
                           <Label
                             htmlFor="hod_end"
@@ -1637,6 +1455,8 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             value={timePeriods?.hod_end || ""}
                           />
                         </div>
+                      </div>
+                      <div className="flex justify-between px-2">
                         <div className="items-center gap-3">
                           <Label
                             htmlFor="dean_end"
@@ -1656,6 +1476,22 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                               }))
                             }
                             value={timePeriods?.dean_end || ""}
+                          />
+                        </div>
+                        <div className="items-center gap-3">
+                          <Label
+                            htmlFor="payment_end"
+                            className="w-32 inline-block"
+                          >
+                            Payment deadline
+                          </Label>
+                          <input
+                            type="datetime-local"
+                            id="payment_end"
+                            name="payment_end"
+                            className="col-span-3"
+                            onChange={(e) => onFormDataChanged(e)}
+                            value={timePeriods?.payment_end || ""}
                           />
                         </div>
                       </div>

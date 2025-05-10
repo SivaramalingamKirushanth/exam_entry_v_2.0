@@ -19,11 +19,11 @@ export const getSubjectById = async (sub_id) => {
   return response.data;
 };
 
-export const getSubjectByDegLevSem = async (deg_id, level, sem_no) => {
+export const getSubjectsBySylLevSem = async (syl_id, level, sem_no) => {
   const response = await axiosInstance.post(
-    "/curriculum/getSubjectByDegLevSem",
+    "/curriculum/getSubjectsBySylLevSem",
     {
-      deg_id,
+      syl_id,
       level,
       sem_no,
     }

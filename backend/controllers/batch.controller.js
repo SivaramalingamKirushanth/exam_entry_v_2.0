@@ -79,30 +79,30 @@ export const getBatchById = async (req, res, next) => {
       }
 
       // Parse batch_code in Node.js
-      const details = parseString(batch[0][0].batch_code);
+      const { sem: sem_no, ...details } = batch[0][0];
 
-      // Call the second stored procedure to get degree, department, and faculty details
-      const [degFacDepResults] = await conn.query(
-        "CALL GetDegFacDepDetails(?)",
-        [details.degree_name_short]
-      );
+      // Call the second stored procedure to get degree, and faculty details
+      const [degFacResults] = await conn.query("CALL GetDegFacDetails(?)", [
+        details.deg_id,
+      ]);
 
       // Fetch subject and lecturer details for the batch
-      const [batCurLecResult] = await conn.query(
-        "SELECT bcl.* FROM batch_subject_lecturer bcl INNER JOIN subject c ON bcl.sub_id = c.sub_id WHERE bcl.batch_id = ? AND c.status = 'true'",
+      const [batSubLecResult] = await conn.query(
+        "SELECT bsl.* FROM batch_subject_lecturer bsl INNER JOIN subject s ON bsl.sub_id = s.sub_id WHERE bsl.batch_id = ? AND s.status = 'true'",
         [batch_id]
       );
 
       // Transform subject and lecturer details into a key-value map
       const subjects = {};
-      batCurLecResult.forEach((obj) => {
-        subjects[obj.sub_id] = obj.m_id.toString();
+      batSubLecResult.forEach((obj) => {
+        subjects[obj.sub_id] = obj.l_id;
       });
 
       return res.status(200).json({
         status: batch[0][0].status,
+        sem_no,
         ...details,
-        ...degFacDepResults[0][0],
+        ...degFacResults[0][0],
         subjects,
         batch_id,
         application_open: batch[0][0].application_open,
@@ -127,6 +127,7 @@ export const createBatch = async (req, res, next) => {
     subjects,
     status = "true",
     deg_id,
+    syl_id,
     application_open,
     academic_year,
     level,
@@ -135,6 +136,7 @@ export const createBatch = async (req, res, next) => {
     lecturers_end,
     hod_end,
     dean_end,
+    payment_end,
   } = req.body;
 
   try {
@@ -145,6 +147,7 @@ export const createBatch = async (req, res, next) => {
         !status ||
         !Object.keys(subjects).length ||
         !deg_id ||
+        !syl_id ||
         !application_open ||
         !academic_year ||
         !level ||
@@ -152,7 +155,8 @@ export const createBatch = async (req, res, next) => {
         !students_end ||
         !lecturers_end ||
         !hod_end ||
-        !dean_end
+        !dean_end ||
+        !payment_end
       ) {
         return next(errorProvider(400, "All fields are required"));
       }
@@ -172,16 +176,18 @@ export const createBatch = async (req, res, next) => {
 
       // Insert batch and retrieve batch_id
       const [batchResult] = await conn.query(
-        "CALL InsertBatch(?, ?, ?, ?, ?, ?, ?, ?, @batch_id); SELECT @batch_id AS batch_id;",
+        "CALL InsertBatch(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @batch_id); SELECT @batch_id AS batch_id;",
         [
           batch_code,
           Object.keys(subjects).join(","),
           status,
           deg_id,
+          syl_id,
           application_open,
           academic_year,
           level,
           sem_no,
+          payment_end,
         ]
       );
       const batch_id = batchResult[1][0].batch_id;
@@ -190,7 +196,7 @@ export const createBatch = async (req, res, next) => {
       await conn.query("CALL InsertBatchSubjectLecturer(?, ?);", [
         batch_id,
         JSON.stringify(
-          Object.entries(subjects).map(([sub_id, m_id]) => ({ sub_id, m_id }))
+          Object.entries(subjects).map(([sub_id, l_id]) => ({ sub_id, l_id }))
         ),
       ]);
 
@@ -238,9 +244,9 @@ export const createBatch = async (req, res, next) => {
         [batch_id, "2", dean_end, dean_end]
       );
 
-      let desc = `Batch created with batch_id=${batch_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, sub_ids=${Object.keys(
+      let desc = `Batch created with batch_id=${batch_id}, syl_id=${syl_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, sub_ids=${Object.keys(
         subjects
-      ).join(",")}, m_ids=${Object.values(subjects).join(",")}`;
+      ).join(",")}, l_ids=${Object.values(subjects).join(",")}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
@@ -272,6 +278,7 @@ export const updateBatch = async (req, res, next) => {
     subjects,
     batch_id,
     deg_id,
+    syl_id,
     application_open,
     academic_year,
     level,
@@ -280,6 +287,7 @@ export const updateBatch = async (req, res, next) => {
     lecturers_end,
     hod_end,
     dean_end,
+    payment_end,
   } = req.body;
 
   try {
@@ -290,6 +298,7 @@ export const updateBatch = async (req, res, next) => {
         !batch_code ||
         !Object.keys(subjects).length ||
         !deg_id ||
+        !syl_id ||
         !application_open ||
         !academic_year ||
         !level ||
@@ -297,7 +306,8 @@ export const updateBatch = async (req, res, next) => {
         !students_end ||
         !lecturers_end ||
         !hod_end ||
-        !dean_end
+        !dean_end ||
+        !payment_end
       ) {
         return next(errorProvider(400, "All fields are required"));
       }
@@ -316,16 +326,21 @@ export const updateBatch = async (req, res, next) => {
       }
 
       // Update batch details
-      await conn.query("CALL UpdateBatchDetails(?, ?, ?, ?, ?, ?, ?, ?);", [
-        batch_id,
-        batch_code,
-        Object.keys(subjects).join(","),
-        deg_id,
-        application_open,
-        academic_year,
-        level,
-        sem_no,
-      ]);
+      await conn.query(
+        "CALL UpdateBatchDetails(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+        [
+          batch_id,
+          batch_code,
+          Object.keys(subjects).join(","),
+          deg_id,
+          syl_id,
+          application_open,
+          academic_year,
+          level,
+          sem_no,
+          payment_end,
+        ]
+      );
 
       // Drop old tables and columns if subjects changed
       if (!lodash.isEqual(Object.keys(old_subjects), Object.keys(subjects))) {
@@ -352,15 +367,13 @@ export const updateBatch = async (req, res, next) => {
       }
 
       // Delete old batch subject lecturer rows
-      await conn.query("CALL DeleteBatchSubjectLecturerRows(?);", [
-        batch_id,
-      ]);
+      await conn.query("CALL DeleteBatchSubjectLecturerRows(?);", [batch_id]);
 
       // Re-insert batch subject lecturer details
       await conn.query("CALL InsertBatchSubjectLecturer(?, ?);", [
         batch_id,
         JSON.stringify(
-          Object.entries(subjects).map(([sub_id, m_id]) => ({ sub_id, m_id }))
+          Object.entries(subjects).map(([sub_id, l_id]) => ({ sub_id, l_id }))
         ),
       ]);
 
@@ -392,9 +405,9 @@ export const updateBatch = async (req, res, next) => {
         [batch_id, "2", dean_end, dean_end]
       );
 
-      let desc = `Batch updated with batch_id=${batch_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, sub_ids=${Object.keys(
+      let desc = `Batch updated with batch_id=${batch_id}, syl_id=${syl_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, sub_ids=${Object.keys(
         subjects
-      ).join(",")}, m_ids=${Object.values(subjects).join(",")}`;
+      ).join(",")}, l_ids=${Object.values(subjects).join(",")}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
@@ -869,6 +882,8 @@ export const uploadAttendanceSheet = async (req, res, next) => {
   const failedCases = [];
   const unmatchedSubjects = [];
   const unmatchedStudents = [];
+  const missingSubjects = [];
+  const upsertedStudents = [];
 
   try {
     if (!req.file || !req.file.buffer || !req.body.batch_id) {
@@ -900,7 +915,7 @@ export const uploadAttendanceSheet = async (req, res, next) => {
 
           // Fetch subject IDs from DB for the batch
           const [dbSubjectRows] = await conn.query(
-            "SELECT bcl.sub_id, c.sub_code FROM batch_subject_lecturer bcl join subject c ON bcl.sub_id=c.sub_id WHERE bcl.batch_id = ?",
+            "SELECT bsl.sub_id, s.sub_code FROM batch_subject_lecturer bsl join subject s ON bsl.sub_id=s.sub_id WHERE bsl.batch_id = ?",
             [batchId]
           );
 
@@ -911,23 +926,37 @@ export const uploadAttendanceSheet = async (req, res, next) => {
           }, {});
 
           // Map incoming subjects to database sub_ids
-          const subIdOrder = incomingSubjects.map((incomingCode) => {
+          const subIdOrder = incomingSubjects.map((incomingCode, i) => {
             const matchingKey = Object.keys(dbSubjects).find(
               (key) => key === incomingCode
             );
 
             if (!matchingKey) {
               unmatchedSubjects.push(incomingCode);
-              return null;
+              return null; // return null if no matching sub_code
             }
 
-            return dbSubjects[matchingKey];
+            return dbSubjects[matchingKey]; // return sub_id of matching sub_code
           });
 
           if (unmatchedSubjects.length > 0) {
             failedCases.push(
               `Unmatched subjects: ${unmatchedSubjects.join(", ")}`
             );
+          }
+
+          Object.keys(dbSubjects).forEach((subCode) => {
+            const exist = incomingSubjects.find(
+              (incomeSubCode) => incomeSubCode == subCode
+            );
+
+            if (!exist) {
+              missingSubjects.push(subCode);
+            }
+          });
+
+          if (missingSubjects.length > 0) {
+            failedCases.push(`Missing subjects: ${missingSubjects.join(", ")}`);
           }
 
           // Process each row and update attendance
@@ -952,23 +981,38 @@ export const uploadAttendanceSheet = async (req, res, next) => {
             const s_id = userResult[0].s_id;
 
             // Build dynamic update query using attendanceData and subIdOrder
-            const updates = subIdOrder
-              .map((sub_id, index) => {
-                const columnValue = attendanceData[index] || 0; // Match value to the sub_id order
-                return sub_id
-                  ? `sub_${sub_id} = ${conn.escape(columnValue)}`
-                  : null;
-              })
-              .filter(Boolean)
-              .join(", ");
+            const tableName = `batch_${batchId}_students`;
 
-            if (updates) {
-              const tableName = `batch_${batchId}_students`;
-              await conn.query(
-                `UPDATE ${tableName} SET ${updates} WHERE s_id = ?`,
-                [s_id]
-              );
+            // Build column names and values for INSERT
+            const insertCols = ["s_id"];
+            const insertVals = [conn.escape(s_id)];
+            const updateParts = [];
+
+            subIdOrder.forEach((sub_id, index) => {
+              if (sub_id) {
+                const value = attendanceData[index] || 0;
+                const col = `sub_${sub_id}`;
+                insertCols.push(col);
+                insertVals.push(conn.escape(value));
+                updateParts.push(`${col} = VALUES(${col})`);
+              }
+            });
+
+            if (updateParts.length > 0) {
+              const query = `
+    INSERT INTO ${tableName} (${insertCols.join(", ")})
+    VALUES (${insertVals.join(", ")})
+    ON DUPLICATE KEY UPDATE ${updateParts.join(", ")}
+  `;
+              upsertedStudents.push(user_name);
+              await conn.query(query);
             }
+          }
+
+          if (upsertedStudents.length > 0) {
+            failedCases.push(
+              `inserted/updated students: ${upsertedStudents.join(", ")}`
+            );
           }
 
           let desc = `Batch attendace sheet uploaded for batch_id=${batchId}`;
@@ -977,7 +1021,12 @@ export const uploadAttendanceSheet = async (req, res, next) => {
           await conn.commit();
 
           // Generate a failed cases file if needed
-          if (failedCases.length > 0 || unmatchedStudents.length > 0) {
+          if (
+            failedCases.length > 0 ||
+            unmatchedStudents.length > 0 ||
+            missingSubjects.length > 0 ||
+            upsertedStudents.length > 0
+          ) {
             const failedFilePath = path.join(
               __dirname,
               "failed_cases_attendance.txt"

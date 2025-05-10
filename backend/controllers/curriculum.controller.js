@@ -75,10 +75,10 @@ export const getAllSubjectsWithExtraDetails = async (req, res, next) => {
   }
 };
 
-export const getSubjectByDegLevSem = async (req, res, next) => {
-  const { deg_id, level, sem_no } = req.body;
+export const getSubjectsBySylLevSem = async (req, res, next) => {
+  const { syl_id, level, sem_no } = req.body;
 
-  if (!deg_id || !level || !sem_no) {
+  if (!syl_id || !level || !sem_no) {
     return next(errorProvider(400, "Missing required fields."));
   }
 
@@ -87,11 +87,11 @@ export const getSubjectByDegLevSem = async (req, res, next) => {
 
     try {
       const [results] = await conn.query(
-        "CALL GetSubjectByDegLevSem(?, ?, ?);",
-        [deg_id, level, sem_no]
+        "CALL GetSubjectsBySylLevSem(?, ?, ?);",
+        [syl_id, level, sem_no]
       );
 
-      return res.status(200).json(results[0]); // First result set contains the data
+      return res.status(200).json(results[0]);
     } catch (error) {
       console.error("Error fetching subject details:", error);
       return next(errorProvider(500, "Failed to fetch subject details"));
@@ -1026,7 +1026,6 @@ export const getSyllabusById = async (req, res, next) => {
 
 export const getSyllabiByDegreeId = async (req, res, next) => {
   const { deg_id } = req.body;
-  console.log(deg_id);
 
   if (!deg_id) {
     return next(errorProvider(400, "Missing deg_id."));
@@ -1045,7 +1044,6 @@ export const getSyllabiByDegreeId = async (req, res, next) => {
           errorProvider(404, `No syllabi found for deg_id: ${deg_id}`)
         );
       }
-      console.log(results[0]);
 
       return res.status(200).json(results[0]); // First result set contains data
     } catch (error) {
@@ -1120,8 +1118,6 @@ export const getAllSubjectsForGroupCreation = async (req, res, next) => {
         "CALL GetAllSubjectsForGroupCreation(?,?,?,?);",
         [f_id, syl_id, level, sem_no]
       );
-
-      console.log(results);
 
       if (results[0].length === 0) {
         return res.status(404).json({

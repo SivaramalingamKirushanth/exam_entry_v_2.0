@@ -354,6 +354,37 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                       />
                     </div>
                   </div>
+                  <div className={`grid grid-cols-4 items-center gap-4`}>
+                    <Label className="text-right">Syllabus</Label>
+                    <div className="col-span-3">
+                      <LabelSearchCombobox
+                        name="syl_id"
+                        items={syllabusData?.map((obj) => ({
+                          ...obj,
+                          commenced_year: obj.commenced_year + "",
+                        }))}
+                        labelField="commenced_year"
+                        valueField="syl_id"
+                        placeholder="Search syllabus..."
+                        buttonText={
+                          isSyllabusDataError
+                            ? "Not found"
+                            : isSyllabusDataLoading
+                            ? "Loading..."
+                            : "Select syllabus"
+                        }
+                        onValueChange={(e) => {
+                          onFormDataChanged(e);
+                        }}
+                        value={formData.syl_id || null}
+                        disabled={
+                          !syllabusData ||
+                          isSyllabusDataLoading ||
+                          isSyllabusDataError
+                        }
+                      />
+                    </div>
+                  </div>
                   <div
                     className={`${
                       degreeLevelsData ? "grid" : "hidden"
@@ -423,37 +454,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                           </div>
                         ))}
                     </div>
-                  </div>{" "}
-                  <div className={`grid grid-cols-4 items-center gap-4`}>
-                    <Label className="text-right">Syllabus</Label>
-                    <div className="col-span-3">
-                      <LabelSearchCombobox
-                        name="syl_id"
-                        items={syllabusData?.map((obj) => ({
-                          ...obj,
-                          commenced_year: obj.commenced_year + "",
-                        }))}
-                        labelField="commenced_year"
-                        valueField="syl_id"
-                        placeholder="Search syllabus..."
-                        buttonText={
-                          isSyllabusDataError
-                            ? "Not found"
-                            : isSyllabusDataLoading
-                            ? "Loading..."
-                            : "Select syllabus"
-                        }
-                        onValueChange={(e) => {
-                          onFormDataChanged(e);
-                        }}
-                        value={formData.syl_id || null}
-                        disabled={
-                          !syllabusData ||
-                          isSyllabusDataLoading ||
-                          isSyllabusDataError
-                        }
-                      />
-                    </div>
                   </div>
                 </div>
                 <div
@@ -487,9 +487,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                           ...base,
                           borderColor: "#ccc",
                           boxShadow: "none",
+                          fontSize: "0.9rem",
                           "&:hover": {
                             borderColor: "#000",
                           },
+                        }),
+                        menuList: () => ({
+                          fontSize: "0.9rem",
                         }),
                       }}
                       theme={(theme) => ({

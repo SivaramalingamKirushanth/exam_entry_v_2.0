@@ -15,27 +15,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Modal from "./Model";
 import {
   getAllBatchDetails,
-  getAllBatches,
   updateBatchStatus,
 } from "@/utils/apiRequests/batch.api";
-import StudentModel from "./StudentModel";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import {
-  FaClock,
-  FaPen,
-  FaTrash,
-  FaUserCheck,
-  FaUserPlus,
-} from "react-icons/fa6";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { FaPen, FaTrash, FaUserCheck } from "react-icons/fa6";
 import { Switch } from "@/components/ui/switch";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import {
   Drawer,
   DrawerClose,
@@ -54,15 +40,12 @@ const BatchesDetails = () => {
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
-  const [isFeedOpen, setIsFeedOpen] = useState(false);
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
   const modalRef = useRef(null);
   const studentModalRef = useRef(null);
   const attendanceModalRef = useRef(null);
   const [editId, setEditId] = useState("");
-  const [feedId, setFeedId] = useState("");
   const [attendanceId, setAttendanceId] = useState("");
-  const [feedDegShort, setFeedDegShort] = useState("");
   const [dropId, setDropId] = useState(null);
   const queryClient = useQueryClient();
 
@@ -190,14 +173,6 @@ const BatchesDetails = () => {
             </div>
             <div className="flex flex-col gap-1">
               <Button
-                className="feedBtn flex justify-between"
-                variant="outline"
-                id={row.original.batch_id}
-              >
-                <FaUserPlus />
-                &nbsp;Feed Students
-              </Button>
-              <Button
                 variant="outline"
                 className="attendanceBtn flex justify-between"
                 id={row.original.batch_id}
@@ -257,12 +232,6 @@ const BatchesDetails = () => {
     setIsOpen((prev) => !prev);
   };
 
-  const toggleFeedModal = () => {
-    isFeedOpen && setFeedId("");
-    isFeedOpen && setFeedDegShort("");
-    setIsFeedOpen((prev) => !prev);
-  };
-
   const toggleAttendanceModal = () => {
     isAttendanceOpen && setAttendanceId("");
     setIsAttendanceOpen((prev) => !prev);
@@ -272,11 +241,6 @@ const BatchesDetails = () => {
     if (e.target.classList.contains("editBtn")) {
       setEditId(e.target.id);
       toggleModal();
-    }
-
-    if (e.target.classList.contains("feedBtn")) {
-      setFeedId(e.target.id.split(":")[0]);
-      toggleFeedModal();
     }
 
     if (e.target.classList.contains("attendanceBtn")) {
@@ -361,15 +325,7 @@ const BatchesDetails = () => {
         modalRef={modalRef}
         setEditId={setEditId}
       />
-      <StudentModel
-        feedId={feedId}
-        feedDegShort={feedDegShort}
-        setIsFeedOpen={setIsFeedOpen}
-        isFeedOpen={isFeedOpen}
-        studentModalRef={studentModalRef}
-        setFeedId={setFeedId}
-        setFeedDegShort={setFeedDegShort}
-      />
+
       <AttendanceModel
         isAttendanceOpen={isAttendanceOpen}
         setIsAttendanceOpen={setIsAttendanceOpen}

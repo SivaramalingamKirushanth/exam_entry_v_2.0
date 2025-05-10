@@ -27,7 +27,7 @@ const AttendanceModel = ({
       const result = await uploadAttendanceSheet(formData);
 
       if (result.isFile) {
-        toast.success("Failed records file downloaded.");
+        toast.success("Report file downloaded.");
       } else {
         toast.success(result.message);
       }

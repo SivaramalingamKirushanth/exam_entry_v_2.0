@@ -20,6 +20,7 @@ import {
   getDegreesByFacultyId,
 } from "@/utils/apiRequests/course.api";
 import { getSyllabiByDegreeId } from "@/utils/apiRequests/curriculum.api";
+import { LabelSearchCombobox } from "@/components/ui/customCommand";
 
 const ImportModel = ({ isImportOpen, setIsImportOpen, importModalRef }) => {
   const [file, setFile] = useState(null);
@@ -28,16 +29,20 @@ const ImportModel = ({ isImportOpen, setIsImportOpen, importModalRef }) => {
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: facultyData } = useQuery({
+  const {
+    data: facultyData,
+    isLoading: isFacultyDataLoading,
+    isError: isFacultyDataError,
+  } = useQuery({
     queryFn: getAllFaculties,
-    queryKey: ["faculties"],
+    queryKey: ["activeFaculties"],
   });
 
   const {
     data: degreeData,
     refetch: degreeDataRefetch,
-    isLoading: isLoadingDegreeData,
-    error: degreeDataError,
+    isLoading: isDegreeDataLoading,
+    isError: isDegreeDataError,
   } = useQuery({
     queryFn: () => getDegreesByFacultyId(formData.f_id),
     queryKey: ["activeDegrees", "faculty", formData.f_id],
@@ -47,8 +52,8 @@ const ImportModel = ({ isImportOpen, setIsImportOpen, importModalRef }) => {
   const {
     data: syllabusData,
     refetch: syllabusDataRefetch,
-    isLoading: isLoadingSyllabusData,
-    error: syllabusDataError,
+    isLoading: isSyllabusDataLoading,
+    error: isSyllabusDataError,
   } = useQuery({
     queryFn: () => getSyllabiByDegreeId(formData.deg_id),
     queryKey: ["activeSyllabi", "degree", formData.deg_id],
@@ -60,11 +65,6 @@ const ImportModel = ({ isImportOpen, setIsImportOpen, importModalRef }) => {
       setFormData((curData) => ({
         ...curData,
         [e.target?.name]: e.target?.value,
-      }));
-    } else {
-      setFormData((curData) => ({
-        ...curData,
-        [e.split(":")[0]]: e.split(":")[1],
       }));
     }
   };
@@ -131,96 +131,86 @@ const ImportModel = ({ isImportOpen, setIsImportOpen, importModalRef }) => {
             <div className="grid gap-1 py-1">
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Faculty</Label>
-                <Select
-                  onValueChange={(e) => {
-                    setFormData((cur) => ({
-                      ...cur,
-                      deg_id: "",
-                      syl_id: "",
-                    }));
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.f_id ? "f_id:" + formData.f_id : ""}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Faculty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {facultyData?.map((item) => (
-                      <SelectItem key={item.f_id} value={`f_id:${item.f_id}`}>
-                        {item.f_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="col-span-3">
+                  <LabelSearchCombobox
+                    name="f_id"
+                    items={facultyData}
+                    labelField="f_name"
+                    valueField="f_id"
+                    placeholder="Search faculty..."
+                    buttonText="Select faculty"
+                    onValueChange={(e) => {
+                      setFormData((cur) => ({ ...cur, deg_id: "" }));
+                      onFormDataChanged(e);
+                    }}
+                    value={formData.f_id || null}
+                    disabled={isFacultyDataLoading || isFacultyDataError}
+                  />
+                </div>
               </div>
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Degree programme</Label>
-                <Select
-                  onValueChange={(e) => {
-                    setFormData((cur) => ({
-                      ...cur,
-                      syl_id: "",
-                    }));
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.deg_id ? "deg_id:" + formData.deg_id : ""}
-                  disabled={!degreeData}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue
-                      placeholder={
-                        degreeDataError
-                          ? "Not found"
-                          : isLoadingDegreeData
-                          ? "Loading..."
-                          : "Degree programme"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {degreeData?.map((item) => (
-                      <SelectItem
-                        key={item.deg_id}
-                        value={`deg_id:${item.deg_id}`}
-                      >
-                        {item.deg_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+                <div className="col-span-3">
+                  <LabelSearchCombobox
+                    name="deg_id"
+                    items={degreeData}
+                    labelField="deg_name"
+                    valueField="deg_id"
+                    placeholder="Search degree..."
+                    buttonText={
+                      isDegreeDataError
+                        ? "Not found"
+                        : isDegreeDataLoading
+                        ? "Loading..."
+                        : "Select degree"
+                    }
+                    onValueChange={(e) => {
+                      setFormData((cur) => ({
+                        ...cur,
+                        syl_id: "",
+                        level: "",
+                        sem_no: "",
+                      }));
+                      onFormDataChanged(e);
+                    }}
+                    value={formData.deg_id || null}
+                    disabled={
+                      !degreeData || isDegreeDataLoading || isDegreeDataError
+                    }
+                  />
+                </div>
               </div>
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Syllabus</Label>
-                <Select
-                  onValueChange={(e) => {
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.syl_id ? "syl_id:" + formData.syl_id : ""}
-                  disabled={!syllabusData}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue
-                      placeholder={
-                        syllabusDataError
-                          ? "Not found"
-                          : isLoadingSyllabusData
-                          ? "Loading..."
-                          : "Syllabus"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {syllabusData?.map((item) => (
-                      <SelectItem
-                        key={item.syl_id}
-                        value={`syl_id:${item.syl_id}`}
-                      >
-                        {item.commenced_year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="col-span-3">
+                  <LabelSearchCombobox
+                    name="syl_id"
+                    items={syllabusData?.map((obj) => ({
+                      ...obj,
+                      commenced_year: obj.commenced_year + "",
+                    }))}
+                    labelField="commenced_year"
+                    valueField="syl_id"
+                    placeholder="Search syllabus..."
+                    buttonText={
+                      isSyllabusDataError
+                        ? "Not found"
+                        : isSyllabusDataLoading
+                        ? "Loading..."
+                        : "Select syllabus"
+                    }
+                    onValueChange={(e) => {
+                      onFormDataChanged(e);
+                    }}
+                    value={formData.syl_id || null}
+                    disabled={
+                      !syllabusData ||
+                      isSyllabusDataLoading ||
+                      isSyllabusDataError
+                    }
+                  />
+                </div>
               </div>
             </div>
 

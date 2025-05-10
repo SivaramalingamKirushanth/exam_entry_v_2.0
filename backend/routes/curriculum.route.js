@@ -7,7 +7,6 @@ import {
   getAllSubjects,
   getAllSubjectsWithExtraDetails,
   getSubjectById,
-  getSubjectByDegLevSem,
   getSubjectBybatchId,
   getStudentApplicationDetails,
   getSubjectsByDid,
@@ -32,6 +31,7 @@ import {
   updateGroup,
   getNoOfGroups,
   getNoOfSyllabi,
+  getSubjectsBySylLevSem,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -45,7 +45,11 @@ router.get(
   getAllSubjectsWithExtraDetails
 );
 router.post("/getSubjectById", verifyUser(["1"]), getSubjectById);
-router.post("/getSubjectByDegLevSem", verifyUser(["1"]), getSubjectByDegLevSem);
+router.post(
+  "/getSubjectsBySylLevSem",
+  verifyUser(["1"]),
+  getSubjectsBySylLevSem
+);
 router.get("/getSubjectsByLecId", verifyUser(["1"]), getSubjectsByLecId);
 router.get("/getSubjectsByHod_id", verifyUser(["1"]), getSubjectsByDid);
 router.post("/createSubject", verifyUser(["1"]), createSubject);
