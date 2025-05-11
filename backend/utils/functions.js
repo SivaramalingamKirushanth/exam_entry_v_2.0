@@ -60,25 +60,26 @@ export const fetchEmailsForUserType = async (conn, batchId, userType) => {
     let values;
 
     if (userType === "4") {
-      query = `SELECT u.email, btp.end_date, b.application_open FROM batch_curriculum_lecturer bcl
-               JOIN manager m ON bcl.m_id = m.m_id
-               JOIN user u ON m.user_id = u.user_id
-               JOIN batch_time_periods btp ON btp.batch_id = bcl.batch_id
+      query = `SELECT u.email, btp.end_date, b.application_open FROM batch_subject_lecturer bsl
+               JOIN lecturer l ON bsl.l_id = l.l_id
+               JOIN user u ON l.user_id = u.user_id
+               JOIN batch_time_periods btp ON btp.batch_id = bsl.batch_id
                JOIN batch b ON b.batch_id = btp.batch_id
-               WHERE bcl.batch_id = ? AND btp.user_type = ?`;
+               WHERE bsl.batch_id = ? AND btp.user_type = ?`;
       values = [batchId, userType];
     } else if (userType === "3") {
       query = `SELECT u.email, btp.end_date FROM batch b
-               JOIN dep_deg dd ON b.deg_id = dd.deg_id
-               JOIN department d ON dd.d_id = d.d_id
+               JOIN grp_sub gs ON b.grp_id = gs.grp_id
+               JOIN subject s ON gs.sub_id = s.sub_id
+               JOIN dep_sub ds ON s.sub_id = ds.sub_id
+               JOIN department d ON ds.d_id = d.d_id
                JOIN user u ON d.user_id = u.user_id
-                JOIN batch_time_periods btp ON btp.batch_id = b.batch_id
+               JOIN batch_time_periods btp ON btp.batch_id = b.batch_id
                WHERE b.batch_id = ? AND btp.user_type = ?`;
       values = [batchId, userType];
     } else if (userType === "2") {
       query = `SELECT u.email, btp.end_date FROM batch b
-               JOIN dep_deg dd ON b.deg_id = dd.deg_id
-               JOIN fac_dep fd ON dd.d_id = fd.d_id
+               JOIN fac_deg fd ON b.deg_id = fd.deg_id
                JOIN faculty f ON fd.f_id = f.f_id
                JOIN user u ON f.user_id = u.user_id
                 JOIN batch_time_periods btp ON btp.batch_id = b.batch_id

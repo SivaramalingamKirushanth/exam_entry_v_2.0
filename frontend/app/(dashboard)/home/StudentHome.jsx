@@ -37,7 +37,7 @@ const Users = () => {
         >
           <Card>
             <CardHeader>
-              <CardTitle>Re-sit (Repeat)</CardTitle>
+              <CardTitle>Resit (Repeat)</CardTitle>
             </CardHeader>
           </Card>
         </Link>

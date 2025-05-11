@@ -22,6 +22,7 @@ import {
   getAllActiveBatchesProgesses,
   getBatchOpenDate,
   uploadAttendanceSheet,
+  getEligibleResitBatches,
 } from "../controllers/batch.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -88,5 +89,9 @@ router.post(
   upload.single("file"),
   uploadAttendanceSheet
 );
-
+router.get(
+  "/getEligibleResitBatches",
+  verifyUser(["5"]),
+  getEligibleResitBatches
+);
 export default router;

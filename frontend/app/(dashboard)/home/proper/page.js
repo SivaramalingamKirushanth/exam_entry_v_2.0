@@ -60,22 +60,26 @@ const StudentHome = () => {
   const onApplyClick = (e) => {
     e.preventDefault();
     const deg = e.currentTarget.dataset.deg;
-    const secretKey = process.env.NEXT_PUBLIC_CRYPTO_SECRET;
     const degEncryptedData = CryptoJS.AES.encrypt(
       JSON.stringify(deg),
-      secretKey
+      "uov"
     ).toString();
 
-    router.push(`/home/form?deg=${encodeURIComponent(degEncryptedData)}`);
+    router.push(
+      `/home/proper/form?deg=${encodeURIComponent(degEncryptedData)}`
+    );
   };
 
   // All queries initialized here
 
-  const { data: bathchesOfStudentData, isLoading: isBathchesOfStudentLoading } =
-    useQuery({
-      queryFn: getBatchesByStudent,
-      queryKey: ["batchesOfStudent"],
-    });
+  const {
+    data: bathchesOfStudentData,
+    isLoading: isBathchesOfStudentLoading,
+    isError: isBathchesOfStudentError,
+  } = useQuery({
+    queryFn: getBatchesByStudent,
+    queryKey: ["batchesOfStudent"],
+  });
 
   const {
     data: batchAdmissionDetailsData,
@@ -297,7 +301,7 @@ const StudentHome = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {bathchesOfStudentData?.length &&
+            {bathchesOfStudentData?.length && !isBathchesOfStudentError ? (
               bathchesOfStudentData?.map((batch) => {
                 const level_ordinal = numberToOrdinalWord(batch.level);
                 const sem_ordinal = numberToOrdinalWord(batch.sem);
@@ -396,7 +400,10 @@ const StudentHome = () => {
                     </TableCell>
                   </TableRow>
                 );
-              })}
+              })
+            ) : (
+              <tr></tr>
+            )}
           </TableBody>
         </Table>
       </div>
@@ -406,7 +413,7 @@ const StudentHome = () => {
             <Skeleton key={i} className="w-full h-48 rounded-md" />
           ))}
 
-        {bathchesOfStudentData?.length &&
+        {bathchesOfStudentData?.length && !isBathchesOfStudentError ? (
           bathchesOfStudentData?.map((batch) => {
             const level_ordinal = numberToOrdinalWord(batch.level);
             const sem_ordinal = numberToOrdinalWord(batch.sem);
@@ -505,7 +512,10 @@ const StudentHome = () => {
                 </div>
               </div>
             );
-          })}
+          })
+        ) : (
+          <span></span>
+        )}
       </div>
     </div>
   );

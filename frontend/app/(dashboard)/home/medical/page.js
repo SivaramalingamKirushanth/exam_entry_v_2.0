@@ -60,13 +60,14 @@ const StudentHome = () => {
   const onApplyClick = (e) => {
     e.preventDefault();
     const deg = e.currentTarget.dataset.deg;
-    const secretKey = process.env.NEXT_PUBLIC_CRYPTO_SECRET;
     const degEncryptedData = CryptoJS.AES.encrypt(
       JSON.stringify(deg),
-      secretKey
+      "uov"
     ).toString();
 
-    router.push(`/home/form?deg=${encodeURIComponent(degEncryptedData)}`);
+    router.push(
+      `/home/medical/form?deg=${encodeURIComponent(degEncryptedData)}`
+    );
   };
 
   // All queries initialized here

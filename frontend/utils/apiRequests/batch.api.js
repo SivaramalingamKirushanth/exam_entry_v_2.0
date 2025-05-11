@@ -157,3 +157,8 @@ export const uploadAttendanceSheet = async (data) => {
     throw new Error("Failed to upload attendance sheet.");
   }
 };
+
+export const getEligibleResitBatches = async () => {
+  const response = await axiosInstance.get("/batch/getEligibleResitBatches");
+  return response.data;
+};

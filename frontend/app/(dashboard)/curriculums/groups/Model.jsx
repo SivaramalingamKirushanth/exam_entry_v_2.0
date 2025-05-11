@@ -168,7 +168,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
 
   const onFormSubmitted = () => {
     const mod = formData.subjects?.map((obj) => obj.value);
-    const grp_code = `G-${
+    const grp_code = `${
       degreeData?.find((deg) => deg.deg_id == formData.deg_id)?.short || "XX"
     }${formData.level || "X"}${formData.sem_no || "X"}-${
       syllabusData?.find((syl) => syl.syl_id == formData.syl_id)
@@ -248,10 +248,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     }
   }, [subjectsData]);
 
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
-
   return (
     <>
       {isOpen && (
@@ -298,7 +294,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                         onFormDataChanged(e);
                       }}
                       disabled={true}
-                      value={`G-${
+                      value={`${
                         degreeData?.find((deg) => deg.deg_id == formData.deg_id)
                           ?.short || "XX"
                       }${formData.level || "X"}${formData.sem_no || "X"}-${

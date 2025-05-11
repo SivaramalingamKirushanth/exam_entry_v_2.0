@@ -1458,3 +1458,61 @@ export const getSubjectsByGrp = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const getStudentResitApplicationDetails = async (req, res, next) => {
+  const { user_id } = req.user;
+  const { batch_id } = req.body;
+
+  if (!user_id) {
+    return next(errorProvider(400, "User ID and batch id required."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [results] = await conn.query(
+        "CALL GetStudentApplicationDetailsByBatch(?,?);",
+        [user_id, batch_id]
+      );
+
+      console.log(results);
+
+      const studentDetails = results[0][0]; // First result set
+      const subjects = results[1]; // Second result set
+
+      if (!subjects.length) {
+        return next(errorProvider(404, "No subjects found for this batch."));
+      }
+
+      const batchId = subjects[0].batch_id; // Ensure batch ID is retrieved
+
+      if (!batchId) {
+        return next(errorProvider(500, "Batch ID is missing."));
+      }
+
+      const response = {
+        ...studentDetails,
+        subjects: subjects.map((subject) => ({
+          sub_code: subject.sub_code,
+          sub_name: subject.sub_name,
+          sub_id: subject.sub_id,
+        })),
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      console.error("Error fetching student application details:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while fetching student application details"
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};

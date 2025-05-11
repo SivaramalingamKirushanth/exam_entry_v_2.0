@@ -237,3 +237,13 @@ export const getSubjectsByGrp = async (grp_id) => {
   });
   return response.data;
 };
+
+export const getStudentResitApplicationDetails = async (batch_id) => {
+  const response = await axiosInstance.post(
+    "/curriculum/getStudentResitApplicationDetails",
+    {
+      batch_id,
+    }
+  );
+  return response.data;
+};

@@ -33,6 +33,7 @@ import {
   getNoOfSyllabi,
   getSubjectsByGrp,
   getGroupsBySylLevSem,
+  getStudentResitApplicationDetails,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -121,5 +122,9 @@ router.put("/updateGroup", verifyUser(["1"]), updateGroup);
 router.get("/getNoOfGroups", verifyUser(["1"]), getNoOfGroups);
 router.get("/getNoOfSyllabi", verifyUser(["1"]), getNoOfSyllabi);
 router.post("/getGroupsBySylLevSem", verifyUser(["1"]), getGroupsBySylLevSem);
-
+router.post(
+  "/getStudentResitApplicationDetails",
+  verifyUser(["5"]),
+  getStudentResitApplicationDetails
+);
 export default router;

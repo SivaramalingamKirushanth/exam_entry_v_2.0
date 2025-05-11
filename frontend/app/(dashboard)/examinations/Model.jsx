@@ -138,12 +138,16 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     enabled: false,
   });
 
-  const { data: specificDegreeData, refetch: specificDegreeDataRefetch } =
-    useQuery({
-      queryFn: () => getDegreeById(formData.deg_id),
-      queryKey: ["degrees", formData.deg_id],
-      enabled: false,
-    });
+  const {
+    data: specificDegreeData,
+    refetch: specificDegreeDataRefetch,
+    isLoading: isSpecificDegreeDataLoading,
+    error: isSpecificDegreeDataError,
+  } = useQuery({
+    queryFn: () => getDegreeById(formData.deg_id),
+    queryKey: ["degrees", formData.deg_id],
+    enabled: false,
+  });
 
   const {
     data: groupsBySylLevSemData,
@@ -200,15 +204,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setFormData((curData) => ({
         ...curData,
         [e.target?.name]: e.target?.value,
-        batch_code: `${
-          e.target?.name == "academic_year"
-            ? e.target?.value
-            : formData.academic_year || "XXXX"
-        }${specificDegreeData?.short || "XX"}${
-          e.target?.name == "level" ? e.target?.value : formData.level || "X"
-        }${
-          e.target?.name == "sem_no" ? e.target?.value : formData.sem_no || "X"
-        }`,
       }));
     }
   };
@@ -224,16 +219,25 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     setFormData((curData) => ({
       ...curData,
       academic_year: value,
-      batch_code: `${value}${specificDegreeData?.short || "XX"}${
-        e.target?.name == "level" ? e.target?.value : formData.level || "X"
-      }${
-        e.target?.name == "sem_no" ? e.target?.value : formData.sem_no || "X"
-      }`,
     }));
     e.target.value = value;
   };
 
   const onFormSubmitted = () => {
+    const batch_code = `${formData.academic_year || "XXXX"}-${
+      specificDegreeData?.short || "XX"
+    }${formData.level || "X"}${formData.sem_no || "X"}-${
+      syllabusData?.find((obj) => obj.syl_id == formData.syl_id)
+        ?.commenced_year || "XXXX"
+    }${
+      groupsBySylLevSemData?.find((obj) => obj.grp_id == formData.grp_id)
+        ?.custom_suffix
+        ? "-" +
+          groupsBySylLevSemData?.find((obj) => obj.grp_id == formData.grp_id)
+            ?.custom_suffix
+        : ""
+    }`;
+
     if (editId) {
       if (new Date(data?.application_open) < new Date()) {
         const { students_end, lecturers_end, hod_end, dean_end } = timePeriods;
@@ -247,7 +251,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
         });
       } else {
         const {
-          batch_code,
           old_batch_code,
           subjects,
           old_subjects,
@@ -285,7 +288,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       }
     } else {
       const {
-        batch_code,
         subjects,
         deg_id,
         syl_id,
@@ -454,9 +456,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
   useEffect(() => {
     setFormData((curData) => ({
       ...curData,
-      batch_code: `${formData.academic_year || "XXXX"}${
-        specificDegreeData?.short || "XX"
-      }${formData.level || "X"}${formData.sem_no || "X"}`,
     }));
   }, [
     formData?.f_id,
@@ -527,7 +526,24 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             name="batch_code"
                             className="col-span-3"
                             disabled={true}
-                            value={formData.batch_code || "XXXXXXXX"}
+                            value={`${formData.academic_year || "XXXX"}-${
+                              specificDegreeData?.short || "XX"
+                            }${formData.level || "X"}${
+                              formData.sem_no || "X"
+                            }-${
+                              syllabusData?.find(
+                                (obj) => obj.syl_id == formData.syl_id
+                              )?.commenced_year || "XXXX"
+                            }${
+                              groupsBySylLevSemData?.find(
+                                (obj) => obj.grp_id == formData.grp_id
+                              )?.custom_suffix
+                                ? "-" +
+                                  groupsBySylLevSemData?.find(
+                                    (obj) => obj.grp_id == formData.grp_id
+                                  )?.custom_suffix
+                                : ""
+                            }`}
                           />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4 pr-[2px]">
@@ -572,7 +588,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                               }}
                               value={formData.f_id || null}
                               disabled={
-                                isFacultyDataLoading || isFacultyDataError
+                                data
+                                  ? new Date(data?.application_open) <
+                                    new Date()
+                                  : !facultyData ||
+                                    isFacultyDataLoading ||
+                                    isFacultyDataError
                               }
                             />
                           </div>
@@ -607,9 +628,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                               }}
                               value={formData.deg_id || null}
                               disabled={
-                                !degreeData ||
-                                isDegreeDataLoading ||
-                                isDegreeDataError
+                                data
+                                  ? new Date(data?.application_open) <
+                                    new Date()
+                                  : !degreeData ||
+                                    isDegreeDataLoading ||
+                                    isDegreeDataError
                               }
                             />
                           </div>
@@ -644,9 +668,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                               }}
                               value={formData.syl_id || null}
                               disabled={
-                                !syllabusData ||
-                                isSyllabusDataLoading ||
-                                isSyllabusDataError
+                                data
+                                  ? new Date(data?.application_open) <
+                                    new Date()
+                                  : !syllabusData ||
+                                    isSyllabusDataLoading ||
+                                    isSyllabusDataError
                               }
                             />
                           </div>
@@ -686,7 +713,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                     data
                                       ? new Date(data?.application_open) <
                                         new Date()
-                                      : false
+                                      : !specificDegreeData ||
+                                        isSpecificDegreeDataError ||
+                                        isSpecificDegreeDataLoading
                                   }
                                 />
                                 <Label
@@ -736,7 +765,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                       data
                                         ? new Date(data?.application_open) <
                                           new Date()
-                                        : false
+                                        : !specificDegreeData ||
+                                          isSpecificDegreeDataError ||
+                                          isSpecificDegreeDataLoading
                                     }
                                   />
                                   <Label
@@ -777,9 +808,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                               }}
                               value={formData.grp_id || null}
                               disabled={
-                                !groupsBySylLevSemData ||
-                                isGroupsBySylLevSemLoading ||
-                                isGroupsBySylLevSemError
+                                data
+                                  ? new Date(data?.application_open) <
+                                    new Date()
+                                  : !groupsBySylLevSemData ||
+                                    isGroupsBySylLevSemLoading ||
+                                    isGroupsBySylLevSemError
                               }
                             />
                           </div>
@@ -1103,7 +1137,22 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                           name="batch_code"
                           className="col-span-3"
                           disabled={true}
-                          value={formData.batch_code || "XXXXXXXX"}
+                          value={`${formData.academic_year || "XXXX"}-${
+                            specificDegreeData?.short || "XX"
+                          }${formData.level || "X"}${formData.sem_no || "X"}-${
+                            syllabusData?.find(
+                              (obj) => obj.syl_id == formData.syl_id
+                            )?.commenced_year || "XXXX"
+                          }${
+                            groupsBySylLevSemData?.find(
+                              (obj) => obj.grp_id == formData.grp_id
+                            )?.custom_suffix
+                              ? "-" +
+                                groupsBySylLevSemData?.find(
+                                  (obj) => obj.grp_id == formData.grp_id
+                                )?.custom_suffix
+                              : ""
+                          }`}
                         />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4 pr-[2px]">
@@ -1148,7 +1197,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             }}
                             value={formData.f_id || null}
                             disabled={
-                              isFacultyDataLoading || isFacultyDataError
+                              data
+                                ? new Date(data?.application_open) < new Date()
+                                : !facultyData ||
+                                  isFacultyDataLoading ||
+                                  isFacultyDataError
                             }
                           />
                         </div>
@@ -1183,9 +1236,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             }}
                             value={formData.deg_id || null}
                             disabled={
-                              !degreeData ||
-                              isDegreeDataLoading ||
-                              isDegreeDataError
+                              data
+                                ? new Date(data?.application_open) < new Date()
+                                : !degreeData ||
+                                  isDegreeDataLoading ||
+                                  isDegreeDataError
                             }
                           />
                         </div>
@@ -1220,9 +1275,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             }}
                             value={formData.syl_id || null}
                             disabled={
-                              !syllabusData ||
-                              isSyllabusDataLoading ||
-                              isSyllabusDataError
+                              data
+                                ? new Date(data?.application_open) < new Date()
+                                : !syllabusData ||
+                                  isSyllabusDataLoading ||
+                                  isSyllabusDataError
                             }
                           />
                         </div>
@@ -1265,7 +1322,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                     data
                                       ? new Date(data?.application_open) <
                                         new Date()
-                                      : false
+                                      : !specificDegreeData ||
+                                        isSpecificDegreeDataError ||
+                                        isSpecificDegreeDataLoading
                                   }
                                 />
                                 <Label
@@ -1315,7 +1374,9 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                                     data
                                       ? new Date(data?.application_open) <
                                         new Date()
-                                      : false
+                                      : !specificDegreeData ||
+                                        isSpecificDegreeDataLoading ||
+                                        isSpecificDegreeDataError
                                   }
                                 />
                                 <Label
@@ -1356,9 +1417,11 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                             }}
                             value={formData.grp_id || null}
                             disabled={
-                              !groupsBySylLevSemData ||
-                              isGroupsBySylLevSemLoading ||
-                              isGroupsBySylLevSemError
+                              data
+                                ? new Date(data?.application_open) < new Date()
+                                : !groupsBySylLevSemData ||
+                                  isGroupsBySylLevSemLoading ||
+                                  isGroupsBySylLevSemError
                             }
                           />
                         </div>

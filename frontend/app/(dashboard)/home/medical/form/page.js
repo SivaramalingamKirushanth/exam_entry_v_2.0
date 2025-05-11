@@ -32,8 +32,7 @@ const Form = (request) => {
 
   useEffect(() => {
     if (deg) {
-      const secretKey = process.env.NEXT_PUBLIC_CRYPTO_SECRET;
-      const degBytes = CryptoJS.AES.decrypt(deg, secretKey);
+      const degBytes = CryptoJS.AES.decrypt(deg, "uov");
       const originalDegData = JSON.parse(degBytes.toString(CryptoJS.enc.Utf8));
       setExamName(originalDegData);
     }

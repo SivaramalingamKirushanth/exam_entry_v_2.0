@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getBatchesByStudent,
   getBatchFullDetails,
+  getEligibleResitBatches,
 } from "@/utils/apiRequests/batch.api";
 import { useEffect, useState } from "react";
 import {
@@ -60,22 +61,29 @@ const StudentHome = () => {
   const onApplyClick = (e) => {
     e.preventDefault();
     const deg = e.currentTarget.dataset.deg;
-    const secretKey = process.env.NEXT_PUBLIC_CRYPTO_SECRET;
+    const batch = e.currentTarget.dataset.batch;
     const degEncryptedData = CryptoJS.AES.encrypt(
       JSON.stringify(deg),
-      secretKey
+      "uov"
     ).toString();
 
-    router.push(`/home/form?deg=${encodeURIComponent(degEncryptedData)}`);
+    router.push(
+      `/home/resit/form?deg=${encodeURIComponent(
+        degEncryptedData
+      )}&batch=${batch}`
+    );
   };
 
   // All queries initialized here
 
-  const { data: bathchesOfStudentData, isLoading: isBathchesOfStudentLoading } =
-    useQuery({
-      queryFn: getBatchesByStudent,
-      queryKey: ["batchesOfStudent"],
-    });
+  const {
+    data: bathchesOfStudentData,
+    isLoading: isBathchesOfStudentLoading,
+    isError: isBathchesOfStudentError,
+  } = useQuery({
+    queryFn: getEligibleResitBatches,
+    queryKey: ["batchesOfStudent", "resit"],
+  });
 
   const {
     data: batchAdmissionDetailsData,
@@ -297,7 +305,7 @@ const StudentHome = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {bathchesOfStudentData?.length &&
+            {bathchesOfStudentData?.length && !isBathchesOfStudentError ? (
               bathchesOfStudentData?.map((batch) => {
                 const level_ordinal = numberToOrdinalWord(batch.level);
                 const sem_ordinal = numberToOrdinalWord(batch.sem);
@@ -331,26 +339,29 @@ const StudentHome = () => {
                     <TableCell>
                       <Badge
                         variant={
-                          batch.status === "done"
+                          batch.resit_status === "done"
                             ? "success"
-                            : batch.status === "pending"
+                            : batch.resit_status === "payment pending"
+                            ? "warning"
+                            : batch.resit_status === "pending"
                             ? "pending"
-                            : batch.status === "expired"
+                            : batch.resit_status === "expired"
                             ? "failure"
                             : "active"
                         }
                         className="uppercase"
                       >
-                        {batch.status}
+                        {batch.resit_status}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-around items-center h-full">
-                        {batch.status == "active" ? (
+                        {batch.resit_status == "active" ? (
                           <Button
                             variant="outline"
                             className="uppercase"
                             data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${batch.academic_year} - ${sem_ordinal} semester`}
+                            data-batch={batch.batch_id}
                             onClick={(e) => onApplyClick(e)}
                           >
                             apply
@@ -396,17 +407,23 @@ const StudentHome = () => {
                     </TableCell>
                   </TableRow>
                 );
-              })}
+              })
+            ) : (
+              <tr></tr>
+            )}
           </TableBody>
         </Table>
       </div>
       <div className="sm:hidden flex flex-col items-center gap-3">
-        {isBathchesOfStudentLoading &&
+        {isBathchesOfStudentLoading ? (
           [1, 2, 3, 4].map((_, i) => (
             <Skeleton key={i} className="w-full h-48 rounded-md" />
-          ))}
+          ))
+        ) : (
+          <span></span>
+        )}
 
-        {bathchesOfStudentData?.length &&
+        {bathchesOfStudentData?.length && !isBathchesOfStudentError ? (
           bathchesOfStudentData?.map((batch) => {
             const level_ordinal = numberToOrdinalWord(batch.level);
             const sem_ordinal = numberToOrdinalWord(batch.sem);
@@ -437,21 +454,23 @@ const StudentHome = () => {
                   &nbsp;semester{" "}
                   <Badge
                     variant={
-                      batch.status === "done"
+                      batch.resit_status === "done"
                         ? "success"
-                        : batch.status === "pending"
+                        : batch.resit_status === "payment pending"
+                        ? "warning"
+                        : batch.resit_status === "pending"
                         ? "pending"
-                        : batch.status === "expired"
+                        : batch.resit_status === "expired"
                         ? "failure"
                         : "active"
                     }
                     className="uppercase"
                   >
-                    {batch.status}
+                    {batch.resit_status}
                   </Badge>
                 </h1>
                 <div className="flex justify-around items-center self-stretch">
-                  {batch.status == "active" ? (
+                  {batch.resit_status == "active" ? (
                     <Button
                       variant="outline"
                       className="uppercase"
@@ -505,7 +524,10 @@ const StudentHome = () => {
                 </div>
               </div>
             );
-          })}
+          })
+        ) : (
+          <span></span>
+        )}
       </div>
     </div>
   );

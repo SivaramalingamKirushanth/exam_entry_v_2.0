@@ -32,8 +32,7 @@ const Form = (request) => {
 
   useEffect(() => {
     if (deg) {
-      const secretKey = process.env.NEXT_PUBLIC_CRYPTO_SECRET;
-      const degBytes = CryptoJS.AES.decrypt(deg, secretKey);
+      const degBytes = CryptoJS.AES.decrypt(deg, "uov");
       const originalDegData = JSON.parse(degBytes.toString(CryptoJS.enc.Utf8));
       setExamName(originalDegData);
     }
@@ -98,6 +97,26 @@ const Form = (request) => {
               </p>
             </div>
             <div className="my-5 sm:my-10 flex flex-col gap-2">
+              {applicationData?.subjects?.length != removedSubjects.length ? (
+                <div className="flex gap-2 items-center text-sm">
+                  <div className="flex-1 hidden sm:flex sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
+                    <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm">
+                      Subject Code
+                    </h1>
+                    <h1 className="uppercase w-full sm:w-4/6 shrink-0 text-center text-sm">
+                      Subject Name
+                    </h1>
+                    <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm">
+                      Eligibility
+                    </h1>
+                  </div>
+                  <h1>
+                    <FaMinusCircle size={20} className="opacity-0" />
+                  </h1>
+                </div>
+              ) : (
+                <span></span>
+              )}
               {applicationData?.subjects?.length &&
                 applicationData?.subjects
                   ?.filter(
@@ -181,6 +200,9 @@ const Form = (request) => {
                 <Button
                   onClick={onSubmit}
                   className="h-8 rounded-md px-3 text-xs sm:h-9 sm:px-4 sm:py-2"
+                  disabled={
+                    applicationData?.subjects?.length == removedSubjects.length
+                  }
                 >
                   Submit
                 </Button>

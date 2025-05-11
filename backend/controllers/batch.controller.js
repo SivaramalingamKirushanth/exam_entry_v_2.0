@@ -1299,3 +1299,33 @@ export const getBatchOpenDate = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const getEligibleResitBatches = async (req, res, next) => {
+  const { user_id } = req.user;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [batchDetails] = await conn.query(
+        "CALL GetEligibleResitBatches(?);",
+        [user_id]
+      );
+
+      if (!batchDetails[0].length) {
+        return next(errorProvider(404, "No Batches found"));
+      }
+
+      return res.status(200).json(batchDetails[0]);
+    } catch (error) {
+      console.error("Error retrieving batches:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving student batches")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
