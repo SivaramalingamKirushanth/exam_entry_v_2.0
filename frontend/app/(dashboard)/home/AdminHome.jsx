@@ -34,12 +34,12 @@ const AdminHome = () => {
           <div className="flex gap-6 flex-wrap items-center justify-center mb-8">
             <SummaryCard title={adminSummaryData.batch_count} desc="Batches" />
             <SummaryCard
-              title={adminSummaryData.curriculum_count}
-              desc="Curriculums"
+              title={adminSummaryData.subject_count}
+              desc="Subjects"
             />
             <SummaryCard
-              title={adminSummaryData.manager_count}
-              desc="Managers"
+              title={adminSummaryData.lecturer_count}
+              desc="Lecturers"
             />
             <SummaryCard
               title={adminSummaryData.student_count}

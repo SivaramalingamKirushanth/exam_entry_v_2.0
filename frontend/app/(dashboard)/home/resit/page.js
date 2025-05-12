@@ -19,7 +19,7 @@ import {
 import { useEffect, useState } from "react";
 import { createSubjectObject, numberToOrdinalWord } from "@/utils/functions";
 import CryptoJS from "crypto-js";
-import { getCurriculumBybatchId } from "@/utils/apiRequests/curriculum.api";
+import { getSubjectBybatchId } from "@/utils/apiRequests/curriculum.api";
 import {
   fetchStudentWithSubjectsByUserId,
   getBatchAdmissionDetails,
@@ -89,12 +89,11 @@ const StudentResitHome = () => {
     enabled: false,
   });
 
-  const { data: batchCurriculumData, refetch: batchCurriculumRefetch } =
-    useQuery({
-      queryFn: () => getCurriculumBybatchId(downloadBatchId),
-      queryKey: ["batchCurriculum"],
-      enabled: false,
-    });
+  const { data: batchSubjectData, refetch: batchSubjectRefetch } = useQuery({
+    queryFn: () => getSubjectBybatchId(downloadBatchId),
+    queryKey: ["batchSubject"],
+    enabled: false,
+  });
 
   const { data: batchFullDetailsData, refetch: batchFullDetailsRefetch } =
     useQuery({
@@ -113,7 +112,7 @@ const StudentResitHome = () => {
   useEffect(() => {
     if (downloadBatchId) {
       batchAdmissionDetailsRefetch();
-      batchCurriculumRefetch();
+      batchSubjectRefetch();
       studentWithSubjectsRefetch();
       batchFullDetailsRefetch();
     }
@@ -147,8 +146,8 @@ const StudentResitHome = () => {
   }, [batchAdmissionDetailsData]);
 
   useEffect(() => {
-    setSubjectObject(createSubjectObject(batchCurriculumData));
-  }, [batchCurriculumData]);
+    setSubjectObject(createSubjectObject(batchSubjectData));
+  }, [batchSubjectData]);
 
   useEffect(() => {
     if (batchFullDetailsData) {

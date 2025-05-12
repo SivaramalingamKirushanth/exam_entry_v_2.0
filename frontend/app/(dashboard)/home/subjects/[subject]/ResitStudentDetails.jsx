@@ -1,40 +1,21 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { MdCancel } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAllStudents } from "@/utils/apiRequests/user.api";
 import { EntriesDataTable } from "@/components/EntriesDataTable";
 import {
-  updateEligibility,
-  updateMultipleEligibility,
   updateMultipleResitEligibility,
   updateResitEligibility,
 } from "@/utils/apiRequests/curriculum.api";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import {
-  getAppliedResitStudentsByBatchAndSubject,
-  getAppliedStudentsForSubject,
-  getAppliedStudentsForSubjectOfDepartment,
-  getAppliedStudentsForSubjectOfFaculty,
-} from "@/utils/apiRequests/entry.api";
-import {
-  getBatchOpenDate,
-  getDeadlinesForBatch,
-} from "@/utils/apiRequests/batch.api";
+import { getAppliedResitStudentsByBatchAndSubject } from "@/utils/apiRequests/entry.api";
+
 import { useUser } from "@/utils/useUser";
-import EligibilityHeader from "@/components/EligibilityHeader";
-import EligibilityCell from "@/components/EligibilityCell";
+
 import MedResEligibilityCell from "@/components/MedResEligibilityCell";
 import MedResEligibilityHeader from "@/components/MedResEligibilityHeader";
 

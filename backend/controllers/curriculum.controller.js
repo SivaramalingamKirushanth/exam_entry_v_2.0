@@ -1719,3 +1719,152 @@ export const updateMultipleResitEligibility = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection."));
   }
 };
+
+export const updateMedicalEligibility = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+  const { batch_id, sub_id, eligibility, s_id, remark } = req.body;
+
+  if (
+    !user_id ||
+    !s_id ||
+    !sub_id ||
+    !batch_id ||
+    !eligibility ||
+    !role_id ||
+    !remark
+  ) {
+    return next(errorProvider(400, "Missing required fields."));
+  }
+
+  let status_from;
+  let status_to;
+
+  if (eligibility == "true") {
+    status_from = "false/pending";
+    status_to = "true";
+  } else {
+    status_from = "true/pending";
+    status_to = "false";
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.query("CALL UpdateMedicalEligibility(?, ?, ?, ?, ?, ?);", [
+        user_id,
+        s_id,
+        sub_id,
+        batch_id,
+        eligibility,
+        role_id,
+      ]);
+
+      await conn.query("CALL LogEligibilityChange(?, ?, ?, ?, ?, ?, ?);", [
+        user_id,
+        s_id,
+        batch_id,
+        sub_id,
+        status_from,
+        status_to,
+        remark,
+      ]);
+
+      await conn.commit();
+
+      return res
+        .status(200)
+        .json({ message: "Eligibility updated successfully." });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error updating eligibility:", error);
+
+      if (error.code === "45000") {
+        return next(errorProvider(403, error.sqlMessage));
+      }
+
+      return next(
+        errorProvider(500, "An error occurred while updating eligibility.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const updateMultipleMedicalEligibility = async (req, res, next) => {
+  const { user_id, role_id } = req.user;
+  const { batch_id, sub_id, eligibility, s_ids, remark } = req.body;
+
+  if (
+    !user_id ||
+    !s_ids.length ||
+    !sub_id ||
+    !batch_id ||
+    !eligibility ||
+    !role_id
+  ) {
+    return next(errorProvider(400, "Missing required fields."));
+  }
+
+  let status_from;
+  let status_to;
+
+  if (eligibility == "true") {
+    status_from = "false/pending";
+    status_to = "true";
+  } else {
+    status_from = "true/pending";
+    status_to = "false";
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      for (let s_id of s_ids) {
+        await conn.query("CALL UpdateMedicalEligibility(?, ?, ?, ?, ?, ?);", [
+          user_id,
+          s_id,
+          sub_id,
+          batch_id,
+          eligibility,
+          role_id,
+        ]);
+
+        await conn.query("CALL LogEligibilityChange(?, ?, ?, ?, ?, ?, ?);", [
+          user_id,
+          s_id,
+          batch_id,
+          sub_id,
+          status_from,
+          status_to,
+          remark,
+        ]);
+      }
+
+      await conn.commit();
+
+      return res
+        .status(200)
+        .json({ message: "Eligibility updated successfully." });
+    } catch (error) {
+      console.error("Error updating eligibilities:", error);
+      await conn.rollback();
+
+      if (error.code === "45000") {
+        return next(errorProvider(403, error.sqlMessage));
+      }
+
+      return next(
+        errorProvider(500, "An error occurred while updating eligibility.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};

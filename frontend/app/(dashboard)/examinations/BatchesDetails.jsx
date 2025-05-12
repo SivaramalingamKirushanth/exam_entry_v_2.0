@@ -86,8 +86,15 @@ const BatchesDetails = () => {
   };
   const columns = [
     {
-      accessorKey: "batch_code",
+      id: "batch_code",
       header: "Batch code",
+      header: ({ column }) => {
+        return <h1 className="w-32">Batch code </h1>;
+      },
+      cell: ({ row }) => {
+        let batch_code = row.original.batch_code;
+        return <p className="text-xs font-bold">{batch_code}</p>;
+      },
     },
     {
       id: "academic_year",

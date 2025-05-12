@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAllBatchesForDepartment } from "@/utils/apiRequests/batch.api";
-import { numberToOrdinalWord, parseString } from "@/utils/functions";
+import { numberToOrdinalWord } from "@/utils/functions";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

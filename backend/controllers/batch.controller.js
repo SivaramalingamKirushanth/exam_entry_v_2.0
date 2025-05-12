@@ -908,7 +908,7 @@ export const uploadAttendanceSheet = async (req, res, next) => {
         if (isFirstRow) {
           incomingSubjects = Object.values(row)
             .slice(1)
-            .map((header) => header.replace(/[^a-zA-Z0-9]/g, ""));
+            .map((header) => header.replace(/[^a-zA-Z0-9]/g, "").toLowerCase());
           isFirstRow = false;
         } else {
           results.push(row); // Collect rows
@@ -926,7 +926,9 @@ export const uploadAttendanceSheet = async (req, res, next) => {
           );
 
           const dbSubjects = dbSubjectRows.reduce((acc, row) => {
-            const sanitizedCode = row.sub_code.replace(/[^a-zA-Z0-9]/g, "");
+            const sanitizedCode = row.sub_code
+              .replace(/[^a-zA-Z0-9]/g, "")
+              .toLowerCase();
             acc[sanitizedCode] = row.sub_id;
             return acc;
           }, {});
@@ -1011,10 +1013,19 @@ export const uploadAttendanceSheet = async (req, res, next) => {
     ON DUPLICATE KEY UPDATE ${updateParts.join(", ")}
   `;
               await conn.query(query);
-              await conn.query("CALL UpdateStudentBatchIds(?,?);", [
-                batchId,
-                s_id,
-              ]);
+              const [existingBatchIdsResults] = await conn.execute(
+                "SELECT batch_ids FROM student_detail WHERE s_id=?;",
+                [s_id]
+              );
+              const { batch_ids } = existingBatchIdsResults[0];
+              const batch_idsArr = batch_ids.split(",");
+              const alreadyExist = batch_idsArr.some((item) => item == batchId);
+              if (!alreadyExist) {
+                await conn.query("CALL UpdateStudentBatchIds(?,?);", [
+                  batchId,
+                  s_id,
+                ]);
+              }
 
               upsertedStudents.push(user_name);
             }

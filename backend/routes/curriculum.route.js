@@ -37,6 +37,8 @@ import {
   updateMultipleResitEligibility,
   updateResitEligibility,
   getStudentMedicalApplicationDetails,
+  updateMedicalEligibility,
+  updateMultipleMedicalEligibility,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -144,6 +146,17 @@ router.put(
   "/updateMultipleResitEligibility",
   verifyUser(["1", "2", "3", "4"]),
   updateMultipleResitEligibility
+);
+
+router.put(
+  "/updateMedicalEligibility",
+  verifyUser(["1", "2", "3", "4"]),
+  updateMedicalEligibility
+);
+router.put(
+  "/updateMultipleMedicalEligibility",
+  verifyUser(["1", "2", "3", "4"]),
+  updateMultipleMedicalEligibility
 );
 
 export default router;

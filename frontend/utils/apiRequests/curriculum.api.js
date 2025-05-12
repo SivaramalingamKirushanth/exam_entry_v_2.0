@@ -273,3 +273,19 @@ export const updateMultipleResitEligibility = async (data) => {
   );
   return response.data;
 };
+
+export const updateMedicalEligibility = async (data) => {
+  const response = await axiosInstance.put(
+    "/curriculum/updateMedicalEligibility",
+    data
+  );
+  return response.data;
+};
+
+export const updateMultipleMedicalEligibility = async (data) => {
+  const response = await axiosInstance.put(
+    "/curriculum/updateMultipleMedicalEligibility",
+    data
+  );
+  return response.data;
+};

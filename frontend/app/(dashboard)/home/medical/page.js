@@ -89,12 +89,11 @@ const StudentMedicalHome = () => {
     enabled: false,
   });
 
-  const { data: batchCurriculumData, refetch: batchCurriculumRefetch } =
-    useQuery({
-      queryFn: () => getSubjectBybatchId(downloadBatchId),
-      queryKey: ["batchCurriculum"],
-      enabled: false,
-    });
+  const { data: batchSubjectData, refetch: batchSubjectRefetch } = useQuery({
+    queryFn: () => getSubjectBybatchId(downloadBatchId),
+    queryKey: ["batchSubject"],
+    enabled: false,
+  });
 
   const { data: batchFullDetailsData, refetch: batchFullDetailsRefetch } =
     useQuery({
@@ -113,7 +112,7 @@ const StudentMedicalHome = () => {
   useEffect(() => {
     if (downloadBatchId) {
       batchAdmissionDetailsRefetch();
-      batchCurriculumRefetch();
+      batchSubjectRefetch();
       studentWithSubjectsRefetch();
       batchFullDetailsRefetch();
     }
@@ -147,8 +146,8 @@ const StudentMedicalHome = () => {
   }, [batchAdmissionDetailsData]);
 
   useEffect(() => {
-    setSubjectObject(createSubjectObject(batchCurriculumData));
-  }, [batchCurriculumData]);
+    setSubjectObject(createSubjectObject(batchSubjectData));
+  }, [batchSubjectData]);
 
   useEffect(() => {
     if (batchFullDetailsData) {

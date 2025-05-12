@@ -182,3 +182,14 @@ export const getAppliedResitStudentsByBatchAndSubject = async (
   );
   return response.data;
 };
+
+export const getAppliedMedicalStudentsByBatchAndSubject = async (
+  batch_id,
+  sub_id
+) => {
+  const response = await axiosInstance.post(
+    "/entry/getAppliedMedicalStudentsByBatchAndSubject",
+    { batch_id, sub_id }
+  );
+  return response.data;
+};

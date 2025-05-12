@@ -5,33 +5,17 @@ import { useEffect, useRef, useState } from "react";
 import { MdCancel } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAllStudents } from "@/utils/apiRequests/user.api";
 import { EntriesDataTable } from "@/components/EntriesDataTable";
 import {
-  updateEligibility,
-  updateMultipleEligibility,
+  updateMedicalEligibility,
+  updateMultipleMedicalEligibility,
 } from "@/utils/apiRequests/curriculum.api";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import {
-  getAppliedStudentsForSubject,
-  getAppliedStudentsForSubjectOfDepartment,
-  getAppliedStudentsForSubjectOfFaculty,
-} from "@/utils/apiRequests/entry.api";
-import {
-  getBatchOpenDate,
-  getDeadlinesForBatch,
-} from "@/utils/apiRequests/batch.api";
+import { getAppliedMedicalStudentsByBatchAndSubject } from "@/utils/apiRequests/entry.api";
 import { useUser } from "@/utils/useUser";
-import EligibilityHeader from "@/components/EligibilityHeader";
-import EligibilityCell from "@/components/EligibilityCell";
+import MedResEligibilityCell from "@/components/MedResEligibilityCell";
+import MedResEligibilityHeader from "@/components/MedResEligibilityHeader";
 
 const MedicalStudentDetails = ({ sub_id, batch_id }) => {
   const queryClient = useQueryClient();
@@ -48,8 +32,10 @@ const MedicalStudentDetails = ({ sub_id, batch_id }) => {
 
   const { data, error } = useQuery({
     queryFn: () =>
-      roleId == "4" ? getAppliedStudentsForSubject(batch_id, sub_id) : null,
-    queryKey: ["students", "subject", sub_id],
+      roleId == "4"
+        ? getAppliedMedicalStudentsByBatchAndSubject(batch_id, sub_id)
+        : null,
+    queryKey: ["students", "medical", "subject", sub_id],
     enabled: roleId == "4",
   });
 
@@ -58,9 +44,9 @@ const MedicalStudentDetails = ({ sub_id, batch_id }) => {
   }
 
   const { mutate } = useMutation({
-    mutationFn: updateEligibility,
+    mutationFn: updateMedicalEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "subject", sub_id]);
+      queryClient.invalidateQueries(["students", "medical", "subject", sub_id]);
       toast.success(res.message);
     },
     onError: (err) => {
@@ -69,9 +55,9 @@ const MedicalStudentDetails = ({ sub_id, batch_id }) => {
   });
 
   const { mutate: mutateMultiple } = useMutation({
-    mutationFn: updateMultipleEligibility,
+    mutationFn: updateMultipleMedicalEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "subject", sub_id]);
+      queryClient.invalidateQueries(["students", "medical", "subject", sub_id]);
       toast.success(res.message);
     },
     onError: (err) => {
@@ -123,34 +109,21 @@ const MedicalStudentDetails = ({ sub_id, batch_id }) => {
       },
     },
     {
-      accessorKey: "attendance",
-      header: "Attendance",
-      cell: ({ row }) => {
-        return (
-          <p className="text-center ">
-            {row.original.attendance
-              ? +row.original.attendance
-                ? row.original.attendance + "%"
-                : row.original.attendance
-              : "0%"}
-          </p>
-        );
-      },
-    },
-    {
       id: "Eligibility",
       header: () => (
-        <EligibilityHeader
+        <MedResEligibilityHeader
           filteredData={filteredData}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
         />
       ),
 
       cell: ({ row }) => (
-        <EligibilityCell
-          row={row}
-          onEligibilityChanged={onEligibilityChanged}
-        />
+        <div className="flex justify-center">
+          <MedResEligibilityCell
+            row={row}
+            onEligibilityChanged={onEligibilityChanged}
+          />
+        </div>
       ),
     },
   ];
