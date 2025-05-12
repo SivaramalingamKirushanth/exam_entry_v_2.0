@@ -1,34 +1,39 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getStudentApplicationDetails } from "@/utils/apiRequests/curriculum.api";
+import { getStudentMedicalApplicationDetails } from "@/utils/apiRequests/curriculum.api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import CryptoJS from "crypto-js";
 import { useRouter } from "next/navigation";
-import { applyExam } from "@/utils/apiRequests/entry.api";
 import { toast } from "sonner";
-import { CiCircleMinus } from "react-icons/ci";
 import { FaMinusCircle } from "react-icons/fa";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+import ReactSelect from "react-select";
+
+import { applyMedicalExam } from "@/utils/apiRequests/entry.api";
 
 const Form = (request) => {
   const router = useRouter();
   const [examName, setExamName] = useState(null);
-  const [removedSubjects, setRemovedSubjects] = useState([]);
   const deg = request.searchParams.deg;
+  const batch = request.searchParams.batch;
   const queryClient = useQueryClient();
+  const [subjectsArr, setSubjectArr] = useState([]);
+  const [formData, setFormData] = useState({ subjects: [] });
+
+  const handleChange = (selectedOptions) => {
+    setFormData((prev) => ({
+      ...prev,
+      subjects: selectedOptions,
+    }));
+  };
+
+  const handleRemove = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      subjects: prev.subjects.filter((item) => item.value !== value),
+    }));
+  };
 
   useEffect(() => {
     if (deg) {
@@ -38,15 +43,19 @@ const Form = (request) => {
     }
   }, [deg]);
 
-  const { data: applicationData, error } = useQuery({
-    queryFn: getStudentApplicationDetails,
-    queryKey: ["studentApplicationDetails"],
+  const {
+    data: applicationData,
+    error,
+    isLoading,
+  } = useQuery({
+    queryFn: () => getStudentMedicalApplicationDetails(batch),
+    queryKey: ["studentApplicationDetails", "medical"],
   });
 
   const { status, mutate } = useMutation({
-    mutationFn: () => applyExam(removedSubjects),
+    mutationFn: applyMedicalExam,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["batchesOfStudent"]);
+      queryClient.invalidateQueries(["batchesOfStudent", "medical"]);
       toast.success(res.message);
     },
     onError: (err) => {
@@ -55,18 +64,32 @@ const Form = (request) => {
   });
 
   const onSubmit = () => {
-    mutate();
-    router.push("/home");
+    const subjects_string = formData.subjects
+      ?.map((obj) => obj.value)
+      .join(",");
+
+    mutate({ subjects_string, batch_id: batch });
+    router.replace("/home/medical");
   };
 
   useEffect(() => {
-    if (error) router.push("/home");
+    if (error) router.replace("/home/medical");
   }, [error]);
+
+  useEffect(() => {
+    if (applicationData?.subjects.length) {
+      const modifiedArr = applicationData?.subjects.map((obj) => ({
+        value: obj.sub_id,
+        label: `${obj.sub_code} - ${obj.sub_name}`,
+      }));
+      setSubjectArr(modifiedArr);
+    }
+  }, [applicationData]);
 
   return (
     <>
       {applicationData && Object.keys(applicationData).length && (
-        <div className="flex justify-end md:justify-center">
+        <div className="flex flex-col items-end md:items-center">
           <div className="md:w-[60%] w-full">
             <div className="text-center uppercase font-bold">
               <h1 className="font-extrabold tracking-wide sm:text-lg">
@@ -96,93 +119,111 @@ const Form = (request) => {
                 <span className="uppercase p-2 ">{applicationData?.name}</span>
               </p>
             </div>
+            <div className="w-full max-w-md mt-5 flex justify-center">
+              <div className="w-[80%] ">
+                <ReactSelect
+                  value={formData.subjects}
+                  onChange={handleChange}
+                  options={subjectsArr}
+                  isMulti
+                  isClearable={false}
+                  isDisabled={error || isLoading}
+                  name="subjects"
+                  placeholder={
+                    error
+                      ? "Not found"
+                      : isLoading
+                      ? "Loading..."
+                      : "Select subjects"
+                  }
+                  classNamePrefix="react-select"
+                  styles={{
+                    multiValue: () => ({ display: "none" }), // hide default chips
+                    control: (base) => ({
+                      ...base,
+                      borderColor: "#ccc",
+                      boxShadow: "none",
+                      fontSize: "0.9rem",
+                      "&:hover": {
+                        borderColor: "#000",
+                      },
+                    }),
+                    menuList: () => ({
+                      fontSize: "0.9rem",
+                    }),
+                  }}
+                  theme={(theme) => ({
+                    ...theme,
+                    borderRadius: 5,
+                    colors: {
+                      ...theme.colors,
+                      primary25: "#f2f2f2",
+                      primary: "black",
+                    },
+                  })}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="md:w-[85%] w-full">
             <div className="my-5 sm:my-10 flex flex-col gap-2">
+              {formData?.subjects.length ? (
+                <div className="flex gap-2 items-center text-sm">
+                  <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
+                    <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm">
+                      Subject Code
+                    </h1>
+                    <h1 className="uppercase w-full sm:w-5/6 shrink-0 text-center text-sm">
+                      Subject Name
+                    </h1>
+                  </div>
+                  <h1>
+                    <FaMinusCircle size={20} className="opacity-0" />
+                  </h1>
+                </div>
+              ) : (
+                <span></span>
+              )}
               {applicationData?.subjects?.length &&
-                applicationData?.subjects
-                  ?.filter(
-                    (obj) => !removedSubjects.some((item) => item == obj.sub_id)
-                  )
-                  .map((obj, ind) => (
-                    <div key={ind} className="flex gap-2 items-center">
-                      <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg justify-between items-center w-full">
+                formData?.subjects.map((obj, ind) => {
+                  const sub_id = obj.value;
+                  const subject = obj.label
+                    .split("-")
+                    .map((item) => item.trim());
+                  return (
+                    <div key={sub_id} className="flex gap-2 items-center">
+                      <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
                         <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm sm:text-base">
-                          {obj.sub_code}
+                          {subject[0]}
                         </h1>
-                        <h1 className="capitalize w-full sm:w-4/6 shrink-0 text-center text-sm sm:text-base">
-                          {obj.sub_name}
-                        </h1>
-                        <h1 className="capitalize w-full sm:w-1/6 shrink-0 text-center text-sm sm:text-base">
-                          {+obj.attendance >= 80 ? (
-                            <Badge variant="success" className="capitalize">
-                              eligible
-                            </Badge>
-                          ) : (
-                            <Badge variant="failure" className="capitalize">
-                              not eligible
-                            </Badge>
-                          )}
+                        <h1 className="capitalize w-full sm:w-5/6 shrink-0 text-center text-sm sm:text-base">
+                          {subject[1]}
                         </h1>
                       </div>
                       <h1>
-                        <Drawer>
-                          <DrawerTrigger>
-                            <FaMinusCircle
-                              size={20}
-                              className="text-red-500 hover:text-red-600 cursor-pointer"
-                            />
-                          </DrawerTrigger>
-                          <DrawerContent>
-                            <div className="mx-auto w-full max-w-sm">
-                              <DrawerHeader>
-                                <DrawerTitle>
-                                  Are you absolutely sure?
-                                </DrawerTitle>
-                                <DrawerDescription>
-                                  The subject {obj.sub_name} - {obj.sub_code}{" "}
-                                  will be removed from your application. This
-                                  action cannot be undone.
-                                </DrawerDescription>
-                              </DrawerHeader>
-                              <DrawerFooter className="flex justify-center items-center flex-row">
-                                <DrawerClose className="inline">
-                                  <Button
-                                    onClick={() =>
-                                      setRemovedSubjects((cur) => {
-                                        if (
-                                          !removedSubjects.some(
-                                            (item) => item == obj.sub_id
-                                          )
-                                        ) {
-                                          let newArr = [...cur, obj.sub_id];
-                                          return newArr;
-                                        }
-                                      })
-                                    }
-                                    className="hover:bg-red-400 bg-red-500 active:bg-red-400/75"
-                                  >
-                                    Remove
-                                  </Button>
-                                </DrawerClose>
-
-                                <DrawerClose className="inline">
-                                  <Button variant="outline">Cancel</Button>
-                                </DrawerClose>
-                              </DrawerFooter>
-                            </div>
-                          </DrawerContent>
-                        </Drawer>
+                        <FaMinusCircle
+                          onClick={() => {
+                            handleRemove(sub_id);
+                          }}
+                          size={20}
+                          className="text-red-500 hover:text-red-600 cursor-pointer"
+                        />
                       </h1>
                     </div>
-                  ))}
+                  );
+                })}
             </div>
             <div className="flex justify-center sm:justify-end">
-              {Object.keys(applicationData).length && (
+              {Object.keys(applicationData).length &&
+              Object.keys(formData.subjects)?.length ? (
                 <Button
                   onClick={onSubmit}
                   className="h-8 rounded-md px-3 text-xs sm:h-9 sm:px-4 sm:py-2"
                 >
                   Submit
                 </Button>
+              ) : (
+                <span></span>
               )}
             </div>
           </div>

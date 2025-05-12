@@ -12,6 +12,11 @@ export const applyResitExam = async (data) => {
   return response.data;
 };
 
+export const applyMedicalExam = async (data) => {
+  const response = await axiosInstance.post("/entry/applyMedicalExam", data);
+  return response.data;
+};
+
 export const getStudentSubjects = async (batch_id, s_id) => {
   const response = await axiosInstance.post("/entry/getStudentSubjects", {
     batch_id,

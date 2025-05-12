@@ -23,6 +23,7 @@ import {
   getBatchOpenDate,
   uploadAttendanceSheet,
   getEligibleResitBatches,
+  getEligibleMedicalBatches,
 } from "../controllers/batch.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -93,5 +94,10 @@ router.get(
   "/getEligibleResitBatches",
   verifyUser(["5"]),
   getEligibleResitBatches
+);
+router.get(
+  "/getEligibleMedicalBatches",
+  verifyUser(["5"]),
+  getEligibleMedicalBatches
 );
 export default router;

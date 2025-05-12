@@ -248,6 +248,16 @@ export const getStudentResitApplicationDetails = async (batch_id) => {
   return response.data;
 };
 
+export const getStudentMedicalApplicationDetails = async (batch_id) => {
+  const response = await axiosInstance.post(
+    "/curriculum/getStudentMedicalApplicationDetails",
+    {
+      batch_id,
+    }
+  );
+  return response.data;
+};
+
 export const updateResitEligibility = async (data) => {
   const response = await axiosInstance.put(
     "/curriculum/updateResitEligibility",

@@ -17,10 +17,7 @@ import {
   getEligibleResitBatches,
 } from "@/utils/apiRequests/batch.api";
 import { useEffect, useState } from "react";
-import {
-  createSubjectObject,
-  numberToOrdinalWord,
-} from "@/utils/functions";
+import { createSubjectObject, numberToOrdinalWord } from "@/utils/functions";
 import CryptoJS from "crypto-js";
 import { getCurriculumBybatchId } from "@/utils/apiRequests/curriculum.api";
 import {
@@ -34,7 +31,7 @@ import { createRoot } from "react-dom/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 
-const StudentHome = () => {
+const StudentResitHome = () => {
   const router = useRouter();
   const [downloadBatchId, setDownloadBatchId] = useState(null);
   const [formData, setFormData] = useState({
@@ -531,4 +528,4 @@ const StudentHome = () => {
   );
 };
 
-export default StudentHome;
+export default StudentResitHome;

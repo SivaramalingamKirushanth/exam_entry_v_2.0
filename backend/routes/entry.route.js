@@ -2,6 +2,7 @@ import express from "express";
 import {
   addMedicalResitStudents,
   applyExam,
+  applyMedicalExam,
   applyResitExam,
   createOrUpdateAdmission,
   createOrUpdateAttendance,
@@ -29,6 +30,7 @@ const router = express.Router();
 
 router.post("/applyExam", verifyUser(["5"]), applyExam);
 router.post("/applyResitExam", verifyUser(["5"]), applyResitExam);
+router.post("/applyMedicalExam", verifyUser(["5"]), applyMedicalExam);
 router.post("/getStudentSubjects", verifyUser(["1"]), getStudentSubjects);
 router.post(
   "/addMedicalResitStudents",

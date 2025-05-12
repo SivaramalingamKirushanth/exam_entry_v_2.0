@@ -13,17 +13,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import {
-  getBatchesByStudent,
   getBatchFullDetails,
+  getEligibleMedicalBatches,
 } from "@/utils/apiRequests/batch.api";
 import { useEffect, useState } from "react";
-import {
-  createSubjectObject,
-  numberToOrdinalWord,
-  parseString,
-} from "@/utils/functions";
+import { createSubjectObject, numberToOrdinalWord } from "@/utils/functions";
 import CryptoJS from "crypto-js";
-import { getCurriculumBybatchId } from "@/utils/apiRequests/curriculum.api";
+import { getSubjectBybatchId } from "@/utils/apiRequests/curriculum.api";
 import {
   fetchStudentWithSubjectsByUserId,
   getBatchAdmissionDetails,
@@ -35,7 +31,7 @@ import { createRoot } from "react-dom/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 
-const StudentHome = () => {
+const StudentMedicalHome = () => {
   const router = useRouter();
   const [downloadBatchId, setDownloadBatchId] = useState(null);
   const [formData, setFormData] = useState({
@@ -60,23 +56,29 @@ const StudentHome = () => {
   const onApplyClick = (e) => {
     e.preventDefault();
     const deg = e.currentTarget.dataset.deg;
+    const batch = e.currentTarget.dataset.batch;
     const degEncryptedData = CryptoJS.AES.encrypt(
       JSON.stringify(deg),
       "uov"
     ).toString();
 
     router.push(
-      `/home/medical/form?deg=${encodeURIComponent(degEncryptedData)}`
+      `/home/medical/form?deg=${encodeURIComponent(
+        degEncryptedData
+      )}&batch=${batch}`
     );
   };
 
   // All queries initialized here
 
-  const { data: bathchesOfStudentData, isLoading: isBathchesOfStudentLoading } =
-    useQuery({
-      queryFn: getBatchesByStudent,
-      queryKey: ["batchesOfStudent"],
-    });
+  const {
+    data: bathchesOfStudentData,
+    isLoading: isBathchesOfStudentLoading,
+    isError: isBathchesOfStudentError,
+  } = useQuery({
+    queryFn: getEligibleMedicalBatches,
+    queryKey: ["batchesOfStudent", "medical"],
+  });
 
   const {
     data: batchAdmissionDetailsData,
@@ -89,7 +91,7 @@ const StudentHome = () => {
 
   const { data: batchCurriculumData, refetch: batchCurriculumRefetch } =
     useQuery({
-      queryFn: () => getCurriculumBybatchId(downloadBatchId),
+      queryFn: () => getSubjectBybatchId(downloadBatchId),
       queryKey: ["batchCurriculum"],
       enabled: false,
     });
@@ -298,7 +300,7 @@ const StudentHome = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {bathchesOfStudentData?.length &&
+            {bathchesOfStudentData?.length && !isBathchesOfStudentError ? (
               bathchesOfStudentData?.map((batch) => {
                 const level_ordinal = numberToOrdinalWord(batch.level);
                 const sem_ordinal = numberToOrdinalWord(batch.sem);
@@ -332,26 +334,29 @@ const StudentHome = () => {
                     <TableCell>
                       <Badge
                         variant={
-                          batch.status === "done"
+                          batch.medical_status === "done"
                             ? "success"
-                            : batch.status === "pending"
+                            : batch.medical_status === "payment pending"
+                            ? "warning"
+                            : batch.medical_status === "pending"
                             ? "pending"
-                            : batch.status === "expired"
+                            : batch.medical_status === "expired"
                             ? "failure"
                             : "active"
                         }
                         className="uppercase"
                       >
-                        {batch.status}
+                        {batch.medical_status}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-around items-center h-full">
-                        {batch.status == "active" ? (
+                        {batch.medical_status == "active" ? (
                           <Button
                             variant="outline"
                             className="uppercase"
                             data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${batch.academic_year} - ${sem_ordinal} semester`}
+                            data-batch={batch.batch_id}
                             onClick={(e) => onApplyClick(e)}
                           >
                             apply
@@ -397,17 +402,23 @@ const StudentHome = () => {
                     </TableCell>
                   </TableRow>
                 );
-              })}
+              })
+            ) : (
+              <tr></tr>
+            )}
           </TableBody>
         </Table>
       </div>
       <div className="sm:hidden flex flex-col items-center gap-3">
-        {isBathchesOfStudentLoading &&
+        {isBathchesOfStudentLoading ? (
           [1, 2, 3, 4].map((_, i) => (
             <Skeleton key={i} className="w-full h-48 rounded-md" />
-          ))}
+          ))
+        ) : (
+          <span></span>
+        )}
 
-        {bathchesOfStudentData?.length &&
+        {bathchesOfStudentData?.length && !isBathchesOfStudentError ? (
           bathchesOfStudentData?.map((batch) => {
             const level_ordinal = numberToOrdinalWord(batch.level);
             const sem_ordinal = numberToOrdinalWord(batch.sem);
@@ -438,21 +449,23 @@ const StudentHome = () => {
                   &nbsp;semester{" "}
                   <Badge
                     variant={
-                      batch.status === "done"
+                      batch.medical_status === "done"
                         ? "success"
-                        : batch.status === "pending"
+                        : batch.medical_status === "payment pending"
+                        ? "warning"
+                        : batch.medical_status === "pending"
                         ? "pending"
-                        : batch.status === "expired"
+                        : batch.medical_status === "expired"
                         ? "failure"
                         : "active"
                     }
                     className="uppercase"
                   >
-                    {batch.status}
+                    {batch.medical_status}
                   </Badge>
                 </h1>
                 <div className="flex justify-around items-center self-stretch">
-                  {batch.status == "active" ? (
+                  {batch.medical_status == "active" ? (
                     <Button
                       variant="outline"
                       className="uppercase"
@@ -506,10 +519,13 @@ const StudentHome = () => {
                 </div>
               </div>
             );
-          })}
+          })
+        ) : (
+          <span></span>
+        )}
       </div>
     </div>
   );
 };
 
-export default StudentHome;
+export default StudentMedicalHome;

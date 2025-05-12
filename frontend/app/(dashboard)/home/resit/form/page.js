@@ -23,7 +23,6 @@ import { formatResitData } from "@/utils/functions";
 const Form = (request) => {
   const router = useRouter();
   const [examName, setExamName] = useState(null);
-  const [removedSubjects, setRemovedSubjects] = useState([]);
   const deg = request.searchParams.deg;
   const batch = request.searchParams.batch;
   const queryClient = useQueryClient();
@@ -76,7 +75,7 @@ const Form = (request) => {
     isLoading,
   } = useQuery({
     queryFn: () => getStudentResitApplicationDetails(batch),
-    queryKey: ["studentApplicationDetails"],
+    queryKey: ["studentApplicationDetails", "resit"],
   });
 
   const { status, mutate } = useMutation({
@@ -111,13 +110,6 @@ const Form = (request) => {
     }
   }, [applicationData]);
 
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
-
-  useEffect(() => {
-    console.log(attemptsData);
-  }, [attemptsData]);
   return (
     <>
       {applicationData && Object.keys(applicationData).length && (
@@ -322,7 +314,7 @@ const Form = (request) => {
             </div>
             <div className="flex justify-center sm:justify-end">
               {Object.keys(applicationData).length &&
-              Object.keys(attemptsData).length ? (
+              Object.keys(attemptsData)?.length ? (
                 <Button
                   onClick={onSubmit}
                   className="h-8 rounded-md px-3 text-xs sm:h-9 sm:px-4 sm:py-2"

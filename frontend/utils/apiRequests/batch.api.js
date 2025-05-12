@@ -162,3 +162,8 @@ export const getEligibleResitBatches = async () => {
   const response = await axiosInstance.get("/batch/getEligibleResitBatches");
   return response.data;
 };
+
+export const getEligibleMedicalBatches = async () => {
+  const response = await axiosInstance.get("/batch/getEligibleMedicalBatches");
+  return response.data;
+};

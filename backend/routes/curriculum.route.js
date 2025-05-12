@@ -36,6 +36,7 @@ import {
   getStudentResitApplicationDetails,
   updateMultipleResitEligibility,
   updateResitEligibility,
+  getStudentMedicalApplicationDetails,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -128,6 +129,11 @@ router.post(
   "/getStudentResitApplicationDetails",
   verifyUser(["5"]),
   getStudentResitApplicationDetails
+);
+router.post(
+  "/getStudentMedicalApplicationDetails",
+  verifyUser(["5"]),
+  getStudentMedicalApplicationDetails
 );
 router.put(
   "/updateResitEligibility",
