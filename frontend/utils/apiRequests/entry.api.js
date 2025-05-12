@@ -1,9 +1,14 @@
 import axiosInstance from "@/lib/axiosInstance";
 
 export const applyExam = async (removedSubjects) => {
-  const response = await axiosInstance.put("/entry/applyExam", {
+  const response = await axiosInstance.post("/entry/applyExam", {
     removedSubjects,
   });
+  return response.data;
+};
+
+export const applyResitExam = async (data) => {
+  const response = await axiosInstance.post("/entry/applyResitExam", data);
   return response.data;
 };
 

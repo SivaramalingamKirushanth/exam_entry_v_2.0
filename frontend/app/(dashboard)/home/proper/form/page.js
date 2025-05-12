@@ -4,13 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getStudentApplicationDetails } from "@/utils/apiRequests/curriculum.api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import CryptoJS from "crypto-js";
 import { useRouter } from "next/navigation";
 import { applyExam } from "@/utils/apiRequests/entry.api";
 import { toast } from "sonner";
-import { CiCircleMinus } from "react-icons/ci";
 import { FaMinusCircle } from "react-icons/fa";
 import {
   Drawer,
@@ -44,7 +42,7 @@ const Form = (request) => {
   });
 
   const { status, mutate } = useMutation({
-    mutationFn: () => applyExam(removedSubjects),
+    mutationFn: applyExam,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["batchesOfStudent"]);
       toast.success(res.message);
@@ -55,12 +53,12 @@ const Form = (request) => {
   });
 
   const onSubmit = () => {
-    mutate();
-    router.push("/home");
+    mutate(removedSubjects);
+    router.replace("/home/proper");
   };
 
   useEffect(() => {
-    if (error) router.push("/home");
+    if (error) router.replace("/home/proper");
   }, [error]);
 
   return (
@@ -123,7 +121,7 @@ const Form = (request) => {
                     (obj) => !removedSubjects.some((item) => item == obj.sub_id)
                   )
                   .map((obj, ind) => (
-                    <div key={ind} className="flex gap-2 items-center">
+                    <div key={obj.sub_id} className="flex gap-2 items-center">
                       <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg justify-between items-center w-full">
                         <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm sm:text-base">
                           {obj.sub_code}
@@ -196,16 +194,16 @@ const Form = (request) => {
                   ))}
             </div>
             <div className="flex justify-center sm:justify-end">
-              {Object.keys(applicationData).length && (
+              {Object.keys(applicationData).length &&
+              applicationData?.subjects?.length != removedSubjects.length ? (
                 <Button
                   onClick={onSubmit}
                   className="h-8 rounded-md px-3 text-xs sm:h-9 sm:px-4 sm:py-2"
-                  disabled={
-                    applicationData?.subjects?.length == removedSubjects.length
-                  }
                 >
                   Submit
                 </Button>
+              ) : (
+                <span></span>
               )}
             </div>
           </div>

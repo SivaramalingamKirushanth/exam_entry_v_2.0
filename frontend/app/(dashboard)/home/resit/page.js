@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import {
-  getBatchesByStudent,
   getBatchFullDetails,
   getEligibleResitBatches,
 } from "@/utils/apiRequests/batch.api";
@@ -21,7 +20,6 @@ import { useEffect, useState } from "react";
 import {
   createSubjectObject,
   numberToOrdinalWord,
-  parseString,
 } from "@/utils/functions";
 import CryptoJS from "crypto-js";
 import { getCurriculumBybatchId } from "@/utils/apiRequests/curriculum.api";

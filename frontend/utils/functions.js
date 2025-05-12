@@ -201,3 +201,16 @@ export function sortByExamType(array) {
     return a.index_num.localeCompare(b.index_num);
   });
 }
+
+export function formatResitData(input) {
+  return Object.entries(input)
+    .map(([subId, attempts]) => {
+      const attemptStr = [1, 2, 3]
+        .map((i) =>
+          attempts[i] && attempts[i].trim() !== "" ? attempts[i] : "#"
+        )
+        .join(",");
+      return `${subId}|${attemptStr}`;
+    })
+    .join(";");
+}

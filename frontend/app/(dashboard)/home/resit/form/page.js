@@ -1,40 +1,24 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  getStudentApplicationDetails,
-  getStudentResitApplicationDetails,
-} from "@/utils/apiRequests/curriculum.api";
+import { getStudentResitApplicationDetails } from "@/utils/apiRequests/curriculum.api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import CryptoJS from "crypto-js";
 import { useRouter } from "next/navigation";
-import { applyExam } from "@/utils/apiRequests/entry.api";
 import { toast } from "sonner";
-import { CiCircleMinus } from "react-icons/ci";
-import { FaMinusCircle, FaTimes } from "react-icons/fa";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+import { FaMinusCircle } from "react-icons/fa";
+
 import ReactSelect from "react-select";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { applyResitExam } from "@/utils/apiRequests/entry.api";
+import { formatResitData } from "@/utils/functions";
 
 const Form = (request) => {
   const router = useRouter();
@@ -69,6 +53,9 @@ const Form = (request) => {
     setAttemptsData((cur) => ({
       ...cur,
       [sub_id]: {
+        1: "",
+        2: "",
+        3: "",
         ...cur?.[sub_id],
         [attempt]: result,
       },
@@ -93,9 +80,9 @@ const Form = (request) => {
   });
 
   const { status, mutate } = useMutation({
-    mutationFn: () => applyExam(removedSubjects),
+    mutationFn: applyResitExam,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["batchesOfStudent"]);
+      queryClient.invalidateQueries(["batchesOfStudent", "resit"]);
       toast.success(res.message);
     },
     onError: (err) => {
@@ -104,12 +91,14 @@ const Form = (request) => {
   });
 
   const onSubmit = () => {
-    mutate();
-    router.push("/home");
+    const subjects_string = formatResitData(attemptsData);
+
+    mutate({ subjects_string, batch_id: batch });
+    router.replace("/home/resit");
   };
 
   useEffect(() => {
-    if (error) router.push("/home");
+    if (error) router.replace("/home/resit");
   }, [error]);
 
   useEffect(() => {
@@ -251,6 +240,9 @@ const Form = (request) => {
                               <SelectValue placeholder="1st Try" />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value={`${sub_id}:1:`}>
+                                1st Try
+                              </SelectItem>
                               <SelectItem value={`${sub_id}:1:C-`}>
                                 C-
                               </SelectItem>
@@ -268,6 +260,9 @@ const Form = (request) => {
                               <SelectValue placeholder="2nd Try" />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value={`${sub_id}:2:`}>
+                                2nd Try
+                              </SelectItem>
                               <SelectItem value={`${sub_id}:2:C-`}>
                                 C-
                               </SelectItem>
@@ -285,6 +280,9 @@ const Form = (request) => {
                               <SelectValue placeholder="3rd Try" />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value={`${sub_id}:3:`}>
+                                3rd Try
+                              </SelectItem>
                               <SelectItem value={`${sub_id}:3:C-`}>
                                 C-
                               </SelectItem>
@@ -314,18 +312,16 @@ const Form = (request) => {
                 })}
             </div>
             <div className="flex justify-center sm:justify-end">
-              {Object.keys(applicationData).length ? (
+              {Object.keys(applicationData).length &&
+              Object.keys(attemptsData).length ? (
                 <Button
                   onClick={onSubmit}
                   className="h-8 rounded-md px-3 text-xs sm:h-9 sm:px-4 sm:py-2"
-                  disabled={
-                    applicationData?.subjects?.length == removedSubjects.length
-                  }
                 >
                   Submit
                 </Button>
               ) : (
-                ""
+                <span></span>
               )}
             </div>
           </div>

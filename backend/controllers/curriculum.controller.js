@@ -1475,8 +1475,6 @@ export const getStudentResitApplicationDetails = async (req, res, next) => {
         [user_id, batch_id]
       );
 
-      console.log(results);
-
       const studentDetails = results[0][0]; // First result set
       const subjects = results[1]; // Second result set
 
