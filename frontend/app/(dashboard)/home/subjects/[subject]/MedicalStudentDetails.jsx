@@ -1,24 +1,39 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MdCancel } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getAllStudents } from "@/utils/apiRequests/user.api";
 import { EntriesDataTable } from "@/components/EntriesDataTable";
 import {
   updateEligibility,
   updateMultipleEligibility,
 } from "@/utils/apiRequests/curriculum.api";
-
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { getAppliedStudentsForSubject } from "@/utils/apiRequests/entry.api";
+import {
+  getAppliedStudentsForSubject,
+  getAppliedStudentsForSubjectOfDepartment,
+  getAppliedStudentsForSubjectOfFaculty,
+} from "@/utils/apiRequests/entry.api";
+import {
+  getBatchOpenDate,
+  getDeadlinesForBatch,
+} from "@/utils/apiRequests/batch.api";
 import { useUser } from "@/utils/useUser";
 import EligibilityHeader from "@/components/EligibilityHeader";
 import EligibilityCell from "@/components/EligibilityCell";
 
-const StudentDetails = ({ sub_id, batch_id }) => {
+const MedicalStudentDetails = ({ sub_id, batch_id }) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -187,4 +202,4 @@ const StudentDetails = ({ sub_id, batch_id }) => {
   );
 };
 
-export default StudentDetails;
+export default MedicalStudentDetails;

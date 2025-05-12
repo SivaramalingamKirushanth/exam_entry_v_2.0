@@ -445,7 +445,7 @@ export const me = async (req, res, next) => {
           procedureName = "GetStudentDetails";
           break;
         case "4":
-          procedureName = "GetManagerDetails";
+          procedureName = "GetLecturerDetails";
           break;
         case "3":
           procedureName = "GetDepartmentDetails";

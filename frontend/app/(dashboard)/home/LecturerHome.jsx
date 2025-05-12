@@ -7,18 +7,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getAllSubjectsForManager } from "@/utils/apiRequests/curriculum.api";
+import { getAllSubjectsForLecturer } from "@/utils/apiRequests/curriculum.api";
 import { titleCase } from "@/utils/functions";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const ManagerHome = () => {
+const LecturerHome = () => {
   const pathname = usePathname();
 
   const { data: subjectsOfManagerData, isLoading: isSubjectsOfManagerLoading } =
     useQuery({
-      queryFn: getAllSubjectsForManager,
+      queryFn: getAllSubjectsForLecturer,
       queryKey: ["subjectsOfManager"],
     });
 
@@ -69,4 +69,4 @@ const ManagerHome = () => {
   );
 };
 
-export default ManagerHome;
+export default LecturerHome;

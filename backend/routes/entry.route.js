@@ -9,6 +9,7 @@ import {
   fetchStudentsWithSubjects,
   fetchStudentWithSubjectsByUserId,
   generateIndexNumbers,
+  getAppliedResitStudentsByBatchAndSubject,
   getAppliedStudentsForSubject,
   getAppliedStudentsForSubjectOfDepartment,
   getAppliedStudentsForSubjectOfFaculty,
@@ -106,6 +107,11 @@ router.post(
   "/getAppliedStudentsForSubjectOfDepartment",
   verifyUser(["3"]),
   getAppliedStudentsForSubjectOfDepartment
+);
+router.post(
+  "/getAppliedResitStudentsByBatchAndSubject",
+  verifyUser(["1", "4"]),
+  getAppliedResitStudentsByBatchAndSubject
 );
 
 export default router;

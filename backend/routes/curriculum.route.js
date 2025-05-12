@@ -34,6 +34,8 @@ import {
   getSubjectsByGrp,
   getGroupsBySylLevSem,
   getStudentResitApplicationDetails,
+  updateMultipleResitEligibility,
+  updateResitEligibility,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -127,4 +129,15 @@ router.post(
   verifyUser(["5"]),
   getStudentResitApplicationDetails
 );
+router.put(
+  "/updateResitEligibility",
+  verifyUser(["1", "2", "3", "4"]),
+  updateResitEligibility
+);
+router.put(
+  "/updateMultipleResitEligibility",
+  verifyUser(["1", "2", "3", "4"]),
+  updateMultipleResitEligibility
+);
+
 export default router;

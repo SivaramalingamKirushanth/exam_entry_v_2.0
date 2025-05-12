@@ -1,24 +1,44 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MdCancel } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getAllStudents } from "@/utils/apiRequests/user.api";
 import { EntriesDataTable } from "@/components/EntriesDataTable";
 import {
   updateEligibility,
   updateMultipleEligibility,
+  updateMultipleResitEligibility,
+  updateResitEligibility,
 } from "@/utils/apiRequests/curriculum.api";
-
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { getAppliedStudentsForSubject } from "@/utils/apiRequests/entry.api";
+import {
+  getAppliedResitStudentsByBatchAndSubject,
+  getAppliedStudentsForSubject,
+  getAppliedStudentsForSubjectOfDepartment,
+  getAppliedStudentsForSubjectOfFaculty,
+} from "@/utils/apiRequests/entry.api";
+import {
+  getBatchOpenDate,
+  getDeadlinesForBatch,
+} from "@/utils/apiRequests/batch.api";
 import { useUser } from "@/utils/useUser";
 import EligibilityHeader from "@/components/EligibilityHeader";
 import EligibilityCell from "@/components/EligibilityCell";
+import MedResEligibilityCell from "@/components/MedResEligibilityCell";
+import MedResEligibilityHeader from "@/components/MedResEligibilityHeader";
 
-const StudentDetails = ({ sub_id, batch_id }) => {
+const ResitStudentDetails = ({ sub_id, batch_id }) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -33,8 +53,10 @@ const StudentDetails = ({ sub_id, batch_id }) => {
 
   const { data, error } = useQuery({
     queryFn: () =>
-      roleId == "4" ? getAppliedStudentsForSubject(batch_id, sub_id) : null,
-    queryKey: ["students", "subject", sub_id],
+      roleId == "4"
+        ? getAppliedResitStudentsByBatchAndSubject(batch_id, sub_id)
+        : null,
+    queryKey: ["students", "resit", "subject", sub_id],
     enabled: roleId == "4",
   });
 
@@ -43,9 +65,9 @@ const StudentDetails = ({ sub_id, batch_id }) => {
   }
 
   const { mutate } = useMutation({
-    mutationFn: updateEligibility,
+    mutationFn: updateResitEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "subject", sub_id]);
+      queryClient.invalidateQueries(["students", "resit", "subject", sub_id]);
       toast.success(res.message);
     },
     onError: (err) => {
@@ -54,9 +76,9 @@ const StudentDetails = ({ sub_id, batch_id }) => {
   });
 
   const { mutate: mutateMultiple } = useMutation({
-    mutationFn: updateMultipleEligibility,
+    mutationFn: updateMultipleResitEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "subject", sub_id]);
+      queryClient.invalidateQueries(["students", "resit", "subject", sub_id]);
       toast.success(res.message);
     },
     onError: (err) => {
@@ -108,34 +130,35 @@ const StudentDetails = ({ sub_id, batch_id }) => {
       },
     },
     {
-      accessorKey: "attendance",
-      header: "Attendance",
-      cell: ({ row }) => {
-        return (
-          <p className="text-center ">
-            {row.original.attendance
-              ? +row.original.attendance
-                ? row.original.attendance + "%"
-                : row.original.attendance
-              : "0%"}
-          </p>
-        );
-      },
+      accessorKey: "attempt_1",
+      header: "Attempt 1",
+    },
+    ,
+    {
+      accessorKey: "attempt_2",
+      header: "Attempt 2",
+    },
+    ,
+    {
+      accessorKey: "attempt_3",
+      header: "Attempt 3",
     },
     {
       id: "Eligibility",
       header: () => (
-        <EligibilityHeader
+        <MedResEligibilityHeader
           filteredData={filteredData}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
         />
       ),
 
       cell: ({ row }) => (
-        <EligibilityCell
-          row={row}
-          onEligibilityChanged={onEligibilityChanged}
-        />
+        <div className="flex justify-center">
+          <MedResEligibilityCell
+            row={row}
+            onEligibilityChanged={onEligibilityChanged}
+          />
+        </div>
       ),
     },
   ];
@@ -187,4 +210,4 @@ const StudentDetails = ({ sub_id, batch_id }) => {
   );
 };
 
-export default StudentDetails;
+export default ResitStudentDetails;

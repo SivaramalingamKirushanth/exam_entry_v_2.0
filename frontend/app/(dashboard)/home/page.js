@@ -22,7 +22,7 @@ const Home = () => {
           Component = (await import("./HodHome")).default;
           break;
         case "4":
-          Component = (await import("./ManagerHome")).default;
+          Component = (await import("./LecturerHome")).default;
           break;
         case "5":
           Component = (await import("./StudentHome")).default;

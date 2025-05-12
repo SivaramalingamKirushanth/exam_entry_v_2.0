@@ -247,3 +247,19 @@ export const getStudentResitApplicationDetails = async (batch_id) => {
   );
   return response.data;
 };
+
+export const updateResitEligibility = async (data) => {
+  const response = await axiosInstance.put(
+    "/curriculum/updateResitEligibility",
+    data
+  );
+  return response.data;
+};
+
+export const updateMultipleResitEligibility = async (data) => {
+  const response = await axiosInstance.put(
+    "/curriculum/updateMultipleResitEligibility",
+    data
+  );
+  return response.data;
+};
