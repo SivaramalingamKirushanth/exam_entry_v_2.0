@@ -313,8 +313,8 @@ const StudentResitHome = () => {
                             New exam coming soon!
                           </span>
                           <h1 className="font-base uppercase text-center">
-                            {level_ordinal} examination in {batch.deg_name} -{" "}
-                            {batch.academic_year} - {sem_ordinal}
+                            {level_ordinal} examination in {batch.course_title}{" "}
+                            - {batch.academic_year} - {sem_ordinal}
                             &nbsp;semester
                           </h1>
                         </Skeleton>
@@ -326,7 +326,7 @@ const StudentResitHome = () => {
                 return (
                   <TableRow key={batch.batch_id}>
                     <TableCell className="font-medium uppercase">
-                      {level_ordinal} examination in {batch.deg_name} -{" "}
+                      {level_ordinal} examination in {batch.course_title} -{" "}
                       {batch.academic_year} - {sem_ordinal}
                       &nbsp;semester
                     </TableCell>
@@ -354,7 +354,7 @@ const StudentResitHome = () => {
                           <Button
                             variant="outline"
                             className="uppercase"
-                            data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${batch.academic_year} - ${sem_ordinal} semester`}
+                            data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
                             data-batch={batch.batch_id}
                             onClick={(e) => onApplyClick(e)}
                           >
@@ -429,7 +429,7 @@ const StudentResitHome = () => {
                 >
                   <span className="font-semibold">New exam coming soon!</span>
                   <h1 className="font-base uppercase text-center">
-                    {level_ordinal} examination in {batch.deg_name} -{" "}
+                    {level_ordinal} examination in {batch.course_title} -{" "}
                     {batch.academic_year} - {sem_ordinal}
                     &nbsp;semester
                   </h1>
@@ -443,7 +443,7 @@ const StudentResitHome = () => {
                 key={batch.batch_id}
               >
                 <h1 className="font-medium uppercase text-center">
-                  {level_ordinal} examination in {batch.deg_name} -{" "}
+                  {level_ordinal} examination in {batch.course_title} -{" "}
                   {batch.academic_year} - {sem_ordinal}
                   &nbsp;semester{" "}
                   <Badge
@@ -469,7 +469,7 @@ const StudentResitHome = () => {
                       variant="outline"
                       className="uppercase"
                       size="sm"
-                      data-deg={`${level_ordinal} examination in ${batch.deg_name} - ${batch.academic_year} - ${sem_ordinal} semester`}
+                      data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
                       onClick={(e) => onApplyClick(e)}
                     >
                       apply

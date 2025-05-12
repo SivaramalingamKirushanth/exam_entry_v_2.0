@@ -1128,28 +1128,27 @@ export const getAllBatchesForDepartment = async (req, res, next) => {
       const result = [];
 
       // Step 2: Get active degrees under this faculty
-      const [degrees] = await conn.query(
-        "CALL GetActiveDegreesInDepartment(?)",
-        [department.d_id]
+      // const [degrees] = await conn.query(
+      //   "CALL GetActiveDegreesInDepartment(?)",
+      //   [department.d_id]
+      // );
+
+      const [batches] = await conn.query(
+        "CALL GetActiveBatchesWithinDeadline(?, ?)",
+        [department.d_id, role_id]
       );
 
-      if (degrees[0].length > 0) {
-        for (const degree of degrees[0]) {
-          // Step 2: Get active degrees under this faculty
-          const [batches] = await conn.query(
-            "CALL GetActiveBatchesWithinDeadline(?, ?)",
-            [degree.deg_id, role_id]
-          );
-
-          if (batches[0].length > 0) {
-            batches[0].forEach((batch) =>
-              result.push({ ...batch, deg_name: degree.deg_name })
-            );
-          }
+      const uniqueBatchArr = [];
+      batches[0].forEach((obj) => {
+        const exist = uniqueBatchArr.some(
+          (existObj) => existObj.batch_id == obj.batch_id
+        );
+        if (!exist) {
+          uniqueBatchArr.push(obj);
         }
-      }
+      });
 
-      return res.status(200).json(result);
+      return res.status(200).json(uniqueBatchArr);
     } finally {
       conn.release();
     }

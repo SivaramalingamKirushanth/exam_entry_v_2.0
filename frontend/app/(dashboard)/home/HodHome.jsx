@@ -24,6 +24,8 @@ const HodHome = () => {
     queryKey: ["batchesOfDepartment"],
   });
 
+  console.log(batchesOfDepartmentData);
+
   if (isBatchesOfDepartmenLoading)
     return (
       <div className="flex justify-end md:justify-center">
@@ -60,7 +62,7 @@ const HodHome = () => {
                   <CardHeader>
                     <CardTitle className="uppercase text-center">
                       <p>
-                        {level_ordinal} examination in {obj.deg_name}
+                        {level_ordinal} examination in {obj.course_title}
                       </p>
                       <p>{obj.academic_year}</p>
                       <br />
