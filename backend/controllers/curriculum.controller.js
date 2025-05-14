@@ -381,6 +381,45 @@ export const getSubjectBybatchId = async (req, res, next) => {
   }
 };
 
+export const getSubjectBybatchAndDepartment = async (req, res, next) => {
+  const { batch_id } = req.body;
+  const { user_id } = req.user;
+
+  if (!batch_id) {
+    return next(errorProvider(400, "Batch ID is required."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [departments] = await conn.query(
+        "SELECT d_id FROM department WHERE user_id = ? AND status = 'true'",
+        [user_id]
+      );
+
+      if (departments.length === 0) {
+        return res.status(404).json({ message: "No active departments found" });
+      }
+      let department = departments[0];
+
+      const [results] = await conn.query(
+        "CALL GetSubjectBybatchAndDepartment(?, ?);",
+        [batch_id, department.d_id]
+      );
+
+      return res.status(200).json(results[0]);
+    } catch (error) {
+      console.error("Error fetching subject details:", error);
+      return next(errorProvider(500, "Failed to fetch subject details"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
 export const getStudentApplicationDetails = async (req, res, next) => {
   const { user_id } = req.user;
 
@@ -536,7 +575,7 @@ export const getAllSubjectsForDepartment = async (req, res, next) => {
         for (const degree of degrees[0]) {
           // Step 2: Get active degrees under this faculty
           const [batches] = await conn.query(
-            "CALL GetActiveBatchesWithinDeadline(?, ?)",
+            "CALL GetActiveBatchesOfDegWithinDeadline(?, ?)",
             [degree.deg_id, role_id]
           );
 
@@ -596,7 +635,6 @@ export const getAllSubjectsForFaculty = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      // Step 1: Get faculty ID for the dean
       const [faculty] = await conn.query(
         "SELECT f_id FROM faculty WHERE user_id = ? AND status = 'true'",
         [user_id]
@@ -607,63 +645,50 @@ export const getAllSubjectsForFaculty = async (req, res, next) => {
       }
       const facultyId = faculty[0].f_id;
 
-      // Step 2: Get active departments under this faculty
-      const [departments] = await conn.query(
-        "CALL GetDepartmentsByFacultyId(?)",
-        [facultyId]
-      );
-
-      if (departments[0].length === 0) {
-        return res.status(404).json({ message: "No active departments found" });
-      }
-
       const result = [];
 
-      for (const department of departments[0]) {
-        // Step 2: Get active degrees under this faculty
-        const [degrees] = await conn.query(
-          "CALL GetActiveDegreesInDepartment(?)",
-          [department.d_id]
-        );
+      // Step 2: Get active degrees under this faculty
+      const [degrees] = await conn.query("CALL GetActiveDegreesInFaculty(?)", [
+        facultyId,
+      ]);
 
-        if (degrees[0].length > 0) {
-          for (const degree of degrees[0]) {
-            // Step 2: Get active degrees under this faculty
-            const [batches] = await conn.query(
-              "CALL GetActiveBatchesWithinDeadline(?, ?)",
-              [degree.deg_id, role_id]
-            );
+      if (degrees[0].length > 0) {
+        for (const degree of degrees[0]) {
+          // Step 2: Get active degrees under this faculty
+          const [batches] = await conn.query(
+            "CALL GetActiveBatchesOfDegWithinDeadline(?, ?)",
+            [degree.deg_id, role_id]
+          );
 
-            if (batches[0].length > 0) {
-              for (const batch of batches[0]) {
-                const { batch_id, batch_code } = batch;
+          if (batches[0].length > 0) {
+            for (const batch of batches[0]) {
+              const { batch_id, batch_code } = batch;
 
-                // Step 3: Get subjects for this batch
-                const [subjects] = await conn.query(
-                  "CALL GetSubjectsForBatch(?)",
-                  [batch_id]
-                );
+              // Step 3: Get subjects for this batch
+              const [subjects] = await conn.query(
+                "CALL GetSubjectsForBatch(?)",
+                [batch_id]
+              );
 
-                if (subjects[0].length > 0) {
-                  const subjectData = [];
+              if (subjects[0].length > 0) {
+                const subjectData = [];
 
-                  for (const subject of subjects[0]) {
-                    const { sub_id, sub_code, sub_name } = subject;
+                for (const subject of subjects[0]) {
+                  const { sub_id, sub_code, sub_name } = subject;
 
-                    subjectData.push({
-                      sub_id,
-                      sub_code,
-                      sub_name,
-                    });
-                  }
-
-                  result.push({
-                    batch_id,
-                    batch_code,
-                    deg_name: degree.deg_name,
-                    subjects: subjectData,
+                  subjectData.push({
+                    sub_id,
+                    sub_code,
+                    sub_name,
                   });
                 }
+
+                result.push({
+                  batch_id,
+                  batch_code,
+                  deg_name: degree.deg_name,
+                  subjects: subjectData,
+                });
               }
             }
           }
@@ -843,6 +868,100 @@ export const checkSubjectExistOnBSL = async (req, res, next) => {
       const [subjectExistsResult] = await conn.query(
         "CALL CheckSubjectExistOnBSL(?, ?, ?, @subjectExists); SELECT @subjectExists AS subjectExists;",
         [batch_id, sub_id, user_id]
+      );
+
+      const subjectExists = subjectExistsResult[1][0].subjectExists;
+
+      await conn.commit();
+
+      return res.status(200).json({ subjectExists });
+    } catch (error) {
+      console.error("Error during cheking subject existence:", error);
+      await conn.rollback();
+
+      return next(
+        errorProvider(500, "An error occurred while cheking subject existence.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const checkSubjectExistOnDepartment = async (req, res, next) => {
+  const { user_id } = req.user;
+  const { sub_id } = req.body;
+
+  if (!sub_id || !user_id) {
+    return res.status(200).json({ subjectExists: false });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [departments] = await conn.query(
+        "SELECT d_id FROM department WHERE user_id = ? AND status = 'true'",
+        [user_id]
+      );
+
+      if (departments.length === 0) {
+        return res.status(404).json({ message: "No active departments found" });
+      }
+      let department = departments[0];
+
+      const [subjectExistsResult] = await conn.query(
+        "CALL CheckSubjectExistOnDepartment(?, ?, @subjectExists); SELECT @subjectExists AS subjectExists;",
+        [sub_id, department.d_id]
+      );
+
+      const subjectExists = subjectExistsResult[1][0].subjectExists;
+
+      await conn.commit();
+
+      return res.status(200).json({ subjectExists });
+    } catch (error) {
+      console.error("Error during cheking subject existence:", error);
+      await conn.rollback();
+
+      return next(
+        errorProvider(500, "An error occurred while cheking subject existence.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const checkSubjectExistOnFaculty = async (req, res, next) => {
+  const { user_id } = req.user;
+  const { sub_id } = req.body;
+
+  if (!sub_id || !user_id) {
+    return res.status(200).json({ subjectExists: false });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [faculties] = await conn.query(
+        "SELECT f_id FROM faculty WHERE user_id = ? AND status = 'true'",
+        [user_id]
+      );
+
+      if (faculties.length === 0) {
+        return res.status(404).json({ message: "No active faculty found" });
+      }
+      let faculty = faculties[0];
+
+      const [subjectExistsResult] = await conn.query(
+        "CALL CheckSubjectExistOnFaculty(?, ?, @subjectExists); SELECT @subjectExists AS subjectExists;",
+        [sub_id, faculty.f_id]
       );
 
       const subjectExists = subjectExistsResult[1][0].subjectExists;

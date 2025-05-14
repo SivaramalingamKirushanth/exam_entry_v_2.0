@@ -14,11 +14,12 @@ import {
 const MedResEligibilityHeader = ({
   filteredData,
   onMultipleEligibilityChanged,
+  setIsAnyonePending,
 }) => {
   const [remark, setRemark] = useState("Details verified");
 
-  const isAnyoneNotPending = filteredData.some((stu) => stu.eligibility == "");
-
+  const isAnyonePending = filteredData.some((stu) => stu.eligibility == "");
+  setIsAnyonePending(isAnyonePending);
   const isAnyoneNotEligible = filteredData.some(
     (stu) => stu.eligibility == "false"
   );
@@ -33,7 +34,7 @@ const MedResEligibilityHeader = ({
             onMultipleEligibilityChanged(e, remark);
           }
         }}
-        value={isAnyoneNotPending ? "" : !isAnyoneNotEligible + ""}
+        value={isAnyonePending ? "" : !isAnyoneNotEligible + ""}
       >
         <SelectTrigger className="w-32">
           <SelectValue placeholder="Pending" />

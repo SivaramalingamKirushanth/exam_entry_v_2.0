@@ -17,7 +17,7 @@ import { useUser } from "@/utils/useUser";
 import MedResEligibilityCell from "@/components/MedResEligibilityCell";
 import MedResEligibilityHeader from "@/components/MedResEligibilityHeader";
 
-const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
+const MedicalStudentDetails = ({ sub_id, batch_id }) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -31,12 +31,13 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
   }, [user]);
 
   const { data, error } = useQuery({
-    queryFn: () =>
-      roleId == "4"
-        ? getAppliedMedicalStudentsByBatchAndSubject(batch_id, sub_id)
-        : null,
+    queryFn: () => {
+      if (roleId == "3" || roleId == "2")
+        return getAppliedMedicalStudentsByBatchAndSubject(batch_id, sub_id);
+      return Promise.reject("Invalid role");
+    },
     queryKey: ["students", "medical", "subject", sub_id],
-    enabled: roleId == "4",
+    enabled: roleId == "3" || roleId == "2",
   });
 
   if (error?.response?.status == 500) {
@@ -113,7 +114,6 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
       header: () => (
         <MedResEligibilityHeader
           filteredData={filteredData}
-          setIsAnyonePending={setIsAnyonePending}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
         />
       ),

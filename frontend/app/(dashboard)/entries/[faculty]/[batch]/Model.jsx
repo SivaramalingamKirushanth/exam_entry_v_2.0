@@ -54,7 +54,7 @@ const Model = ({
   isOpen,
   setIsOpen,
   modalRef,
-  curriculumsOfBatchData,
+  subjectsOfBatchData,
   batch_id,
 }) => {
   const queryClient = useQueryClient();
@@ -111,8 +111,8 @@ const Model = ({
                   <TableHead className="w-[150px]">Student</TableHead>
                   <TableHead className="w-8"></TableHead>
                   <TableHead className="w-24 text-center">Type</TableHead>
-                  {curriculumsOfBatchData &&
-                    curriculumsOfBatchData.map((obj) => (
+                  {subjectsOfBatchData &&
+                    subjectsOfBatchData.map((obj) => (
                       <TableHead key={obj.sub_id} className="space-x-2">
                         {obj.sub_code}
                       </TableHead>
@@ -125,7 +125,7 @@ const Model = ({
                     row && (
                       <StudentRow
                         row={row}
-                        curriculumsOfBatchData={curriculumsOfBatchData}
+                        subjectsOfBatchData={subjectsOfBatchData}
                         selectedSubjects={selectedSubjects}
                         setSelectedSubjects={setSelectedSubjects}
                         ind={ind}

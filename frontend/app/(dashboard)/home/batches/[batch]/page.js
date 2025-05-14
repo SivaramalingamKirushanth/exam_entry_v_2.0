@@ -1,6 +1,5 @@
 "use client";
 
-import ReportTable from "@/components/ReportTable";
 import {
   Card,
   CardDescription,
@@ -8,14 +7,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  getAllSubjectsForFaculty,
-  getCurriculumBybatchId,
+  getSubjectBybatchAndDepartment,
+  getSubjectBybatchId,
 } from "@/utils/apiRequests/curriculum.api";
-import {
-  getDeanDashboardData,
-  getHodDashboardData,
-} from "@/utils/apiRequests/entry.api";
-import { numberToOrdinalWord, parseString, titleCase } from "@/utils/functions";
+import { titleCase } from "@/utils/functions";
 import { useUser } from "@/utils/useUser";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -38,8 +33,12 @@ const Batches = () => {
   }, [user]);
 
   const { data: subjectsOfBatchData, isLoading } = useQuery({
-    queryFn: () => getCurriculumBybatchId(batch_id),
-    queryKey: ["subjectsOfFaculty"],
+    queryFn: () => {
+      if (roleId == "3") return getSubjectBybatchAndDepartment(batch_id);
+      if (roleId == "2") return getSubjectBybatchId(batch_id);
+      return Promise.reject("Invalid role");
+    },
+    queryKey: ["subjectsOfBatch", batch_id],
   });
 
   if (isLoading)

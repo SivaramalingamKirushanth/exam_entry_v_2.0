@@ -449,7 +449,7 @@ const AttendanceSheetTemplate = ({
         <div className="flex flex-col gap-1">
           <div className="flex">
             <div className="w-36 flex justify-between shrink-0">
-              Course unit no <span>:&nbsp;</span>
+              Unit code <span>:&nbsp;</span>
             </div>
             <div>{sub_code}</div>
           </div>

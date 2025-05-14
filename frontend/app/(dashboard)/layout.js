@@ -7,14 +7,11 @@ import axiosInstance from "@/lib/axiosInstance";
 import { useRouter } from "next/navigation";
 
 const RootLayout = ({ children }) => {
-  const router = useRouter();
-
   const logoutHandler = async () => {
     try {
       const response = await axiosInstance.post("/auth/logout");
 
       window.location.href = "/";
-      // router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }

@@ -8,19 +8,28 @@ import { ArrowUpDown } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { EntriesDataTable } from "@/components/EntriesDataTable";
 import {
-  updateMedicalEligibility,
-  updateMultipleMedicalEligibility,
+  updateEligibility,
+  updateMultipleEligibility,
 } from "@/utils/apiRequests/curriculum.api";
 import { toast } from "sonner";
-import { getAppliedMedicalStudentsByBatchAndSubject } from "@/utils/apiRequests/entry.api";
+import {
+  getAppliedStudentsForSubject,
+  getAppliedStudentsForSubjectOfDepartment,
+  getAppliedStudentsForSubjectOfFaculty,
+} from "@/utils/apiRequests/entry.api";
+import { getDeadlinesForBatch } from "@/utils/apiRequests/batch.api";
 import { useUser } from "@/utils/useUser";
-import MedResEligibilityCell from "@/components/MedResEligibilityCell";
-import MedResEligibilityHeader from "@/components/MedResEligibilityHeader";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import EligibilityHeader from "@/components/EligibilityHeader";
+import EligibilityCell from "@/components/EligibilityCell";
 
-const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
+const RequestDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
   const queryClient = useQueryClient();
+  const pathname = usePathname();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
+  const [endDate, setEndDate] = useState(null);
   const [roleId, setRoleID] = useState(null);
   const { data: user, isLoading } = useUser();
 
@@ -32,11 +41,9 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
 
   const { data, error } = useQuery({
     queryFn: () =>
-      roleId == "4"
-        ? getAppliedMedicalStudentsByBatchAndSubject(batch_id, sub_id)
-        : null,
-    queryKey: ["students", "medical", "subject", sub_id],
-    enabled: roleId == "4",
+      roleId == "1" ? getAppliedStudentsForSubject(batch_id, sub_id) : null,
+    queryKey: ["students", "subject", sub_id],
+    enabled: roleId == "1",
   });
 
   if (error?.response?.status == 500) {
@@ -44,9 +51,9 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
   }
 
   const { mutate } = useMutation({
-    mutationFn: updateMedicalEligibility,
+    mutationFn: updateEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "medical", "subject", sub_id]);
+      queryClient.invalidateQueries(["students", "subject", sub_id]);
       toast.success(res.message);
     },
     onError: (err) => {
@@ -54,10 +61,15 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
     },
   });
 
+  const { data: deadlinesOfBatchData } = useQuery({
+    queryFn: () => getDeadlinesForBatch(batch_id),
+    queryKey: ["deadlinesOfBatch", batch_id],
+  });
+
   const { mutate: mutateMultiple } = useMutation({
-    mutationFn: updateMultipleMedicalEligibility,
+    mutationFn: updateMultipleEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "medical", "subject", sub_id]);
+      queryClient.invalidateQueries(["students", "subject", sub_id]);
       toast.success(res.message);
     },
     onError: (err) => {
@@ -78,6 +90,16 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
       remark,
     });
   };
+
+  useEffect(() => {
+    if (deadlinesOfBatchData && deadlinesOfBatchData.length) {
+      let end = new Date(
+        deadlinesOfBatchData.find((obj) => obj.user_type == "2")?.deadline
+      );
+
+      setEndDate(end);
+    }
+  }, [deadlinesOfBatchData]);
 
   const columns = [
     {
@@ -109,22 +131,34 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
       },
     },
     {
+      accessorKey: "attendance",
+      header: "Attendance",
+      cell: ({ row }) => {
+        return (
+          <p className="text-center ">
+            {row.original.attendance
+              ? +row.original.attendance
+                ? row.original.attendance + "%"
+                : row.original.attendance
+              : "0%"}
+          </p>
+        );
+      },
+    },
+    {
       id: "Eligibility",
       header: () => (
-        <MedResEligibilityHeader
+        <EligibilityHeader
           filteredData={filteredData}
-          setIsAnyonePending={setIsAnyonePending}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
         />
       ),
 
       cell: ({ row }) => (
-        <div className="flex justify-center">
-          <MedResEligibilityCell
-            row={row}
-            onEligibilityChanged={onEligibilityChanged}
-          />
-        </div>
+        <EligibilityCell
+          row={row}
+          onEligibilityChanged={onEligibilityChanged}
+        />
       ),
     },
   ];
@@ -151,7 +185,7 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
 
   return (
     <>
-      <div className="flex items-start mb-3">
+      <div className="flex justify-between mb-3">
         <div className="bg-white rounded-md flex relative">
           <Input
             placeholder="Search by name or user name"
@@ -162,12 +196,30 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
           <span
             className={`${
               searchValue ? "opacity-100 inline-block" : "opacity-0 hidden"
-            } font-medium text-slate-700 absolute top-2 right-2 transition-all duration-200`}
+            } text-sm font-medium text-slate-700 absolute top-2 right-2 transition-all duration-200`}
             onClick={onClearClicked}
           >
             <MdCancel className="size-5 cursor-pointer" />
           </span>
         </div>
+        {endDate && endDate < new Date() && (
+          <div className="flex">
+            <Link
+              href={{
+                pathname: `${pathname}/attendance`,
+                query: {
+                  batch_id,
+                  sub_id,
+                  sub_name,
+                  sub_code,
+                },
+              }}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+            >
+              Generate attendance
+            </Link>
+          </div>
+        )}
       </div>
       <div className="container mx-auto">
         <EntriesDataTable columns={columns} data={filteredData} />
@@ -176,4 +228,4 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
   );
 };
 
-export default MedicalStudentDetails;
+export default RequestDetails;

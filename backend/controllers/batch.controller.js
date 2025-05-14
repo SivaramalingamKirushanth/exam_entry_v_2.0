@@ -1125,30 +1125,13 @@ export const getAllBatchesForDepartment = async (req, res, next) => {
         return res.status(404).json({ message: "No active departments found" });
       }
       let department = departments[0];
-      const result = [];
-
-      // Step 2: Get active degrees under this faculty
-      // const [degrees] = await conn.query(
-      //   "CALL GetActiveDegreesInDepartment(?)",
-      //   [department.d_id]
-      // );
 
       const [batches] = await conn.query(
-        "CALL GetActiveBatchesWithinDeadline(?, ?)",
+        "CALL GetActiveBatchesOfDepWithinDeadline(?, ?)",
         [department.d_id, role_id]
       );
 
-      const uniqueBatchArr = [];
-      batches[0].forEach((obj) => {
-        const exist = uniqueBatchArr.some(
-          (existObj) => existObj.batch_id == obj.batch_id
-        );
-        if (!exist) {
-          uniqueBatchArr.push(obj);
-        }
-      });
-
-      return res.status(200).json(uniqueBatchArr);
+      return res.status(200).json(batches[0]);
     } finally {
       conn.release();
     }
@@ -1169,7 +1152,6 @@ export const getAllBatchesForFaculty = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      // Step 1: Get faculty ID for the dean
       const [faculty] = await conn.query(
         "SELECT f_id FROM faculty WHERE user_id = ? AND status = 'true'",
         [user_id]
@@ -1180,38 +1162,25 @@ export const getAllBatchesForFaculty = async (req, res, next) => {
       }
       const facultyId = faculty[0].f_id;
 
-      // Step 2: Get active departments under this faculty
-      const [departments] = await conn.query(
-        "CALL GetDepartmentsByFacultyId(?)",
-        [facultyId]
-      );
-
-      if (departments[0].length === 0) {
-        return res.status(404).json({ message: "No active departments found" });
-      }
-
       const result = [];
 
-      for (const department of departments[0]) {
-        // Step 2: Get active degrees under this faculty
-        const [degrees] = await conn.query(
-          "CALL GetActiveDegreesInDepartment(?)",
-          [department.d_id]
-        );
+      // Step 2: Get active degrees under this faculty
+      const [degrees] = await conn.query("CALL GetActiveDegreesInFaculty(?)", [
+        facultyId,
+      ]);
 
-        if (degrees[0].length > 0) {
-          for (const degree of degrees[0]) {
-            // Step 2: Get active degrees under this faculty
-            const [batches] = await conn.query(
-              "CALL GetActiveBatchesWithinDeadline(?, ?)",
-              [degree.deg_id, role_id]
+      if (degrees[0].length > 0) {
+        for (const degree of degrees[0]) {
+          // Step 2: Get active degrees under this faculty
+          const [batches] = await conn.query(
+            "CALL GetActiveBatchesOfDegWithinDeadline(?, ?)",
+            [degree.deg_id, role_id]
+          );
+
+          if (batches[0].length > 0) {
+            batches[0].forEach((batch) =>
+              result.push({ ...batch, deg_name: degree.deg_name })
             );
-
-            if (batches[0].length > 0) {
-              batches[0].forEach((batch) =>
-                result.push({ ...batch, deg_name: degree.deg_name })
-              );
-            }
           }
         }
       }
@@ -1291,8 +1260,9 @@ export const getBatchOpenDate = async (req, res, next) => {
 
       // Parse batch_code in Node.js
       const application_open = batch[0][0].application_open;
+      const payment_end = batch[0][0].payment_end;
 
-      return res.status(200).json({ application_open });
+      return res.status(200).json({ application_open, payment_end });
     } catch (error) {
       console.error("Error retrieving batch application_open date:", error);
       return next(

@@ -69,6 +69,16 @@ export const getSubjectBybatchId = async (batch_id) => {
   return response.data;
 };
 
+export const getSubjectBybatchAndDepartment = async (batch_id) => {
+  const response = await axiosInstance.post(
+    "/curriculum/getSubjectBybatchAndDepartment",
+    {
+      batch_id,
+    }
+  );
+  return response.data;
+};
+
 export const getStudentApplicationDetails = async () => {
   const response = await axiosInstance.get(
     "/curriculum/getStudentApplicationDetails"
@@ -79,6 +89,22 @@ export const getStudentApplicationDetails = async () => {
 export const checkSubjectExistOnBSL = async (data) => {
   const response = await axiosInstance.post(
     "/curriculum/checkSubjectExistOnBSL",
+    data
+  );
+  return response.data;
+};
+
+export const checkSubjectExistOnDepartment = async (data) => {
+  const response = await axiosInstance.post(
+    "/curriculum/checkSubjectExistOnDepartment",
+    data
+  );
+  return response.data;
+};
+
+export const checkSubjectExistOnFaculty = async (data) => {
+  const response = await axiosInstance.post(
+    "/curriculum/checkSubjectExistOnFaculty",
     data
   );
   return response.data;

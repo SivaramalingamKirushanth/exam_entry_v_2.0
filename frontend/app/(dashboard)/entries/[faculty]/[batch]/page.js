@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { getCurriculumBybatchId } from "@/utils/apiRequests/curriculum.api";
+import { getSubjectBybatchId } from "@/utils/apiRequests/curriculum.api";
 import { Button } from "@/components/ui/button";
 import { FaGear, FaPlus } from "react-icons/fa6";
 import { TiWarning } from "react-icons/ti";
@@ -34,13 +34,11 @@ const Batches = () => {
     setIsOpen((prev) => !prev);
   };
 
-  const {
-    data: curriculumsOfBatchData,
-    isLoading: isCurriculumsOfBatchDataLoading,
-  } = useQuery({
-    queryFn: () => getCurriculumBybatchId(batch_id),
-    queryKey: ["curriculumsOfBatch", batch_id],
-  });
+  const { data: subjectsOfBatchData, isLoading: isSubjectsOfBatchDataLoading } =
+    useQuery({
+      queryFn: () => getSubjectBybatchId(batch_id),
+      queryKey: ["subjectsOfBatch", batch_id],
+    });
 
   const { data: deadlinesOfBatchData } = useQuery({
     queryFn: () => getDeadlinesForBatch(batch_id),
@@ -103,15 +101,15 @@ const Batches = () => {
           ))}
       </div>
       <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
-        {isCurriculumsOfBatchDataLoading &&
+        {isSubjectsOfBatchDataLoading &&
           [1, 2, 3, 4, 5, 6].map((_, i) => (
             <Skeleton
               key={i}
               className="sm:w-[30%] h-32 sm:max-w-[30%] rounded-xl"
             />
           ))}
-        {curriculumsOfBatchData &&
-          curriculumsOfBatchData.map((obj) => (
+        {subjectsOfBatchData &&
+          subjectsOfBatchData.map((obj) => (
             <Link
               href={{
                 pathname: `${pathname}/${obj.sub_code}`,
@@ -140,7 +138,7 @@ const Batches = () => {
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         modalRef={modalRef}
-        curriculumsOfBatchData={curriculumsOfBatchData}
+        subjectsOfBatchData={subjectsOfBatchData}
         batch_id={batch_id}
       />
       <IndexModel

@@ -39,6 +39,9 @@ import {
   getStudentMedicalApplicationDetails,
   updateMedicalEligibility,
   updateMultipleMedicalEligibility,
+  getSubjectBybatchAndDepartment,
+  checkSubjectExistOnDepartment,
+  checkSubjectExistOnFaculty,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -65,6 +68,11 @@ router.post(
   "/getSubjectBybatchId",
   verifyUser(["1", "2", "3", "4", "5"]),
   getSubjectBybatchId
+);
+router.post(
+  "/getSubjectBybatchAndDepartment",
+  verifyUser(["3"]),
+  getSubjectBybatchAndDepartment
 );
 router.put("/updateSubject", verifyUser(["1"]), updateSubject);
 router.put("/updateSubjectStatus", verifyUser(["1"]), updateSubjectStatus);
@@ -99,6 +107,16 @@ router.post(
   "/checkSubjectExistOnBSL",
   verifyUser(["4"]),
   checkSubjectExistOnBSL
+);
+router.post(
+  "/checkSubjectExistOnDepartment",
+  verifyUser(["3"]),
+  checkSubjectExistOnDepartment
+);
+router.post(
+  "/checkSubjectExistOnFaculty",
+  verifyUser(["2"]),
+  checkSubjectExistOnFaculty
 );
 router.post("/createSyllabus", verifyUser(["1"]), createSyllabus);
 router.get(

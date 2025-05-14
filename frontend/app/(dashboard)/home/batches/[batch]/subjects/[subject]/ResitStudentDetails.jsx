@@ -1,23 +1,25 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { MdCancel } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { EntriesDataTable } from "@/components/EntriesDataTable";
 import {
-  updateMedicalEligibility,
-  updateMultipleMedicalEligibility,
+  updateMultipleResitEligibility,
+  updateResitEligibility,
 } from "@/utils/apiRequests/curriculum.api";
 import { toast } from "sonner";
-import { getAppliedMedicalStudentsByBatchAndSubject } from "@/utils/apiRequests/entry.api";
+import { getAppliedResitStudentsByBatchAndSubject } from "@/utils/apiRequests/entry.api";
+
 import { useUser } from "@/utils/useUser";
+
 import MedResEligibilityCell from "@/components/MedResEligibilityCell";
 import MedResEligibilityHeader from "@/components/MedResEligibilityHeader";
 
-const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
+const ResitStudentDetails = ({ sub_id, batch_id }) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -31,12 +33,13 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
   }, [user]);
 
   const { data, error } = useQuery({
-    queryFn: () =>
-      roleId == "4"
-        ? getAppliedMedicalStudentsByBatchAndSubject(batch_id, sub_id)
-        : null,
-    queryKey: ["students", "medical", "subject", sub_id],
-    enabled: roleId == "4",
+    queryFn: () => {
+      if (roleId == "3" || roleId == "2")
+        return getAppliedResitStudentsByBatchAndSubject(batch_id, sub_id);
+      return Promise.reject("Invalid role");
+    },
+    queryKey: ["students", "resit", "subject", sub_id],
+    enabled: roleId == "3" || roleId == "2",
   });
 
   if (error?.response?.status == 500) {
@@ -44,9 +47,9 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
   }
 
   const { mutate } = useMutation({
-    mutationFn: updateMedicalEligibility,
+    mutationFn: updateResitEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "medical", "subject", sub_id]);
+      queryClient.invalidateQueries(["students", "resit", "subject", sub_id]);
       toast.success(res.message);
     },
     onError: (err) => {
@@ -55,9 +58,9 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
   });
 
   const { mutate: mutateMultiple } = useMutation({
-    mutationFn: updateMultipleMedicalEligibility,
+    mutationFn: updateMultipleResitEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "medical", "subject", sub_id]);
+      queryClient.invalidateQueries(["students", "resit", "subject", sub_id]);
       toast.success(res.message);
     },
     onError: (err) => {
@@ -109,11 +112,24 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
       },
     },
     {
+      accessorKey: "attempt_1",
+      header: "Attempt 1",
+    },
+    ,
+    {
+      accessorKey: "attempt_2",
+      header: "Attempt 2",
+    },
+    ,
+    {
+      accessorKey: "attempt_3",
+      header: "Attempt 3",
+    },
+    {
       id: "Eligibility",
       header: () => (
         <MedResEligibilityHeader
           filteredData={filteredData}
-          setIsAnyonePending={setIsAnyonePending}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
         />
       ),
@@ -176,4 +192,4 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
   );
 };
 
-export default MedicalStudentDetails;
+export default ResitStudentDetails;

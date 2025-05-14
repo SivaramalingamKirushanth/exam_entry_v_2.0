@@ -11,13 +11,17 @@ import {
   getDeadlinesForBatch,
 } from "@/utils/apiRequests/batch.api";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa6";
+import { IoIosAlert, IoMdAlert } from "react-icons/io";
 import ResitStudentDetails from "./ResitStudentDetails";
 import MedicalStudentDetails from "./MedicalStudentDetails";
+import Deadlines from "@/components/Deadlines";
 
 const Subjects = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [roleId, setRoleID] = useState(null);
+  const [isAnyoneMedicalPending, setIsAnyoneMedicalPending] = useState(false);
+  const [isAnyoneResitPending, setIsAnyoneResitPending] = useState(false);
   const { data: user, isLoading } = useUser();
   const [deadlineObj, setDeadlineObj] = useState({
     lec_deadline: "",
@@ -54,17 +58,17 @@ const Subjects = () => {
     queryKey: ["batch", "dealines", batch_id],
   });
 
-  const { data: subjectExistData } = useQuery({
+  const { data: subjectExistData, isError } = useQuery({
     queryFn: () => checkSubjectExistOnBSL({ batch_id, sub_id }),
     queryKey: ["subjectDataDetails", sub_id, batch_id],
     enabled: roleId == "4",
   });
 
   useEffect(() => {
-    if (subjectExistData && !subjectExistData?.subjectExists) {
-      router.push("/home");
+    if ((subjectExistData && !subjectExistData?.subjectExists) || isError) {
+      router.replace("/home");
     }
-  }, [subjectExistData]);
+  }, [subjectExistData, isError]);
 
   useEffect(() => {
     if (deadlineData && deadlineData.length) {
@@ -84,83 +88,8 @@ const Subjects = () => {
   return (
     <div className="flex justify-center overflow-hidden">
       <div className="w-[90%]">
-        <div className="flex px-1 mb-4 text-xs lg:text-sm">
-          <div className="self-center text-wrap w-16 text-center text-slate-600">
-            {new Date(openDateData?.application_open)
-              .toString()
-              .slice(
-                4,
-                new Date(openDateData?.application_open)
-                  .toString()
-                  .indexOf("GMT")
-              )}
-          </div>
-          <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
-            <div className="bg-gradient-to-r from-green-100 to-blue-300 h-1 w-full mt-6 mb-1"></div>
-            <div className="bg-gradient-to-r from-green-100 to-green-500 h-1 w-full"></div>
-            <div className="flex justify-end self-stretch gap-3">
-              <div className="text-green-900 font-serif ">
-                Student Submission
-              </div>
-              <div className="bg-green-500 h-6 w-1"></div>
-            </div>
-            <div className="absolute right-0 translate-x-1/2 bottom-0 text-green-700  font-semibold  font-mono">
-              {new Date(deadlineObj.stu_deadline)
-                .toString()
-                .slice(
-                  4,
-                  new Date(deadlineObj.stu_deadline).toString().indexOf("GMT")
-                )}
-            </div>
-          </div>
-          <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
-            <div className="absolute right-0 translate-x-1/2 top-0 text-blue-700  font-semibold  font-mono">
-              {new Date(deadlineObj.lec_deadline)
-                .toString()
-                .slice(
-                  4,
-                  new Date(deadlineObj.lec_deadline).toString().indexOf("GMT")
-                )}{" "}
-            </div>
-            <div className="flex justify-end self-stretch gap-3 items-end">
-              <div className="text-blue-900 font-serif">Lecturer Review</div>
-              <div className="bg-blue-500 h-6 w-1"></div>
-            </div>
+        <Deadlines openDateData={openDateData} deadlineObj={deadlineObj} />
 
-            <div className="bg-gradient-to-r from-blue-300 to-blue-500 h-1 w-full"></div>
-          </div>
-          <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
-            <div className="bg-gradient-to-r from-orange-100 to-orange-500 h-1 w-full mt-8"></div>
-            <div className="flex justify-end self-stretch gap-3 ">
-              <div className="text-orange-900 font-serif">HOD Approval</div>
-              <div className="bg-orange-500 h-6 w-1"></div>
-            </div>
-            <div className="absolute right-0 translate-x-1/2 bottom-0 text-orange-700  font-semibold  font-mono">
-              {new Date(deadlineObj.hod_deadline)
-                .toString()
-                .slice(
-                  4,
-                  new Date(deadlineObj.hod_deadline).toString().indexOf("GMT")
-                )}{" "}
-            </div>
-          </div>
-          <div className="flex flex-col flex-1 shrink-0 relative py-7 items-center">
-            <div className="absolute right-0 translate-x-1/4 top-0 text-red-700  font-semibold  font-mono">
-              {new Date(deadlineObj.dean_deadline)
-                .toString()
-                .slice(
-                  4,
-                  new Date(deadlineObj.dean_deadline).toString().indexOf("GMT")
-                )}
-            </div>
-            <div className="flex justify-end self-stretch gap-3 items-end">
-              <div className="text-orange-900 font-serif">Dean Approval</div>
-              <div className="bg-red-500 h-6 w-1"></div>
-            </div>
-
-            <div className="bg-gradient-to-r from-red-100 to-red-500 h-1 w-full"></div>
-          </div>
-        </div>
         <div>
           <h1
             className="font-bold mb-3 cursor-pointer flex gap-x-2 items-center"
@@ -186,13 +115,22 @@ const Subjects = () => {
           >
             {expandId == "m" ? <FaChevronDown /> : <FaChevronRight />}
             Medical
+            {isAnyoneMedicalPending ? (
+              <IoMdAlert size={20} className="text-red-500" />
+            ) : (
+              ""
+            )}
           </h1>
           <div
             className={`${
               expandId == "m" ? "h-auto" : "h-0 overflow-hidden"
             } transition-all`}
           >
-            <MedicalStudentDetails sub_id={sub_id} batch_id={batch_id} />
+            <MedicalStudentDetails
+              sub_id={sub_id}
+              batch_id={batch_id}
+              setIsAnyonePending={setIsAnyoneMedicalPending}
+            />
           </div>
         </div>
         <div>
@@ -203,13 +141,22 @@ const Subjects = () => {
           >
             {expandId == "r" ? <FaChevronDown /> : <FaChevronRight />}
             Resit
+            {isAnyoneResitPending ? (
+              <IoMdAlert size={20} className="text-red-500" />
+            ) : (
+              ""
+            )}
           </h1>
           <div
             className={`${
               expandId == "r" ? "h-auto" : "h-0 overflow-hidden"
             } transition-all`}
           >
-            <ResitStudentDetails sub_id={sub_id} batch_id={batch_id} />
+            <ResitStudentDetails
+              sub_id={sub_id}
+              batch_id={batch_id}
+              setIsAnyonePending={setIsAnyoneResitPending}
+            />
           </div>
         </div>
       </div>

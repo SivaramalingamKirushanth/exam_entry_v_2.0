@@ -24,8 +24,6 @@ const HodHome = () => {
     queryKey: ["batchesOfDepartment"],
   });
 
-  console.log(batchesOfDepartmentData);
-
   if (isBatchesOfDepartmenLoading)
     return (
       <div className="flex justify-end md:justify-center">

@@ -113,12 +113,12 @@ router.post(
 );
 router.post(
   "/getAppliedResitStudentsByBatchAndSubject",
-  verifyUser(["1", "4"]),
+  verifyUser(["1", "2", "3", "4"]),
   getAppliedResitStudentsByBatchAndSubject
 );
 router.post(
   "/getAppliedMedicalStudentsByBatchAndSubject",
-  verifyUser(["1", "4"]),
+  verifyUser(["1", "2", "3", "4"]),
   getAppliedMedicalStudentsByBatchAndSubject
 );
 
