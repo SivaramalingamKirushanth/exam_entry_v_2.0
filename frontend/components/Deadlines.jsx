@@ -1,4 +1,43 @@
-const Deadlines = ({ openDateData, deadlineObj }) => {
+import {
+  getBatchOpenDate,
+  getDeadlinesForBatch,
+} from "@/utils/apiRequests/batch.api";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+
+const Deadlines = ({ batch_id }) => {
+  const [deadlineObj, setDeadlineObj] = useState({
+    lec_deadline: "",
+    hod_deadline: "",
+    dean_deadline: "",
+    stu_deadline: "",
+  });
+
+  const { data: openDateData } = useQuery({
+    queryFn: () => getBatchOpenDate(batch_id),
+    queryKey: ["batch", "openDate", batch_id],
+  });
+
+  const { data: deadlineData } = useQuery({
+    queryFn: () => getDeadlinesForBatch(batch_id),
+    queryKey: ["batch", "dealines", batch_id],
+  });
+
+  useEffect(() => {
+    if (deadlineData && deadlineData.length) {
+      setDeadlineObj({
+        stu_deadline: deadlineData.filter((obj) => obj.user_type == "5")[0]
+          .deadline,
+        lec_deadline: deadlineData.filter((obj) => obj.user_type == "4")[0]
+          .deadline,
+        hod_deadline: deadlineData.filter((obj) => obj.user_type == "3")[0]
+          .deadline,
+        dean_deadline: deadlineData.filter((obj) => obj.user_type == "2")[0]
+          .deadline,
+      });
+    }
+  }, [deadlineData]);
+
   return (
     <div className="flex px-1 mb-4 text-xs lg:text-sm">
       <div className="self-center text-wrap w-16 text-center text-slate-600">

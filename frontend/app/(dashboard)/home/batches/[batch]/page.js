@@ -17,6 +17,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import Deadlines from "@/components/Deadlines";
 
 const Batches = () => {
   const [roleId, setRoleID] = useState(null);
@@ -56,8 +57,11 @@ const Batches = () => {
     );
 
   return (
-    <div className="flex justify-end md:justify-center">
-      <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
+    <div className="flex flex-col">
+      <div className="w-[90%] self-center">
+        <Deadlines batch_id={batch_id} />
+      </div>
+      <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap self-end md:self-center">
         {subjectsOfBatchData && subjectsOfBatchData.length ? (
           subjectsOfBatchData.map((obj) => (
             <Link

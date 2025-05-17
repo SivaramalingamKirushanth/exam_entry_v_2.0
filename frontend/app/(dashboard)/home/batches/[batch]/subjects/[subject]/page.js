@@ -16,20 +16,16 @@ import {
 import { FaChevronDown, FaChevronRight } from "react-icons/fa6";
 import ResitStudentDetails from "./ResitStudentDetails";
 import MedicalStudentDetails from "./MedicalStudentDetails";
-import Deadlines from "@/components/Deadlines";
+import { FaQuestionCircle } from "react-icons/fa";
 
 const Subjects = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [roleId, setRoleID] = useState(null);
+  const [isAnyoneMedicalPending, setIsAnyoneMedicalPending] = useState(false);
+  const [isAnyoneResitPending, setIsAnyoneResitPending] = useState(false);
   const { data: user, isLoading } = useUser();
-  const [deadlineObj, setDeadlineObj] = useState({
-    lec_deadline: "",
-    hod_deadline: "",
-    dean_deadline: "",
-    stu_deadline: "",
-  });
-  const [expandId, setExpandId] = useState(null);
+  const [expandId, setExpandId] = useState("r");
 
   const sub_id = searchParams.get("sub_id");
   const batch_id = searchParams.get("batch_id");
@@ -48,16 +44,6 @@ const Subjects = () => {
     }
   }, [user]);
 
-  const { data: openDateData } = useQuery({
-    queryFn: () => getBatchOpenDate(batch_id),
-    queryKey: ["batch", "openDate", batch_id],
-  });
-
-  const { data: deadlineData } = useQuery({
-    queryFn: () => getDeadlinesForBatch(batch_id),
-    queryKey: ["batch", "dealines", batch_id],
-  });
-
   const { data: subjectExistData, isError } = useQuery({
     queryFn: () => {
       if (roleId == "3") return checkSubjectExistOnDepartment({ sub_id });
@@ -73,25 +59,9 @@ const Subjects = () => {
     }
   }, [subjectExistData, isError]);
 
-  useEffect(() => {
-    if (deadlineData && deadlineData.length) {
-      setDeadlineObj({
-        stu_deadline: deadlineData.filter((obj) => obj.user_type == "5")[0]
-          .deadline,
-        lec_deadline: deadlineData.filter((obj) => obj.user_type == "4")[0]
-          .deadline,
-        hod_deadline: deadlineData.filter((obj) => obj.user_type == "3")[0]
-          .deadline,
-        dean_deadline: deadlineData.filter((obj) => obj.user_type == "2")[0]
-          .deadline,
-      });
-    }
-  }, [deadlineData]);
-
   return (
     <div className="flex justify-center overflow-hidden">
       <div className="w-[90%]">
-        <Deadlines openDateData={openDateData} deadlineObj={deadlineObj} />
         <div>
           <h1
             className="font-bold mb-3 cursor-pointer flex gap-x-2 items-center"
@@ -117,13 +87,22 @@ const Subjects = () => {
           >
             {expandId == "m" ? <FaChevronDown /> : <FaChevronRight />}
             Medical
+            {isAnyoneMedicalPending ? (
+              <FaQuestionCircle size={17} className="text-red-500" />
+            ) : (
+              ""
+            )}
           </h1>
           <div
             className={`${
               expandId == "m" ? "h-auto" : "h-0 overflow-hidden"
             } transition-all`}
           >
-            <MedicalStudentDetails sub_id={sub_id} batch_id={batch_id} />
+            <MedicalStudentDetails
+              sub_id={sub_id}
+              batch_id={batch_id}
+              setIsAnyonePending={setIsAnyoneMedicalPending}
+            />
           </div>
         </div>
         <div>
@@ -134,13 +113,22 @@ const Subjects = () => {
           >
             {expandId == "r" ? <FaChevronDown /> : <FaChevronRight />}
             Resit
+            {isAnyoneResitPending ? (
+              <FaQuestionCircle size={17} className="text-red-500" />
+            ) : (
+              ""
+            )}
           </h1>
           <div
             className={`${
               expandId == "r" ? "h-auto" : "h-0 overflow-hidden"
             } transition-all`}
           >
-            <ResitStudentDetails sub_id={sub_id} batch_id={batch_id} />
+            <ResitStudentDetails
+              sub_id={sub_id}
+              batch_id={batch_id}
+              setIsAnyonePending={setIsAnyoneResitPending}
+            />
           </div>
         </div>
       </div>

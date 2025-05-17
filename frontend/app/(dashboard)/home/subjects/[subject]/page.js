@@ -11,7 +11,7 @@ import {
   getDeadlinesForBatch,
 } from "@/utils/apiRequests/batch.api";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa6";
-import { IoIosAlert, IoMdAlert } from "react-icons/io";
+import { FaQuestionCircle } from "react-icons/fa";
 import ResitStudentDetails from "./ResitStudentDetails";
 import MedicalStudentDetails from "./MedicalStudentDetails";
 import Deadlines from "@/components/Deadlines";
@@ -23,13 +23,7 @@ const Subjects = () => {
   const [isAnyoneMedicalPending, setIsAnyoneMedicalPending] = useState(false);
   const [isAnyoneResitPending, setIsAnyoneResitPending] = useState(false);
   const { data: user, isLoading } = useUser();
-  const [deadlineObj, setDeadlineObj] = useState({
-    lec_deadline: "",
-    hod_deadline: "",
-    dean_deadline: "",
-    stu_deadline: "",
-  });
-  const [expandId, setExpandId] = useState(null);
+  const [expandId, setExpandId] = useState("r");
 
   const sub_id = searchParams.get("sub_id");
   const batch_id = searchParams.get("batch_id");
@@ -48,16 +42,6 @@ const Subjects = () => {
     }
   }, [user]);
 
-  const { data: openDateData } = useQuery({
-    queryFn: () => getBatchOpenDate(batch_id),
-    queryKey: ["batch", "openDate", batch_id],
-  });
-
-  const { data: deadlineData } = useQuery({
-    queryFn: () => getDeadlinesForBatch(batch_id),
-    queryKey: ["batch", "dealines", batch_id],
-  });
-
   const { data: subjectExistData, isError } = useQuery({
     queryFn: () => checkSubjectExistOnBSL({ batch_id, sub_id }),
     queryKey: ["subjectDataDetails", sub_id, batch_id],
@@ -70,25 +54,10 @@ const Subjects = () => {
     }
   }, [subjectExistData, isError]);
 
-  useEffect(() => {
-    if (deadlineData && deadlineData.length) {
-      setDeadlineObj({
-        stu_deadline: deadlineData.filter((obj) => obj.user_type == "5")[0]
-          .deadline,
-        lec_deadline: deadlineData.filter((obj) => obj.user_type == "4")[0]
-          .deadline,
-        hod_deadline: deadlineData.filter((obj) => obj.user_type == "3")[0]
-          .deadline,
-        dean_deadline: deadlineData.filter((obj) => obj.user_type == "2")[0]
-          .deadline,
-      });
-    }
-  }, [deadlineData]);
-
   return (
     <div className="flex justify-center overflow-hidden">
       <div className="w-[90%]">
-        <Deadlines openDateData={openDateData} deadlineObj={deadlineObj} />
+        <Deadlines batch_id={batch_id} />
 
         <div>
           <h1
@@ -116,7 +85,7 @@ const Subjects = () => {
             {expandId == "m" ? <FaChevronDown /> : <FaChevronRight />}
             Medical
             {isAnyoneMedicalPending ? (
-              <IoMdAlert size={20} className="text-red-500" />
+              <FaQuestionCircle size={17} className="text-red-500" />
             ) : (
               ""
             )}
@@ -142,7 +111,7 @@ const Subjects = () => {
             {expandId == "r" ? <FaChevronDown /> : <FaChevronRight />}
             Resit
             {isAnyoneResitPending ? (
-              <IoMdAlert size={20} className="text-red-500" />
+              <FaQuestionCircle size={17} className="text-red-500" />
             ) : (
               ""
             )}

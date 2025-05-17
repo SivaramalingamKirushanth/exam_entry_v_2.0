@@ -7,6 +7,9 @@ import { useUser } from "@/utils/useUser";
 import { useEffect, useState } from "react";
 import { LuChartColumn } from "react-icons/lu";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { checkPendingMedicalResitRequests } from "@/utils/apiRequests/entry.api";
+import { IoMdAlert } from "react-icons/io";
 
 const Sidebar = () => {
   const [roleId, setRoleID] = useState(null);
@@ -19,6 +22,13 @@ const Sidebar = () => {
       setRoleID(user?.role_id);
     }
   }, [user]);
+
+  const { data } = useQuery({
+    queryFn: () => checkPendingMedicalResitRequests(),
+    queryKey: ["requests", "pending"],
+  });
+
+  console.log(data);
 
   return (
     (roleId == "1" || roleId == "2" || roleId == "3") && (
@@ -84,13 +94,18 @@ const Sidebar = () => {
               Examinations
             </Link>
             <Link
-              href="/requests/"
-              className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
-                pathname.startsWith("/requests/") ? "bg-zinc-300" : ""
+              href="/requests"
+              className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 relative hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
+                pathname.startsWith("/requests") ? "bg-zinc-300" : ""
               }`}
             >
               <VscGitPullRequestGoToChanges size={25} className="shrink-0" />
               Requests
+              {data?.medical || data?.resit ? (
+                <IoMdAlert className="text-red-600 absolute right-1 top-1" />
+              ) : (
+                ""
+              )}
             </Link>
             <Link
               href="/entries"

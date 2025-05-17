@@ -163,39 +163,130 @@ export const applyMedicalExam = async (req, res, next) => {
   }
 };
 
-export const addMedicalResitStudents = async (req, res, next) => {
-  const { data, batch_id } = req.body;
+export const acceptMedicalResitStudents = async (req, res, next) => {
+  const { s_id, batch_id } = req.body;
 
-  if (!data || !batch_id) {
-    return res
-      .status(400)
-      .json({ message: "Transformed data and batch_id are required." });
+  if (!s_id || !batch_id) {
+    return res.status(400).json({ message: "s_id and batch_id are required." });
   }
 
   try {
     const conn = await pool.getConnection();
     try {
-      for (const [sub_id, students] of Object.entries(data)) {
-        for (const { s_id, type } of students) {
-          await conn.query("CALL AddMedicalResitStudents(?, ?, ?, ?)", [
-            batch_id,
-            sub_id,
-            s_id,
-            type,
-          ]);
+      // 1. Get resit_id for the student and batch
+      const [resitReq] = await conn.query(
+        "SELECT resit_id FROM resit_request WHERE batch_id = ? AND s_id = ? LIMIT 1",
+        [batch_id, s_id]
+      );
 
-          let desc = `Medical or Resit Student for batch_id=${batch_id}, sub_id=${sub_id}, s_id=${s_id}, type=${type}`;
-          await conn.query("CALL LogAdminAction(?);", [desc]);
-        }
+      // 2. Get medical_id for the student and batch
+      const [medicalReq] = await conn.query(
+        "SELECT medical_id FROM medical_request WHERE batch_id = ? AND s_id = ? LIMIT 1",
+        [batch_id, s_id]
+      );
+
+      // 3. Collect subject IDs from both tables
+      const resit_id = resitReq[0]?.resit_id || null;
+      const medical_id = medicalReq[0]?.medical_id || null;
+
+      const resitSubjects = resit_id
+        ? (
+            await conn.query(
+              "SELECT sub_id FROM resit_subject WHERE resit_id = ? AND eligibility='true'",
+              [resit_id]
+            )
+          )[0]
+        : [];
+
+      const medicalSubjects = medical_id
+        ? (
+            await conn.query(
+              "SELECT sub_id FROM medical_subject WHERE medical_id = ? AND eligibility='true'",
+              [medical_id]
+            )
+          )[0]
+        : [];
+
+      // 4. Call the procedure for resit subjects
+      for (const { sub_id } of resitSubjects) {
+        await conn.query("CALL AcceptMedicalResitStudents(?, ?, ?, ?)", [
+          batch_id,
+          sub_id,
+          s_id,
+          "R",
+        ]);
+
+        let desc = `Resit student added for batch_id=${batch_id}, sub_id=${sub_id}, s_id=${s_id}`;
+        await conn.query("CALL LogAdminAction(?);", [desc]);
       }
 
-      return res.status(200).json({ message: "Students added successfully." });
+      await conn.query(
+        "UPDATE resit_request SET status='true' WHERE resit_id=? ",
+        [resit_id]
+      );
+
+      // 5. Call the procedure for medical subjects
+      for (const { sub_id } of medicalSubjects) {
+        await conn.query("CALL AcceptMedicalResitStudents(?, ?, ?, ?)", [
+          batch_id,
+          sub_id,
+          s_id,
+          "M",
+        ]);
+        let desc = `Medical student added for batch_id=${batch_id}, sub_id=${sub_id}, s_id=${s_id}`;
+        await conn.query("CALL LogAdminAction(?);", [desc]);
+      }
+
+      await conn.query(
+        "UPDATE medical_request SET status='true' WHERE medical_id=? ",
+        [medical_id]
+      );
+
+      return res.status(200).json({ message: "Student added successfully." });
     } catch (error) {
       console.error("Error adding medical/resit students:", error);
       return next(
         errorProvider(
           500,
           "An error occurred while adding medical/resit students."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const rejectMedicalResitApplication = async (req, res, next) => {
+  const { s_id, batch_id } = req.body;
+
+  if (!s_id || !batch_id) {
+    return res.status(400).json({ message: "s_id and batch_id are required." });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.query("CALL RejectMedicalResitApplication(?, ?);", [
+        batch_id,
+        s_id,
+      ]);
+
+      let desc = `Medical and Resit application of s_id=${s_id} for batch_id=${batch_id} rejected`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      return res
+        .status(200)
+        .json({ message: "Application rejected successfully." });
+    } catch (error) {
+      console.error("Error rejecting medical/resit students:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while rejecting medical/resit students."
         )
       );
     } finally {
@@ -1263,6 +1354,287 @@ export const getAppliedMedicalStudentsByBatchAndSubject = async (
 
       return next(
         errorProvider(500, "An error occurred while fetching applied students.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getStudentMedicalResitApplications = async (req, res, next) => {
+  const { batch_id } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [rows] = await conn.query(
+        "CALL GetStudentMedicalResitApplications()"
+      );
+
+      if (rows[0].length === 0) {
+        return res.status(404).json({
+          message: "No requests found.",
+        });
+      }
+
+      const grouped = {};
+
+      for (const row of rows[0]) {
+        const key = `${row.s_id}-${row.batch_id}`;
+
+        if (!grouped[key]) {
+          grouped[key] = {
+            s_id: row.s_id,
+            _user_name: row._user_name,
+            batch_id: row.batch_id,
+            academic_year: row.academic_year,
+            commenced_year: row.commenced_year,
+            grp_course_title: row.grp_course_title,
+            batch_code: row.batch_code,
+            sem_no: row.sem_no,
+            level: row.level,
+            medical_reference: row.medical_reference,
+            medical_id: row.medical_id,
+            resit_id: row.resit_id,
+            medical_subjects_verified: row.medical_subjects_verified,
+            medical_payment_verified: row.medical_payment_verified,
+            resit_reference: row.resit_reference,
+            resit_subjects_verified: row.resit_subjects_verified,
+            resit_payment_verified: row.resit_payment_verified,
+            medical_subs: [],
+            resit_subs: [],
+          };
+        }
+
+        if (
+          row.medical_sub_id &&
+          !grouped[key].medical_subs.some(
+            (sub) => sub.sub_id === row.medical_sub_id
+          )
+        ) {
+          grouped[key].medical_subs.push({
+            id: row.medical_subject_id,
+            sub_id: row.medical_sub_id,
+            sub_code: row.medical_sub_code,
+            sub_name: row.medical_sub_name,
+          });
+        }
+
+        if (
+          row.resit_sub_id &&
+          !grouped[key].resit_subs.some(
+            (sub) => sub.sub_id === row.resit_sub_id
+          )
+        ) {
+          grouped[key].resit_subs.push({
+            id: row.resit_subject_id,
+            sub_id: row.resit_sub_id,
+            sub_code: row.resit_sub_code,
+            sub_name: row.resit_sub_name,
+            attempt_1: row.attempt_1,
+            attempt_2: row.attempt_2,
+            attempt_3: row.attempt_3,
+          });
+        }
+      }
+
+      const result = Object.values(grouped);
+
+      return res.status(200).json(result);
+    } catch (error) {
+      console.error("Error fetching latest admission template:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while fetching the latest admission template."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const updateReference = async (req, res, next) => {
+  const { request, id, ref } = req.body;
+
+  if (!request || !id || !ref) {
+    return next(errorProvider(400, "Missing required fields."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      let procedure;
+
+      if (request === "m") {
+        procedure = "CALL UpdateMedicalReference(?, ?);";
+      } else if (request === "r") {
+        procedure = "CALL UpdateResitReference(?, ?);";
+      } else {
+        return next(errorProvider(400, "Invalid request type."));
+      }
+
+      await conn.query(procedure, [id, ref]);
+
+      return res
+        .status(200)
+        .json({ message: "Reference updated successfully." });
+    } catch (error) {
+      console.error("Error updating reference:", error);
+      return next(errorProvider(500, "Failed to update reference."));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const updateVerified = async (req, res, next) => {
+  const { request, id, verified } = req.body;
+
+  if (!request || !id || typeof verified !== "string") {
+    return next(errorProvider(400, "Missing or invalid fields."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      let procedure;
+
+      switch (request) {
+        case "medical_subjects_verified":
+          procedure = "CALL UpdateMedicalSubjectsVerified(?, ?);";
+          break;
+        case "medical_payment_verified":
+          procedure = "CALL UpdateMedicalPaymentVerified(?, ?);";
+          break;
+        case "resit_subjects_verified":
+          procedure = "CALL UpdateResitSubjectsVerified(?, ?);";
+          break;
+        case "resit_payment_verified":
+          procedure = "CALL UpdateResitPaymentVerified(?, ?);";
+          break;
+        default:
+          return next(errorProvider(400, "Invalid verification request type."));
+      }
+
+      await conn.query(procedure, [id, verified]);
+
+      return res
+        .status(200)
+        .json({ message: "Verification status updated successfully." });
+    } catch (error) {
+      console.error("Error updating verified status:", error);
+      return next(errorProvider(500, "Failed to update verified status."));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const moveToMedical = async (req, res, next) => {
+  const { id, remark } = req.body;
+
+  if (!id || !remark) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [rows] = await conn.query(
+        "SELECT * FROM resit_subject WHERE id=?;",
+        [id]
+      );
+
+      const obj = rows[0];
+
+      await conn.query("CALL MoveToMedical(?);", [id]);
+
+      let desc = `Resit Subject moved to Medical Subject. resit_id=${obj.resit_id},sub_id=${obj.sub_id},attempt_1=${obj.attempt_1},attempt_2=${obj.attempt_2},attempt_3=${obj.attempt_3},eligibility=${obj.eligibility},`;
+
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      return res
+        .status(200)
+        .json({ message: "Moved to Medical successfully." });
+    } catch (error) {
+      console.error("Error in MoveToMedical:", error);
+      return next(errorProvider(500, "Failed to move to medical."));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const moveToResit = async (req, res, next) => {
+  const { id, remark } = req.body;
+
+  if (!id || !remark) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [rows] = await conn.query(
+        "SELECT * FROM medical_subject WHERE id=?;",
+        [id]
+      );
+
+      const obj = rows[0];
+
+      await conn.query("CALL MoveToResit(?);", [id]);
+
+      let desc = `Medical Subject moved to Resit Subject. medical_id=${obj.medical_id},sub_id=${obj.sub_id},eligibility=${obj.eligibility},`;
+
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+      return res.status(200).json({ message: "Moved to Resit successfully." });
+    } catch (error) {
+      console.error("Error in MoveToResit:", error);
+      return next(errorProvider(500, "Failed to move to resit."));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const checkPendingMedicalResitRequests = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [rows] = await conn.query(
+        "CALL CheckPendingMedicalResitRequests();"
+      );
+
+      const result = rows[0][0];
+
+      return res.status(200).json({
+        medical: Boolean(result.medical_pending),
+        resit: Boolean(result.resit_pending),
+      });
+    } catch (error) {
+      console.error("Error checking pending requests:", error);
+      return next(
+        errorProvider(500, "An error occurred while checking pending requests.")
       );
     } finally {
       conn.release();

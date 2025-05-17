@@ -25,9 +25,17 @@ export const getStudentSubjects = async (batch_id, s_id) => {
   return response.data;
 };
 
-export const addMedicalResitStudents = async (data) => {
+export const acceptMedicalResitStudents = async (data) => {
   const response = await axiosInstance.post(
-    "/entry/addMedicalResitStudents",
+    "/entry/acceptMedicalResitStudents",
+    data
+  );
+  return response.data;
+};
+
+export const rejectMedicalResitApplication = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/rejectMedicalResitApplication",
     data
   );
   return response.data;
@@ -191,5 +199,37 @@ export const getAppliedMedicalStudentsByBatchAndSubject = async (
     "/entry/getAppliedMedicalStudentsByBatchAndSubject",
     { batch_id, sub_id }
   );
+  return response.data;
+};
+
+export const getStudentMedicalResitApplications = async () => {
+  const response = await axiosInstance.get(
+    "/entry/getStudentMedicalResitApplications"
+  );
+  return response.data;
+};
+
+export const updateReference = async (data) => {
+  const response = await axiosInstance.post("/entry/updateReference", data);
+  return response.data;
+};
+
+export const updateVerified = async (data) => {
+  const response = await axiosInstance.post("/entry/updateVerified", data);
+  return response.data;
+};
+
+export const moveToMedical = async (data) => {
+  const response = await axiosInstance.post("/entry/moveToMedical", data);
+  return response.data;
+};
+
+export const moveToResit = async (data) => {
+  const response = await axiosInstance.post("/entry/moveToResit", data);
+  return response.data;
+};
+
+export const checkPendingMedicalResitRequests = async () => {
+  const response = await axiosInstance.get("/entry/checkPendingMedicalResitRequests");
   return response.data;
 };
