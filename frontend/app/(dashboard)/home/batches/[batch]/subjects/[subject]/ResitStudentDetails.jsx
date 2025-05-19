@@ -19,7 +19,12 @@ import { useUser } from "@/utils/useUser";
 import MedResEligibilityCell from "@/components/MedResEligibilityCell";
 import MedResEligibilityHeader from "@/components/MedResEligibilityHeader";
 
-const ResitStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
+const ResitStudentDetails = ({
+  sub_id,
+  batch_id,
+  setIsAnyonePending,
+  end_date,
+}) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -131,6 +136,7 @@ const ResitStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
         <MedResEligibilityHeader
           filteredData={filteredData}
           setIsAnyonePending={setIsAnyonePending}
+          end_date={end_date}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
         />
       ),
@@ -140,6 +146,7 @@ const ResitStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
           <MedResEligibilityCell
             row={row}
             onEligibilityChanged={onEligibilityChanged}
+            end_date={end_date}
           />
         </div>
       ),

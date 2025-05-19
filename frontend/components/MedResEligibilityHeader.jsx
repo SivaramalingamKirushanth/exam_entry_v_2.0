@@ -15,6 +15,7 @@ const MedResEligibilityHeader = ({
   filteredData,
   onMultipleEligibilityChanged,
   setIsAnyonePending,
+  end_date,
 }) => {
   const [remark, setRemark] = useState("Details verified");
 
@@ -23,6 +24,10 @@ const MedResEligibilityHeader = ({
   const isAnyoneNotEligible = filteredData.some(
     (stu) => stu.eligibility == "false"
   );
+
+  useEffect(() => {
+    setIsAnyonePending(isAnyonePending);
+  }, [isAnyonePending, setIsAnyonePending]);
 
   return (
     <h1 className="flex justify-center gap-x-5 items-center">
@@ -35,6 +40,7 @@ const MedResEligibilityHeader = ({
           }
         }}
         value={isAnyonePending ? "" : !isAnyoneNotEligible + ""}
+        disabled={new Date() > new Date(end_date)}
       >
         <SelectTrigger className="w-32">
           <SelectValue placeholder="Pending" />

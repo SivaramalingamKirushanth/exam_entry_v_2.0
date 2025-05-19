@@ -13,26 +13,20 @@ import { getSubjectBybatchId } from "@/utils/apiRequests/curriculum.api";
 import { Button } from "@/components/ui/button";
 import { FaGear, FaPlus } from "react-icons/fa6";
 import { TiWarning } from "react-icons/ti";
-import Modal from "./Model";
 import IndexModel from "./IndexModel";
 import { getStudentsWithoutIndexNumber } from "@/utils/apiRequests/entry.api";
 import { getDeadlinesForBatch } from "@/utils/apiRequests/batch.api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { titleCase } from "@/utils/functions";
 
 const Batches = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isOpen, setIsOpen] = useState(false);
   const [isIndexOpen, setIsIndexOpen] = useState(false);
-  const modalRef = useRef(null);
   const indexModalRef = useRef(null);
   const [endDate, setEndDate] = useState(null);
 
   const batch_id = searchParams.get("batch_id");
-
-  const toggleModal = () => {
-    setIsOpen((prev) => !prev);
-  };
 
   const { data: subjectsOfBatchData, isLoading: isSubjectsOfBatchDataLoading } =
     useQuery({
@@ -71,10 +65,6 @@ const Batches = () => {
       <div
         className={`flex flex-col sm:flex-row items-center gap-2 sm:gap-0 sm:items-stretch self-stretch w-[80%] md:w-[85%] lg:w-[70%] mb-2 mx-auto justify-between`}
       >
-        <Button onClick={toggleModal} variant="outline">
-          <FaPlus />
-          &nbsp;Insert Medical/Resit
-        </Button>
         {deadlinesOfBatchData &&
           deadlinesOfBatchData.length &&
           endDate &&
@@ -125,8 +115,8 @@ const Batches = () => {
             >
               <Card className="h-full flex flex-col justify-between">
                 <CardHeader>
-                  <CardTitle className="uppercase text-wrap">
-                    {obj.sub_name}
+                  <CardTitle className="text-wrap">
+                    {titleCase(obj.sub_name)}
                   </CardTitle>
                   <CardDescription>{obj.sub_code}</CardDescription>
                 </CardHeader>
@@ -134,13 +124,7 @@ const Batches = () => {
             </Link>
           ))}
       </div>
-      <Modal
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        modalRef={modalRef}
-        subjectsOfBatchData={subjectsOfBatchData}
-        batch_id={batch_id}
-      />
+
       <IndexModel
         isIndexOpen={isIndexOpen}
         setIsIndexOpen={setIsIndexOpen}

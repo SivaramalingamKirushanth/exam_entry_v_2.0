@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "./ui/select";
 
-const MedResEligibilityCell = ({ row, onEligibilityChanged }) => {
+const MedResEligibilityCell = ({ row, onEligibilityChanged,end_date }) => {
   const [remark, setRemark] = useState("Details verified");
 
   return (
@@ -23,6 +23,7 @@ const MedResEligibilityCell = ({ row, onEligibilityChanged }) => {
           }
         }}
         value={row.original.eligibility}
+        disabled={new Date()>new Date(end_date)}
       >
         <SelectTrigger className="w-32">
           <SelectValue placeholder="Pending" />

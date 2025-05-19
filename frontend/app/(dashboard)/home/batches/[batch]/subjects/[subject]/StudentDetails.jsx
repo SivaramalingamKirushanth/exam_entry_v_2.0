@@ -33,7 +33,7 @@ import { useUser } from "@/utils/useUser";
 import EligibilityHeader from "@/components/EligibilityHeader";
 import EligibilityCell from "@/components/EligibilityCell";
 
-const StudentDetails = ({ sub_id, batch_id }) => {
+const StudentDetails = ({ sub_id, batch_id,end_date }) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -148,6 +148,7 @@ const StudentDetails = ({ sub_id, batch_id }) => {
         <EligibilityHeader
           filteredData={filteredData}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
+          end_date={end_date}
         />
       ),
 
@@ -155,6 +156,7 @@ const StudentDetails = ({ sub_id, batch_id }) => {
         <EligibilityCell
           row={row}
           onEligibilityChanged={onEligibilityChanged}
+          end_date={end_date}
         />
       ),
     },

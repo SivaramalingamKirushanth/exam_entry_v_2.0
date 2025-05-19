@@ -1127,8 +1127,8 @@ export const getAllBatchesForDepartment = async (req, res, next) => {
       let department = departments[0];
 
       const [batches] = await conn.query(
-        "CALL GetActiveBatchesOfDepWithinDeadline(?, ?)",
-        [department.d_id, role_id]
+        "CALL GetActiveBatchesOfDepWithinDeadline(?)",
+        [department.d_id]
       );
 
       return res.status(200).json(batches[0]);

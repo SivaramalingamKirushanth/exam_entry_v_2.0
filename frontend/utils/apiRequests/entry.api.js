@@ -140,13 +140,16 @@ export const deleteBatchSubjectEntries = async (batch_id) => {
   return response.data;
 };
 
-export const getDeanDashboardData = async () => {
-  const response = await axiosInstance.get("/entry/getDeanDashboardData");
+export const getDeanDashboardData = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getDeanDashboardData",
+    data
+  );
   return response.data;
 };
 
-export const getHodDashboardData = async () => {
-  const response = await axiosInstance.get("/entry/getHodDashboardData");
+export const getHodDashboardData = async (data) => {
+  const response = await axiosInstance.post("/entry/getHodDashboardData", data);
   return response.data;
 };
 
@@ -230,6 +233,48 @@ export const moveToResit = async (data) => {
 };
 
 export const checkPendingMedicalResitRequests = async () => {
-  const response = await axiosInstance.get("/entry/checkPendingMedicalResitRequests");
+  const response = await axiosInstance.get(
+    "/entry/checkPendingMedicalResitRequests"
+  );
+  return response.data;
+};
+
+export const getBatchDeadlineAndApprovalStatus = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getBatchDeadlineAndApprovalStatus",
+    data
+  );
+  return response.data;
+};
+
+export const setApproval = async (data) => {
+  const response = await axiosInstance.post("/entry/setApproval", data);
+  return response.data;
+};
+
+export const upsertPayments = async (data) => {
+  const response = await axiosInstance.post("/entry/upsertPayments", data);
+  return response.data;
+};
+
+export const getAllPayments = async () => {
+  const response = await axiosInstance.get("/entry/getAllPayments");
+  return response.data;
+};
+
+export const getEligibleMedicalSubjects = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getEligibleMedicalSubjects",
+    data
+  );
+  return response.data;
+};
+
+export const getEligibleResitSubjects = async (data) => {
+  console.log(data);
+  const response = await axiosInstance.post(
+    "/entry/getEligibleResitSubjects",
+    data
+  );
   return response.data;
 };

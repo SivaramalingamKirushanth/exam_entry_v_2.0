@@ -13,44 +13,31 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import {
-  getBatchFullDetails,
+  getBatchOpenDate,
   getEligibleMedicalBatches,
 } from "@/utils/apiRequests/batch.api";
 import { useEffect, useState } from "react";
-import { createSubjectObject, numberToOrdinalWord } from "@/utils/functions";
+import { numberToOrdinalWord } from "@/utils/functions";
 import CryptoJS from "crypto-js";
-import { getSubjectBybatchId } from "@/utils/apiRequests/curriculum.api";
 import {
-  fetchStudentWithSubjectsByUserId,
-  getBatchAdmissionDetails,
+  getAllPayments,
+  getEligibleMedicalSubjects,
 } from "@/utils/apiRequests/entry.api";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import AdmissionCard from "@/components/AdmissionCard";
 import { createRoot } from "react-dom/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
+import PaymentInvoice from "@/components/PaymentInvoice";
 
 const StudentMedicalHome = () => {
   const router = useRouter();
-  const [downloadBatchId, setDownloadBatchId] = useState(null);
-  const [formData, setFormData] = useState({
-    batch_id: "",
-    generated_date: "",
-    subjects: [],
-    date: [],
-    description: "",
-    instructions: "",
-    provider: "",
-  });
-  const [level_ordinal, setLevel_ordinal] = useState("");
-  const [sem_ordinal, setSem_ordinal] = useState("");
-  const [academicYear, setAcademicYear] = useState("");
-  const [subjectObject, setSubjectObject] = useState({});
+  const [invoiceDownloadBatchId, setInvoiceDownloadBatchId] = useState(null);
+
   const [generating, setGenerating] = useState(false);
 
-  const onDownloadClick = (batch_id) => {
-    setDownloadBatchId(batch_id);
+  const onInvoiceDownloadClick = (batch_id) => {
+    setInvoiceDownloadBatchId(batch_id);
   };
 
   const onApplyClick = (e) => {
@@ -70,7 +57,6 @@ const StudentMedicalHome = () => {
   };
 
   // All queries initialized here
-
   const {
     data: bathchesOfStudentData,
     isLoading: isBathchesOfStudentLoading,
@@ -80,85 +66,26 @@ const StudentMedicalHome = () => {
     queryKey: ["batchesOfStudent", "medical"],
   });
 
-  const {
-    data: batchAdmissionDetailsData,
-    refetch: batchAdmissionDetailsRefetch,
-  } = useQuery({
-    queryFn: () => getBatchAdmissionDetails(downloadBatchId),
-    queryKey: ["batchAdmissionDetails"],
-    enabled: false,
+  const { data: paymentData } = useQuery({
+    queryFn: getAllPayments,
+    queryKey: ["payments"],
   });
 
-  const { data: batchSubjectData, refetch: batchSubjectRefetch } = useQuery({
-    queryFn: () => getSubjectBybatchId(downloadBatchId),
-    queryKey: ["batchSubject"],
-    enabled: false,
+  const { data: subjectData } = useQuery({
+    queryFn: () =>
+      getEligibleMedicalSubjects({ batch_id: invoiceDownloadBatchId }),
+    queryKey: ["eligible", "medical", "subject", invoiceDownloadBatchId],
+    enabled: Boolean(invoiceDownloadBatchId),
   });
 
-  const { data: batchFullDetailsData, refetch: batchFullDetailsRefetch } =
-    useQuery({
-      queryFn: () => getBatchFullDetails(downloadBatchId),
-      queryKey: ["batchFullDetails"],
-      enabled: false,
-    });
+  const { data: openDateData } = useQuery({
+    queryFn: () => getBatchOpenDate(invoiceDownloadBatchId),
+    queryKey: ["batch", "openDate", invoiceDownloadBatchId],
+    enabled: Boolean(invoiceDownloadBatchId),
+  });
 
-  const { data: studentWithSubjectsData, refetch: studentWithSubjectsRefetch } =
-    useQuery({
-      queryFn: () => fetchStudentWithSubjectsByUserId(downloadBatchId),
-      queryKey: ["studentsWithSubjects"],
-      enabled: false,
-    });
-
-  useEffect(() => {
-    if (downloadBatchId) {
-      batchAdmissionDetailsRefetch();
-      batchSubjectRefetch();
-      studentWithSubjectsRefetch();
-      batchFullDetailsRefetch();
-    }
-  }, [downloadBatchId]);
-
-  // Data Transformation
-  useEffect(() => {
-    if (batchAdmissionDetailsData) {
-      const transformedSubjects = batchAdmissionDetailsData.subject_list
-        ?.split(",")
-        .map((comSubs) => comSubs.split(":"));
-      const transformedDate = batchAdmissionDetailsData.exam_date
-        ?.split(",")
-        .map((item) => {
-          const [year, months] = item.split(":");
-          return {
-            year: parseInt(year),
-            months: months.split(";"),
-          };
-        });
-      setFormData({
-        batch_id: batchAdmissionDetailsData.batch_id,
-        generated_date: batchAdmissionDetailsData.generated_date,
-        subjects: transformedSubjects,
-        date: transformedDate,
-        description: batchAdmissionDetailsData.description,
-        instructions: batchAdmissionDetailsData.instructions,
-        provider: batchAdmissionDetailsData.provider,
-      });
-    }
-  }, [batchAdmissionDetailsData]);
-
-  useEffect(() => {
-    setSubjectObject(createSubjectObject(batchSubjectData));
-  }, [batchSubjectData]);
-
-  useEffect(() => {
-    if (batchFullDetailsData) {
-      setLevel_ordinal(numberToOrdinalWord(batchFullDetailsData.level));
-      setSem_ordinal(numberToOrdinalWord(batchFullDetailsData.sem));
-      setAcademicYear(batchFullDetailsData.academic_year);
-    }
-  }, [batchFullDetailsData]);
-
-  const generateAdmissionCardPDFs = async (studentData) => {
-    setDownloadBatchId(null);
+  const generatePaymentInvoicePDF = async (paymentDetails) => {
+    setInvoiceDownloadBatchId(null);
     if (typeof document === "undefined") {
       console.error("This function can only run in a browser environment.");
       return;
@@ -180,22 +107,15 @@ const StudentMedicalHome = () => {
       container.style.boxSizing = "border-box";
       container.style.position = "absolute";
       container.style.left = "-9999px";
-      container.id = `admission-card-${studentData?.s_id}`;
+      container.id = `payment-invoice`;
       document.body.appendChild(container);
 
       // Render the Admission Card
       const root = createRoot(container);
       const renderComplete = new Promise((resolve) => {
         root.render(
-          <AdmissionCard
-            student={studentData}
-            type="P"
-            level_ordinal={level_ordinal}
-            batchFullDetailsData={batchFullDetailsData}
-            academicYear={academicYear}
-            formData={formData}
-            sem_ordinal={sem_ordinal}
-            subjectObject={subjectObject}
+          <PaymentInvoice
+            paymentDetails={paymentDetails}
             onRenderComplete={resolve}
           />
         );
@@ -240,7 +160,7 @@ const StudentMedicalHome = () => {
       document.body.removeChild(container);
 
       // Save the PDF for the current exam type
-      pdf.save(`${studentData.index_num}_admission_card.pdf`);
+      pdf.save(`${paymentDetails.username}_payment_invoice.pdf`);
     } catch (error) {
       console.error("Error generating PDFs:", error);
     } finally {
@@ -249,29 +169,39 @@ const StudentMedicalHome = () => {
   };
 
   useEffect(() => {
-    downloadBatchId &&
-      studentWithSubjectsData &&
-      Object.keys(studentWithSubjectsData).length &&
-      batchAdmissionDetailsData &&
-      Object.keys(batchAdmissionDetailsData).length &&
-      subjectObject &&
-      Object.keys(subjectObject).length &&
-      sem_ordinal &&
-      level_ordinal &&
-      academicYear &&
-      batchFullDetailsData &&
-      Object.keys(batchFullDetailsData).length &&
-      generateAdmissionCardPDFs(studentWithSubjectsData);
-  }, [
-    downloadBatchId,
-    studentWithSubjectsData,
-    batchAdmissionDetailsData,
-    subjectObject,
-    sem_ordinal,
-    level_ordinal,
-    academicYear,
-    batchFullDetailsData,
-  ]);
+    if (invoiceDownloadBatchId && openDateData && subjectData && paymentData) {
+      const generated_date = new Date()
+        .toString()
+        .slice(4, new Date().toString().indexOf("GMT"));
+
+      const payment_deadline = new Date(openDateData?.payment_end)
+        .toString()
+        .slice(
+          4,
+          new Date(openDateData?.payment_end).toString().indexOf("GMT")
+        );
+
+      const subjects = subjectData.map((subject) => {
+        return {
+          sub_code: subject.sub_code.toUpperCase(),
+          subject_name: subject.sub_name,
+          type: "medical",
+        };
+      });
+
+      const paymentDetails = {
+        username: subjectData[0]?.user_name || "",
+        exam_type: "Medical",
+        generated_date,
+        payment_deadline,
+        subjects,
+        amounts: paymentData,
+      };
+
+      generatePaymentInvoicePDF(paymentDetails);
+      setInvoiceDownloadBatchId(null);
+    }
+  }, [invoiceDownloadBatchId, openDateData, subjectData, paymentData]);
 
   return (
     <div className="flex justify-center relative">
@@ -287,7 +217,7 @@ const StudentMedicalHome = () => {
         />
       </div>
 
-      <div className="hidden sm:block w-[80%] md:w-[85%] lg:w-[70%] rounded-md bg-white">
+      <div className="hidden sm:block w-[80%] md:w-[85%] rounded-md bg-white">
         <Table>
           <TableCaption>A list of your recent examinations.</TableCaption>
           <TableHeader>
@@ -349,7 +279,7 @@ const StudentMedicalHome = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex justify-around items-center h-full">
+                      <div className="flex justify-around items-center h-full gap-x-2">
                         {batch.medical_status == "active" ? (
                           <Button
                             variant="outline"
@@ -369,24 +299,24 @@ const StudentMedicalHome = () => {
                             apply
                           </Button>
                         )}
-                        {/* Currently download is not available. if we need remove the "true" below at BOTH VERSION(MOBILE AND WEB) */}
-                        {batch.admission_ready == "false" ||
-                        batch.applied_to_exam == "false" ||
-                        true ? (
+
+                        {batch.medical_status !== "payment pending" ? (
                           <Button
                             variant="outline"
                             className="uppercase"
                             disabled={true}
                           >
-                            download
+                            Download Invoice
                           </Button>
                         ) : (
                           <Button
                             variant="outline"
                             className="uppercase"
-                            onClick={() => onDownloadClick(batch.batch_id)}
+                            onClick={() =>
+                              onInvoiceDownloadClick(batch.batch_id)
+                            }
                           >
-                            download
+                            Download Invoice
                           </Button>
                         )}
                       </div>
@@ -484,26 +414,24 @@ const StudentMedicalHome = () => {
                       apply
                     </Button>
                   )}
-                  {/* Currently download is not available. if we need remove the "true" below at BOTH VERSION(MOBILE AND WEB) */}
-                  {batch.admission_ready == "false" ||
-                  batch.applied_to_exam == "false" ||
-                  true ? (
+
+                  {batch.medical_status !== "payment pending" ? (
                     <Button
                       variant="outline"
                       className="uppercase"
                       size="sm"
                       disabled={true}
                     >
-                      download
+                      Download Invoice
                     </Button>
                   ) : (
                     <Button
                       variant="outline"
                       className="uppercase"
                       size="sm"
-                      onClick={() => onDownloadClick(batch.batch_id)}
+                      onClick={() => onInvoiceDownloadClick(batch.batch_id)}
                     >
-                      download
+                      Download Invoice
                     </Button>
                   )}
                 </div>

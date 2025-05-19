@@ -9,7 +9,7 @@ const AdmissionCardTemplate = dynamic(
 );
 import { Button } from "@/components/ui/button";
 import { getBatchFullDetails } from "@/utils/apiRequests/batch.api";
-import { getCurriculumBybatchId } from "@/utils/apiRequests/curriculum.api";
+import { getSubjectBybatchId } from "@/utils/apiRequests/curriculum.api";
 import {
   createOrUpdateAdmission,
   fetchStudentsWithSubjects,
@@ -187,7 +187,7 @@ const AdmissionPage = () => {
 
   const { data: batchCurriculumData, isLoading: isCurriculumDataLoading } =
     useQuery({
-      queryFn: () => getCurriculumBybatchId(batch_id),
+      queryFn: () => getSubjectBybatchId(batch_id),
       queryKey: ["batchCurriculum"],
     });
 

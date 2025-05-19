@@ -17,7 +17,12 @@ import { useUser } from "@/utils/useUser";
 import MedResEligibilityCell from "@/components/MedResEligibilityCell";
 import MedResEligibilityHeader from "@/components/MedResEligibilityHeader";
 
-const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
+const MedicalStudentDetails = ({
+  sub_id,
+  batch_id,
+  setIsAnyonePending,
+  end_date,
+}) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -116,6 +121,7 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
           filteredData={filteredData}
           setIsAnyonePending={setIsAnyonePending}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
+          end_date={end_date}
         />
       ),
 
@@ -124,6 +130,7 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
           <MedResEligibilityCell
             row={row}
             onEligibilityChanged={onEligibilityChanged}
+            end_date={end_date}
           />
         </div>
       ),

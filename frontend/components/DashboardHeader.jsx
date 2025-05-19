@@ -19,7 +19,7 @@ import {
 import { Button } from "./ui/button";
 import user_avatar from "./../images/user_avatar.jpg";
 import Link from "next/link";
-import { FaKey } from "react-icons/fa6";
+import { FaKey, FaRupeeSign } from "react-icons/fa6";
 const regex = /^[a-zA-Z]+\d+$/;
 
 const DashboardHeader = ({ logoutHandler }) => {
@@ -83,10 +83,17 @@ const DashboardHeader = ({ logoutHandler }) => {
         <PopoverContent className="w-48">
           <Link
             href="/change password"
-            className="text-sm flex items-center border-y border-zinc-200 py-3"
+            className="text-sm flex justify-between items-center border-y border-zinc-200 py-3"
           >
-            Change password&nbsp;&nbsp;&nbsp;&nbsp;
+            Change password
             <FaKey />
+          </Link>
+          <Link
+            href="/payment settings"
+            className="text-sm flex justify-between items-center border-y border-zinc-200 py-3"
+          >
+            Payment Settings
+            <FaRupeeSign />
           </Link>
           <Button className="mt-6" variant="outline" onClick={logoutHandler}>
             Logout

@@ -903,6 +903,7 @@ export const deleteBatchSubjectEntries = async (req, res, next) => {
 
 export const getDeanDashboardData = async (req, res, next) => {
   const { user_id } = req.user;
+  const { batch_id: batchId } = req.body;
 
   try {
     const conn = await pool.getConnection();
@@ -917,79 +918,106 @@ export const getDeanDashboardData = async (req, res, next) => {
         return res.status(404).json({ message: "Faculty not found" });
       }
       const facultyId = faculty[0].f_id;
-
       const result = [];
-      if (degrees[0].length > 0) {
-        for (const degree of degrees[0]) {
-          // Step 2: Get active degrees under this faculty
-          const [batches] = await conn.query("CALL GetActiveBatches(?)", [
-            degree.deg_id,
-          ]);
 
-          if (batches[0].length > 0) {
-            for (const batch of batches[0]) {
-              const { batch_id, batch_code } = batch;
+      const [batches] = await conn.query("CALL GetBatchesByFacultyId(?)", [
+        facultyId,
+      ]);
 
-              // Step 3: Get subjects for this batch
-              const [subjects] = await conn.query(
-                "CALL GetSubjectsForBatch(?)",
-                [batch_id]
+      const batch = batches[0].find((bat) => bat.batch_id == batchId);
+
+      if (!batch) {
+        return res.status(403).json({ message: "No batch found" });
+      }
+
+      const { batch_id, batch_code, course_title, level, sem, academic_year } =
+        batch;
+
+      // Step 3: Get subjects for this batch
+      const [subjects] = await conn.query("CALL GetSubjectsForBatch(?)", [
+        batch_id,
+      ]);
+
+      if (subjects[0].length > 0) {
+        const subjectData = [];
+
+        for (const subject of subjects[0]) {
+          const { sub_id, sub_code } = subject;
+
+          // Step 4: Fetch data from dynamic table
+          const [students] = await conn.query(
+            "CALL GetDynamicTableData(?, ?)",
+            [batch_id, sub_id]
+          );
+
+          const [remarks] = await conn.query(
+            "CALL GetRemarksForSubject(?, ?)",
+            [batch_id, sub_id]
+          );
+
+          const [requestedStudents] = await conn.query(
+            "CALL RequestedStudents(?, ?);",
+            [batch_id, sub_id]
+          );
+
+          let studentsData = [];
+          if (students[0].length > 0) {
+            for (const student of students[0]) {
+              const { s_id, exam_type, eligibility } = student;
+
+              const [studentData] = await conn.query(
+                "SELECT sd.index_num, u.user_name FROM student_detail sd JOIN student s ON sd.s_id = s.s_id JOIN user u ON s.user_id = u.user_id WHERE sd.s_id=? ",
+                [s_id]
               );
 
-              if (subjects[0].length > 0) {
-                const subjectData = [];
+              studentsData.push({
+                index_num: studentData[0]?.index_num || "",
+                user_name: studentData[0]?.user_name || "",
+                s_id,
+                exam_type,
+                eligibility,
+              });
+            }
+          }
 
-                for (const subject of subjects[0]) {
-                  const { sub_id, sub_code } = subject;
+          if (requestedStudents[0].length > 0) {
+            for (const student of requestedStudents[0]) {
+              const { s_id, exam_type, eligibility } = student;
 
-                  // Step 4: Fetch data from dynamic table
-                  const [students] = await conn.query(
-                    "CALL GetDynamicTableData(?, ?)",
-                    [batch_id, sub_id]
-                  );
+              if (!studentsData.some((stu) => stu.s_id == s_id)) {
+                const [studentData] = await conn.query(
+                  "SELECT sd.index_num, u.user_name FROM student_detail sd JOIN student s ON sd.s_id = s.s_id JOIN user u ON s.user_id = u.user_id WHERE sd.s_id=? ",
+                  [s_id]
+                );
 
-                  const [remarks] = await conn.query(
-                    "CALL GetRemarksForSubject(?, ?)",
-                    [batch_id, sub_id]
-                  );
-
-                  let studentsData = [];
-                  if (students[0].length > 0) {
-                    for (const student of students[0]) {
-                      const { s_id, exam_type, eligibility } = student;
-
-                      // Step 4: Fetch data from student detail table
-                      const [studentData] = await conn.query(
-                        "SELECT index_num FROM student_detail WHERE s_id=?",
-                        [s_id]
-                      );
-
-                      studentsData.push({
-                        index_num: studentData[0]?.index_num || "",
-                        s_id,
-                        exam_type,
-                        eligibility,
-                      });
-                    }
-                  }
-                  subjectData.push({
-                    sub_id,
-                    sub_code,
-                    students: studentsData,
-                    remarks: remarks[0],
-                  });
-                }
-
-                result.push({
-                  batch_id,
-                  batch_code,
-                  deg_name: degree.deg_name,
-                  subjects: subjectData,
+                studentsData.push({
+                  index_num: studentData[0]?.index_num || "",
+                  user_name: studentData[0]?.user_name || "",
+                  s_id,
+                  exam_type,
+                  eligibility,
                 });
               }
             }
           }
+
+          subjectData.push({
+            sub_id,
+            sub_code,
+            students: studentsData,
+            remarks: remarks[0],
+          });
         }
+
+        result.push({
+          batch_id,
+          batch_code,
+          course_title,
+          level,
+          sem,
+          academic_year,
+          subjects: subjectData,
+        });
       }
 
       res.status(200).json(result);
@@ -1004,6 +1032,7 @@ export const getDeanDashboardData = async (req, res, next) => {
 
 export const getHodDashboardData = async (req, res, next) => {
   const { user_id } = req.user;
+  const { batch_id: batchId } = req.body;
 
   try {
     const conn = await pool.getConnection();
@@ -1017,86 +1046,110 @@ export const getHodDashboardData = async (req, res, next) => {
       if (departments.length === 0) {
         return res.status(404).json({ message: "No active departments found" });
       }
+
       let department = departments[0];
       const result = [];
 
       // Step 2: Get active degrees under this faculty
-      const [degrees] = await conn.query(
-        "CALL GetActiveDegreesInDepartment(?)",
-        [department.d_id]
+      const [batches] = await conn.query("CALL GetActiveBatchesOfDep(?)", [
+        department.d_id,
+      ]);
+
+      const batch = batches[0].find((bat) => bat.batch_id == batchId);
+
+      if (!batch) {
+        return res.status(403).json({ message: "No batch found" });
+      }
+
+      const { batch_id, batch_code, course_title, level, sem, academic_year } =
+        batch;
+
+      // Step 3: Get subjects for this batch
+      const [subjects] = await conn.query(
+        "CALL GetSubjectBybatchAndDepartment(?, ?);",
+        [batch_id, department.d_id]
       );
 
-      if (degrees[0].length > 0) {
-        for (const degree of degrees[0]) {
-          // Step 2: Get active degrees under this faculty
-          const [batches] = await conn.query("CALL GetActiveBatches(?)", [
-            degree.deg_id,
-          ]);
+      if (subjects[0].length > 0) {
+        const subjectData = [];
 
-          if (batches[0].length > 0) {
-            for (const batch of batches[0]) {
-              const { batch_id, batch_code } = batch;
+        for (const subject of subjects[0]) {
+          const { sub_id, sub_code } = subject;
 
-              // Step 3: Get subjects for this batch
-              const [subjects] = await conn.query(
-                "CALL GetSubjectsForBatch(?)",
-                [batch_id]
+          // Step 4: Fetch data from dynamic table
+          const [students] = await conn.query(
+            "CALL GetDynamicTableData(?, ?)",
+            [batch_id, sub_id]
+          );
+
+          const [remarks] = await conn.query(
+            "CALL GetRemarksForSubject(?, ?)",
+            [batch_id, sub_id]
+          );
+
+          const [requestedStudents] = await conn.query(
+            "CALL RequestedStudents(?, ?);",
+            [batch_id, sub_id]
+          );
+
+          let studentsData = [];
+          if (students[0].length > 0) {
+            for (const student of students[0]) {
+              const { s_id, exam_type, eligibility } = student;
+
+              const [studentData] = await conn.query(
+                "SELECT sd.index_num, u.user_name FROM student_detail sd JOIN student s ON sd.s_id = s.s_id JOIN user u ON s.user_id = u.user_id WHERE sd.s_id=? ",
+                [s_id]
               );
 
-              if (subjects[0].length > 0) {
-                const subjectData = [];
+              studentsData.push({
+                index_num: studentData[0]?.index_num || "",
+                user_name: studentData[0]?.user_name || "",
+                s_id,
+                exam_type,
+                eligibility,
+              });
+            }
+          }
 
-                for (const subject of subjects[0]) {
-                  const { sub_id, sub_code } = subject;
+          if (requestedStudents[0].length > 0) {
+            for (const student of requestedStudents[0]) {
+              const { s_id, exam_type, eligibility } = student;
 
-                  // Step 4: Fetch data from dynamic table
-                  const [students] = await conn.query(
-                    "CALL GetDynamicTableData(?, ?)",
-                    [batch_id, sub_id]
-                  );
+              if (!studentsData.some((stu) => stu.s_id == s_id)) {
+                const [studentData] = await conn.query(
+                  "SELECT sd.index_num, u.user_name FROM student_detail sd JOIN student s ON sd.s_id = s.s_id JOIN user u ON s.user_id = u.user_id WHERE sd.s_id=? ",
+                  [s_id]
+                );
 
-                  const [remarks] = await conn.query(
-                    "CALL GetRemarksForSubject(?, ?)",
-                    [batch_id, sub_id]
-                  );
-
-                  let studentsData = [];
-                  if (students[0].length > 0) {
-                    for (const student of students[0]) {
-                      const { s_id, exam_type, eligibility } = student;
-
-                      // Step 4: Fetch data from student detail table
-                      const [studentData] = await conn.query(
-                        "SELECT index_num FROM student_detail WHERE s_id=?",
-                        [s_id]
-                      );
-
-                      studentsData.push({
-                        index_num: studentData[0]?.index_num || "",
-                        s_id,
-                        exam_type,
-                        eligibility,
-                      });
-                    }
-                  }
-                  subjectData.push({
-                    sub_id,
-                    sub_code,
-                    students: studentsData,
-                    remarks: remarks[0],
-                  });
-                }
-
-                result.push({
-                  batch_id,
-                  batch_code,
-                  deg_name: degree.deg_name,
-                  subjects: subjectData,
+                studentsData.push({
+                  index_num: studentData[0]?.index_num || "",
+                  user_name: studentData[0]?.user_name || "",
+                  s_id,
+                  exam_type,
+                  eligibility,
                 });
               }
             }
           }
+
+          subjectData.push({
+            sub_id,
+            sub_code,
+            students: studentsData,
+            remarks: remarks[0],
+          });
         }
+
+        result.push({
+          batch_id,
+          batch_code,
+          course_title,
+          level,
+          sem,
+          academic_year,
+          subjects: subjectData,
+        });
       }
 
       res.status(200).json(result);
@@ -1635,6 +1688,213 @@ export const checkPendingMedicalResitRequests = async (req, res, next) => {
       console.error("Error checking pending requests:", error);
       return next(
         errorProvider(500, "An error occurred while checking pending requests.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getBatchDeadlineAndApprovalStatus = async (req, res, next) => {
+  const { batch_id } = req.body;
+  const role_id = req.user?.role_id;
+
+  if (!batch_id || !role_id) {
+    return res
+      .status(400)
+      .json({ message: "batch_id and user role_id are required." });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [rows] = await conn.query(
+        "CALL GetBatchApprovalAndDeadline(?, ?)",
+        [batch_id, role_id]
+      );
+
+      if (!rows || !rows[0]?.length) {
+        return res.status(404).json({
+          message: "No matching data found for the given batch and role.",
+        });
+      }
+
+      const result = rows[0][0];
+
+      return res.status(200).json({
+        end_date: result.end_date,
+        accepted_status: result.accepted_status,
+      });
+    } catch (error) {
+      console.error(
+        "Error fetching batch deadline and approval status:",
+        error
+      );
+      return next(
+        errorProvider(500, "An error occurred while fetching batch info.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const setApproval = async (req, res, next) => {
+  const { batch_id } = req.body;
+  const role_id = req.user?.role_id;
+
+  if (!batch_id || !role_id) {
+    return res
+      .status(400)
+      .json({ message: "batch_id and user role_id are required." });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.query("CALL SetApproval(?, ?)", [batch_id, role_id]);
+
+      return res.status(200).json({
+        message: "Approval given successfully",
+      });
+    } catch (error) {
+      console.error("Error changing approval status:", error);
+      return next(
+        errorProvider(500, "An error occurred while changing approval.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const upsertPayments = async (req, res, next) => {
+  const payments = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const entries = Object.entries(payments);
+
+      for (const [type, amount] of entries) {
+        await conn.query("CALL UpsertPayment(?, ?)", [type, amount]);
+      }
+
+      return res
+        .status(200)
+        .json({ message: "Payments upserted successfully." });
+    } catch (error) {
+      console.error("Error upserting payment data:", error);
+      return next(
+        errorProvider(500, "An error occurred while upserting payment data.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getAllPayments = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [rows] = await conn.query("CALL GetAllPayments()");
+
+      const finalObj = {};
+      rows[0].forEach((obj) => (finalObj[obj.type] = obj.amount));
+
+      return res.status(200).json(finalObj);
+    } catch (error) {
+      console.error("Error retrieving payment data:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving payment data.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getEligibleMedicalSubjects = async (req, res, next) => {
+  const { batch_id } = req.body;
+  const { user_id } = req.user;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [rows] = await conn.query(
+        "CALL GetEligibleMedicalSubjectsByBatchAndUser(?, ?)",
+        [batch_id, user_id]
+      );
+
+      if (rows[0].length === 0) {
+        return res.status(404).json({
+          message: "No eligible subjects found for the given user and batch.",
+        });
+      }
+
+      return res.status(200).json(rows[0]);
+    } catch (error) {
+      console.error("Error retrieving eligible medical subjects:", error);
+      return next(
+        errorProvider(500, "An error occurred while fetching subject data.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getEligibleResitSubjects = async (req, res, next) => {
+  const { batch_id } = req.body;
+  const { user_id } = req.user;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [rows] = await conn.query(
+        "CALL GetEligibleResitSubjectsByBatchAndUser(?, ?)",
+        [batch_id, user_id]
+      );
+
+      if (rows[0].length === 0) {
+        return res.status(404).json({
+          message: "No eligible subjects found for the given user and batch.",
+        });
+      }
+
+      const arr = rows[0].map((obj) => ({
+        ...obj,
+        type: obj.attempt_3.trim()
+          ? obj.attempt_3
+          : obj.attempt_2.trim()
+          ? obj.attempt_2
+          : obj.attempt_1,
+      }));
+
+      return res.status(200).json(arr);
+    } catch (error) {
+      console.error("Error retrieving eligible resit subjects:", error);
+      return next(
+        errorProvider(500, "An error occurred while fetching subject data.")
       );
     } finally {
       conn.release();

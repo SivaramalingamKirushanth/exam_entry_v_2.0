@@ -188,9 +188,132 @@ const AdmissionCardTemplate = ({
         </h2>
 
         <div className="flex justify-center font-semibold text-base uppercase space-x-2 items-center flex-wrap  leading-[1]">
-          {level_ordinal} examination in {batchFullDetailsData?.deg_name} -{" "}
+          {level_ordinal} examination in {batchFullDetailsData?.course_title} -{" "}
           {academicYear} - {sem_ordinal}
           &nbsp;semester -
+          {formData.date?.map((yearBlock, yearIndex) => (
+            <React.Fragment key={yearIndex}>
+              <span>
+                {formData.date?.length > 1 && (yearIndex || "") && ","}
+              </span>
+              <div key={yearIndex} className="flex space-x-3">
+                <div className="flex items-center space-x-2">
+                  {yearBlock.months?.map((month, monthIndex) => (
+                    <div
+                      key={monthIndex}
+                      className="flex items-center space-x-1"
+                    >
+                      {yearBlock.months?.length > 1 && (monthIndex || "") && (
+                        <span> &#47;</span>
+                      )}
+                      <Select
+                        onValueChange={(selectedMonth) =>
+                          handleMonthChange(
+                            selectedMonth,
+                            yearIndex,
+                            monthIndex
+                          )
+                        }
+                        value={month}
+                      >
+                        <SelectTrigger className="w-32 h-8">
+                          <SelectValue placeholder="Month" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Months</SelectLabel>
+                            {[
+                              "January",
+                              "February",
+                              "March",
+                              "April",
+                              "May",
+                              "June",
+                              "July",
+                              "August",
+                              "September",
+                              "October",
+                              "November",
+                              "December",
+                            ].map((m, i) => (
+                              <SelectItem key={i} value={i}>
+                                {m}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+
+                      {yearBlock.months.length > 1 && (monthIndex || "") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeMonth(yearIndex, monthIndex)}
+                          className="text-red-500 text-xs rounded-full size-6 p-0"
+                        >
+                          <FaTimes />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger
+                        onClick={() => addNewMonth(yearIndex)}
+                        className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 text-xs rounded-full size-6 p-0"
+                      >
+                        <FaPlus />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Add a month</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="number"
+                    min={new Date().getFullYear()}
+                    max="2100"
+                    placeholder="Year"
+                    className="w-20 rounded-md border px-2 py-1 text-sm h-8"
+                    value={yearBlock.year}
+                    onChange={(e) => handleYearChange(e, yearIndex)}
+                    onBlur={(e) => onYearBlured(e, yearIndex)}
+                    autoFocus={true}
+                  />
+
+                  {yearIndex ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeYearBlock(yearIndex)}
+                      className="text-red-500 text-xs rounded-full size-6 p-0"
+                    >
+                      <FaTimes />
+                    </Button>
+                  ) : (
+                    ""
+                  )}
+                </div>
+              </div>
+            </React.Fragment>
+          ))}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger
+                onClick={addNewYearBlock}
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 text-xs rounded-full size-6 p-0"
+              >
+                <FaPlus />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add a month of another year</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          &ensp; -&ensp;
           {formData.date?.map((yearBlock, yearIndex) => (
             <React.Fragment key={yearIndex}>
               <span>

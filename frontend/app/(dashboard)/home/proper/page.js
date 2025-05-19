@@ -34,10 +34,10 @@ import AdmissionCard from "@/components/AdmissionCard";
 import { createRoot } from "react-dom/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
+import PaymentInvoice from "@/components/PaymentInvoice";
 
 const StudentHome = () => {
   const router = useRouter();
-  const [downloadBatchId, setDownloadBatchId] = useState(null);
   const [formData, setFormData] = useState({
     batch_id: "",
     generated_date: "",
@@ -53,10 +53,6 @@ const StudentHome = () => {
   const [subjectObject, setSubjectObject] = useState({});
   const [generating, setGenerating] = useState(false);
 
-  const onDownloadClick = (batch_id) => {
-    setDownloadBatchId(batch_id);
-  };
-
   const onApplyClick = (e) => {
     e.preventDefault();
     const deg = e.currentTarget.dataset.deg;
@@ -70,8 +66,6 @@ const StudentHome = () => {
     );
   };
 
-  // All queries initialized here
-
   const {
     data: bathchesOfStudentData,
     isLoading: isBathchesOfStudentLoading,
@@ -80,199 +74,6 @@ const StudentHome = () => {
     queryFn: getBatchesByStudent,
     queryKey: ["batchesOfStudent"],
   });
-
-  const {
-    data: batchAdmissionDetailsData,
-    refetch: batchAdmissionDetailsRefetch,
-  } = useQuery({
-    queryFn: () => getBatchAdmissionDetails(downloadBatchId),
-    queryKey: ["batchAdmissionDetails"],
-    enabled: false,
-  });
-
-  const { data: batchSubjectData, refetch: batchSubjectRefetch } = useQuery({
-    queryFn: () => getSubjectBybatchId(downloadBatchId),
-    queryKey: ["batchSubject"],
-    enabled: false,
-  });
-
-  const { data: batchFullDetailsData, refetch: batchFullDetailsRefetch } =
-    useQuery({
-      queryFn: () => getBatchFullDetails(downloadBatchId),
-      queryKey: ["batchFullDetails"],
-      enabled: false,
-    });
-
-  const { data: studentWithSubjectsData, refetch: studentWithSubjectsRefetch } =
-    useQuery({
-      queryFn: () => fetchStudentWithSubjectsByUserId(downloadBatchId),
-      queryKey: ["studentsWithSubjects"],
-      enabled: false,
-    });
-
-  useEffect(() => {
-    if (downloadBatchId) {
-      batchAdmissionDetailsRefetch();
-      batchSubjectRefetch();
-      studentWithSubjectsRefetch();
-      batchFullDetailsRefetch();
-    }
-  }, [downloadBatchId]);
-
-  // Data Transformation
-  useEffect(() => {
-    if (batchAdmissionDetailsData) {
-      const transformedSubjects = batchAdmissionDetailsData.subject_list
-        ?.split(",")
-        .map((comSubs) => comSubs.split(":"));
-      const transformedDate = batchAdmissionDetailsData.exam_date
-        ?.split(",")
-        .map((item) => {
-          const [year, months] = item.split(":");
-          return {
-            year: parseInt(year),
-            months: months.split(";"),
-          };
-        });
-      setFormData({
-        batch_id: batchAdmissionDetailsData.batch_id,
-        generated_date: batchAdmissionDetailsData.generated_date,
-        subjects: transformedSubjects,
-        date: transformedDate,
-        description: batchAdmissionDetailsData.description,
-        instructions: batchAdmissionDetailsData.instructions,
-        provider: batchAdmissionDetailsData.provider,
-      });
-    }
-  }, [batchAdmissionDetailsData]);
-
-  useEffect(() => {
-    setSubjectObject(createSubjectObject(batchSubjectData));
-  }, [batchSubjectData]);
-
-  useEffect(() => {
-    if (batchFullDetailsData) {
-      setLevel_ordinal(numberToOrdinalWord(batchFullDetailsData.level));
-      setSem_ordinal(numberToOrdinalWord(batchFullDetailsData.sem));
-      setAcademicYear(batchFullDetailsData.academic_year);
-    }
-  }, [batchFullDetailsData]);
-
-  const generateAdmissionCardPDFs = async (studentData) => {
-    setDownloadBatchId(null);
-    if (typeof document === "undefined") {
-      console.error("This function can only run in a browser environment.");
-      return;
-    }
-
-    try {
-      setGenerating(true);
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
-      // Create a div element to render the admission card
-      const container = document.createElement("div");
-      container.style.width = "210mm";
-      container.style.padding = "10mm";
-      container.style.backgroundColor = "#fff";
-      container.style.boxSizing = "border-box";
-      container.style.position = "absolute";
-      container.style.left = "-9999px";
-      container.id = `admission-card-${studentData?.s_id}`;
-      document.body.appendChild(container);
-
-      // Render the Admission Card
-      const root = createRoot(container);
-      const renderComplete = new Promise((resolve) => {
-        root.render(
-          <AdmissionCard
-            student={studentData}
-            type="P"
-            level_ordinal={level_ordinal}
-            batchFullDetailsData={batchFullDetailsData}
-            academicYear={academicYear}
-            formData={formData}
-            sem_ordinal={sem_ordinal}
-            subjectObject={subjectObject}
-            onRenderComplete={resolve}
-          />
-        );
-      });
-
-      await renderComplete;
-
-      // Convert the admission card to canvas
-      const canvas = await html2canvas(container, {
-        scale: 2, // Enhance image quality
-        useCORS: true, // Enable cross-origin image handling
-        logging: false,
-        allowTaint: true,
-      });
-
-      const imgData = canvas.toDataURL("image/jpeg", 1.0);
-      // Calculate dimensions to fit the page
-      const imgWidth = pdf.internal.pageSize.getWidth();
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      // Check if the content exceeds page height
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      // Add image to PDF - ensure it fits on one page
-      const contentHeight = Math.min(imgHeight, pageHeight - 10); // Subtract margin
-      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, contentHeight);
-
-      // Handle content that exceeds page height by adding additional pages
-      if (imgHeight > pageHeight) {
-        let heightLeft = imgHeight - pageHeight;
-        let position = -pageHeight;
-
-        while (heightLeft > 0) {
-          position = position - pageHeight;
-          pdf.addPage();
-          pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
-        }
-      }
-
-      // Clean up the DOM after rendering the canvas
-      document.body.removeChild(container);
-
-      // Save the PDF for the current exam type
-      pdf.save(`${studentData.index_num}_admission_card.pdf`);
-    } catch (error) {
-      console.error("Error generating PDFs:", error);
-    } finally {
-      setGenerating(false);
-    }
-  };
-
-  useEffect(() => {
-    downloadBatchId &&
-      studentWithSubjectsData &&
-      Object.keys(studentWithSubjectsData).length &&
-      batchAdmissionDetailsData &&
-      Object.keys(batchAdmissionDetailsData).length &&
-      subjectObject &&
-      Object.keys(subjectObject).length &&
-      sem_ordinal &&
-      level_ordinal &&
-      academicYear &&
-      batchFullDetailsData &&
-      Object.keys(batchFullDetailsData).length &&
-      generateAdmissionCardPDFs(studentWithSubjectsData);
-  }, [
-    downloadBatchId,
-    studentWithSubjectsData,
-    batchAdmissionDetailsData,
-    subjectObject,
-    sem_ordinal,
-    level_ordinal,
-    academicYear,
-    batchFullDetailsData,
-  ]);
 
   return (
     <div className="flex justify-center relative">
@@ -367,26 +168,6 @@ const StudentHome = () => {
                             apply
                           </Button>
                         )}
-                        {/* Currently download is not available. if we need remove the "true" below at BOTH VERSION(MOBILE AND WEB) */}
-                        {batch.admission_ready == "false" ||
-                        batch.applied_to_exam == "false" ||
-                        true ? (
-                          <Button
-                            variant="outline"
-                            className="uppercase"
-                            disabled={true}
-                          >
-                            download
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            className="uppercase"
-                            onClick={() => onDownloadClick(batch.batch_id)}
-                          >
-                            download
-                          </Button>
-                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -475,28 +256,6 @@ const StudentHome = () => {
                       disabled={true}
                     >
                       apply
-                    </Button>
-                  )}
-                  {/* Currently download is not available. if we need remove the "true" below at BOTH VERSION(MOBILE AND WEB) */}
-                  {batch.admission_ready == "false" ||
-                  batch.applied_to_exam == "false" ||
-                  true ? (
-                    <Button
-                      variant="outline"
-                      className="uppercase"
-                      size="sm"
-                      disabled={true}
-                    >
-                      download
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="uppercase"
-                      size="sm"
-                      onClick={() => onDownloadClick(batch.batch_id)}
-                    >
-                      download
                     </Button>
                   )}
                 </div>

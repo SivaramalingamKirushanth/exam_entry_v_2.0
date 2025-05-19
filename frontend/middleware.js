@@ -70,7 +70,7 @@ export async function middleware(req) {
     }
 
     //check if the user is dean or hod and he visiting a allowed page
-    const deanHodAllowedPages = ["home/batches", "report"];
+    const deanHodAllowedPages = ["home/batches"];
     const isdeanHodAllowedPage = deanHodAllowedPages.some((page) =>
       pathname.startsWith(`/${page}`)
     );

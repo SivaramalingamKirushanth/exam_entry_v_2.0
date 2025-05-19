@@ -80,7 +80,7 @@ router.post(
 
 router.post(
   "/getBatchOpenDate",
-  verifyUser(["1", "2", "3", "4"]),
+  verifyUser(["1", "2", "3", "4", "5"]),
   getBatchOpenDate
 );
 

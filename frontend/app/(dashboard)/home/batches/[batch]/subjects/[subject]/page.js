@@ -30,6 +30,11 @@ const Subjects = () => {
   const sub_id = searchParams.get("sub_id");
   const batch_id = searchParams.get("batch_id");
 
+  const { data: approvalAndEnddateOfBatchData } = useQuery({
+    queryFn: () => getBatchDeadlineAndApprovalStatus({ batch_id }),
+    queryKey: ["approval", batch_id],
+  });
+
   const expandHandler = (e) => {
     if (e.target.id == expandId) {
       setExpandId(null);
@@ -76,7 +81,11 @@ const Subjects = () => {
               expandId == "p" ? "h-auto" : "h-0 overflow-hidden"
             } transition-all`}
           >
-            <StudentDetails sub_id={sub_id} batch_id={batch_id} />
+            <StudentDetails
+              sub_id={sub_id}
+              batch_id={batch_id}
+              end_date={approvalAndEnddateOfBatchData?.end_date}
+            />
           </div>
         </div>
         <div>
@@ -101,6 +110,7 @@ const Subjects = () => {
             <MedicalStudentDetails
               sub_id={sub_id}
               batch_id={batch_id}
+              end_date={approvalAndEnddateOfBatchData?.end_date}
               setIsAnyonePending={setIsAnyoneMedicalPending}
             />
           </div>
@@ -127,6 +137,7 @@ const Subjects = () => {
             <ResitStudentDetails
               sub_id={sub_id}
               batch_id={batch_id}
+              end_date={approvalAndEnddateOfBatchData?.end_date}
               setIsAnyonePending={setIsAnyoneResitPending}
             />
           </div>

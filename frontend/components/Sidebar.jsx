@@ -26,41 +26,28 @@ const Sidebar = () => {
   const { data } = useQuery({
     queryFn: () => checkPendingMedicalResitRequests(),
     queryKey: ["requests", "pending"],
+    enabled: roleId == "1",
   });
 
-  console.log(data);
-
   return (
-    (roleId == "1" || roleId == "2" || roleId == "3") && (
+    roleId == "1" && (
       <div className="w-12 hover:w-48 transition-all duration-300 overflow-hidden rounded-xl fixed top-[50%] left-2 -translate-y-1/2 shadow-2xl bg-white py-3 flex flex-col gap-y-1 items-start bg-background supports-[backdrop-filter]:bg-background z-50">
         <Link
           href="/home"
           className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
-            pathname.startsWith("/home") ? "bg-zinc-300" : ""
+            pathname.startsWith("/home") ? "bg-gray-200" : ""
           }`}
         >
           <RiHome2Line size={25} className="shrink-0" />
           home
         </Link>
 
-        {roleId !== "1" && (
-          <Link
-            href="/report"
-            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
-              pathname.startsWith("/report") ? "bg-zinc-300" : ""
-            }`}
-          >
-            <LuChartColumn size={23} className="shrink-0" />
-            Report
-          </Link>
-        )}
-
         {roleId === "1" && (
           <>
             <Link
               href="/courses"
               className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
-                pathname.startsWith("/courses") ? "bg-zinc-300" : ""
+                pathname.startsWith("/courses") ? "bg-gray-200" : ""
               }`}
             >
               <RiGraduationCapLine size={25} className="shrink-0" />
@@ -69,7 +56,7 @@ const Sidebar = () => {
             <Link
               href="/curriculums"
               className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
-                pathname.startsWith("/curriculums") ? "bg-zinc-300" : ""
+                pathname.startsWith("/curriculums") ? "bg-gray-200" : ""
               }`}
             >
               <LucideBook size={25} className="shrink-0" />
@@ -78,7 +65,7 @@ const Sidebar = () => {
             <Link
               href="/users"
               className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
-                pathname.startsWith("/users") ? "bg-zinc-300" : ""
+                pathname.startsWith("/users") ? "bg-gray-200" : ""
               }`}
             >
               <LucideUser2 size={25} className="shrink-0" />
@@ -87,7 +74,7 @@ const Sidebar = () => {
             <Link
               href="/examinations"
               className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
-                pathname.startsWith("/examinations") ? "bg-zinc-300" : ""
+                pathname.startsWith("/examinations") ? "bg-gray-200" : ""
               }`}
             >
               <PiNotePencil size={25} className="shrink-0" />
@@ -96,7 +83,7 @@ const Sidebar = () => {
             <Link
               href="/requests"
               className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 relative hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
-                pathname.startsWith("/requests") ? "bg-zinc-300" : ""
+                pathname.startsWith("/requests") ? "bg-gray-200" : ""
               }`}
             >
               <VscGitPullRequestGoToChanges size={25} className="shrink-0" />
@@ -110,7 +97,7 @@ const Sidebar = () => {
             <Link
               href="/entries"
               className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
-                pathname.startsWith("/entries") ? "bg-zinc-300" : ""
+                pathname.startsWith("/entries") ? "bg-gray-200" : ""
               }`}
             >
               <PiNoteDuotone size={25} className="shrink-0" />

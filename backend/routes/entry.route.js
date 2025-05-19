@@ -11,13 +11,17 @@ import {
   fetchStudentsWithSubjects,
   fetchStudentWithSubjectsByUserId,
   generateIndexNumbers,
+  getAllPayments,
   getAppliedMedicalStudentsByBatchAndSubject,
   getAppliedResitStudentsByBatchAndSubject,
   getAppliedStudentsForSubject,
   getAppliedStudentsForSubjectOfDepartment,
   getAppliedStudentsForSubjectOfFaculty,
   getBatchAdmissionDetails,
+  getBatchDeadlineAndApprovalStatus,
   getDeanDashboardData,
+  getEligibleMedicalSubjects,
+  getEligibleResitSubjects,
   getEligibleStudentsBySub,
   getHodDashboardData,
   getLastAssignedIndexNumber,
@@ -29,8 +33,10 @@ import {
   moveToMedical,
   moveToResit,
   rejectMedicalResitApplication,
+  setApproval,
   updateReference,
   updateVerified,
+  upsertPayments,
 } from "../controllers/entry.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -106,8 +112,8 @@ router.post(
   verifyUser(["1"]),
   deleteBatchSubjectEntries
 );
-router.get("/getDeanDashboardData", verifyUser(["2"]), getDeanDashboardData);
-router.get("/getHodDashboardData", verifyUser(["3"]), getHodDashboardData);
+router.post("/getDeanDashboardData", verifyUser(["2"]), getDeanDashboardData);
+router.post("/getHodDashboardData", verifyUser(["3"]), getHodDashboardData);
 router.post(
   "/getAppliedStudentsForSubject",
   verifyUser(["1", "4"]),
@@ -146,6 +152,24 @@ router.get(
   "/checkPendingMedicalResitRequests",
   verifyUser(["1"]),
   checkPendingMedicalResitRequests
+);
+router.post(
+  "/getBatchDeadlineAndApprovalStatus",
+  verifyUser(["2", "3"]),
+  getBatchDeadlineAndApprovalStatus
+);
+router.post("/setApproval", verifyUser(["2", "3"]), setApproval);
+router.post("/upsertPayments", verifyUser(["1"]), upsertPayments);
+router.get("/getAllPayments", verifyUser(["1", "5"]), getAllPayments);
+router.post(
+  "/getEligibleMedicalSubjects",
+  verifyUser(["5"]),
+  getEligibleMedicalSubjects
+);
+router.post(
+  "/getEligibleResitSubjects",
+  verifyUser(["5"]),
+  getEligibleResitSubjects
 );
 
 export default router;
