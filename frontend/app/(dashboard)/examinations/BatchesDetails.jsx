@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Modal from "./Model";
+import Model from "./Model";
 import {
   getAllBatchDetails,
   updateBatchStatus,
@@ -41,9 +41,9 @@ const BatchesDetails = () => {
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
-  const modalRef = useRef(null);
-  const studentModalRef = useRef(null);
-  const attendanceModalRef = useRef(null);
+  const modelRef = useRef(null);
+  const studentModelRef = useRef(null);
+  const attendanceModelRef = useRef(null);
   const [editId, setEditId] = useState("");
   const [attendanceId, setAttendanceId] = useState("");
   const [dropId, setDropId] = useState(null);
@@ -234,12 +234,12 @@ const BatchesDetails = () => {
     setStatus(e);
   };
 
-  const toggleModal = () => {
+  const toggleModel = () => {
     isOpen && setEditId("");
     setIsOpen((prev) => !prev);
   };
 
-  const toggleAttendanceModal = () => {
+  const toggleAttendanceModel = () => {
     isAttendanceOpen && setAttendanceId("");
     setIsAttendanceOpen((prev) => !prev);
   };
@@ -247,12 +247,12 @@ const BatchesDetails = () => {
   const onBtnClicked = (e) => {
     if (e.target.classList.contains("editBtn")) {
       setEditId(e.target.id);
-      toggleModal();
+      toggleModel();
     }
 
     if (e.target.classList.contains("attendanceBtn")) {
       setAttendanceId(e.target.id);
-      toggleAttendanceModal();
+      toggleAttendanceModel();
     }
 
     if (e.target.classList.contains("dropBtn")) {
@@ -325,18 +325,18 @@ const BatchesDetails = () => {
         </div>
       </div>
 
-      <Modal
+      <Model
         editId={editId}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        modalRef={modalRef}
+        modelRef={modelRef}
         setEditId={setEditId}
       />
 
       <AttendanceModel
         isAttendanceOpen={isAttendanceOpen}
         setIsAttendanceOpen={setIsAttendanceOpen}
-        attendanceModalRef={attendanceModalRef}
+        attendanceModelRef={attendanceModelRef}
         attendanceId={attendanceId}
         setAttendanceId={setAttendanceId}
       />
@@ -345,7 +345,7 @@ const BatchesDetails = () => {
           columns={columns}
           data={filteredData}
           onBtnClicked={onBtnClicked}
-          toggleModal={toggleModal}
+          toggleModel={toggleModel}
         />
       </div>
     </>

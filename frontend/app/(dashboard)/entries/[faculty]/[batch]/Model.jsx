@@ -53,7 +53,7 @@ const transformData = (input) => {
 const Model = ({
   isOpen,
   setIsOpen,
-  modalRef,
+  modelRef,
   subjectsOfBatchData,
   batch_id,
 }) => {
@@ -89,7 +89,7 @@ const Model = ({
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div
-            ref={modalRef}
+            ref={modelRef}
             className="bg-white rounded-lg shadow-lg w-[80vw] p-6 h-[85vh]"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">

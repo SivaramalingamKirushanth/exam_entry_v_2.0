@@ -18,7 +18,7 @@ import {
 
 import { LabelSearchCombobox } from "@/components/ui/customCommand";
 
-const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
+const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
   const [formData, setFormData] = useState({
     levels: [],
     no_of_sem_per_year: "2",
@@ -119,7 +119,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div
-            ref={modalRef}
+            ref={modelRef}
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">

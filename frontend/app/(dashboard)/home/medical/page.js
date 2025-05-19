@@ -16,7 +16,7 @@ import {
   getBatchOpenDate,
   getEligibleMedicalBatches,
 } from "@/utils/apiRequests/batch.api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { numberToOrdinalWord } from "@/utils/functions";
 import CryptoJS from "crypto-js";
 import {
@@ -29,11 +29,14 @@ import { createRoot } from "react-dom/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import PaymentInvoice from "@/components/PaymentInvoice";
+import Model from "./Model";
 
 const StudentMedicalHome = () => {
   const router = useRouter();
   const [invoiceDownloadBatchId, setInvoiceDownloadBatchId] = useState(null);
-
+  const [isOpen, setIsOpen] = useState(false);
+  const modelRef = useRef(null);
+  const [paymentId, setPaymentId] = useState("");
   const [generating, setGenerating] = useState(false);
 
   const onInvoiceDownloadClick = (batch_id) => {
@@ -56,6 +59,15 @@ const StudentMedicalHome = () => {
     );
   };
 
+  const toggleModal = () => {
+    isOpen && setPaymentId("");
+    setIsOpen((prev) => !prev);
+  };
+
+  const onPaymentClicked = (batch_id) => {
+    setPaymentId(batch_id);
+    toggleModal();
+  };
   // All queries initialized here
   const {
     data: bathchesOfStudentData,
@@ -279,7 +291,7 @@ const StudentMedicalHome = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex justify-around items-center h-full gap-x-2">
+                      <div className="flex flex-col gap-y-1  h-full gap-x-2">
                         {batch.medical_status == "active" ? (
                           <Button
                             variant="outline"
@@ -317,6 +329,24 @@ const StudentMedicalHome = () => {
                             }
                           >
                             Download Invoice
+                          </Button>
+                        )}
+
+                        {batch.medical_status !== "payment pending" ? (
+                          <Button
+                            variant="outline"
+                            className="uppercase"
+                            disabled={true}
+                          >
+                            Submit reference
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            className="uppercase"
+                            onClick={() => onPaymentClicked(batch.batch_id)}
+                          >
+                            Submit reference
                           </Button>
                         )}
                       </div>
@@ -393,7 +423,7 @@ const StudentMedicalHome = () => {
                     {batch.medical_status}
                   </Badge>
                 </h1>
-                <div className="flex justify-around items-center self-stretch">
+                <div className="flex justify-around flex-wrap gap-2 items-center self-stretch">
                   {batch.medical_status == "active" ? (
                     <Button
                       variant="outline"
@@ -434,6 +464,23 @@ const StudentMedicalHome = () => {
                       Download Invoice
                     </Button>
                   )}
+                  {batch.medical_status !== "payment pending" ? (
+                    <Button
+                      variant="outline"
+                      className="uppercase"
+                      disabled={true}
+                    >
+                      Submit reference
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="uppercase"
+                      onClick={() => onPaymentClicked(batch.batch_id)}
+                    >
+                      Submit reference
+                    </Button>
+                  )}
                 </div>
                 <div className="flex flex-col items-center justify-center">
                   <span className="font-semibold">Deadline</span>
@@ -451,6 +498,13 @@ const StudentMedicalHome = () => {
           <span></span>
         )}
       </div>
+      <Model
+        paymentId={paymentId}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        modelRef={modelRef}
+        setPaymentId={setPaymentId}
+      />
     </div>
   );
 };

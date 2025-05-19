@@ -23,7 +23,7 @@ const Batches = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isIndexOpen, setIsIndexOpen] = useState(false);
-  const indexModalRef = useRef(null);
+  const indexModelRef = useRef(null);
   const [endDate, setEndDate] = useState(null);
 
   const batch_id = searchParams.get("batch_id");
@@ -44,7 +44,7 @@ const Batches = () => {
     queryKey: ["studentsWithoutIndexNumber", batch_id],
   });
 
-  const toggleIndexModal = () => {
+  const toggleIndexModel = () => {
     if (studentsWithoutIndexNumberData?.count) {
       setIsIndexOpen((prev) => !prev);
     }
@@ -70,7 +70,7 @@ const Batches = () => {
           endDate &&
           endDate < new Date() &&
           (studentsWithoutIndexNumberData?.count ? (
-            <Button onClick={toggleIndexModal} variant="warning">
+            <Button onClick={toggleIndexModel} variant="warning">
               Index Number Missing &nbsp;
               <TiWarning />
             </Button>
@@ -128,7 +128,7 @@ const Batches = () => {
       <IndexModel
         isIndexOpen={isIndexOpen}
         setIsIndexOpen={setIsIndexOpen}
-        indexModalRef={indexModalRef}
+        indexModelRef={indexModelRef}
         batch_id={batch_id}
         studentsWithoutIndexNumberData={studentsWithoutIndexNumberData}
       />

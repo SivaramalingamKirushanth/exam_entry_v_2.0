@@ -25,7 +25,7 @@ import {
 import { LabelSearchCombobox } from "@/components/ui/customCommand";
 import { FaTimes } from "react-icons/fa";
 
-const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
+const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
   const [formData, setFormData] = useState({ subjects: [] });
   const [subjectsArr, setSubjectArr] = useState([]);
   const [btnEnable, setBtnEnable] = useState(false);
@@ -253,7 +253,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div
-            ref={modalRef}
+            ref={modelRef}
             className={`${
               btnEnable
                 ? "sm:max-w-[90vw] w-[850px]"

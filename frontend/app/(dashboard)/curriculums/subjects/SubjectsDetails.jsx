@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Modal from "./Model";
+import Model from "./Model";
 import {
   getAllSubjectsWithExtraDetails,
   updateSubjectStatus,
@@ -29,7 +29,7 @@ const SubjectsDetails = () => {
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
-  const modalRef = useRef(null);
+  const modelRef = useRef(null);
   const [editId, setEditId] = useState("");
   const queryClient = useQueryClient();
 
@@ -148,7 +148,7 @@ const SubjectsDetails = () => {
     setStatus(e);
   };
 
-  const toggleModal = () => {
+  const toggleModel = () => {
     isOpen && setEditId("");
     setIsOpen((prev) => !prev);
   };
@@ -156,7 +156,7 @@ const SubjectsDetails = () => {
   const onEditClicked = (e) => {
     if (e.target.classList.contains("editBtn")) {
       setEditId(e.target.id);
-      toggleModal();
+      toggleModel();
     }
   };
 
@@ -216,11 +216,11 @@ const SubjectsDetails = () => {
           </div>
         </div>
       </div>
-      <Modal
+      <Model
         editId={editId}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        modalRef={modalRef}
+        modelRef={modelRef}
         setEditId={setEditId}
       />
       <div className="container mx-auto">
@@ -228,7 +228,7 @@ const SubjectsDetails = () => {
           columns={columns}
           data={filteredData}
           onEditClicked={onEditClicked}
-          toggleModal={toggleModal}
+          toggleModel={toggleModel}
           btnText="Create subject"
         />
       </div>

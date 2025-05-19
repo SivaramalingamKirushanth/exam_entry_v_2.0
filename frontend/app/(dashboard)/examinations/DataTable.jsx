@@ -25,7 +25,7 @@ import {
 import { useState } from "react";
 import { FaPlus } from "react-icons/fa6";
 
-export function DataTable({ columns, data, onBtnClicked, toggleModal }) {
+export function DataTable({ columns, data, onBtnClicked, toggleModel }) {
   const [sorting, setSorting] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
 
@@ -48,7 +48,7 @@ export function DataTable({ columns, data, onBtnClicked, toggleModal }) {
     <div>
       <div className="flex items-center mb-4">
         <Button
-          onClick={toggleModal}
+          onClick={toggleModel}
           className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm"
         >
           <FaPlus />

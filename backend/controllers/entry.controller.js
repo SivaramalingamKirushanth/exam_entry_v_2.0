@@ -14,6 +14,8 @@ export const applyExam = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
+      await conn.beginTransaction();
+
       let remSubStr = removedSubjects.join(",");
 
       // Call the stored procedure and retrieve the OUT parameter
@@ -33,12 +35,14 @@ export const applyExam = async (req, res, next) => {
         batch_id,
         desc,
       ]);
+      await conn.commit();
 
       return res.status(200).json({
         message: "Exam application processed successfully.",
       });
     } catch (error) {
       console.error("Error during exam application:", error);
+      await conn.rollback();
 
       if (error.code === "45000") {
         return next(errorProvider(400, error.sqlMessage));
@@ -72,6 +76,8 @@ export const applyResitExam = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
+      await conn.beginTransaction();
+
       await conn.query("CALL InsertResitApplication(?, ?, ?);", [
         user_id,
         batch_id,
@@ -85,12 +91,14 @@ export const applyResitExam = async (req, res, next) => {
         batch_id,
         desc,
       ]);
+      await conn.commit();
 
       return res.status(200).json({
         message: "Exam application processed successfully.",
       });
     } catch (error) {
       console.error("Error during exam application:", error);
+      await conn.rollback();
 
       if (error.code === "45000") {
         return next(errorProvider(400, error.sqlMessage));
@@ -124,6 +132,8 @@ export const applyMedicalExam = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
+      await conn.beginTransaction();
+
       await conn.query("CALL InsertMedicalApplication(?, ?, ?);", [
         user_id,
         batch_id,
@@ -137,12 +147,14 @@ export const applyMedicalExam = async (req, res, next) => {
         batch_id,
         desc,
       ]);
+      await conn.commit();
 
       return res.status(200).json({
         message: "Exam application processed successfully.",
       });
     } catch (error) {
       console.error("Error during exam application:", error);
+      await conn.rollback();
 
       if (error.code === "45000") {
         return next(errorProvider(400, error.sqlMessage));
@@ -173,6 +185,8 @@ export const acceptMedicalResitStudents = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
+      await conn.beginTransaction();
+
       // 1. Get resit_id for the student and batch
       const [resitReq] = await conn.query(
         "SELECT resit_id FROM resit_request WHERE batch_id = ? AND s_id = ? LIMIT 1",
@@ -241,10 +255,13 @@ export const acceptMedicalResitStudents = async (req, res, next) => {
         "UPDATE medical_request SET status='true' WHERE medical_id=? ",
         [medical_id]
       );
+      await conn.commit();
 
       return res.status(200).json({ message: "Student added successfully." });
     } catch (error) {
       console.error("Error adding medical/resit students:", error);
+      await conn.rollback();
+
       return next(
         errorProvider(
           500,
@@ -459,6 +476,8 @@ export const createOrUpdateAdmission = async (req, res, next) => {
     // Database connection and procedure execution
     const conn = await pool.getConnection();
     try {
+      await conn.beginTransaction();
+
       await conn.query("CALL UpdateAdmissionData(?, ?, ?, ?, ?, ?, ?)", [
         batch_id,
         generated_date,
@@ -471,30 +490,15 @@ export const createOrUpdateAdmission = async (req, res, next) => {
 
       let desc = `Admission created or updated for batch_id=${batch_id}, generated_date=${generated_date}, transformedSubjects=${transformedSubjects}, transformedDate=${transformedDate}, description=${description}, instructions=${instructions}, provider=${provider}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
-
-      for (let user_type of ["2", "3"]) {
-        const data = await fetchEmailsForUserType(conn, batch_id, user_type);
-
-        if (data.length > 0) {
-          const mails = data.map((obj) => obj.email).join(",");
-
-          try {
-            await mailer(
-              mails,
-              `Report page updated`,
-              `<p>Report page is updated. you can see the final reports now</p>`
-            );
-          } catch (mailError) {
-            console.error(`Failed to send mail:`, mailError);
-          }
-        }
-      }
+      await conn.commit();
 
       return res.status(200).json({
         message: "Admission data added or updated successfully.",
       });
     } catch (error) {
       console.error("Error adding or updating admission data:", error);
+      await conn.rollback();
+
       return next(
         errorProvider(
           500,
@@ -766,6 +770,8 @@ export const createOrUpdateAttendance = async (req, res, next) => {
     // Database connection and procedure execution
     const conn = await pool.getConnection();
     try {
+      await conn.beginTransaction();
+
       await conn.query("CALL UpdateAttendaceData(?, ?, ?)", [
         batch_id,
         transformedDate,
@@ -774,12 +780,15 @@ export const createOrUpdateAttendance = async (req, res, next) => {
 
       let desc = `Attendance created or updated for batch_id=${batch_id}, transformedDate=${transformedDate}, description=${description}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
+      await conn.commit();
 
       return res.status(200).json({
         message: "Attendance data added or updated successfully.",
       });
     } catch (error) {
       console.error("Error adding or updating attendance data:", error);
+      await conn.rollback();
+
       return next(
         errorProvider(
           500,
@@ -1524,6 +1533,8 @@ export const updateReference = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
+      await conn.beginTransaction();
+
       let procedure;
 
       if (request === "m") {
@@ -1536,11 +1547,18 @@ export const updateReference = async (req, res, next) => {
 
       await conn.query(procedure, [id, ref]);
 
+      let desc = `Payment reference updated. request=${request}, id=${id}`;
+
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+      await conn.commit();
+
       return res
         .status(200)
         .json({ message: "Reference updated successfully." });
     } catch (error) {
       console.error("Error updating reference:", error);
+      await conn.rollback();
+
       return next(errorProvider(500, "Failed to update reference."));
     } finally {
       conn.release();
@@ -1561,6 +1579,8 @@ export const updateVerified = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
+      await conn.beginTransaction();
+
       let procedure;
 
       switch (request) {
@@ -1582,11 +1602,18 @@ export const updateVerified = async (req, res, next) => {
 
       await conn.query(procedure, [id, verified]);
 
+      let desc = `verified updated. request=${request},id=${id},verified=${verified}`;
+
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+      await conn.commit();
+
       return res
         .status(200)
         .json({ message: "Verification status updated successfully." });
     } catch (error) {
       console.error("Error updating verified status:", error);
+      await conn.rollback();
+
       return next(errorProvider(500, "Failed to update verified status."));
     } finally {
       conn.release();
@@ -1645,6 +1672,8 @@ export const moveToResit = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
+      await conn.beginTransaction();
+
       const [rows] = await conn.query(
         "SELECT * FROM medical_subject WHERE id=?;",
         [id]
@@ -1657,9 +1686,13 @@ export const moveToResit = async (req, res, next) => {
       let desc = `Medical Subject moved to Resit Subject. medical_id=${obj.medical_id},sub_id=${obj.sub_id},eligibility=${obj.eligibility},`;
 
       await conn.query("CALL LogAdminAction(?);", [desc]);
+      await conn.commit();
+
       return res.status(200).json({ message: "Moved to Resit successfully." });
     } catch (error) {
       console.error("Error in MoveToResit:", error);
+      await conn.rollback();
+
       return next(errorProvider(500, "Failed to move to resit."));
     } finally {
       conn.release();
@@ -1750,9 +1783,7 @@ export const setApproval = async (req, res, next) => {
   const role_id = req.user?.role_id;
 
   if (!batch_id || !role_id) {
-    return res
-      .status(400)
-      .json({ message: "batch_id and user role_id are required." });
+    return next(errorProvider(400, "batch_id and user role_id are required."));
   }
 
   try {
@@ -1895,6 +1926,55 @@ export const getEligibleResitSubjects = async (req, res, next) => {
       console.error("Error retrieving eligible resit subjects:", error);
       return next(
         errorProvider(500, "An error occurred while fetching subject data.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const updateRequestReference = async (req, res, next) => {
+  const { batch_id, type, reference } = req.body;
+  const user_id = req.user?.user_id;
+
+  if (!batch_id || !user_id || !type || !reference) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      await conn.query("CALL UpdateRequestReference(?, ?, ?, ?)", [
+        user_id,
+        batch_id,
+        type,
+        reference,
+      ]);
+
+      const desc = `payment refrerence updated: reference=${reference}, type=${type} `;
+
+      await conn.query("CALL LogStudentAction(?, ?, ?);", [
+        user_id,
+        batch_id,
+        desc,
+      ]);
+
+      await conn.commit();
+
+      return res.status(200).json({
+        message: "Reference updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error updating reference:", error);
+      await conn.rollback();
+
+      return next(
+        errorProvider(500, "An error occurred while updating the reference.")
       );
     } finally {
       conn.release();

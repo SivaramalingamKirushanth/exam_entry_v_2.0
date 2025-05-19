@@ -50,7 +50,7 @@ const devs = [
 ];
 
 export default function Footer() {
-  const [showModal, setShowModal] = useState(false);
+  const [showModel, setShowModel] = useState(false);
 
   return (
     <>
@@ -61,7 +61,7 @@ export default function Footer() {
             All&nbsp;rights&nbsp;reserved.
           </p>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => setShowModel(true)}
             className="relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 mt-3 text-white shadow-lg overflow-hidden border border-transparent mb-10 sm:mb-4"
           >
             {/* Animated Gradient Border Effect */}
@@ -78,17 +78,17 @@ export default function Footer() {
         </div>
       </footer>
 
-      {showModal && (
+      {showModel && (
         <div
           className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-md transition-all duration-300 ease-out"
           id="modelWindow"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              setShowModal(false);
+              setShowModel(false);
             }
           }}
         >
-          <div className="bg-gradient-to-b from-gray-50 to-white rounded-2xl shadow-xl w-[95%] sm:w-[80%] md:w-[70%] lg:w-[60%] xl:w-[50%] transition-transform transform scale-90 duration-500 ease-out modal-animate max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-gradient-to-b from-gray-50 to-white rounded-2xl shadow-xl w-[95%] sm:w-[80%] md:w-[70%] lg:w-[60%] xl:w-[50%] transition-transform transform scale-90 duration-500 ease-out model-animate max-h-[90vh] overflow-hidden flex flex-col">
             {/* Sticky Header */}
             <div className="px-6 sm:px-8 py-4 border-b border-gray-100 sticky top-0 bg-white bg-opacity-95 backdrop-blur-sm z-10">
               <div className="relative">
@@ -96,9 +96,9 @@ export default function Footer() {
                   Meet the Team
                 </h2>
                 <button
-                  onClick={() => setShowModal(false)}
+                  onClick={() => setShowModel(false)}
                   className="absolute -top-1 -right-4 text-gray-400 hover:text-gray-600 transition-colors"
-                  aria-label="Close modal"
+                  aria-label="Close model"
                 >
                   <FaRegTimesCircle className="h-6 w-6 text-pink-500 hover:text-purple-500" />
                 </button>

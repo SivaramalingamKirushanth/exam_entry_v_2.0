@@ -10,7 +10,7 @@ import { uploadAttendanceSheet } from "@/utils/apiRequests/batch.api";
 const AttendanceModel = ({
   isAttendanceOpen,
   setIsAttendanceOpen,
-  attendanceModalRef,
+  attendanceModelRef,
   attendanceId,
   setAttendanceId,
 }) => {
@@ -47,7 +47,7 @@ const AttendanceModel = ({
       {isAttendanceOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div
-            ref={attendanceModalRef}
+            ref={attendanceModelRef}
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">

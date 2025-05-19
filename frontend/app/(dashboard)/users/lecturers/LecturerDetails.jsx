@@ -16,7 +16,7 @@ import {
   getAllLecturers,
   updateLecturerStatus,
 } from "@/utils/apiRequests/user.api";
-import Modal from "./Model";
+import Model from "./Model";
 import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
@@ -29,7 +29,7 @@ const LecturerDetails = () => {
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
-  const modalRef = useRef(null);
+  const modelRef = useRef(null);
   const [editId, setEditId] = useState("");
   const queryClient = useQueryClient();
 
@@ -134,7 +134,7 @@ const LecturerDetails = () => {
     setStatus(e);
   };
 
-  const toggleModal = () => {
+  const toggleModel = () => {
     isOpen && setEditId("");
     setIsOpen((prev) => !prev);
   };
@@ -142,7 +142,7 @@ const LecturerDetails = () => {
   const onEditClicked = (e) => {
     if (e.target.classList.contains("editBtn")) {
       setEditId(e.target.id);
-      toggleModal();
+      toggleModel();
     }
   };
 
@@ -204,11 +204,11 @@ const LecturerDetails = () => {
         </div>
       </div>
 
-      <Modal
+      <Model
         editId={editId}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        modalRef={modalRef}
+        modelRef={modelRef}
         setEditId={setEditId}
       />
       <div className="container mx-auto">
@@ -216,7 +216,7 @@ const LecturerDetails = () => {
           columns={columns}
           data={filteredData}
           onEditClicked={onEditClicked}
-          toggleModal={toggleModal}
+          toggleModel={toggleModel}
           btnText="Create lecturer"
         />
       </div>

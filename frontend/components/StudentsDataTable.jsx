@@ -29,8 +29,8 @@ export function StudentsDataTable({
   columns,
   data,
   onEditClicked,
-  toggleModal,
-  toggleImportModal,
+  toggleModel,
+  toggleImportModel,
 }) {
   const [sorting, setSorting] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -54,14 +54,14 @@ export function StudentsDataTable({
     <div>
       <div className="flex items-center mb-4">
         <Button
-          onClick={toggleModal}
+          onClick={toggleModel}
           className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm mr-3"
         >
           <FaPlus />
           &nbsp;Create student
         </Button>
         <Button
-          onClick={toggleImportModal}
+          onClick={toggleImportModel}
           className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm"
         >
           <TfiImport />

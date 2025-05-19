@@ -16,7 +16,7 @@ import {
   getAllStudents,
   updateStudentStatus,
 } from "@/utils/apiRequests/user.api";
-import Modal from "./Model";
+import Model from "./Model";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { FaPen } from "react-icons/fa6";
@@ -30,9 +30,9 @@ const StudentDetails = () => {
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
-  const modalRef = useRef(null);
+  const modelRef = useRef(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
-  const importModalRef = useRef(null);
+  const importModelRef = useRef(null);
   const [editId, setEditId] = useState("");
   const queryClient = useQueryClient();
 
@@ -157,19 +157,19 @@ const StudentDetails = () => {
     setStatus(e);
   };
 
-  const toggleModal = () => {
+  const toggleModel = () => {
     isOpen && setEditId("");
     setIsOpen((prev) => !prev);
   };
 
-  const toggleImportModal = () => {
+  const toggleImportModel = () => {
     setIsImportOpen((prev) => !prev);
   };
 
   const onEditClicked = (e) => {
     if (e.target.classList.contains("editBtn")) {
       setEditId(e.target.id);
-      toggleModal();
+      toggleModel();
     }
   };
 
@@ -229,25 +229,25 @@ const StudentDetails = () => {
           </div>
         </div>
       </div>
-      <Modal
+      <Model
         editId={editId}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        modalRef={modalRef}
+        modelRef={modelRef}
         setEditId={setEditId}
       />
       <ImportModel
         isImportOpen={isImportOpen}
         setIsImportOpen={setIsImportOpen}
-        importModalRef={importModalRef}
+        importModelRef={importModelRef}
       />
       <div className="container mx-auto">
         <StudentsDataTable
           columns={columns}
           data={filteredData}
           onEditClicked={onEditClicked}
-          toggleModal={toggleModal}
-          toggleImportModal={toggleImportModal}
+          toggleModel={toggleModel}
+          toggleImportModel={toggleImportModel}
         />
       </div>
     </>

@@ -56,7 +56,7 @@ const extractEndDates = (batchTimePeriodData) => {
   }
 };
 
-const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
+const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
   const [formData, setFormData] = useState({});
   const [timePeriods, setTimePeriods] = useState({});
   const [sidePartEnable, setSidePartEnable] = useState(false);
@@ -471,7 +471,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ">
           <div
-            ref={modalRef}
+            ref={modelRef}
             className={`${
               sidePartEnable
                 ? "sm:max-w-[90vw] w-[850px]"

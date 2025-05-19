@@ -35,6 +35,7 @@ import {
   rejectMedicalResitApplication,
   setApproval,
   updateReference,
+  updateRequestReference,
   updateVerified,
   upsertPayments,
 } from "../controllers/entry.controller.js";
@@ -171,5 +172,9 @@ router.post(
   verifyUser(["5"]),
   getEligibleResitSubjects
 );
-
+router.post(
+  "/updateRequestReference",
+  verifyUser(["5"]),
+  updateRequestReference
+);
 export default router;

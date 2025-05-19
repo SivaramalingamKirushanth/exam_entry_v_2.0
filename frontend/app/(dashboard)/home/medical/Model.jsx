@@ -6,162 +6,126 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { lecturerRegister } from "@/utils/apiRequests/auth.api";
+import { getLecturerById, updateLecturer } from "@/utils/apiRequests/user.api";
 import { GiCancel } from "react-icons/gi";
-import {
-  createFaculty,
-  getFacultyById,
-  updateFaculty,
-} from "@/utils/apiRequests/course.api";
+import { updateRequestReference } from "@/utils/apiRequests/entry.api";
 
-
-const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
+const Model = ({ paymentId, isOpen, setIsOpen, modelRef, setPaymentId }) => {
   const [formData, setFormData] = useState({});
   const [btnEnable, setBtnEnable] = useState(false);
+  const [refMatch, setRefMatch] = useState(true);
   const queryClient = useQueryClient();
 
   const { status, mutate } = useMutation({
-    mutationFn: editId ? updateFaculty : createFaculty,
+    mutationFn: updateRequestReference,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["facultiesExtra"]);
-      setEditId("");
+      queryClient.invalidateQueries(["batchesOfStudent", "medical"]);
+      setPaymentId("");
       toast.success(res.message);
     },
     onError: (err) => {
-      setEditId("");
+      setPaymentId("");
       toast.error("Operation failed");
     },
   });
 
-  const { data, refetch } = useQuery({
-    queryFn: () => getFacultyById(editId),
-    queryKey: ["faculties", editId],
-    enabled: false,
-  });
-
-  useEffect(() => {
-    if (data) setFormData(data);
-  }, [data]);
-
   const onFormDataChanged = (e) => {
+    const { name, value } = e.target || {};
     if (e.target) {
-      setFormData((curData) => ({
-        ...curData,
-        [e.target?.name]: e.target?.value,
-      }));
-    } else {
-      setFormData((curData) => ({
-        ...curData,
-        [e.split(":")[0]]: e.split(":")[1],
-      }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const onFormSubmitted = () => {
-    mutate(formData);
+    mutate({ ...formData, type: "medical", batch_id: paymentId });
     setFormData({});
     setIsOpen(false);
   };
 
-  const onFormReset = () => {
-    setFormData(data || {});
-  };
-
   useEffect(() => {
-    const isFormValid =
-      formData.f_name && formData.email && formData.contact_no;
+    if (
+      formData.reference &&
+      formData.creference &&
+      formData.reference != formData.creference
+    ) {
+      setRefMatch(false);
+    } else {
+      setRefMatch(true);
+    }
+    const isFormValid = formData.reference && formData.creference;
     setBtnEnable(isFormValid);
   }, [formData]);
-
-  useEffect(() => {
-    editId && refetch();
-  }, [editId]);
 
   return (
     <>
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div
-            ref={modalRef}
+            ref={modelRef}
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
-              <h3 className="text-lg font-semibold">Faculty</h3>
+              <h3 className="text-lg font-semibold">Payment Reference</h3>
 
               <GiCancel
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
                 onClick={() => {
                   setIsOpen(false);
                   setFormData({});
-                  setEditId("");
+                  setPaymentId("");
                 }}
               />
             </div>
 
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="f_name" className="text-right">
-                  Name
+                <Label htmlFor="reference" className="text-right">
+                  Reference
                 </Label>
                 <Input
-                  id="f_name"
-                  name="f_name"
+                  id="reference"
+                  name="reference"
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
                   onBlur={(e) => {
                     e.target.value = e.target.value.trim();
                     onFormDataChanged(e);
                   }}
-                  value={formData.f_name || ""}
-                />
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  name="email"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  onBlur={(e) => {
-                    e.target.value = e.target.value.trim();
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.email || ""}
+                  onCopy={(e) => e.preventDefault()}
+                  onCut={(e) => e.preventDefault()}
+                  value={formData?.reference || ""}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="contact_no" className="text-right">
-                  Contact No
+                <Label htmlFor="creference" className="text-right">
+                  Confirm Reference
                 </Label>
                 <Input
-                  id="contact_no"
-                  name="contact_no"
+                  id="creference"
+                  name="creference"
                   className="col-span-3"
                   onChange={(e) => onFormDataChanged(e)}
                   onBlur={(e) => {
                     e.target.value = e.target.value.trim();
                     onFormDataChanged(e);
                   }}
-                  value={formData.contact_no || ""}
+                  onCopy={(e) => e.preventDefault()}
+                  onCut={(e) => e.preventDefault()}
+                  value={formData?.creference || ""}
                 />
               </div>
             </div>
-            <div className="flex justify-between space-x-2 mt-4">
+            <p className="text-red-500 italic text-xs text-end h-3">
+              {!refMatch ? "Reference do not match" : ""}
+            </p>
+            <div className="flex justify-end space-x-2 mt-4">
               <Button
                 type="button"
-                variant="warning"
-                onClick={() => onFormReset()}
-              >
-                Reset
-              </Button>
-              <Button
-                type="button"
-                disabled={!btnEnable}
+                disabled={!refMatch || !btnEnable}
                 onClick={onFormSubmitted}
               >
-                {editId ? "Update" : "Create"}
+                Submit
               </Button>
             </div>
           </div>

@@ -22,7 +22,7 @@ import {
 import { getSyllabiByDegreeId } from "@/utils/apiRequests/curriculum.api";
 import { LabelSearchCombobox } from "@/components/ui/customCommand";
 
-const ImportModel = ({ isImportOpen, setIsImportOpen, importModalRef }) => {
+const ImportModel = ({ isImportOpen, setIsImportOpen, importModelRef }) => {
   const [file, setFile] = useState(null);
   const [formData, setFormData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -114,7 +114,7 @@ const ImportModel = ({ isImportOpen, setIsImportOpen, importModalRef }) => {
       {isImportOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div
-            ref={importModalRef}
+            ref={importModelRef}
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">

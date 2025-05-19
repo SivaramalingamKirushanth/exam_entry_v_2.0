@@ -16,7 +16,7 @@ import {
   getBatchOpenDate,
   getEligibleResitBatches,
 } from "@/utils/apiRequests/batch.api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { numberToOrdinalWord } from "@/utils/functions";
 import CryptoJS from "crypto-js";
 import {
@@ -29,15 +29,17 @@ import { createRoot } from "react-dom/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import PaymentInvoice from "@/components/PaymentInvoice";
+import Model from "./Model";
 
 const StudentResitHome = () => {
   const router = useRouter();
   const [invoiceDownloadBatchId, setInvoiceDownloadBatchId] = useState(null);
-
+  const [isOpen, setIsOpen] = useState(false);
+  const modelRef = useRef(null);
+  const [paymentId, setPaymentId] = useState("");
   const [generating, setGenerating] = useState(false);
 
   const onInvoiceDownloadClick = (batch_id) => {
-    console.log(batch_id);
     setInvoiceDownloadBatchId(batch_id);
   };
 
@@ -55,6 +57,16 @@ const StudentResitHome = () => {
         degEncryptedData
       )}&batch=${batch}`
     );
+  };
+
+  const toggleModal = () => {
+    isOpen && setPaymentId("");
+    setIsOpen((prev) => !prev);
+  };
+
+  const onPaymentClicked = (batch_id) => {
+    setPaymentId(batch_id);
+    toggleModal();
   };
 
   // All queries initialized here
@@ -78,7 +90,6 @@ const StudentResitHome = () => {
     queryKey: ["eligible", "resit", "subject", invoiceDownloadBatchId],
     enabled: Boolean(invoiceDownloadBatchId),
   });
-  console.log(subjectData);
 
   const { data: openDateData } = useQuery({
     queryFn: () => getBatchOpenDate(invoiceDownloadBatchId),
@@ -328,17 +339,15 @@ const StudentResitHome = () => {
                             className="uppercase"
                             disabled={true}
                           >
-                            Download Invoice
+                            Submit reference
                           </Button>
                         ) : (
                           <Button
                             variant="outline"
                             className="uppercase"
-                            onClick={() =>
-                              onInvoiceDownloadClick(batch.batch_id)
-                            }
+                            onClick={() => onPaymentClicked(batch.batch_id)}
                           >
-                            Download Invoice
+                            Submit reference
                           </Button>
                         )}
                       </div>
@@ -415,7 +424,7 @@ const StudentResitHome = () => {
                     {batch.resit_status}
                   </Badge>
                 </h1>
-                <div className="flex justify-around items-center self-stretch">
+                <div className="flex justify-around flex-wrap gap-2 items-center self-stretch">
                   {batch.resit_status == "active" ? (
                     <Button
                       variant="outline"
@@ -456,6 +465,23 @@ const StudentResitHome = () => {
                       Download Invoice
                     </Button>
                   )}
+                  {batch.resit_status !== "payment pending" ? (
+                    <Button
+                      variant="outline"
+                      className="uppercase"
+                      disabled={true}
+                    >
+                      Submit reference
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="uppercase"
+                      onClick={() => onPaymentClicked(batch.batch_id)}
+                    >
+                      Submit reference
+                    </Button>
+                  )}
                 </div>
                 <div className="flex flex-col items-center justify-center">
                   <span className="font-semibold">Deadline</span>
@@ -473,6 +499,13 @@ const StudentResitHome = () => {
           <span></span>
         )}
       </div>
+      <Model
+        paymentId={paymentId}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        modelRef={modelRef}
+        setPaymentId={setPaymentId}
+      />
     </div>
   );
 };

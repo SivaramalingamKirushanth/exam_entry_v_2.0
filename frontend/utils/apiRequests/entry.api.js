@@ -271,9 +271,16 @@ export const getEligibleMedicalSubjects = async (data) => {
 };
 
 export const getEligibleResitSubjects = async (data) => {
-  console.log(data);
   const response = await axiosInstance.post(
     "/entry/getEligibleResitSubjects",
+    data
+  );
+  return response.data;
+};
+
+export const updateRequestReference = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/updateRequestReference",
     data
   );
   return response.data;
