@@ -9,14 +9,13 @@ const RichTextEditorIndividual = dynamic(
 );
 
 import React, { useEffect, useState } from "react";
-import UoV_Logo from "./../images/UoV_Logo.png";
-import Image from "next/image";
-import { useQuery } from "@tanstack/react-query";
+
 import {
+  deserializeString,
   getDayName,
   getModifiedDate,
-  numberToOrdinalWord,
-  parseString,
+  getUnmodifiedDate,
+  reconstructGroupsObject,
   sortByExamType,
   titleCase,
 } from "@/utils/functions";
@@ -122,6 +121,7 @@ const AttendanceSheetTemplate = ({
   finalNameList,
   totalStudents,
   studentsInTheGroup,
+  setGroupsCount,
 }) => {
   const [splittedArray, setSplittedArray] = useState([]);
 
@@ -236,10 +236,12 @@ const AttendanceSheetTemplate = ({
   useEffect(() => {
     if (latestAttendanceTemplateData) {
       let obj = {};
+      let groups = {};
       if (latestAttendanceTemplateData.exist) {
-        obj.description = latestAttendanceTemplateData?.data?.description;
+        const latestData = latestAttendanceTemplateData?.data;
+        obj.description = latestData?.description;
 
-        const transformedDate = latestAttendanceTemplateData?.data?.exam_date
+        const transformedDate = latestData?.exam_date
           ?.split(",")
           .map((item) => {
             const [year, months] = item.split(":");
@@ -250,14 +252,42 @@ const AttendanceSheetTemplate = ({
           });
 
         obj.date = transformedDate;
+        const studentDetail = latestData?.student_detail;
+        setGroupsCount(latestData?.no_of_groups);
+        setFinalNameList(deserializeString(studentDetail));
+        groups = reconstructGroupsObject(
+          latestData?.venues,
+          latestData?.dates,
+          latestData?.times
+        );
+
+        Object.keys(groups).forEach((key) => {
+          if (groups[key]?.actual_date?.trim()) {
+            const e = getUnmodifiedDate(groups[key]?.actual_date);
+            groups[key].actual_date = `${
+              groups[key]?.actual_date
+            } (${getDayName(e)})`;
+          } else {
+            groups[key].actual_date = "";
+          }
+
+          if (groups[key]?.fromTime) {
+            groups[key].fromTime = groups[key]?.fromTime.slice(0, 5);
+          }
+
+          if (groups[key]?.toTime) {
+            groups[key].toTime = groups[key]?.toTime.slice(0, 5);
+          }
+        });
       } else {
-        obj.description = latestAttendanceTemplateData?.data?.description;
+        obj.description = latestData?.description || "";
       }
 
       setFormData((cur) => {
         return {
           ...cur,
           ...obj,
+          ...groups,
         };
       });
     }
@@ -311,9 +341,132 @@ const AttendanceSheetTemplate = ({
         </div>
         <div className="flex flex-wrap">
           {titleCase(
-            `${level_ordinal} examination in ${batchFullDetailsData?.deg_name} - ${academicYear} - ${sem_ordinal} semester -`
+            `${level_ordinal} examination in ${batchFullDetailsData?.course_title} - ${academicYear} - ${sem_ordinal} semester -`
           )}
           <div className="flex space-x-2 items-center flex-wrap">
+            {formData.date?.map((yearBlock, yearIndex) => (
+              <React.Fragment key={yearIndex}>
+                <span>
+                  {formData.date?.length > 1 && (yearIndex || "") && ","}
+                </span>
+                <div key={yearIndex} className="flex space-x-3">
+                  <div className="flex items-center space-x-2">
+                    {yearBlock.months?.map((month, monthIndex) => (
+                      <div
+                        key={monthIndex}
+                        className="flex items-center space-x-1"
+                      >
+                        {yearBlock.months?.length > 1 && (monthIndex || "") && (
+                          <span> &#47;</span>
+                        )}
+                        <Select
+                          onValueChange={(selectedMonth) =>
+                            handleMonthChange(
+                              selectedMonth,
+                              yearIndex,
+                              monthIndex
+                            )
+                          }
+                          value={month}
+                        >
+                          <SelectTrigger className="w-32 h-8">
+                            <SelectValue placeholder="Month" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Months</SelectLabel>
+                              {[
+                                "January",
+                                "February",
+                                "March",
+                                "April",
+                                "May",
+                                "June",
+                                "July",
+                                "August",
+                                "September",
+                                "October",
+                                "November",
+                                "December",
+                              ].map((m, i) => (
+                                <SelectItem key={i} value={i}>
+                                  {m}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+
+                        {yearBlock.months.length > 1 && (monthIndex || "") && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeMonth(yearIndex, monthIndex)}
+                            className="text-red-500 text-xs rounded-full size-6 p-0"
+                          >
+                            <FaTimes />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger
+                          onClick={() => addNewMonth(yearIndex)}
+                          className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 text-xs rounded-full size-6 p-0"
+                        >
+                          <FaPlus />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Add a month</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      min={new Date().getFullYear()}
+                      max="2100"
+                      placeholder="Year"
+                      className="w-20 rounded-md border px-2 py-1 text-sm h-8"
+                      value={yearBlock.year}
+                      onChange={(e) => handleYearChange(e, yearIndex)}
+                      onBlur={(e) => onYearBlured(e, yearIndex)}
+                      autoFocus={true}
+                    />
+
+                    {yearIndex ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeYearBlock(yearIndex)}
+                        className="text-red-500 text-xs rounded-full size-6 p-0"
+                      >
+                        <FaTimes />
+                      </Button>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                </div>
+              </React.Fragment>
+            ))}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger
+                  onClick={addNewYearBlock}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 text-xs rounded-full size-6 p-0"
+                >
+                  <FaPlus />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add a month of another year</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            &#8208;
             {formData.date?.map((yearBlock, yearIndex) => (
               <React.Fragment key={yearIndex}>
                 <span>
@@ -527,7 +680,7 @@ const AttendanceSheetTemplate = ({
                     ...cur,
                     [groupNo]: {
                       ...cur[groupNo],
-                      fromTime: e.target.value,
+                      fromTime: e.target.value + ":00",
                     },
                   }))
                 }
@@ -543,7 +696,7 @@ const AttendanceSheetTemplate = ({
                     ...cur,
                     [groupNo]: {
                       ...cur[groupNo],
-                      toTime: e.target.value,
+                      toTime: e.target.value + ":00",
                     },
                   }))
                 }

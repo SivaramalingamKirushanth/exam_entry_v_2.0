@@ -268,7 +268,7 @@ const StudentResitHome = () => {
 
                 return (
                   <TableRow key={batch.batch_id}>
-                    <TableCell className="font-medium uppercase">
+                    <TableCell className="font-medium uppercase text-center">
                       {level_ordinal} examination in {batch.course_title} -{" "}
                       {batch.academic_year} - {sem_ordinal}
                       &nbsp;semester
@@ -352,7 +352,7 @@ const StudentResitHome = () => {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">
                       {new Date(batch.deadline)
                         .toString()
                         .slice(

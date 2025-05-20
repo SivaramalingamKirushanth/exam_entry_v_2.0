@@ -760,25 +760,70 @@ export const getEligibleStudentsBySub = async (req, res, next) => {
 };
 
 export const createOrUpdateAttendance = async (req, res, next) => {
-  const { batch_id, date, description } = req.body;
+  const {
+    batch_id,
+    date,
+    description,
+    no_of_groups,
+    studentDetails,
+    sub_id,
+    ...groups
+  } = req.body;
 
   try {
     const transformedDate = date
-      .map((dateObj) => `${dateObj.year}:${dateObj.months.join(";")}`)
+      ?.map((dateObj) => `${dateObj.year}:${dateObj.months.join(";")}`)
       .join(",");
+    // {"1": {
+    //     "hallNo": "1",
+    //     "center": "LH1/DPS",
+    //     "actual_date": "01.05.2025 (Thursday)",
+    //     "fromTime": "23:03",
+    //     "toTime": "12:03"
+    // },
+    // "2": {
+    //     "hallNo": "2",
+    //     "center": "LH2/DPS",
+    //     "actual_date": "01.05.2025 (Thursday)",
+    //     "fromTime": "23:03",
+    //     "toTime": "12:03"
+    // },}
+
+    let venues = "";
+    let dates = "";
+    let times = "";
+    for (let i = 1; i <= Number(no_of_groups); i++) {
+      venues += `${i != 1 ? "," : ""}${
+        groups?.[i]?.["hallNo"] ? "Hall-" + groups?.[i]?.["hallNo"] + "/" : ""
+      }${groups?.[i]?.["center"] || ""}`;
+
+      dates += `${i != 1 ? "," : ""}${
+        groups?.[i]?.["actual_date"]?.split(" ")?.[0] || ""
+      }`;
+      times += `${i != 1 ? "," : ""}${groups?.[i]?.["fromTime"] || ""} - ${
+        groups?.[i]?.["toTime"] || ""
+      }`;
+    }
 
     // Database connection and procedure execution
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
 
-      await conn.query("CALL UpdateAttendaceData(?, ?, ?)", [
+      await conn.query("CALL UpdateAttendanceData(?, ?, ?, ?, ?, ?, ?, ?, ?)", [
         batch_id,
         transformedDate,
         description,
+        no_of_groups,
+        venues,
+        dates,
+        times,
+        studentDetails,
+        sub_id,
       ]);
 
-      let desc = `Attendance created or updated for batch_id=${batch_id}, transformedDate=${transformedDate}, description=${description}`;
+      let desc = `Attendance created or updated for batch_id=${batch_id}, transformedDate=${transformedDate}, description=${description}, no_of_groups=${no_of_groups}, venues=${venues}, dates=${dates}, times=${times}, studentDetails=${studentDetails}`;
+
       await conn.query("CALL LogAdminAction(?);", [desc]);
       await conn.commit();
 

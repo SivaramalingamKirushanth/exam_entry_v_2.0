@@ -34,6 +34,33 @@ import AttendanceSheetTemplate from "@/components/AttendanceSheetTemplate";
 import AttendanceSheet from "@/components/AttendanceSheet";
 import Image from "next/image";
 
+// {
+//     "1": {
+//         "hallNo": "1",
+//         "center": "LH1/DPS",
+//         "actual_date": "01.05.2025 (Thursday)",
+//         "fromTime": "23:03",
+//         "toTime": "12:03"
+//     },
+//     "2": {
+//         "hallNo": "2",
+//         "center": "LH2/DPS",
+//         "actual_date": "01.05.2025 (Thursday)",
+//         "fromTime": "23:03",
+//         "toTime": "12:03"
+//     },
+//     "batch_id": "6",
+//     "date": [
+//         {
+//             "year": 2025,
+//             "months": [
+//                 4
+//             ]
+//         }
+//     ],
+//     "description": "<p>Supervisors are kindly requested to mark absentees clearly \"ABSENT\" and \"✔\" those Present. One copy is to be returned under separate cover to the Deputy Registrar and one to be enclosed in the relevant packet of answer script, when answer scripts separately for each of a paper it is necessary to enclose a copy each of the attendance list in each packet.</p>"
+// }
+
 function divideStudents(totalStudents, noOfGroups) {
   const groupSize = Math.ceil(totalStudents / noOfGroups);
   return groupSize;
@@ -57,6 +84,7 @@ const Attendance = () => {
   const [currentEditor, setCurrentEditor] = useState(null);
   const [formData, setFormData] = useState({
     batch_id,
+    sub_id,
     date: [{ year: new Date().getFullYear(), months: [new Date().getMonth()] }],
     description:
       '<p>Supervisors are kindly requested to mark absentees clearly "ABSENT" and "✔" those Present. One copy is to be returned under separate cover to the Deputy Registrar and one to be enclosed in the relevant packet of answer script, when answer scripts separately for each of a paper it is necessary to enclose a copy each of the attendance list in each packet.</p>',
@@ -263,7 +291,17 @@ const Attendance = () => {
   });
 
   const onGenerate = () => {
-    mutate(formData);
+    const studentDetails = Object.entries(finalNameList)
+      .map(
+        (arr) =>
+          arr[0] +
+          "," +
+          arr[1].map(
+            (arr, i) => i + ":" + arr.map((obj) => Object.values(obj).join(";"))
+          )
+      )
+      .join("+");
+    mutate({ ...formData, no_of_groups: groupsCount, studentDetails });
     generateAttendanceSheetPDFs();
   };
 
@@ -331,6 +369,7 @@ const Attendance = () => {
             studentsInTheGroup={
               grpArr.flat().filter((obj) => typeof obj != "string").length
             }
+            setGroupsCount={setGroupsCount}
           />
         ))
       )}

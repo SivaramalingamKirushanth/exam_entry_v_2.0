@@ -1,6 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -23,8 +23,15 @@ import { FaKey, FaRupeeSign } from "react-icons/fa6";
 const regex = /^[a-zA-Z]+\d+$/;
 
 const DashboardHeader = ({ logoutHandler }) => {
+  const [roleId, setRoleId] = useState(null);
   const pathname = usePathname().split("/").slice(1);
   const { data: user, isLoading, error } = useUser();
+
+  useEffect(() => {
+    if (user) {
+      setRoleId(user.role_id);
+    }
+  }, [user]);
 
   if (error) return (window.location.href = "/");
 
@@ -88,13 +95,18 @@ const DashboardHeader = ({ logoutHandler }) => {
             Change password
             <FaKey />
           </Link>
-          <Link
-            href="/payment settings"
-            className="text-sm flex justify-between items-center border-y border-zinc-200 py-3"
-          >
-            Payment Settings
-            <FaRupeeSign />
-          </Link>
+          {roleId == "1" ? (
+            <Link
+              href="/payment settings"
+              className="text-sm flex justify-between items-center border-y border-zinc-200 py-3"
+            >
+              Payment Settings
+              <FaRupeeSign />
+            </Link>
+          ) : (
+            ""
+          )}
+
           <Button className="mt-6" variant="outline" onClick={logoutHandler}>
             Logout
           </Button>

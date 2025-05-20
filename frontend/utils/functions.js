@@ -153,6 +153,11 @@ export function getModifiedDate(date) {
   return `${day}.${month}.${year}`;
 }
 
+export function getUnmodifiedDate(modifiedDateStr) {
+  const [day, month, year] = modifiedDateStr.split(".");
+  return new Date(`${year}-${month}-${day}`);
+}
+
 export function getDayName(date) {
   let day;
   switch (date.getDay()) {
@@ -213,4 +218,63 @@ export function formatResitData(input) {
       return `${subId}|${attemptStr}`;
     })
     .join(";");
+}
+
+export function deserializeString(str) {
+  const result = {};
+
+  // Split by "+" to get each group
+  const groups = str.split("+");
+
+  for (const group of groups) {
+    const [key, rest] = group.split(",");
+    const entries = rest.split("|") || [];
+
+    result[key] = [];
+
+    for (const entry of rest.split(",")) {
+      const [rowIndexStr, dataStr] = entry.split(":");
+      const rowIndex = parseInt(rowIndexStr, 10);
+
+      const objList = dataStr.split("|").map((item) => {
+        const [s_id, exam_type, index_num] = item.split(";");
+        return {
+          s_id: parseInt(s_id, 10),
+          exam_type,
+          index_num,
+        };
+      });
+
+      result[key][rowIndex] = objList;
+    }
+  }
+
+  return result;
+}
+
+export function reconstructGroupsObject(venues, dates, times) {
+  const venueArr = venues.split(",");
+  const dateArr = dates.split(",");
+  const timeArr = times.split(",");
+
+  const result = {};
+
+  for (let i = 0; i < venueArr.length; i++) {
+    // Extract hallNo and center from the venue string
+    const venue = venueArr[i];
+    const hallMatch = venue.match(/^Hall-(\d+)\/(.*)$/);
+
+    const hallNo = hallMatch ? hallMatch[1] : "";
+    const center = hallMatch ? hallMatch[2] : venue; // fallback if not matched
+
+    result[i + 1] = {
+      hallNo,
+      center,
+      actual_date: dateArr[i],
+      fromTime: timeArr[i].split(" - ")[0] || "",
+      toTime: timeArr[i].split(" - ")[1] || "",
+    };
+  }
+
+  return result;
 }
