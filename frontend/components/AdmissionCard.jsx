@@ -65,22 +65,44 @@ const AdmissionCard = ({
           {academicYear} - {sem_ordinal}&nbsp;semester -{" "}
           {formData.date?.map((obj, ind) =>
             ind
-              ? ", " +
+              ? " ," +
                 obj.months
                   .map((month, index) =>
                     index ? `/${months[month]}` : `${months[month]}`
                   )
                   .join("") +
-                "\u00a0" +
+                " " +
                 obj.year
               : obj.months
                   .map((month, index) =>
                     index ? `/${months[month]}` : `${months[month]}`
                   )
                   .join("") +
-                "\u00a0" +
+                " " +
                 obj.year
-          )}
+          )}{" "}
+          {formData.heldDate?.[0]?.year &&
+            formData.heldDate?.[0]?.months?.length &&
+            typeof formData.heldDate?.[0]?.months?.[0] == "number" &&
+            " - Held on " +
+              formData.heldDate?.map((obj, ind) =>
+                ind
+                  ? " ," +
+                    obj.months
+                      .map((month, index) =>
+                        index ? `/${months[month]}` : `${months[month]}`
+                      )
+                      .join("") +
+                    " " +
+                    obj.year
+                  : obj.months
+                      .map((month, index) =>
+                        index ? `/${months[month]}` : `${months[month]}`
+                      )
+                      .join("") +
+                    " " +
+                    obj.year
+              )}
         </div>
         <h3 className="text-xl uppercase font-bold l">Admission Card</h3>
       </div>

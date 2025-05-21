@@ -457,6 +457,7 @@ export const createOrUpdateAdmission = async (req, res, next) => {
     generated_date,
     subjects,
     date,
+    heldDate,
     description,
     instructions,
     provider,
@@ -473,22 +474,27 @@ export const createOrUpdateAdmission = async (req, res, next) => {
       .map((dateObj) => `${dateObj.year}:${dateObj.months.join(";")}`)
       .join(",");
 
+    const transformedHeldDate = heldDate
+      ?.map((dateObj) => `${dateObj.year}:${dateObj.months.join(";")}`)
+      .join(",");
+
     // Database connection and procedure execution
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
 
-      await conn.query("CALL UpdateAdmissionData(?, ?, ?, ?, ?, ?, ?)", [
+      await conn.query("CALL UpdateAdmissionData(?, ?, ?, ?, ?, ?, ?, ?)", [
         batch_id,
         generated_date,
         transformedSubjects,
         transformedDate,
+        transformedHeldDate,
         description,
         instructions,
         provider,
       ]);
 
-      let desc = `Admission created or updated for batch_id=${batch_id}, generated_date=${generated_date}, transformedSubjects=${transformedSubjects}, transformedDate=${transformedDate}, description=${description}, instructions=${instructions}, provider=${provider}`;
+      let desc = `Admission created or updated for batch_id=${batch_id}, generated_date=${generated_date}, transformedSubjects=${transformedSubjects}, transformedDate=${transformedDate}, transformedHeldDate=${transformedHeldDate}, description=${description}, instructions=${instructions}, provider=${provider}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
       await conn.commit();
 
@@ -763,6 +769,7 @@ export const createOrUpdateAttendance = async (req, res, next) => {
   const {
     batch_id,
     date,
+    heldDate,
     description,
     no_of_groups,
     studentDetails,
@@ -774,20 +781,10 @@ export const createOrUpdateAttendance = async (req, res, next) => {
     const transformedDate = date
       ?.map((dateObj) => `${dateObj.year}:${dateObj.months.join(";")}`)
       .join(",");
-    // {"1": {
-    //     "hallNo": "1",
-    //     "center": "LH1/DPS",
-    //     "actual_date": "01.05.2025 (Thursday)",
-    //     "fromTime": "23:03",
-    //     "toTime": "12:03"
-    // },
-    // "2": {
-    //     "hallNo": "2",
-    //     "center": "LH2/DPS",
-    //     "actual_date": "01.05.2025 (Thursday)",
-    //     "fromTime": "23:03",
-    //     "toTime": "12:03"
-    // },}
+
+    const transformedHeldDate = heldDate
+      ?.map((dateObj) => `${dateObj.year}:${dateObj.months.join(";")}`)
+      .join(",");
 
     let venues = "";
     let dates = "";
@@ -810,19 +807,23 @@ export const createOrUpdateAttendance = async (req, res, next) => {
     try {
       await conn.beginTransaction();
 
-      await conn.query("CALL UpdateAttendanceData(?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-        batch_id,
-        transformedDate,
-        description,
-        no_of_groups,
-        venues,
-        dates,
-        times,
-        studentDetails,
-        sub_id,
-      ]);
+      await conn.query(
+        "CALL UpdateAttendanceData(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+          batch_id,
+          transformedDate,
+          transformedHeldDate,
+          description,
+          no_of_groups,
+          venues,
+          dates,
+          times,
+          studentDetails,
+          sub_id,
+        ]
+      );
 
-      let desc = `Attendance created or updated for batch_id=${batch_id}, transformedDate=${transformedDate}, description=${description}, no_of_groups=${no_of_groups}, venues=${venues}, dates=${dates}, times=${times}, studentDetails=${studentDetails}`;
+      let desc = `Attendance created or updated for batch_id=${batch_id}, transformedDate=${transformedDate}, transformedHeldDate=${transformedHeldDate}, sub_id=${sub_id}, description=${description}, no_of_groups=${no_of_groups}, venues=${venues}, dates=${dates}, times=${times}, studentDetails=${studentDetails}`;
 
       await conn.query("CALL LogAdminAction(?);", [desc]);
       await conn.commit();

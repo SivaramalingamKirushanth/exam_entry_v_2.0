@@ -196,15 +196,21 @@ export const createSubjectObject = (subjects) => {
 };
 
 export function sortByExamType(array) {
-  const examOrder = { P: 1, M: 2, R: 3 }; // Define the order of exam types
-  return array.sort((a, b) => {
-    // First, sort by exam_type order
+  const examOrder = { P: 1, M: 2, R: 3 };
+
+  // Separate strings and objects
+  const objects = array.filter((item) => typeof item === "object");
+  const others = array.filter((item) => typeof item !== "object");
+
+  // Sort only the objects
+  const sortedObjects = objects.sort((a, b) => {
     const examComparison = examOrder[a.exam_type] - examOrder[b.exam_type];
     if (examComparison !== 0) return examComparison;
-
-    // If exam_type is the same, sort by index_num lexicographically
     return a.index_num.localeCompare(b.index_num);
   });
+
+  // Return the sorted array (optional: re-insert strings if needed)
+  return [...sortedObjects, ...others];
 }
 
 export function formatResitData(input) {
@@ -220,42 +226,119 @@ export function formatResitData(input) {
     .join(";");
 }
 
-export function deserializeString(str) {
-  const result = {};
+function parseObjectData(itemStr) {
+  // Split by semicolon to get individual properties
+  const properties = itemStr.split(";");
 
-  // Split by "+" to get each group
-  const groups = str.split("+");
-
-  for (const group of groups) {
-    const [key, rest] = group.split(",");
-    const entries = rest.split("|") || [];
-
-    result[key] = [];
-
-    for (const entry of rest.split(",")) {
-      const [rowIndexStr, dataStr] = entry.split(":");
-      const rowIndex = parseInt(rowIndexStr, 10);
-
-      const objList = dataStr.split("|").map((item) => {
-        const [s_id, exam_type, index_num] = item.split(";");
-        return {
-          s_id: parseInt(s_id, 10),
-          exam_type,
-          index_num,
-        };
-      });
-
-      result[key][rowIndex] = objList;
-    }
+  // If the string has multiple semicolons, it's an object with properties
+  if (properties.length >= 3) {
+    return {
+      s_id: parseInt(properties[0]) || properties[0],
+      exam_type: properties[1],
+      index_num: properties[2],
+    };
   }
 
+  // Otherwise, it might be a simple string
+  return itemStr;
+}
+
+export const makePagination = (sortedArray) => {
+  let examTypesRemoved = sortedArray.slice();
+
+  let examTypeMExist = examTypesRemoved.findIndex((obj) => obj == "M");
+  if (examTypeMExist >= 0) examTypesRemoved.splice(examTypeMExist, 1);
+
+  let examTypeRExist = examTypesRemoved.findIndex((obj) => obj == "R");
+  if (examTypeRExist >= 0) examTypesRemoved.splice(examTypeRExist, 1);
+
+  let exam_type = "P";
+  let grpArr = [];
+  let pageArr = [];
+  let pageArrInd = 0;
+
+  for (let j = 0; j < examTypesRemoved.length; j++) {
+    if (examTypesRemoved[j].exam_type != exam_type) {
+      pageArr.push(examTypesRemoved[j].exam_type);
+      exam_type = examTypesRemoved[j].exam_type;
+      pageArrInd++;
+    }
+
+    pageArr.push(examTypesRemoved[j]);
+
+    if (pageArrInd == 79 || j == examTypesRemoved.length - 1) {
+      grpArr.push(pageArr);
+      pageArr = [];
+      pageArrInd = 0;
+    } else {
+      pageArrInd++;
+    }
+
+    if (j == examTypesRemoved.length - 1) {
+      break;
+    }
+  }
+  return grpArr;
+};
+
+export function deserializeString(str) {
+  // Split the string by + to get each top-level key group
+  if (!str) return {};
+
+  const groups = str.split("+");
+  const result = {};
+
+  groups.forEach((group) => {
+    // First split by comma to separate the key from the array contents
+    const [key, restOfData] = group.split(",", 2);
+
+    // The rest of the data contains all array elements
+    const arrayDataStr = group.substring(key.length + 1);
+
+    // Split by comma to get individual array items with their indices
+    const arrayItems = arrayDataStr.split(",");
+
+    // Initialize the top-level array for this key
+    result[key] = [];
+
+    let currentArrayIndex = -1;
+
+    arrayItems.forEach((item) => {
+      // Check if this item starts with an index (n:)
+      if (item.includes(":")) {
+        // This is a new sub-array
+        const [indexStr, firstItem] = item.split(":", 2);
+        const index = parseInt(indexStr);
+        currentArrayIndex = index;
+
+        // // Make sure the array at this index exists
+        // if (!result[key][currentArrayIndex]) {
+        //   result[key][currentArrayIndex] = [];
+        // }
+
+        // Process the first item
+        if (firstItem) {
+          // Parse the object data
+          result[key].push(parseObjectData(firstItem));
+        }
+      } else {
+        // This is an additional item in the current sub-array
+        if (currentArrayIndex !== -1) {
+          result[key].push(parseObjectData(item));
+        }
+      }
+    });
+
+    result[key] = makePagination(result[key]);
+  });
+  console.log(result);
   return result;
 }
 
 export function reconstructGroupsObject(venues, dates, times) {
-  const venueArr = venues.split(",");
-  const dateArr = dates.split(",");
-  const timeArr = times.split(",");
+  const venueArr = venues?.split(",") || "";
+  const dateArr = dates?.split(",") || "";
+  const timeArr = times?.split(",") || "";
 
   const result = {};
 
@@ -277,4 +360,7 @@ export function reconstructGroupsObject(venues, dates, times) {
   }
 
   return result;
+}
+export function hasNumber(str) {
+  return /\d/.test(str);
 }

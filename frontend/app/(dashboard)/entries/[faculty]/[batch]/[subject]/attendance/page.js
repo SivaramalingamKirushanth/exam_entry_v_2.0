@@ -34,33 +34,6 @@ import AttendanceSheetTemplate from "@/components/AttendanceSheetTemplate";
 import AttendanceSheet from "@/components/AttendanceSheet";
 import Image from "next/image";
 
-// {
-//     "1": {
-//         "hallNo": "1",
-//         "center": "LH1/DPS",
-//         "actual_date": "01.05.2025 (Thursday)",
-//         "fromTime": "23:03",
-//         "toTime": "12:03"
-//     },
-//     "2": {
-//         "hallNo": "2",
-//         "center": "LH2/DPS",
-//         "actual_date": "01.05.2025 (Thursday)",
-//         "fromTime": "23:03",
-//         "toTime": "12:03"
-//     },
-//     "batch_id": "6",
-//     "date": [
-//         {
-//             "year": 2025,
-//             "months": [
-//                 4
-//             ]
-//         }
-//     ],
-//     "description": "<p>Supervisors are kindly requested to mark absentees clearly \"ABSENT\" and \"✔\" those Present. One copy is to be returned under separate cover to the Deputy Registrar and one to be enclosed in the relevant packet of answer script, when answer scripts separately for each of a paper it is necessary to enclose a copy each of the attendance list in each packet.</p>"
-// }
-
 function divideStudents(totalStudents, noOfGroups) {
   const groupSize = Math.ceil(totalStudents / noOfGroups);
   return groupSize;
@@ -86,6 +59,7 @@ const Attendance = () => {
     batch_id,
     sub_id,
     date: [{ year: new Date().getFullYear(), months: [new Date().getMonth()] }],
+    heldDate: [{ year: "", months: [""] }],
     description:
       '<p>Supervisors are kindly requested to mark absentees clearly "ABSENT" and "✔" those Present. One copy is to be returned under separate cover to the Deputy Registrar and one to be enclosed in the relevant packet of answer script, when answer scripts separately for each of a paper it is necessary to enclose a copy each of the attendance list in each packet.</p>',
   });
@@ -109,109 +83,125 @@ const Attendance = () => {
     }
 
     const margin = 5; // Top and bottom margin in mm
+    try {
+      setGenerating(true);
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
+      const quality = 2;
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    setGenerating(true);
+      for (const [grpNo, grpArr] of Object.entries(finalNameList)) {
+        for (let pageInd = 0; pageInd < grpArr.length; pageInd++) {
+          const pageArr = grpArr[pageInd];
 
-    for (const [grpNo, grpArr] of Object.entries(finalNameList)) {
-      for (let pageInd = 0; pageInd < grpArr.length; pageInd++) {
-        const pageArr = grpArr[pageInd];
+          const container = document.createElement("div");
+          container.style.width = "210mm"; // A4 width
+          container.style.padding = "10px";
+          container.style.backgroundColor = "#fff";
+          container.style.boxSizing = "border-box";
+          container.style.position = "absolute";
+          container.style.left = "-9999px";
+          container.id = `AttendanceSheet-G${grpNo}-P${pageInd + 1}`;
+          document.body.appendChild(container);
 
-        const container = document.createElement("div");
-        container.style.width = "210mm"; // A4 width
-        container.style.padding = "20px";
-        container.style.backgroundColor = "#fff";
-        container.id = `AttendanceSheet-G${grpNo}-P${pageInd + 1}`;
-        document.body.appendChild(container);
-
-        const root = createRoot(container);
-        const renderComplete = new Promise((resolve) => {
-          root.render(
-            <AttendanceSheet
-              level_ordinal={level_ordinal}
-              batchFullDetailsData={batchFullDetailsData}
-              academicYear={academicYear}
-              formData={formData}
-              sem_ordinal={sem_ordinal}
-              onRenderComplete={resolve}
-              sub_name={sub_name}
-              sub_code={sub_code}
-              pageArr={pageArr}
-              pageNo={pageInd + 1}
-              groupNo={grpNo}
-              totalPages={grpArr.length}
-              totalGroups={Object.keys(finalNameList).length}
-              totalStudents={eligibleStudentsForASubjectData.length}
-              studentsInTheGroup={
-                grpArr.flat().filter((obj) => typeof obj != "string").length
-              }
-            />
-          );
-        });
-
-        await renderComplete;
-
-        // Calculate the total height of the rendered admission card
-        const totalHeightPx = container.offsetHeight;
-        const pageHeightPx = 1122; // A4 height in pixels at 96 DPI
-        const scale = 2;
-
-        let currentPage = 0;
-        while (currentPage * pageHeightPx < totalHeightPx) {
-          const canvas = await html2canvas(container, {
-            scale,
-            useCORS: true,
-            height: pageHeightPx,
-            y: currentPage * pageHeightPx,
-            scrollY: -currentPage * pageHeightPx,
-            windowWidth: container.offsetWidth,
-            windowHeight: totalHeightPx,
+          const root = createRoot(container);
+          const renderComplete = new Promise((resolve) => {
+            root.render(
+              <AttendanceSheet
+                level_ordinal={level_ordinal}
+                batchFullDetailsData={batchFullDetailsData}
+                academicYear={academicYear}
+                formData={formData}
+                sem_ordinal={sem_ordinal}
+                onRenderComplete={resolve}
+                sub_name={sub_name}
+                sub_code={sub_code}
+                pageArr={pageArr}
+                pageNo={pageInd + 1}
+                groupNo={grpNo}
+                totalPages={grpArr.length}
+                totalGroups={Object.keys(finalNameList).length}
+                totalStudents={eligibleStudentsForASubjectData.length}
+                studentsInTheGroup={
+                  grpArr.flat().filter((obj) => typeof obj != "string").length
+                }
+              />
+            );
           });
 
-          const imgData = canvas.toDataURL("image/png");
-          const imgProps = pdf.getImageProperties(imgData);
-          const pdfWidth = pdf.internal.pageSize.getWidth();
-          const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+          await renderComplete;
 
-          // Calculate the image height and position considering margins
-          const availableHeight = pdf.internal.pageSize.getHeight() - margin;
-          const scaledHeight = Math.min(pdfHeight, availableHeight);
-          const yPosition = margin;
+          // Calculate the total height of the rendered admission card
+          const totalHeightPx = container.offsetHeight;
+          const pageHeightPx = 1122; // A4 height in pixels at 96 DPI
+          const scale = 2;
 
-          // Add the image to the PDF with margins
-          pdf.addImage(imgData, "PNG", 0, yPosition, pdfWidth, scaledHeight);
+          let currentPage = 0;
+          while (currentPage * pageHeightPx < totalHeightPx) {
+            const canvas = await html2canvas(container, {
+              scale,
+              useCORS: true,
+              logging: false,
+              allowTaint: true,
+              height: pageHeightPx,
+              y: currentPage * pageHeightPx,
+              scrollY: -currentPage * pageHeightPx,
+              windowWidth: container.offsetWidth,
+              windowHeight: totalHeightPx,
+            });
 
-          // Add a new page for the next segment, except the last one
-          if ((currentPage + 1) * pageHeightPx < totalHeightPx) {
+            const imgData = canvas.toDataURL("image/png", 1.0);
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            // Calculate the image height and position considering margins
+            const availableHeight = pdf.internal.pageSize.getHeight() - margin;
+            const scaledHeight = Math.min(pdfHeight, availableHeight);
+            const yPosition = margin;
+
+            // Add the image to the PDF with margins
+            pdf.addImage(imgData, "PNG", 0, yPosition, pdfWidth, scaledHeight);
+
+            // Add a new page for the next segment, except the last one
+            if ((currentPage + 1) * pageHeightPx < totalHeightPx) {
+              pdf.addPage();
+            }
+            currentPage++;
+          }
+
+          // Clean up the DOM after rendering
+          document.body.removeChild(container);
+
+          // Add a new page for the next student, except the last one
+          if (pageInd < grpArr.length - 1) {
             pdf.addPage();
           }
-          currentPage++;
         }
-
-        // Clean up the DOM after rendering
-        document.body.removeChild(container);
-
-        // Add a new page for the next student, except the last one
-        if (pageInd < grpArr.length - 1) {
+        if (grpNo - 1 < Object.entries(finalNameList).length - 1) {
           pdf.addPage();
         }
       }
-      if (grpNo - 1 < Object.entries(finalNameList).length - 1) {
-        pdf.addPage();
-      }
+
+      pdf.save(
+        `${batchFullDetailsData.batch_code}_${sub_code}_attendance_sheet.pdf`
+      );
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setGenerating(false);
     }
-
-    pdf.save(
-      `${batchFullDetailsData.batch_code}_${sub_code}_attendance_sheet.pdf`
-    );
-
-    setGenerating(false);
   };
 
   const { data: eligibleStudentsForASubjectData } = useQuery({
     queryFn: () => getEligibleStudentsBySub({ batch_id, sub_id }),
     queryKey: ["eligibleStudentsForASubject", batch_id, sub_id],
   });
+
+  console.log(eligibleStudentsForASubjectData);
 
   useEffect(() => {
     if (eligibleStudentsForASubjectData?.length) {
@@ -297,7 +287,12 @@ const Attendance = () => {
           arr[0] +
           "," +
           arr[1].map(
-            (arr, i) => i + ":" + arr.map((obj) => Object.values(obj).join(";"))
+            (arr, i) =>
+              i +
+              ":" +
+              arr
+                .filter((item) => typeof item != "string")
+                .map((obj) => Object.values(obj).join(";"))
           )
       )
       .join("+");

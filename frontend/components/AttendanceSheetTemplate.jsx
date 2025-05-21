@@ -15,6 +15,8 @@ import {
   getDayName,
   getModifiedDate,
   getUnmodifiedDate,
+  hasNumber,
+  makePagination,
   reconstructGroupsObject,
   sortByExamType,
   titleCase,
@@ -62,44 +64,6 @@ function arrayPadEnd(array) {
   return final;
 }
 
-const makePagination = (sortedArray) => {
-  let examTypesRemoved = sortedArray.slice();
-
-  let examTypeMExist = examTypesRemoved.findIndex((obj) => obj == "M");
-  if (examTypeMExist >= 0) examTypesRemoved.splice(examTypeMExist, 1);
-
-  let examTypeRExist = examTypesRemoved.findIndex((obj) => obj == "R");
-  if (examTypeRExist >= 0) examTypesRemoved.splice(examTypeRExist, 1);
-
-  let exam_type = "P";
-  let grpArr = [];
-  let pageArr = [];
-  let pageArrInd = 0;
-
-  for (let j = 0; j < examTypesRemoved.length; j++) {
-    if (examTypesRemoved[j].exam_type != exam_type) {
-      pageArr.push(examTypesRemoved[j].exam_type);
-      exam_type = examTypesRemoved[j].exam_type;
-      pageArrInd++;
-    }
-
-    pageArr.push(examTypesRemoved[j]);
-
-    if (pageArrInd == 79 || j == examTypesRemoved.length - 1) {
-      grpArr.push(pageArr);
-      pageArr = [];
-      pageArrInd = 0;
-    } else {
-      pageArrInd++;
-    }
-
-    if (j == examTypesRemoved.length - 1) {
-      break;
-    }
-  }
-  return grpArr;
-};
-
 const AttendanceSheetTemplate = ({
   setFormData,
   formData,
@@ -146,6 +110,8 @@ const AttendanceSheetTemplate = ({
     let finalFromGroup = makePagination(sortedFromGroup);
     let finalToGroup = makePagination(sortedToGroup);
 
+    console.log(finalFromGroup, finalToGroup);
+
     setFinalNameList((cur) => {
       const obj = { ...cur, [from]: finalFromGroup, [to]: finalToGroup };
       if (finalFromGroup.length == 0) delete obj[from];
@@ -154,6 +120,7 @@ const AttendanceSheetTemplate = ({
     });
   };
 
+  //NORMAL-------------
   const handleMonthChange = (month, yearIndex, monthIndex) => {
     setFormData((cur) => {
       const updatedDates = [...cur.date];
@@ -233,6 +200,86 @@ const AttendanceSheetTemplate = ({
     e.target.value = value;
   };
 
+  //HELD----------------
+  const handleHeldMonthChange = (month, yearIndex, monthIndex) => {
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates[yearIndex].months[monthIndex] = month;
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const addNewHeldMonth = (yearIndex) => {
+    const monthsLength = formData?.heldDate[yearIndex]?.months?.length;
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+
+      if (
+        updatedDates[yearIndex]?.months &&
+        updatedDates[yearIndex]?.months.length < monthsLength + 1
+      ) {
+        let lastItem =
+          updatedDates[yearIndex].months[
+            updatedDates[yearIndex].months.length - 1
+          ];
+        updatedDates[yearIndex].months.push(lastItem == 11 ? 0 : +lastItem + 1);
+      }
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const handleHeldYearChange = (e, yearIndex) => {
+    const year = e.target.value;
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates[yearIndex].year = year;
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const addNewHeldYearBlock = () => {
+    setFormData((cur) => {
+      let lastYear = cur.heldDate[cur.heldDate.length - 1].year;
+
+      return {
+        ...cur,
+        heldDate: [...cur.heldDate, { year: +lastYear + 1, months: [0] }],
+      };
+    });
+  };
+
+  const removeHeldYearBlock = (yearIndex) => {
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates.splice(yearIndex, 1);
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const removeHeldMonth = (yearIndex, monthIndex) => {
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates[yearIndex].months.splice(monthIndex, 1);
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const onHeldYearBlured = (e, yearIndex) => {
+    let value = +e.target.value;
+    if (value < +e.target.min) {
+      value = +e.target.min;
+    } else if (value > +e.target.max) {
+      value = +e.target.max;
+    }
+
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates[yearIndex].year = value;
+      return { ...cur, heldDate: updatedDates };
+    });
+    e.target.value = value;
+  };
+
   useEffect(() => {
     if (latestAttendanceTemplateData) {
       let obj = {};
@@ -252,9 +299,30 @@ const AttendanceSheetTemplate = ({
           });
 
         obj.date = transformedDate;
+
+        if (hasNumber(latestData?.exam_held_date)) {
+          const transformedHeldDate = latestData?.exam_held_date
+            ?.split(",")
+            .map((item) => {
+              const [year, months] = item.split(":");
+              return {
+                year: parseInt(year),
+                months: months.split(";").map((mon) => +mon),
+              };
+            });
+          obj.heldDate = transformedHeldDate;
+        } else {
+          obj.heldDate = [{ year: "", months: [""] }];
+        }
+
         const studentDetail = latestData?.student_detail;
-        setGroupsCount(latestData?.no_of_groups);
-        setFinalNameList(deserializeString(studentDetail));
+        console.log(studentDetail);
+        console.log(deserializeString(studentDetail));
+        const recon = deserializeString(studentDetail);
+        console.log(recon);
+        if (Object.keys(recon).length) {
+          setFinalNameList(recon);
+        }
         groups = reconstructGroupsObject(
           latestData?.venues,
           latestData?.dates,
@@ -309,6 +377,22 @@ const AttendanceSheetTemplate = ({
     }
   }, [pageArr]);
 
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
+
+  useEffect(() => {
+    console.log(finalNameList);
+  }, [finalNameList]);
+
+  // useEffect(() => {
+  //   console.log(stuCountPerGroup);
+  // }, [stuCountPerGroup]);
+
+  useEffect(() => {
+    console.log(totalGroups);
+  }, [totalGroups]);
+
   return (
     <div className="border-2 border-black p-8 max-w-4xl mx-auto font-times bg-white mb-2">
       {/* <div className="text-center mb-4"> */}
@@ -343,7 +427,7 @@ const AttendanceSheetTemplate = ({
           {titleCase(
             `${level_ordinal} examination in ${batchFullDetailsData?.course_title} - ${academicYear} - ${sem_ordinal} semester -`
           )}
-          <div className="flex space-x-2 items-center flex-wrap">
+          <div className="flex space-x-2 space-y-2 items-center flex-wrap ">
             {formData.date?.map((yearBlock, yearIndex) => (
               <React.Fragment key={yearIndex}>
                 <span>
@@ -466,11 +550,13 @@ const AttendanceSheetTemplate = ({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            &#8208;
-            {formData.date?.map((yearBlock, yearIndex) => (
+            <span className="inline-block ml-3 mx-3">&#8208;</span>
+            <p>Held on</p>
+
+            {formData.heldDate?.map((yearBlock, yearIndex) => (
               <React.Fragment key={yearIndex}>
                 <span>
-                  {formData.date?.length > 1 && (yearIndex || "") && ","}
+                  {formData.heldDate?.length > 1 && (yearIndex || "") && ","}
                 </span>
                 <div key={yearIndex} className="flex space-x-3">
                   <div className="flex items-center space-x-2">
@@ -484,7 +570,7 @@ const AttendanceSheetTemplate = ({
                         )}
                         <Select
                           onValueChange={(selectedMonth) =>
-                            handleMonthChange(
+                            handleHeldMonthChange(
                               selectedMonth,
                               yearIndex,
                               monthIndex
@@ -524,7 +610,9 @@ const AttendanceSheetTemplate = ({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => removeMonth(yearIndex, monthIndex)}
+                            onClick={() =>
+                              removeHeldMonth(yearIndex, monthIndex)
+                            }
                             className="text-red-500 text-xs rounded-full size-6 p-0"
                           >
                             <FaTimes />
@@ -536,7 +624,7 @@ const AttendanceSheetTemplate = ({
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger
-                          onClick={() => addNewMonth(yearIndex)}
+                          onClick={() => addNewHeldMonth(yearIndex)}
                           className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 text-xs rounded-full size-6 p-0"
                         >
                           <FaPlus />
@@ -555,16 +643,15 @@ const AttendanceSheetTemplate = ({
                       placeholder="Year"
                       className="w-20 rounded-md border px-2 py-1 text-sm h-8"
                       value={yearBlock.year}
-                      onChange={(e) => handleYearChange(e, yearIndex)}
-                      onBlur={(e) => onYearBlured(e, yearIndex)}
-                      autoFocus={true}
+                      onChange={(e) => handleHeldYearChange(e, yearIndex)}
+                      onBlur={(e) => onHeldYearBlured(e, yearIndex)}
                     />
 
                     {yearIndex ? (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => removeYearBlock(yearIndex)}
+                        onClick={() => removeHeldYearBlock(yearIndex)}
                         className="text-red-500 text-xs rounded-full size-6 p-0"
                       >
                         <FaTimes />
@@ -579,7 +666,7 @@ const AttendanceSheetTemplate = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger
-                  onClick={addNewYearBlock}
+                  onClick={addNewHeldYearBlock}
                   className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 text-xs rounded-full size-6 p-0"
                 >
                   <FaPlus />
@@ -716,9 +803,7 @@ const AttendanceSheetTemplate = ({
           </div>
         </div>
       </div>
-
       <h3 className="text-xl mt-1 uppercase text-center">attendance list</h3>
-
       <RichTextEditorIndividual
         setFormData={setFormData}
         text={formData.description}
@@ -803,7 +888,6 @@ const AttendanceSheetTemplate = ({
           </table>
         ))}
       </div>
-
       {/* Footer */}
       <div className="flex justify-between mt-4">
         <div className="flex flex-col space-y-2">

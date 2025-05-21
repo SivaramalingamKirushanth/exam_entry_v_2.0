@@ -11,6 +11,7 @@ import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import {
   getModifiedDate,
+  hasNumber,
   numberToOrdinalWord,
   parseString,
 } from "@/utils/functions";
@@ -53,6 +54,7 @@ const AdmissionCardTemplate = ({
   academicYear,
   subjectObject,
 }) => {
+  //NORMAL-------------
   const handleMonthChange = (month, yearIndex, monthIndex) => {
     setFormData((cur) => {
       const updatedDates = [...cur.date];
@@ -132,20 +134,102 @@ const AdmissionCardTemplate = ({
     e.target.value = value;
   };
 
+  //HELD----------------
+  const handleHeldMonthChange = (month, yearIndex, monthIndex) => {
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates[yearIndex].months[monthIndex] = month;
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const addNewHeldMonth = (yearIndex) => {
+    const monthsLength = formData?.heldDate[yearIndex]?.months?.length;
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+
+      if (
+        updatedDates[yearIndex]?.months &&
+        updatedDates[yearIndex]?.months.length < monthsLength + 1
+      ) {
+        let lastItem =
+          updatedDates[yearIndex].months[
+            updatedDates[yearIndex].months.length - 1
+          ];
+        updatedDates[yearIndex].months.push(lastItem == 11 ? 0 : +lastItem + 1);
+      }
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const handleHeldYearChange = (e, yearIndex) => {
+    const year = e.target.value;
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates[yearIndex].year = year;
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const addNewHeldYearBlock = () => {
+    setFormData((cur) => {
+      let lastYear = cur.heldDate[cur.heldDate.length - 1].year;
+
+      return {
+        ...cur,
+        heldDate: [...cur.heldDate, { year: +lastYear + 1, months: [0] }],
+      };
+    });
+  };
+
+  const removeHeldYearBlock = (yearIndex) => {
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates.splice(yearIndex, 1);
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const removeHeldMonth = (yearIndex, monthIndex) => {
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates[yearIndex].months.splice(monthIndex, 1);
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const onHeldYearBlured = (e, yearIndex) => {
+    let value = +e.target.value;
+    if (value < +e.target.min) {
+      value = +e.target.min;
+    } else if (value > +e.target.max) {
+      value = +e.target.max;
+    }
+
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates[yearIndex].year = value;
+      return { ...cur, heldDate: updatedDates };
+    });
+    e.target.value = value;
+  };
+
   useEffect(() => {
     if (latestAdmissionTemplateData) {
       let obj = {};
       if (latestAdmissionTemplateData.exist) {
-        obj.generated_date = latestAdmissionTemplateData?.data?.generated_date;
-        obj.description = latestAdmissionTemplateData?.data?.description;
-        obj.instructions = latestAdmissionTemplateData?.data?.instructions;
-        obj.provider = latestAdmissionTemplateData?.data?.provider;
+        const latestData = latestAdmissionTemplateData?.data;
 
-        const transformedSubjects =
-          latestAdmissionTemplateData?.data?.subject_list
-            ?.split(",")
-            .map((comSubs) => comSubs.split(":"));
-        const transformedDate = latestAdmissionTemplateData?.data?.exam_date
+        obj.generated_date = latestData?.generated_date;
+        obj.description = latestData?.description;
+        obj.instructions = latestData?.instructions;
+        obj.provider = latestData?.provider;
+
+        const transformedSubjects = latestData?.subject_list
+          ?.split(",")
+          .map((comSubs) => comSubs.split(":"));
+
+        const transformedDate = latestData?.exam_date
           ?.split(",")
           .map((item) => {
             const [year, months] = item.split(":");
@@ -155,12 +239,27 @@ const AdmissionCardTemplate = ({
             };
           });
 
+        if (hasNumber(latestData?.exam_held_date)) {
+          const transformedHeldDate = latestData?.exam_held_date
+            ?.split(",")
+            .map((item) => {
+              const [year, months] = item.split(":");
+              return {
+                year: parseInt(year),
+                months: months.split(";").map((mon) => +mon),
+              };
+            });
+          obj.heldDate = transformedHeldDate;
+        } else {
+          obj.heldDate = [{ year: "", months: [""] }];
+        }
+
         obj.subjects = transformedSubjects;
         obj.date = transformedDate;
       } else {
-        obj.description = latestAdmissionTemplateData?.data?.description;
-        obj.instructions = latestAdmissionTemplateData?.data?.instructions;
-        obj.provider = latestAdmissionTemplateData?.data?.provider;
+        obj.description = latestData?.description;
+        obj.instructions = latestData?.instructions;
+        obj.provider = latestData?.provider;
       }
 
       setFormData((cur) => ({
@@ -313,11 +412,12 @@ const AdmissionCardTemplate = ({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          &ensp; -&ensp;
-          {formData.date?.map((yearBlock, yearIndex) => (
+          <span className="inline-block ml-3 mx-3">&#8208;</span>
+          <p>Held on</p>
+          {formData.heldDate?.map((yearBlock, yearIndex) => (
             <React.Fragment key={yearIndex}>
               <span>
-                {formData.date?.length > 1 && (yearIndex || "") && ","}
+                {formData.heldDate?.length > 1 && (yearIndex || "") && ","}
               </span>
               <div key={yearIndex} className="flex space-x-3">
                 <div className="flex items-center space-x-2">
@@ -331,7 +431,7 @@ const AdmissionCardTemplate = ({
                       )}
                       <Select
                         onValueChange={(selectedMonth) =>
-                          handleMonthChange(
+                          handleHeldMonthChange(
                             selectedMonth,
                             yearIndex,
                             monthIndex
@@ -371,7 +471,7 @@ const AdmissionCardTemplate = ({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => removeMonth(yearIndex, monthIndex)}
+                          onClick={() => removeHeldMonth(yearIndex, monthIndex)}
                           className="text-red-500 text-xs rounded-full size-6 p-0"
                         >
                           <FaTimes />
@@ -383,7 +483,7 @@ const AdmissionCardTemplate = ({
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger
-                        onClick={() => addNewMonth(yearIndex)}
+                        onClick={() => addNewHeldMonth(yearIndex)}
                         className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 text-xs rounded-full size-6 p-0"
                       >
                         <FaPlus />
@@ -402,16 +502,15 @@ const AdmissionCardTemplate = ({
                     placeholder="Year"
                     className="w-20 rounded-md border px-2 py-1 text-sm h-8"
                     value={yearBlock.year}
-                    onChange={(e) => handleYearChange(e, yearIndex)}
-                    onBlur={(e) => onYearBlured(e, yearIndex)}
-                    autoFocus={true}
+                    onChange={(e) => handleHeldYearChange(e, yearIndex)}
+                    onBlur={(e) => onHeldYearBlured(e, yearIndex)}
                   />
 
                   {yearIndex ? (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => removeYearBlock(yearIndex)}
+                      onClick={() => removeHeldYearBlock(yearIndex)}
                       className="text-red-500 text-xs rounded-full size-6 p-0"
                     >
                       <FaTimes />
@@ -426,7 +525,7 @@ const AdmissionCardTemplate = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger
-                onClick={addNewYearBlock}
+                onClick={addNewHeldYearBlock}
                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 text-xs rounded-full size-6 p-0"
               >
                 <FaPlus />
