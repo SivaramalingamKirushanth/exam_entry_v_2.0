@@ -13,6 +13,10 @@ import {
   updateLecturerStatus,
   getSummaryData,
   getFacStudentByBatchId,
+  getVenues,
+  createVenue,
+  updateVenue,
+  getVenueById,
 } from "../controllers/user.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -41,5 +45,10 @@ router.post(
   verifyUser(["1"]),
   getFacStudentByBatchId
 );
+
+router.get("/getVenues", verifyUser(["1"]), getVenues);
+router.post("/createVenue", verifyUser(["1"]), createVenue);
+router.put("/updateVenue", verifyUser(["1"]), updateVenue);
+router.post("/getVenueById", verifyUser(["1"]), getVenueById);
 
 export default router;

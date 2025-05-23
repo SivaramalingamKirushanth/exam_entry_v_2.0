@@ -44,8 +44,10 @@ const AttendanceSheet = ({
   totalGroups,
   totalStudents,
   studentsInTheGroup,
+  venuesData,
 }) => {
   const [splittedArray, setSplittedArray] = useState([]);
+  const [center, setCenter] = useState("");
 
   useEffect(() => {
     if (pageArr.length) {
@@ -61,6 +63,18 @@ const AttendanceSheet = ({
       setSplittedArray(final);
     }
   }, [pageArr]);
+
+  useEffect(() => {
+    if (venuesData) {
+      let venId = formData[groupNo]?.center;
+      if (venId) {
+        let venObj = venuesData.find((obj) => obj.id == venId);
+        if (venObj) {
+          setCenter(venObj.short_code);
+        }
+      }
+    }
+  }, [venuesData]);
 
   useEffect(() => {
     if (onRenderComplete && splittedArray.length) {
@@ -150,7 +164,7 @@ const AttendanceSheet = ({
             <div className="w-36 flex justify-between shrink-0">
               Center <span>:&nbsp;</span>
             </div>
-            <div>{formData[groupNo]?.center || ""}</div>
+            <div>{center}</div>
           </div>
           <div className="flex">
             <div className="w-36 flex justify-between shrink-0">

@@ -389,3 +389,133 @@ export const getSummaryData = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };
+
+export const createVenue = async (req, res, next) => {
+  let { short_code, description, seat_count } = req.body;
+
+  if (!short_code || !description || !seat_count) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      await conn.query("CALL CreateVenue(?, ?, ?);", [
+        short_code,
+        description,
+        seat_count,
+      ]);
+
+      let desc = `Faculty created with short_code=${short_code}, description=${description}, seat_count=${seat_count}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      await conn.commit();
+
+      return res.status(201).json({ message: "Venue created successfully" });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error while creating Venue:", error);
+      return next(errorProvider(500, "An error occurred while creating Venue"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const updateVenue = async (req, res, next) => {
+  const { id, short_code, description, seat_count } = req.body;
+
+  if (!id || !short_code || !description || !seat_count) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      await conn.query("CALL UpdateVenue(?, ?, ?,?);", [
+        id,
+        short_code,
+        description,
+        seat_count,
+      ]);
+
+      let desc = `Venue updated for id=${id} with short_code=${short_code}, description=${description}, seat_count=${seat_count}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      await conn.commit();
+
+      return res.status(200).json({ message: "Venue updated successfully" });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error while updating Venue:", error);
+      return next(errorProvider(500, "An error occurred while updating Venue"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getVenues = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [venues] = await conn.query("CALL GetVenues();");
+
+      if (!venues[0].length) {
+        return res.status(404).json({ message: "No Venues found" });
+      }
+
+      return res.status(200).json(venues[0]);
+    } catch (error) {
+      console.error("Error retrieving venues:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving venues")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getVenueById = async (req, res, next) => {
+  const { id } = req.body;
+
+  if (!id) {
+    return next(errorProvider(400, "Missing id."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [results] = await conn.query("CALL GetVenueById(?);", [id]);
+
+      if (results[0].length === 0) {
+        return next(errorProvider(404, `No Venue found for id: ${id}`));
+      }
+
+      return res.status(200).json(results[0][0]);
+    } catch (error) {
+      console.error("Error fetching Venue by ID:", error);
+      return next(errorProvider(500, "Failed to fetch Venue by ID"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};

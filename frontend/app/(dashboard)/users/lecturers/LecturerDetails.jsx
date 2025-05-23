@@ -23,6 +23,8 @@ import { ArrowUpDown } from "lucide-react";
 import { FaPen } from "react-icons/fa6";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import ImportModel from "./ImportModel";
+import { UsersDataTable } from "@/components/UsersDataTable";
 
 const LecturerDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
@@ -30,6 +32,8 @@ const LecturerDetails = () => {
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
   const modelRef = useRef(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const importModelRef = useRef(null);
   const [editId, setEditId] = useState("");
   const queryClient = useQueryClient();
 
@@ -139,6 +143,10 @@ const LecturerDetails = () => {
     setIsOpen((prev) => !prev);
   };
 
+  const toggleImportModel = () => {
+    setIsImportOpen((prev) => !prev);
+  };
+
   const onEditClicked = (e) => {
     if (e.target.classList.contains("editBtn")) {
       setEditId(e.target.id);
@@ -211,13 +219,19 @@ const LecturerDetails = () => {
         modelRef={modelRef}
         setEditId={setEditId}
       />
+      <ImportModel
+        isImportOpen={isImportOpen}
+        setIsImportOpen={setIsImportOpen}
+        importModelRef={importModelRef}
+      />
       <div className="container mx-auto">
-        <DataTable
+        <UsersDataTable
           columns={columns}
           data={filteredData}
           onEditClicked={onEditClicked}
           toggleModel={toggleModel}
-          btnText="Create lecturer"
+          toggleImportModel={toggleImportModel}
+          user="lecturer"
         />
       </div>
     </>

@@ -22,7 +22,7 @@ import { ArrowUpDown } from "lucide-react";
 import { FaPen } from "react-icons/fa6";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { StudentsDataTable } from "@/components/StudentsDataTable";
+import { UsersDataTable } from "@/components/UsersDataTable";
 import ImportModel from "./ImportModel";
 
 const StudentDetails = () => {
@@ -242,12 +242,13 @@ const StudentDetails = () => {
         importModelRef={importModelRef}
       />
       <div className="container mx-auto">
-        <StudentsDataTable
+        <UsersDataTable
           columns={columns}
           data={filteredData}
           onEditClicked={onEditClicked}
           toggleModel={toggleModel}
           toggleImportModel={toggleImportModel}
+          user="student"
         />
       </div>
     </>

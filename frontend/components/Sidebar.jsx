@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { checkPendingMedicalResitRequests } from "@/utils/apiRequests/entry.api";
 import { IoMdAlert } from "react-icons/io";
+import { GrLocation } from "react-icons/gr";
 
 const Sidebar = () => {
   const [roleId, setRoleID] = useState(null);
@@ -31,7 +32,7 @@ const Sidebar = () => {
 
   return (
     roleId == "1" && (
-      <div className="w-12 hover:w-48 transition-all duration-300 overflow-hidden rounded-xl fixed top-[50%] left-2 -translate-y-1/2 shadow-2xl bg-white py-3 flex flex-col gap-y-1 items-start bg-background supports-[backdrop-filter]:bg-background z-50">
+      <div className="w-12 hover:w-48 transition-all duration-300 overflow-hidden rounded-xl fixed top-[45%] left-2 -translate-y-1/3 shadow-2xl bg-white py-3 flex flex-col gap-y-[2px] items-start bg-background supports-[backdrop-filter]:bg-background z-50">
         <Link
           href="/home"
           className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
@@ -70,6 +71,15 @@ const Sidebar = () => {
             >
               <LucideUser2 size={25} className="shrink-0" />
               users
+            </Link>
+            <Link
+              href="/venues"
+              className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
+                pathname.startsWith("/venues") ? "bg-gray-200" : ""
+              }`}
+            >
+              <GrLocation size={25} className="shrink-0" />
+              venues
             </Link>
             <Link
               href="/examinations"

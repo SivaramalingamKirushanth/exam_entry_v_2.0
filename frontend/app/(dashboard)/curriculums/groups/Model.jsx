@@ -383,7 +383,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="course_title" className="text-right">
-                      Course title
+                      Degree Name in Exam
                     </Label>
                     <Input
                       id="course_title"

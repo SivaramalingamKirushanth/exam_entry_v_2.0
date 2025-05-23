@@ -93,17 +93,46 @@ export const studentRegister = async (req, res, next) => {
 
       await conn.query("CALL InsertStudent(?, ?);", [user_id, s_id]);
 
-      let desc = `Student created with user_id=${user_id}, s_id=${s_id}, name=${name}, f_id=${f_id}, syl_id=${syl_id}, index_num=${index_num}, contact_no=${contact_no}`;
+      let desc = `Student created with user_id=${user_id}, user_name=${user_name}, s_id=${s_id}, name=${name}, f_id=${f_id}, syl_id=${syl_id}, index_num=${index_num}, contact_no=${contact_no}`;
 
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       try {
         await mailer(
           email,
-          "Registration succesfull",
-          `<h2>You are successfully registered to examinations</h2>
-                <h4>User name : ${user_name}</h4>
-                <h4>Password : ${password}</h4>`
+          "Registration Successful",
+          `
+  <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:20px;text-align:center;">
+      <h1 style="margin:0;font-size:22px;">Examination Registration</h1>
+    </div>
+    <div style="padding:30px;">
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h2>
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        You have been successfully registered for the examinations system.
+      </p>
+
+      <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;">
+        <p style="margin:0;font-size:15px;"><strong>Username:</strong> ${user_name}</p>
+        <p style="margin:0;font-size:15px;"><strong>Password:</strong> ${password}</p>
+      </div>
+
+      <p style="font-size:14px;color:#000;">
+        Please store these credentials safely. You will need them to log into the examination portal.
+      </p>
+
+      <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
+
+      <p style="font-size:14px;color:#000;text-align:center;">
+        For any inquiries, please contact the <strong>Examination Branch</strong>.
+      </p>
+    </div>
+    <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
+      &copy; ${new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.
+            All&nbsp;rights&nbsp;reserved.
+    </div>
+  </div>
+  `
         );
       } catch (mailError) {
         return next(errorProvider(500, "Failed to send mail:" + mailError));
@@ -218,17 +247,46 @@ export const multipleStudentsRegister = async (req, res, next) => {
 
             await conn.query("CALL InsertStudent(?, ?);", [user_id, s_id]);
 
-            let desc = `Student created with user_id=${user_id}, s_id=${s_id}, name=${name}, f_id=${f_id}, syl_id=${syl_id}, index_num=${index_num}, contact_no=${contact_no}`;
+            let desc = `Student created with user_id=${user_id}, user_name=${user_name}, s_id=${s_id}, name=${name}, f_id=${f_id}, syl_id=${syl_id}, index_num=${index_num}, contact_no=${contact_no}`;
 
             await conn.query("CALL LogAdminAction(?);", [desc]);
 
             try {
               await mailer(
                 email,
-                "Registration succesfull",
-                `<h2>You are successfully registered to examinations</h2>
-                <h4>User name : ${user_name}</h4>
-                <h4>Password : ${password}</h4>`
+                "Registration Successful",
+                `
+  <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:20px;text-align:center;">
+      <h1 style="margin:0;font-size:22px;">Examination Registration</h1>
+    </div>
+    <div style="padding:30px;">
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h2>
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        You have been successfully registered for the examinations system.
+      </p>
+
+      <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;">
+        <p style="margin:0;font-size:15px;"><strong>Username:</strong> ${user_name}</p>
+        <p style="margin:0;font-size:15px;"><strong>Password:</strong> ${password}</p>
+      </div>
+
+      <p style="font-size:14px;color:#000;">
+        Please store these credentials safely. You will need them to log into the examination portal.
+      </p>
+
+      <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
+
+      <p style="font-size:14px;color:#000;text-align:center;">
+        For any inquiries, please contact the <strong>Examination Branch</strong>.
+      </p>
+    </div>
+    <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
+      &copy; ${new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.
+            All&nbsp;rights&nbsp;reserved.
+    </div>
+  </div>
+  `
               );
             } catch (mailError) {
               return next(
@@ -327,37 +385,66 @@ export const lecturerRegister = async (req, res, next) => {
       const user_id = userResult[1][0].userId;
 
       // Insert magnager details
-      const [managerResult] = await conn.query(
-        "CALL InsertManagerDetail(?, ?, ? , @mId);SELECT @mId AS mId;",
+      const [lecturerResult] = await conn.query(
+        "CALL InsertLecturerDetail(?, ?, ? , @mId);SELECT @mId AS mId;",
         [name, contact_no, status]
       );
 
-      const m_id = managerResult[1][0].mId;
+      const l_id = lecturerResult[1][0].mId;
 
-      await conn.query("CALL InsertManager(?, ?);", [user_id, m_id]);
+      await conn.query("CALL InsertLecturer(?, ?);", [user_id, l_id]);
 
-      let desc = `Manager created with user_id=${user_id}, m_id=${m_id}, name=${name}, contact_no=${contact_no}`;
+      let desc = `lecturer created with user_id=${user_id}, user_name=${user_name}, l_id=${l_id}, name=${name}, contact_no=${contact_no}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       try {
         await mailer(
           email,
-          "Registration succesfull",
-          `<h2>You are successfully registered to examinations</h2>
-          <h4>User name : ${user_name}</h4>
-          <h4>Password : ${password}</h4>`
+          "Registration Successful",
+          `
+  <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:20px;text-align:center;">
+      <h1 style="margin:0;font-size:22px;">Examination Registration</h1>
+    </div>
+    <div style="padding:30px;">
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h2>
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        You have been successfully registered for the examinations system.
+      </p>
+
+      <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;">
+        <p style="margin:0;font-size:15px;"><strong>Username:</strong> ${user_name}</p>
+        <p style="margin:0;font-size:15px;"><strong>Password:</strong> ${password}</p>
+      </div>
+
+      <p style="font-size:14px;color:#000;">
+        Please store these credentials safely. You will need them to log into the examination portal.
+      </p>
+
+      <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
+
+      <p style="font-size:14px;color:#000;text-align:center;">
+        For any inquiries, please contact the <strong>Examination Branch</strong>.
+      </p>
+    </div>
+    <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
+      &copy; ${new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.
+            All&nbsp;rights&nbsp;reserved.
+    </div>
+  </div>
+  `
         );
       } catch (mailError) {
         errorProvider(500, "Failed to send mail:" + mailError);
       }
       await conn.commit();
 
-      res.status(201).json({ message: "Manager registered successfully" });
+      res.status(201).json({ message: "Lecturer registered successfully" });
     } catch (error) {
       await conn.rollback();
       console.error("Error during transaction:", error);
       return next(
-        errorProvider(500, "An error occurred while registering manager")
+        errorProvider(500, "An error occurred while registering lecturer")
       );
     } finally {
       conn.release();
@@ -365,6 +452,174 @@ export const lecturerRegister = async (req, res, next) => {
   } catch (error) {
     console.error("Error during registration:", error);
     return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const multipleLecturersRegister = async (req, res, next) => {
+  const results = [];
+  const failedRecords = [];
+  const role_id = 4;
+
+  try {
+    // Check if file exists
+    if (!req.file || !req.file.buffer) {
+      return next(errorProvider(400, "No file uploaded"));
+    }
+
+    const buffer = req.file.buffer; // Access the file buffer
+    const stream = streamifier.createReadStream(buffer); // Convert buffer to readable stream
+
+    // Parse CSV data
+    stream
+      .pipe(csv({ headers: true, skipLines: 1 })) // Read the file
+      .on("data", (row) => {
+        if (Object.keys(row).length) results.push(row); // Collect all rows
+      })
+      .on("end", async () => {
+        const conn = await pool.getConnection();
+
+        try {
+          await conn.beginTransaction();
+          for (const record of results) {
+            const {
+              _0: name,
+              _1: user_name,
+              _2: email,
+              _3: contact_no,
+            } = record;
+
+            // Validate fields
+            if (!user_name || !name || !contact_no) {
+              failedRecords.push({ record, error: "Missing credentials" });
+              continue;
+            }
+
+            let status = "true";
+
+            const password = await generatePassword();
+            const hashedPassword = await hashPassword(password);
+            // Check if user exists
+            const [userExistsResult] = await conn.query(
+              "CALL CheckUserExists(?, ?, @userExists); SELECT @userExists AS userExists;",
+              [user_name, email]
+            );
+            const userExists = userExistsResult[1][0].userExists;
+
+            if (userExists) {
+              failedRecords.push({ record, error: "User already exists" });
+              continue;
+            }
+
+            const [userResult] = await conn.query(
+              "CALL InsertUser(?, ?, ?, ?, @userId); SELECT @userId AS userId;",
+              [user_name, email, hashedPassword, role_id]
+            );
+            const user_id = userResult[1][0].userId;
+
+            // Insert magnager details
+            const [lecturerResult] = await conn.query(
+              "CALL InsertLecturerDetail(?, ?, ? , @mId);SELECT @mId AS mId;",
+              [name, contact_no, status]
+            );
+
+            const l_id = lecturerResult[1][0].mId;
+
+            await conn.query("CALL InsertLecturer(?, ?);", [user_id, l_id]);
+
+            let desc = `Student created with user_id=${user_id}, user_name=${user_name}, l_id=${l_id}, name=${name}, contact_no=${contact_no}`;
+
+            await conn.query("CALL LogAdminAction(?);", [desc]);
+
+            try {
+              await mailer(
+                email,
+                "Registration Successful",
+                `
+  <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:20px;text-align:center;">
+      <h1 style="margin:0;font-size:22px;">Examination Registration</h1>
+    </div>
+    <div style="padding:30px;">
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h2>
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        You have been successfully registered for the examinations system.
+      </p>
+
+      <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;">
+        <p style="margin:0;font-size:15px;"><strong>Username:</strong> ${user_name}</p>
+        <p style="margin:0;font-size:15px;"><strong>Password:</strong> ${password}</p>
+      </div>
+
+      <p style="font-size:14px;color:#000;">
+        Please store these credentials safely. You will need them to log into the examination portal.
+      </p>
+
+      <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
+
+      <p style="font-size:14px;color:#000;text-align:center;">
+        For any inquiries, please contact the <strong>Examination Branch</strong>.
+      </p>
+    </div>
+    <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
+      &copy; ${new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.
+            All&nbsp;rights&nbsp;reserved.
+    </div>
+  </div>
+  `
+              );
+            } catch (mailError) {
+              errorProvider(500, "Failed to send mail:" + mailError);
+            }
+            await conn.commit();
+          }
+
+          if (failedRecords.length > 0) {
+            const filePath = path.join(__dirname, "failed_records.txt");
+            const fileContent = failedRecords
+              .map(
+                (record) =>
+                  `Name: ${record.record._0}\nUsername: ${record.record._1}\nEmail: ${record.record._2}\nContact No: ${record.record._3}\nError: ${record.error}\n\n`
+              )
+              .join("");
+
+            fs.writeFileSync(filePath, fileContent);
+
+            res.setHeader(
+              "Content-Disposition",
+              `attachment; filename=failed_records.txt`
+            );
+            res.setHeader("Content-Type", "text/plain");
+
+            // Stream the file directly to the response
+            const fileStream = fs.createReadStream(filePath);
+            fileStream.pipe(res);
+
+            fileStream.on("end", () => {
+              // Clean up the file after sending
+              fs.unlinkSync(filePath);
+            });
+
+            return;
+          }
+
+          return res.status(201).json({
+            message: "Students registered successfully",
+          });
+        } catch (error) {
+          await conn.rollback();
+          console.error("Error during transaction:", error);
+          return next(errorProvider(500, "Failed to register students"));
+        } finally {
+          conn.release();
+        }
+      })
+      .on("error", (err) => {
+        console.error("Error processing CSV:", err);
+        return next(errorProvider(500, "Error processing CSV file"));
+      });
+  } catch (error) {
+    console.error("Error handling upload:", error);
+    return next(errorProvider(500, "Failed to handle uploaded file"));
   }
 };
 

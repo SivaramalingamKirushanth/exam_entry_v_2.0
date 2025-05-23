@@ -14,6 +14,7 @@ import {
   getDegreesByFacultyId,
 } from "@/utils/apiRequests/course.api";
 import { getSyllabiByDegreeId } from "@/utils/apiRequests/curriculum.api";
+import { LabelSearchCombobox } from "@/components/ui/customCommand";
 
 const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
   const [formData, setFormData] = useState({});

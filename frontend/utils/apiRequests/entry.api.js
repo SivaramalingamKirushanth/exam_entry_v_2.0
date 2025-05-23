@@ -124,10 +124,10 @@ export const createOrUpdateAttendance = async (data) => {
   return response.data;
 };
 
-export const getLatestAttendanceTemplate = async (batch_id) => {
+export const getLatestAttendanceTemplate = async (data) => {
   const response = await axiosInstance.post(
     "/entry/getLatestAttendanceTemplate",
-    { batch_id }
+    data
   );
   return response.data;
 };
@@ -278,10 +278,31 @@ export const getEligibleResitSubjects = async (data) => {
   return response.data;
 };
 
+export const getSummarySubjectsData = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getSummarySubjectsData",
+    data
+  );
+  return response.data;
+};
+
+export const getDynamicBatchTablesData = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getDynamicBatchTablesData",
+    data
+  );
+  return response.data;
+};
+
 export const updateRequestReference = async (data) => {
   const response = await axiosInstance.post(
     "/entry/updateRequestReference",
     data
   );
+  return response.data;
+};
+
+export const getGrades = async () => {
+  const response = await axiosInstance.get("/entry/getGrades");
   return response.data;
 };

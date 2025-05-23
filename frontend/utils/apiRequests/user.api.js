@@ -70,3 +70,23 @@ export const getSummaryData = async () => {
   const response = await axiosInstance.get("/user/getSummaryData");
   return response.data;
 };
+
+export const getVenues = async () => {
+  const response = await axiosInstance.get("/user/getVenues");
+  return response.data;
+};
+
+export const createVenue = async (data) => {
+  const response = await axiosInstance.post("/user/createVenue", data);
+  return response.data;
+};
+
+export const updateVenue = async (data) => {
+  const response = await axiosInstance.put("/user/updateVenue", data);
+  return response.data;
+};
+
+export const getVenueById = async (data) => {
+  const response = await axiosInstance.post("/user/getVenueById", data);
+  return response.data;
+};

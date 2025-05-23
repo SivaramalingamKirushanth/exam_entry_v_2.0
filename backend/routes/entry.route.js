@@ -20,9 +20,11 @@ import {
   getBatchAdmissionDetails,
   getBatchDeadlineAndApprovalStatus,
   getDeanDashboardData,
+  getDynamicBatchTablesData,
   getEligibleMedicalSubjects,
   getEligibleResitSubjects,
   getEligibleStudentsBySub,
+  getGrades,
   getHodDashboardData,
   getLastAssignedIndexNumber,
   getLatestAdmissionTemplate,
@@ -30,6 +32,7 @@ import {
   getStudentMedicalResitApplications,
   getStudentSubjects,
   getStudentsWithoutIndexNumber,
+  getSummarySubjectsData,
   moveToMedical,
   moveToResit,
   rejectMedicalResitApplication,
@@ -177,4 +180,15 @@ router.post(
   verifyUser(["5"]),
   updateRequestReference
 );
+router.post(
+  "/getSummarySubjectsData",
+  verifyUser(["1"]),
+  getSummarySubjectsData
+);
+router.post(
+  "/getDynamicBatchTablesData",
+  verifyUser(["1"]),
+  getDynamicBatchTablesData
+);
+router.get("/getGrades", verifyUser(["1"]), getGrades);
 export default router;

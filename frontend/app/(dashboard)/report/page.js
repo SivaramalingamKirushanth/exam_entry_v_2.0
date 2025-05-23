@@ -1,7 +1,14 @@
 "use client";
 
+import {
+  getDynamicBatchTablesData,
+  getSummarySubjectsData,
+} from "@/utils/apiRequests/entry.api";
+import { useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
+
+const batch_id = 6;
 
 const ExcelGenerator = () => {
   const [loading, setLoading] = useState(false);
@@ -10,6 +17,20 @@ const ExcelGenerator = () => {
     title: "Third Examination in Information Technology- 2023",
     semester: "First Semester - January/February 2025",
   });
+
+  const { data: subjectsData } = useQuery({
+    queryFn: () => getSummarySubjectsData({ batch_id }),
+    queryKey: ["batch", "subjects"],
+  });
+
+  console.log(subjectsData);
+
+  const { data: dynamicBatchTablesData } = useQuery({
+    queryFn: () => getDynamicBatchTablesData({ batch_id }),
+    queryKey: ["batch", "dynamic", "students"],
+  });
+
+  console.log(dynamicBatchTablesData);
 
   // State to hold subject information
   const [subjects, setSubjects] = useState([
@@ -48,7 +69,7 @@ const ExcelGenerator = () => {
     // This is mocked data based on your CSV
     const students = [
       {
-        run: 1,
+        no: 1,
         regNo: "2020/ICT/01",
         indexNo: "IT 16001",
         name: "Ms. Udisha W.H.I.",
@@ -106,7 +127,7 @@ const ExcelGenerator = () => {
 
     // Add student rows
     students.forEach((student) => {
-      const row = [student.run, student.regNo, student.indexNo, student.name];
+      const row = [student.no, student.regNo, student.indexNo, student.name];
 
       // Add subject attendance for each student
       subjects.forEach((subject) => {
@@ -179,7 +200,7 @@ const ExcelGenerator = () => {
 
     // Set column widths
     const cols = [
-      { wch: 5 }, // Run
+      { wch: 5 }, // no
       { wch: 15 }, // Reg.No.
       { wch: 12 }, // Index No
       { wch: 30 }, // Name

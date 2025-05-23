@@ -57,6 +57,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { LabelSearchCombobox } from "./ui/customCommand";
 
 function arrayPadEnd(array) {
   const arr = new Array(80 - array.length).fill(0);
@@ -85,6 +86,9 @@ const AttendanceSheetTemplate = ({
   finalNameList,
   totalStudents,
   studentsInTheGroup,
+  venuesData,
+  isVenuesDataLoading,
+  isVenuesDataError,
   setGroupsCount,
 }) => {
   const [splittedArray, setSplittedArray] = useState([]);
@@ -109,8 +113,6 @@ const AttendanceSheetTemplate = ({
 
     let finalFromGroup = makePagination(sortedFromGroup);
     let finalToGroup = makePagination(sortedToGroup);
-
-    console.log(finalFromGroup, finalToGroup);
 
     setFinalNameList((cur) => {
       const obj = { ...cur, [from]: finalFromGroup, [to]: finalToGroup };
@@ -284,10 +286,10 @@ const AttendanceSheetTemplate = ({
     if (latestAttendanceTemplateData) {
       let obj = {};
       let groups = {};
-      if (latestAttendanceTemplateData.exist) {
-        const latestData = latestAttendanceTemplateData?.data;
-        obj.description = latestData?.description;
+      const latestData = latestAttendanceTemplateData?.data;
 
+      if (latestAttendanceTemplateData.exist) {
+        obj.description = latestData?.description;
         const transformedDate = latestData?.exam_date
           ?.split(",")
           .map((item) => {
@@ -314,39 +316,40 @@ const AttendanceSheetTemplate = ({
         } else {
           obj.heldDate = [{ year: "", months: [""] }];
         }
+        if (latestAttendanceTemplateData.subExist) {
+          setGroupsCount(latestData?.no_of_groups);
 
-        const studentDetail = latestData?.student_detail;
-        console.log(studentDetail);
-        console.log(deserializeString(studentDetail));
-        const recon = deserializeString(studentDetail);
-        console.log(recon);
-        if (Object.keys(recon).length) {
-          setFinalNameList(recon);
+          const studentDetail = latestData?.student_detail;
+          const recon = deserializeString(studentDetail);
+          if (Object.keys(recon).length) {
+            setFinalNameList(recon);
+          }
+
+          groups = reconstructGroupsObject(
+            latestData?.venues,
+            latestData?.dates,
+            latestData?.times
+          );
+
+          Object.keys(groups).forEach((key) => {
+            if (groups[key]?.actual_date?.trim()) {
+              const e = getUnmodifiedDate(groups[key]?.actual_date);
+              groups[key].actual_date = `${
+                groups[key]?.actual_date
+              } (${getDayName(e)})`;
+            } else {
+              groups[key].actual_date = "";
+            }
+
+            if (groups[key]?.fromTime) {
+              groups[key].fromTime = groups[key]?.fromTime.slice(0, 5);
+            }
+
+            if (groups[key]?.toTime) {
+              groups[key].toTime = groups[key]?.toTime.slice(0, 5);
+            }
+          });
         }
-        groups = reconstructGroupsObject(
-          latestData?.venues,
-          latestData?.dates,
-          latestData?.times
-        );
-
-        Object.keys(groups).forEach((key) => {
-          if (groups[key]?.actual_date?.trim()) {
-            const e = getUnmodifiedDate(groups[key]?.actual_date);
-            groups[key].actual_date = `${
-              groups[key]?.actual_date
-            } (${getDayName(e)})`;
-          } else {
-            groups[key].actual_date = "";
-          }
-
-          if (groups[key]?.fromTime) {
-            groups[key].fromTime = groups[key]?.fromTime.slice(0, 5);
-          }
-
-          if (groups[key]?.toTime) {
-            groups[key].toTime = groups[key]?.toTime.slice(0, 5);
-          }
-        });
       } else {
         obj.description = latestData?.description || "";
       }
@@ -380,18 +383,6 @@ const AttendanceSheetTemplate = ({
   useEffect(() => {
     console.log(formData);
   }, [formData]);
-
-  useEffect(() => {
-    console.log(finalNameList);
-  }, [finalNameList]);
-
-  // useEffect(() => {
-  //   console.log(stuCountPerGroup);
-  // }, [stuCountPerGroup]);
-
-  useEffect(() => {
-    console.log(totalGroups);
-  }, [totalGroups]);
 
   return (
     <div className="border-2 border-black p-8 max-w-4xl mx-auto font-times bg-white mb-2">
@@ -583,7 +574,18 @@ const AttendanceSheetTemplate = ({
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>
-                              <SelectLabel>Months</SelectLabel>
+                              <SelectLabel
+                                className="cursor-default"
+                                onClick={() =>
+                                  handleHeldMonthChange(
+                                    "",
+                                    yearIndex,
+                                    monthIndex
+                                  )
+                                }
+                              >
+                                Months
+                              </SelectLabel>
                               {[
                                 "January",
                                 "February",
@@ -638,13 +640,10 @@ const AttendanceSheetTemplate = ({
                   <div className="flex items-center space-x-2">
                     <input
                       type="number"
-                      min={new Date().getFullYear()}
-                      max="2100"
                       placeholder="Year"
                       className="w-20 rounded-md border px-2 py-1 text-sm h-8"
                       value={yearBlock.year}
                       onChange={(e) => handleHeldYearChange(e, yearIndex)}
-                      onBlur={(e) => onHeldYearBlured(e, yearIndex)}
                     />
 
                     {yearIndex ? (
@@ -697,18 +696,32 @@ const AttendanceSheetTemplate = ({
             <div className="w-36 flex justify-between shrink-0">
               Center <span>:&nbsp;</span>
             </div>
-            <Input
-              onChange={(e) =>
-                setFormData((cur) => ({
-                  ...cur,
-                  [groupNo]: {
-                    ...cur[groupNo],
-                    center: e.target.value,
-                  },
-                }))
-              }
-              value={formData[groupNo]?.center}
-            />
+
+            <div className="w-36">
+              <LabelSearchCombobox
+                items={venuesData}
+                labelField="short_code"
+                valueField="id"
+                placeholder="Search venue..."
+                buttonText={
+                  isVenuesDataError
+                    ? "Not found"
+                    : isVenuesDataLoading
+                    ? "Loading..."
+                    : "Select venue"
+                }
+                onValueChange={(e) => {
+                  setFormData((cur) => ({
+                    ...cur,
+                    [groupNo]: {
+                      ...cur[groupNo],
+                      center: e.target.value,
+                    },
+                  }));
+                }}
+                value={Number(formData[groupNo]?.center) || ""}
+              />
+            </div>
           </div>
           <div className="flex">
             <div className="w-36 flex justify-between shrink-0">

@@ -331,7 +331,7 @@ export function deserializeString(str) {
 
     result[key] = makePagination(result[key]);
   });
-  console.log(result);
+
   return result;
 }
 
@@ -345,10 +345,15 @@ export function reconstructGroupsObject(venues, dates, times) {
   for (let i = 0; i < venueArr.length; i++) {
     // Extract hallNo and center from the venue string
     const venue = venueArr[i];
-    const hallMatch = venue.match(/^Hall-(\d+)\/(.*)$/);
-
-    const hallNo = hallMatch ? hallMatch[1] : "";
-    const center = hallMatch ? hallMatch[2] : venue; // fallback if not matched
+    const hallMatch = venue?.split("@");
+    let hallNo = "";
+    let center = "";
+    if (hallMatch?.length == 2) {
+      hallNo = hallMatch[0]?.split("-")[1];
+      center = hallMatch[1];
+    } else {
+      center = hallMatch[0];
+    }
 
     result[i + 1] = {
       hallNo,

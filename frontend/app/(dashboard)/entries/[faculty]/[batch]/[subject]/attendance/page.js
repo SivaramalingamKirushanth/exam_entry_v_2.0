@@ -23,7 +23,7 @@ import {
   parseString,
   sortByExamType,
 } from "@/utils/functions";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -33,6 +33,7 @@ import { createRoot } from "react-dom/client";
 import AttendanceSheetTemplate from "@/components/AttendanceSheetTemplate";
 import AttendanceSheet from "@/components/AttendanceSheet";
 import Image from "next/image";
+import { getVenues } from "@/utils/apiRequests/user.api";
 
 function divideStudents(totalStudents, noOfGroups) {
   const groupSize = Math.ceil(totalStudents / noOfGroups);
@@ -63,6 +64,8 @@ const Attendance = () => {
     description:
       '<p>Supervisors are kindly requested to mark absentees clearly "ABSENT" and "✔" those Present. One copy is to be returned under separate cover to the Deputy Registrar and one to be enclosed in the relevant packet of answer script, when answer scripts separately for each of a paper it is necessary to enclose a copy each of the attendance list in each packet.</p>',
   });
+
+  const queryClient = useQueryClient();
 
   const onGroupsCountBlured = (e) => {
     let value = +e.target.value;
@@ -128,6 +131,7 @@ const Attendance = () => {
                 studentsInTheGroup={
                   grpArr.flat().filter((obj) => typeof obj != "string").length
                 }
+                venuesData={venuesData}
               />
             );
           });
@@ -201,7 +205,14 @@ const Attendance = () => {
     queryKey: ["eligibleStudentsForASubject", batch_id, sub_id],
   });
 
-  console.log(eligibleStudentsForASubjectData);
+  const {
+    data: venuesData,
+    isLoading: isVenuesDataLoading,
+    isError: isVenuesDataError,
+  } = useQuery({
+    queryFn: getVenues,
+    queryKey: ["venues"],
+  });
 
   useEffect(() => {
     if (eligibleStudentsForASubjectData?.length) {
@@ -257,7 +268,7 @@ const Attendance = () => {
   }, [groupsCount, eligibleStudentsForASubjectData]);
 
   const { data: latestAttendanceTemplateData } = useQuery({
-    queryFn: () => getLatestAttendanceTemplate(batch_id),
+    queryFn: () => getLatestAttendanceTemplate({ batch_id, sub_id }),
     queryKey: ["latestAttendanceTemplate", batch_id],
   });
 
@@ -274,6 +285,7 @@ const Attendance = () => {
     mutationFn: createOrUpdateAttendance,
     onSuccess: (res) => {
       toast.success(res.message);
+      queryClient.invalidateQueries(["latestAttendanceTemplate", batch_id]);
     },
     onError: (err) => {
       toast.error("Operation failed");
@@ -296,6 +308,7 @@ const Attendance = () => {
           )
       )
       .join("+");
+
     mutate({ ...formData, no_of_groups: groupsCount, studentDetails });
     generateAttendanceSheetPDFs();
   };
@@ -365,6 +378,9 @@ const Attendance = () => {
               grpArr.flat().filter((obj) => typeof obj != "string").length
             }
             setGroupsCount={setGroupsCount}
+            venuesData={venuesData}
+            isVenuesDataLoading={isVenuesDataLoading}
+            isVenuesDataError={isVenuesDataError}
           />
         ))
       )}

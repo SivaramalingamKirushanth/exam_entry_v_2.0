@@ -25,12 +25,14 @@ import {
 import { useState } from "react";
 import { FaPlus } from "react-icons/fa6";
 import { TfiImport } from "react-icons/tfi";
-export function StudentsDataTable({
+
+export function UsersDataTable({
   columns,
   data,
   onEditClicked,
   toggleModel,
   toggleImportModel,
+  user,
 }) {
   const [sorting, setSorting] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -58,14 +60,14 @@ export function StudentsDataTable({
           className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm mr-3"
         >
           <FaPlus />
-          &nbsp;Create student
+          &nbsp;Create {user}
         </Button>
         <Button
           onClick={toggleImportModel}
           className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm"
         >
           <TfiImport />
-          &nbsp;Import students
+          &nbsp;Import {user}s
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

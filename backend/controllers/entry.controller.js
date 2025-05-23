@@ -777,6 +777,7 @@ export const createOrUpdateAttendance = async (req, res, next) => {
     ...groups
   } = req.body;
 
+  console.log(no_of_groups);
   try {
     const transformedDate = date
       ?.map((dateObj) => `${dateObj.year}:${dateObj.months.join(";")}`)
@@ -791,7 +792,7 @@ export const createOrUpdateAttendance = async (req, res, next) => {
     let times = "";
     for (let i = 1; i <= Number(no_of_groups); i++) {
       venues += `${i != 1 ? "," : ""}${
-        groups?.[i]?.["hallNo"] ? "Hall-" + groups?.[i]?.["hallNo"] + "/" : ""
+        groups?.[i]?.["hallNo"] ? "Hall-" + groups?.[i]?.["hallNo"] + "@" : ""
       }${groups?.[i]?.["center"] || ""}`;
 
       dates += `${i != 1 ? "," : ""}${
@@ -801,7 +802,7 @@ export const createOrUpdateAttendance = async (req, res, next) => {
         groups?.[i]?.["toTime"] || ""
       }`;
     }
-
+    console.log(venues, dates, times);
     // Database connection and procedure execution
     const conn = await pool.getConnection();
     try {
@@ -851,14 +852,15 @@ export const createOrUpdateAttendance = async (req, res, next) => {
 };
 
 export const getLatestAttendanceTemplate = async (req, res, next) => {
-  const { batch_id } = req.body;
+  const { batch_id, sub_id } = req.body;
 
   try {
     const conn = await pool.getConnection();
     try {
       // Call the stored procedure
-      const [rows] = await conn.query("CALL GetLatestAttendanceTemplate(?)", [
+      const [rows] = await conn.query("CALL GetLatestAttendanceTemplate(?,?)", [
         batch_id,
+        sub_id,
       ]);
 
       if (rows.length === 0) {
@@ -2028,5 +2030,95 @@ export const updateRequestReference = async (req, res, next) => {
   } catch (error) {
     console.error("Database connection error:", error);
     return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getSummarySubjectsData = async (req, res, next) => {
+  const { batch_id } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [results] = await conn.query("CALL GetSummarySubjectsData(?);", [
+        batch_id,
+      ]);
+
+      return res.status(200).json(results[0]);
+    } catch (error) {
+      console.error("Error fetching summary subjects:", error);
+      return next(
+        errorProvider(500, "An error occurred while fetching summary subjects.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getDynamicBatchTablesData = async (req, res, next) => {
+  const { batch_id } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [subjects] = await conn.query("CALL GetSubjectsForBatch(?)", [
+        batch_id,
+      ]);
+
+      if (subjects[0].length < 0) {
+        return res.status(404).json({
+          message: "No subjects found for the batch.",
+        });
+      }
+      const subjStr = subjects[0].map((obj) => obj.sub_id).join(",");
+
+      const [rows] = await conn.query("CALL GetBatchDynamicTablesData(?, ?)", [
+        batch_id,
+        subjStr,
+      ]);
+
+      return res.status(200).json(rows[0]);
+    } catch (error) {
+      console.error("Error fetching dynamic table data:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while fetching dynamic table data."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getGrades = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [grades] = await conn.query("select * from grade;");
+
+      if (!grades[0].length) {
+        return res.status(404).json({ message: "No grades found" });
+      }
+
+      return res.status(200).json(venues[0]);
+    } catch (error) {
+      console.error("Error retrieving grades:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving grades")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
   }
 };

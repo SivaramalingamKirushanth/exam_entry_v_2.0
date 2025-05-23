@@ -147,7 +147,9 @@ const GroupsDetails = () => {
       let filtData1 = searchValue
         ? data.filter(
             (item) =>
-              item.deg_name.toLowerCase().includes(searchValue.toLowerCase()) ||
+              item.course_title
+                .toLowerCase()
+                .includes(searchValue.toLowerCase()) ||
               item.grp_code.toLowerCase().includes(searchValue.toLowerCase())
           )
         : data;
@@ -163,7 +165,7 @@ const GroupsDetails = () => {
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between mb-2 items-center sm:items-start">
         <div className="bg-white rounded-md flex relative">
           <Input
-            placeholder="Search by group code  or degree programme"
+            placeholder="Search by group code  or degree name in exam"
             onChange={(e) => onSearchChange(e)}
             value={searchValue}
             className="md:w-60"
