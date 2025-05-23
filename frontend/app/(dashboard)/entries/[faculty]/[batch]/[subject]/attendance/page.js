@@ -236,9 +236,38 @@ const Attendance = () => {
           j++
         ) {
           if (sortedArray[j].exam_type != exam_type) {
+            if (pageArrInd !== 0) {
+              pageArr.push("");
+              //checking availability after pushing the empty
+              if (pageArrInd == 79) {
+                grpArr.push(pageArr);
+                pageArr = [];
+                pageArrInd = 0;
+              } else {
+                pageArrInd++;
+              }
+
+              pageArr.push("");
+              //checking availability after pushing the empty
+              if (pageArrInd == 79) {
+                grpArr.push(pageArr);
+                pageArr = [];
+                pageArrInd = 0;
+              } else {
+                pageArrInd++;
+              }
+            }
+
             pageArr.push(sortedArray[j].exam_type);
             exam_type = sortedArray[j].exam_type;
-            pageArrInd++;
+            //checking availability after pushing the exam_type
+            if (pageArrInd == 79) {
+              grpArr.push(pageArr);
+              pageArr = [];
+              pageArrInd = 0;
+            } else {
+              pageArrInd++;
+            }
           }
           pageArr.push(sortedArray[j]);
 

@@ -252,6 +252,12 @@ export const makePagination = (sortedArray) => {
   let examTypeRExist = examTypesRemoved.findIndex((obj) => obj == "R");
   if (examTypeRExist >= 0) examTypesRemoved.splice(examTypeRExist, 1);
 
+  let empty1Exist = examTypesRemoved.findIndex((obj) => obj == "");
+  if (empty1Exist >= 0) examTypesRemoved.splice(empty1Exist, 1);
+
+  let empty2Exist = examTypesRemoved.findIndex((obj) => obj == "");
+  if (empty2Exist >= 0) examTypesRemoved.splice(empty2Exist, 1);
+
   let exam_type = "P";
   let grpArr = [];
   let pageArr = [];
@@ -259,13 +265,43 @@ export const makePagination = (sortedArray) => {
 
   for (let j = 0; j < examTypesRemoved.length; j++) {
     if (examTypesRemoved[j].exam_type != exam_type) {
-      pageArr.push(examTypesRemoved[j].exam_type);
-      exam_type = examTypesRemoved[j].exam_type;
-      pageArrInd++;
+      if (pageArrInd !== 0) {
+        pageArr.push("");
+        //checking availability after pushing the empty
+        if (pageArrInd == 79) {
+          grpArr.push(pageArr);
+          pageArr = [];
+          pageArrInd = 0;
+        } else {
+          pageArrInd++;
+        }
+
+        pageArr.push("");
+        //checking availability after pushing the empty
+        if (pageArrInd == 79) {
+          grpArr.push(pageArr);
+          pageArr = [];
+          pageArrInd = 0;
+        } else {
+          pageArrInd++;
+        }
+      }
+
+      pageArr.push(sortedArray[j].exam_type);
+      exam_type = sortedArray[j].exam_type;
+      //checking availability after pushing the exam_type
+      if (pageArrInd == 79) {
+        grpArr.push(pageArr);
+        pageArr = [];
+        pageArrInd = 0;
+      } else {
+        pageArrInd++;
+      }
     }
 
     pageArr.push(examTypesRemoved[j]);
 
+    //checking availability after pushing a student
     if (pageArrInd == 79 || j == examTypesRemoved.length - 1) {
       grpArr.push(pageArr);
       pageArr = [];

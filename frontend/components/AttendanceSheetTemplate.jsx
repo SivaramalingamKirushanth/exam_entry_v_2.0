@@ -97,13 +97,13 @@ const AttendanceSheetTemplate = ({
     let fromGroup = [...finalNameList[from]].flat();
     let toGroup = [...finalNameList[to]].flat();
 
-    let ele = fromGroup.find((obj) => obj.s_id == s_id);
-    let eleInd = fromGroup.findIndex((obj) => obj.s_id == s_id);
+    let ele = fromGroup.find((obj) => obj?.s_id == s_id);
+    let eleInd = fromGroup.findIndex((obj) => obj?.s_id == s_id);
     if (eleInd >= 0) {
       fromGroup.splice(eleInd, 1);
     }
 
-    let exist = toGroup.some((obj) => obj.s_id == s_id);
+    let exist = toGroup.some((obj) => obj?.s_id == s_id);
     if (!exist && ele) {
       toGroup.push(ele);
     }
@@ -379,10 +379,6 @@ const AttendanceSheetTemplate = ({
       setSplittedArray(final);
     }
   }, [pageArr]);
-
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
 
   return (
     <div className="border-2 border-black p-8 max-w-4xl mx-auto font-times bg-white mb-2">
