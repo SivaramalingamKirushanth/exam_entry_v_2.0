@@ -18,6 +18,7 @@ import { getStudentsWithoutIndexNumber } from "@/utils/apiRequests/entry.api";
 import { getDeadlinesForBatch } from "@/utils/apiRequests/batch.api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { titleCase } from "@/utils/functions";
+import SummaryExcelGenerator from "@/components/SummaryExcelGenerator";
 
 const Batches = () => {
   const pathname = usePathname();
@@ -89,6 +90,7 @@ const Batches = () => {
               </Link>
             </div>
           ))}
+        <SummaryExcelGenerator batch_id={batch_id} />
       </div>
       <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
         {isSubjectsOfBatchDataLoading &&

@@ -832,14 +832,51 @@ export const forgotPassword = async (req, res, next) => {
 
       // Send email
       const resetLink = `${FRONTEND_SERVER}/reset-password?token=${resetToken}`;
-      const htmlContent = `<p>You are receiving this email because you have requested a password reset for your account.</p>
-                           <p>Please click on the following link to reset your password:</p>
-                           <a href="${resetLink}">Reset Password</a>
-                           <p>OR</p>
-                           <p>Paste this into your browser to complete the process:</p>
-                           <p>${resetLink}</p>
-                           <p>This link will expire in 15 minutes.</p>
-                           <p>If you didn't request this, please ignore this email.</p>`;
+
+      const htmlContent = `
+  <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:20px;text-align:center;">
+      <h1 style="margin:0;font-size:22px;">Password Reset Request</h1>
+    </div>
+    <div style="padding:30px;">
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        You are receiving this email because a password reset was requested for your account.
+      </p>
+
+      <div style="margin:25px 0;text-align:center;">
+        <a href="${resetLink}" style="display:inline-block;padding:10px 20px;background:#000;color:#fff;text-decoration:none;border-radius:4px;font-weight:bold;">
+          Reset Password
+        </a>
+      </div>
+
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        OR paste the following link into your browser:
+      </p>
+      <p style="font-size:14px;color:#000;word-break:break-all;">
+        ${resetLink}
+      </p>
+
+      <p style="font-size:14px;color:#000;">
+        This link will expire in <strong>15 minutes</strong>.
+      </p>
+
+      <p style="font-size:14px;color:#000;">
+        If you didn't request this, please ignore this email.
+      </p>
+
+      <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
+
+      <p style="font-size:14px;color:#000;text-align:center;">
+        For any inquiries, please contact the <strong>Examination Branch</strong>.
+      </p>
+    </div>
+    <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
+      &copy; ${new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.
+            All&nbsp;rights&nbsp;reserved.
+    </div>
+  </div>
+`;
+
       await mailer(email, "Password Reset Request", htmlContent);
 
       res.status(200).json({

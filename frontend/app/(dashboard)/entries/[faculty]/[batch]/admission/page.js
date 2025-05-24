@@ -175,7 +175,7 @@ const AdmissionPage = () => {
     error,
   } = useQuery({
     queryFn: () => getBatchFullDetails(batch_id),
-    queryKey: ["batchFullDetails"],
+    queryKey: ["batchFullDetails", batch_id],
   });
 
   const { data: studentsWithSubjectsData } = useQuery({
