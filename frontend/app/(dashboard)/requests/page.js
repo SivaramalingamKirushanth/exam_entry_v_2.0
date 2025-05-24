@@ -1,30 +1,16 @@
 "use client";
 
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import RequestDetails from "./RequestDetails";
-import { Badge } from "@/components/ui/badge";
-import {
-  MdOutlineSwapHorizontalCircle,
-  MdSwapHorizontalCircle,
-} from "react-icons/md";
-import { IoMdSwap } from "react-icons/io";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import MedicalSubject from "@/components/MedicalSubject";
-import ResitSubject from "@/components/ResitSubject";
 import { useQuery } from "@tanstack/react-query";
 import { getStudentMedicalResitApplications } from "@/utils/apiRequests/entry.api";
 import RequestRow from "@/components/RequestRow";
 import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { MdCancel } from "react-icons/md";
 
 const Batches = () => {
+  const [filteredData, setFilteredData] = useState([]);
+  const [searchValue, setSearchValue] = useState("");
+
   const {
     data: requestsData,
     refetch: requestsDataRefetch,
@@ -35,15 +21,53 @@ const Batches = () => {
     queryKey: ["requests"],
   });
 
+  const onSearchChange = (e) => {
+    setSearchValue(e.target.value);
+  };
+
+  const onClearClicked = () => setSearchValue("");
+
+  useEffect(() => {
+    if (requestsData) {
+      let filtData1 = searchValue
+        ? requestsData.filter((item) =>
+            item._user_name.toLowerCase().includes(searchValue.toLowerCase())
+          )
+        : requestsData;
+      let filtData2 = filtData1.filter((item) => {
+        return item.resit_subs?.length || item.resit_subs?.length
+          ? true
+          : false;
+      });
+      setFilteredData(filtData2);
+    }
+  }, [searchValue, requestsData]);
+
   return (
     <div className="flex justify-end md:justify-center">
-      <div className="w-[80%] md:w-[85%] lg:w-[90%]">
-        <table className="table-auto border border-gray-300 border-separate h-full w-full rounded-md">
+      <div className="w-[80%] md:w-[85%] lg:w-[90%] flex flex-col">
+        <div className="bg-white rounded-md flex relative self-start">
+          <Input
+            placeholder="Search by username"
+            onChange={(e) => onSearchChange(e)}
+            value={searchValue}
+            className="md:w-60"
+          />
+          <span
+            className={`${
+              searchValue ? "opacity-100 inline-block" : "opacity-0 hidden"
+            } text-sm font-medium text-slate-700 absolute top-2 right-2 transition-all duration-200`}
+            onClick={onClearClicked}
+          >
+            <MdCancel className="size-5 cursor-pointer" />
+          </span>
+        </div>
+        <table className="table-auto border border-gray-300 border-separate h-full w-full rounded-md mt-4">
           <thead>
             <tr>
               <th
                 rowSpan={2}
-                className="text-slate-500 px-2 border border-gray-300 font-semibold"
+                className="text-slate-500 px-2 border border-gray-300 font-semibold w-[10%] text-center"
               >
                 Username
               </th>
@@ -61,22 +85,22 @@ const Batches = () => {
               </th>
               <th
                 rowSpan={2}
-                className="text-slate-500 px-2 border border-gray-300 font-semibold"
+                className="text-slate-500 px-2 border border-gray-300 font-semibold w-[10%] text-center"
               >
                 Action
               </th>
             </tr>
             <tr>
-              <th className="text-slate-500 py-2 border border-gray-300 font-semibold">
+              <th className="text-slate-500 py-2 border border-gray-300 font-semibold w-[25%]">
                 Subjects
               </th>
-              <th className="text-slate-500 py-2 border border-gray-300 font-semibold">
+              <th className="text-slate-500 py-2 border border-gray-300 font-semibold w-[15%]">
                 Reference
               </th>
-              <th className="text-slate-500 py-2 border border-gray-300 font-semibold ">
+              <th className="text-slate-500 py-2 border border-gray-300 font-semibold w-[25%]">
                 Subjects
               </th>
-              <th className="text-slate-500 py-2 border border-gray-300  font-semibold">
+              <th className="text-slate-500 py-2 border border-gray-300  font-semibold w-[15%]">
                 Reference
               </th>
             </tr>
@@ -85,12 +109,11 @@ const Batches = () => {
             <tr className="h-3">
               <td colSpan="6"></td>
             </tr>
-            {requestsData?.map((obj) => (
+            {filteredData?.map((obj) => (
               <RequestRow obj={obj} key={obj?.s_id + "-" + obj.batch_id} />
             ))}
           </tbody>
         </table>
-        {/* <RequestDetails /> */}
       </div>
     </div>
   );

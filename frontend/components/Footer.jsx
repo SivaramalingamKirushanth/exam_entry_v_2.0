@@ -141,62 +141,28 @@ export default function Footer() {
                   <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent w-full ml-4"></div>
                 </div>
 
-                {/* <div className="mb-2 flex justify-center">
-                  <div className="w-full md:w-1/2 bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-purple-200 transition-all">
-                    <div className="flex justify-between">
-                      <div>
-                        <p className="font-bold text-md text-gray-800">
-                          Zahran Liyasdeen
-                        </p>
-                        <p className="text-sm font-semibold bg-gradient-to-r from-purple-700 via-pink-600 to-blue-700 bg-clip-text text-transparent">
-                          Team Lead
-                        </p>
-                        <p className="text-sm text-gray-600">2020/ICT/119</p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <a
-                          href="https://github.com/jallu-dev"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-500 hover:text-purple-600 transition-colors"
-                        >
-                          <FaGithub size={18} />
-                        </a>
-                        <a
-                          href="https://www.linkedin.com/in/zahran-liyasdeen"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-500 hover:text-blue-600 transition-colors"
-                        >
-                          <FaLinkedin size={18} />
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div> */}
-                {/* <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-purple-200 transition-all">
                   <div className="flex flex-col sm:items-center">
                     <p className="font-bold text-md text-gray-800">
-                      Zahran Liyasdeen
+                      Mr. Zahran Liyasdeen
                     </p>
-                    <p className="text-sm text-gray-600 sm:text-center">
-                      2020/ICT/119
-                    </p>
-                     <a
-                      href="mailto:zahranliyasdeen@gmail.com"
-                      className="text-sm text-blue-500 hover:text-blue-700 transition-colors sm:text-center mt-1"
-                    >
-                      zahranliyasdeen@gmail.com
-                    </a> 
-                    <p className="text-sm text-gray-600 sm:text-center flex gap-x-2">
+                    <p className="text-sm text-gray-600">2020/ICT/119</p>
+                    <div className="flex items-center gap-x-4 mt-1">
+                      <a
+                        href="mailto:zahranliyasdeen@gmail.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-red-600 hover:text-red-700 transition-colors"
+                      >
+                        <BiLogoGmail size={22} />
+                      </a>
                       <a
                         href="https://github.com/jallu-dev"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-purple-600 hover:text-purple-700 transition-colors"
                       >
-                        <FaGithub size={18} />
+                        <FaGithub size={20} />
                       </a>
                       <a
                         href="https://www.linkedin.com/in/zahran-liyasdeen"
@@ -204,41 +170,9 @@ export default function Footer() {
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:text-blue-700 transition-colors"
                       >
-                        <FaLinkedin size={18} />
+                        <FaLinkedin size={20} />
                       </a>
-                    </p>
-                  </div>
-                </div> */}
-                <div className="flex flex-col items-center bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-purple-200 transition-all">
-                  <p className="font-bold text-lg text-gray-800">
-                    Mr. Zahran Liyasdeen
-                  </p>
-                  <p className="text-sm text-gray-600">2020/ICT/119</p>
-                  <div className="flex items-center gap-x-4">
-                    <a
-                      href="mailto:zahranliyasdeen@gmail.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-red-600 hover:text-red-700 transition-colors"
-                    >
-                      <BiLogoGmail size={20} />
-                    </a>
-                    <a
-                      href="https://github.com/jallu-dev"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-600 hover:text-purple-700 transition-colors"
-                    >
-                      <FaGithub size={20} />
-                    </a>
-                    <a
-                      href="https://www.linkedin.com/in/zahran-liyasdeen"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-700 transition-colors"
-                    >
-                      <FaLinkedin size={20} />
-                    </a>
+                    </div>
                   </div>
                 </div>
 

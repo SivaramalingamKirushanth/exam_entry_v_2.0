@@ -7,13 +7,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-import { FaTimes } from "react-icons/fa";
-import { FaCheck, FaQuestion } from "react-icons/fa6";
+
+import { FaQuestionCircle, FaTimes } from "react-icons/fa";
+import { FaCheck } from "react-icons/fa6";
 import Timeline from "./Timeline";
 import { GoDash } from "react-icons/go";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
@@ -194,7 +190,10 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
                             ) : subject.eligibility == "false" ? (
                               <FaTimes />
                             ) : (
-                              <FaQuestion className="text-red-500" />
+                              <FaQuestionCircle
+                                size={18}
+                                className="text-red-500"
+                              />
                             )}
                           </ContextMenuTrigger>
                           {editEnable && (

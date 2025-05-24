@@ -36,9 +36,19 @@ const Batches = () => {
   const searchParams = useSearchParams();
   const [btnEnable, setBtnEnable] = useState(false);
   const [editEnable, setEditEnable] = useState(false);
+
   const queryClient = useQueryClient();
 
   const batch_id = searchParams.get("batch_id");
+
+  useEffect(() => {
+    const stored = sessionStorage.getItem("tabView");
+    if (stored) {
+      setSelectedTab(stored);
+    } else {
+      setSelectedTab("g");
+    }
+  }, []);
 
   useEffect(() => {
     if (user?.role_id) {
@@ -131,7 +141,10 @@ const Batches = () => {
             className={`${
               selectedTab == "g" ? "bg-gray-200" : ""
             } hover:bg-black hover:text-white transition-colors w-1/2 shrink-0 py-2 flex justify-center items-center text-sm font-semibold cursor-pointer`}
-            onClick={() => setSelectedTab("g")}
+            onClick={() => {
+              sessionStorage.setItem("tabView", "g");
+              setSelectedTab("g");
+            }}
           >
             Grid
           </div>
@@ -139,7 +152,10 @@ const Batches = () => {
             className={`${
               selectedTab == "c" ? "bg-gray-200" : ""
             } hover:bg-black hover:text-white transition-colors w-1/2 shrink-0 py-2 flex justify-center items-center text-sm font-semibold cursor-pointer`}
-            onClick={() => setSelectedTab("c")}
+            onClick={() => {
+              sessionStorage.setItem("tabView", "c");
+              setSelectedTab("c");
+            }}
           >
             Card
           </div>

@@ -20,33 +20,13 @@ import {
   getDeadlinesForBatch,
 } from "@/utils/apiRequests/batch.api";
 
-const oo = {
-  s_id: 8,
-  _user_name: "2022/ICT/02",
-  batch_id: 6,
-  academic_year: "2023",
-  commenced_year: 2017,
-  grp_course_title: "Information Technology",
-  batch_code: "2023-IT21-2017",
-  sem_no: 1,
-  level: 2,
-  medical_reference: null,
-  medical_subjects_verified: null,
-  medical_payment_verified: null,
-  resit_reference: "",
-  resit_subjects_verified: "false",
-  resit_payment_verified: "false",
-  medical_subs: [],
-  resit_subs: [
-    {
-      sub_id: 38,
-      sub_code: "IT2153",
-      sub_name: "sdefdsg",
-      attempt_1: "E",
-      attempt_2: "",
-      attempt_3: "",
-    },
-  ],
+const grades = {
+  0: "N/A",
+  1: "F",
+  2: "E",
+  3: "D",
+  4: "D+",
+  5: "C-",
 };
 
 const RequestRow = ({ obj }) => {
@@ -231,7 +211,7 @@ const RequestRow = ({ obj }) => {
   return (
     <>
       <tr className="bg-white">
-        <td className="px-2 border border-gray-300" rowSpan={2}>
+        <td className="px-2 border border-gray-300 text-center" rowSpan={2}>
           {formData?._user_name}
         </td>
         <td className=" p-2 border border-gray-300 align-top bg-pink-50">
@@ -300,9 +280,9 @@ const RequestRow = ({ obj }) => {
                   sub_code={item.sub_code}
                   sub_name={item.sub_name}
                   user_name={formData?._user_name}
-                  attempt_1={item.attempt_1}
-                  attempt_2={item.attempt_2}
-                  attempt_3={item.attempt_3}
+                  attempt_1={grades[item.attempt_1]}
+                  attempt_2={grades[item.attempt_2]}
+                  attempt_3={grades[item.attempt_3]}
                   key={i}
                 />
               ))}
@@ -350,7 +330,7 @@ const RequestRow = ({ obj }) => {
             />
           </div>
         </td>
-        <td className="px-2 border border-gray-300" rowSpan={2}>
+        <td className="px-2 border border-gray-300 text-center" rowSpan={2}>
           <Button
             className="mb-3"
             type="button"
@@ -365,12 +345,8 @@ const RequestRow = ({ obj }) => {
             Accept
           </Button>
           <Popover>
-            <PopoverTrigger className="trigger flex justify-center">
-              <Button
-                type="button"
-                variant="warning"
-                // onClick={onResitReferenceUpdated}
-              >
+            <PopoverTrigger className="trigger flex justify-center mx-auto">
+              <Button type="button" variant="warning">
                 Reject
               </Button>
             </PopoverTrigger>

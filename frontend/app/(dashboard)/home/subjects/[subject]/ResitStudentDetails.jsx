@@ -19,6 +19,15 @@ import { useUser } from "@/utils/useUser";
 import MedResEligibilityCell from "@/components/MedResEligibilityCell";
 import MedResEligibilityHeader from "@/components/MedResEligibilityHeader";
 
+const grades = {
+  0: "N/A",
+  1: "F",
+  2: "E",
+  3: "D",
+  4: "D+",
+  5: "C-",
+};
+
 const ResitStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
@@ -111,18 +120,33 @@ const ResitStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
       },
     },
     {
-      accessorKey: "attempt_1",
+      id: "attempt_1",
       header: "Attempt 1",
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          {grades[row.original.attempt_1] || ""}
+        </div>
+      ),
     },
     ,
     {
-      accessorKey: "attempt_2",
+      id: "attempt_2",
       header: "Attempt 2",
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          {grades[row.original.attempt_2] || ""}
+        </div>
+      ),
     },
     ,
     {
-      accessorKey: "attempt_3",
+      id: "attempt_3",
       header: "Attempt 3",
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          {grades[row.original.attempt_3] || ""}
+        </div>
+      ),
     },
     {
       id: "Eligibility",
