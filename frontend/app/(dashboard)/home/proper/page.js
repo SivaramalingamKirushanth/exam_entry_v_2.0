@@ -12,45 +12,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getBatchesByStudent,
-  getBatchFullDetails,
-} from "@/utils/apiRequests/batch.api";
+import { getBatchesByStudent } from "@/utils/apiRequests/batch.api";
 import { useEffect, useState } from "react";
-import {
-  createSubjectObject,
-  numberToOrdinalWord,
-  parseString,
-} from "@/utils/functions";
+import { numberToOrdinalWord } from "@/utils/functions";
 import CryptoJS from "crypto-js";
-import { getSubjectBybatchId } from "@/utils/apiRequests/curriculum.api";
-import {
-  fetchStudentWithSubjectsByUserId,
-  getBatchAdmissionDetails,
-} from "@/utils/apiRequests/entry.api";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import AdmissionCard from "@/components/AdmissionCard";
-import { createRoot } from "react-dom/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
-import PaymentInvoice from "@/components/PaymentInvoice";
 
 const StudentHome = () => {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    batch_id: "",
-    generated_date: "",
-    subjects: [],
-    date: [],
-    description: "",
-    instructions: "",
-    provider: "",
-  });
-  const [level_ordinal, setLevel_ordinal] = useState("");
-  const [sem_ordinal, setSem_ordinal] = useState("");
-  const [academicYear, setAcademicYear] = useState("");
-  const [subjectObject, setSubjectObject] = useState({});
   const [generating, setGenerating] = useState(false);
 
   const onApplyClick = (e) => {

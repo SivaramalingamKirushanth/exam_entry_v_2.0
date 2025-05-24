@@ -301,8 +301,3 @@ export const updateRequestReference = async (data) => {
   );
   return response.data;
 };
-
-export const getGrades = async () => {
-  const response = await axiosInstance.get("/entry/getGrades");
-  return response.data;
-};

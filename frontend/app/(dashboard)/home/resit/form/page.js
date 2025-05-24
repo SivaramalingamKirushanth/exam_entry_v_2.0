@@ -1,7 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { getStudentResitApplicationDetails } from "@/utils/apiRequests/curriculum.api";
+import {
+  getGrades,
+  getStudentResitApplicationDetails,
+} from "@/utils/apiRequests/curriculum.api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import CryptoJS from "crypto-js";
@@ -78,11 +81,21 @@ const Form = (request) => {
     queryKey: ["studentApplicationDetails", "resit"],
   });
 
+  const {
+    data: gradesData,
+    isLoading: isGradesDataLoading,
+    isError: isGradesDataError,
+  } = useQuery({
+    queryFn: getGrades,
+    queryKey: ["grades"],
+  });
+
   const { status, mutate } = useMutation({
     mutationFn: applyResitExam,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["batchesOfStudent", "resit"]);
       toast.success(res.message);
+      router.replace("/home/resit");
     },
     onError: (err) => {
       toast.error("Operation failed");
@@ -93,7 +106,6 @@ const Form = (request) => {
     const subjects_string = formatResitData(attemptsData);
 
     mutate({ subjects_string, batch_id: batch });
-    router.replace("/home/resit");
   };
 
   useEffect(() => {
@@ -192,7 +204,7 @@ const Form = (request) => {
           <div className="md:w-[85%] w-full">
             <div className="my-5 sm:my-10 flex flex-col gap-2">
               {formData?.subjects.length ? (
-                <div className="flex gap-2 items-center text-sm">
+                <div className="hidden sm:flex gap-2 items-center text-sm">
                   <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
                     <h1 className="uppercase w-full sm:w-[12.5%] shrink-0 text-center text-sm">
                       Subject Code
@@ -223,81 +235,46 @@ const Form = (request) => {
                         <h1 className="uppercase w-full sm:w-[12.5%] shrink-0 text-center text-sm sm:text-base">
                           {subject[0]}
                         </h1>
-                        <h1 className="capitalize w-full sm:w-1/2 shrink-0 text-center text-sm sm:text-base">
+                        <h1 className="capitalize w-full sm:w-1/2 shrink-0 text-center text-sm sm:text-base mb-2 sm:mb-0">
                           {subject[1]}
                         </h1>
-                        <h1 className="capitalize w-full sm:w-[12.5%] shrink-0 text-center text-sm sm:text-base">
-                          <Select onValueChange={(e) => onSelectChange(e)}>
-                            <SelectTrigger className="w-[90%]">
-                              <SelectValue placeholder="1st Try" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value={`${sub_id}:1:`}>
-                                1st Try
-                              </SelectItem>
-                              <SelectItem value={`${sub_id}:1:C-`}>
-                                C-
-                              </SelectItem>
-                              <SelectItem value={`${sub_id}:1:D+`}>
-                                D+
-                              </SelectItem>
-                              <SelectItem value={`${sub_id}:1:D`}>D</SelectItem>
-                              <SelectItem value={`${sub_id}:1:F`}>F</SelectItem>
-
-                              <SelectItem value={`${sub_id}:1:N/A`}>
-                                N&#47;A
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </h1>
-                        <h1 className="capitalize w-full sm:w-[12.5%] shrink-0 text-center text-sm sm:text-base">
-                          <Select onValueChange={(e) => onSelectChange(e)}>
-                            <SelectTrigger className="w-[90%]">
-                              <SelectValue placeholder="2nd Try" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value={`${sub_id}:2:`}>
-                                2nd Try
-                              </SelectItem>
-                              <SelectItem value={`${sub_id}:2:C-`}>
-                                C-
-                              </SelectItem>
-                              <SelectItem value={`${sub_id}:2:D+`}>
-                                D+
-                              </SelectItem>
-                              <SelectItem value={`${sub_id}:2:D`}>D</SelectItem>
-                              <SelectItem value={`${sub_id}:2:F`}>F</SelectItem>
-
-                              <SelectItem value={`${sub_id}:2:N/A`}>
-                                N&#47;A
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </h1>
-                        <h1 className="capitalize w-full sm:w-[12.5%] shrink-0 text-center text-sm sm:text-base">
-                          <Select onValueChange={(e) => onSelectChange(e)}>
-                            <SelectTrigger className="w-[90%]">
-                              <SelectValue placeholder="3rd Try" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value={`${sub_id}:3:`}>
-                                3rd Try
-                              </SelectItem>
-                              <SelectItem value={`${sub_id}:3:C-`}>
-                                C-
-                              </SelectItem>
-                              <SelectItem value={`${sub_id}:3:D+`}>
-                                D+
-                              </SelectItem>
-                              <SelectItem value={`${sub_id}:3:D`}>D</SelectItem>
-                              <SelectItem value={`${sub_id}:3:F`}>F</SelectItem>
-
-                              <SelectItem value={`${sub_id}:3:N/A`}>
-                                N&#47;A
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </h1>
+                        {[
+                          { no: 1, suffix: "st" },
+                          { no: 2, suffix: "nd" },
+                          { no: 3, suffix: "rd" },
+                        ].map((attempt) => (
+                          <h1
+                            key={attempt.no}
+                            className="capitalize w-full sm:w-[12.5%] mb-2 sm:mb-0 shrink-0 text-center text-sm sm:text-base"
+                          >
+                            <Select onValueChange={(e) => onSelectChange(e)}>
+                              <SelectTrigger className="w-[90%]">
+                                <SelectValue
+                                  placeholder={`${attempt.no}${attempt.suffix} Try`}
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem
+                                  value={`${sub_id}:${attempt.no}:`}
+                                  className="text-center font-bold w-full"
+                                >
+                                  {attempt.no}
+                                  {attempt.suffix} Try
+                                </SelectItem>
+                                {gradesData?.map((grdObj) => (
+                                  <SelectItem
+                                    key={
+                                      "item" + attempt.no + "-grade" + grdObj.id
+                                    }
+                                    value={`${sub_id}:${attempt.no}:${grdObj.id}`}
+                                  >
+                                    {grdObj.grade}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </h1>
+                        ))}
                       </div>
                       <h1>
                         <FaMinusCircle

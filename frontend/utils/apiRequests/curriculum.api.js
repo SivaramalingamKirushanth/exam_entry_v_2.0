@@ -315,3 +315,8 @@ export const updateMultipleMedicalEligibility = async (data) => {
   );
   return response.data;
 };
+
+export const getGrades = async () => {
+  const response = await axiosInstance.get("/curriculum/getGrades");
+  return response.data;
+};

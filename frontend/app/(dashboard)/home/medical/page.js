@@ -430,6 +430,7 @@ const StudentMedicalHome = () => {
                       className="uppercase"
                       size="sm"
                       data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
+                      data-batch={batch.batch_id}
                       onClick={(e) => onApplyClick(e)}
                     >
                       apply

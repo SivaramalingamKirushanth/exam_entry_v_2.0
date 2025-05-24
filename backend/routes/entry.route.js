@@ -24,7 +24,6 @@ import {
   getEligibleMedicalSubjects,
   getEligibleResitSubjects,
   getEligibleStudentsBySub,
-  getGrades,
   getHodDashboardData,
   getLastAssignedIndexNumber,
   getLatestAdmissionTemplate,
@@ -190,5 +189,5 @@ router.post(
   verifyUser(["1"]),
   getDynamicBatchTablesData
 );
-router.get("/getGrades", verifyUser(["1"]), getGrades);
+
 export default router;

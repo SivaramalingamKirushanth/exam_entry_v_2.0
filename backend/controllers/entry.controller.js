@@ -1962,11 +1962,14 @@ export const getEligibleResitSubjects = async (req, res, next) => {
 
       const arr = rows[0].map((obj) => ({
         ...obj,
-        type: obj.attempt_3.trim()
-          ? obj.attempt_3
-          : obj.attempt_2.trim()
-          ? obj.attempt_2
-          : obj.attempt_1,
+        type:
+          [
+            Number(obj.attempt_1),
+            Number(obj.attempt_2),
+            Number(obj.attempt_3),
+          ].sort((a, b) => b - a)[0] >= obj.pass_grade
+            ? "upgrade"
+            : "resit",
       }));
 
       return res.status(200).json(arr);
@@ -2095,30 +2098,5 @@ export const getDynamicBatchTablesData = async (req, res, next) => {
   } catch (error) {
     console.error("Database connection error:", error);
     return next(errorProvider(500, "Failed to establish database connection."));
-  }
-};
-
-export const getGrades = async (req, res, next) => {
-  try {
-    const conn = await pool.getConnection();
-    try {
-      const [grades] = await conn.query("select * from grade;");
-
-      if (!grades[0].length) {
-        return res.status(404).json({ message: "No grades found" });
-      }
-
-      return res.status(200).json(venues[0]);
-    } catch (error) {
-      console.error("Error retrieving grades:", error);
-      return next(
-        errorProvider(500, "An error occurred while retrieving grades")
-      );
-    } finally {
-      conn.release();
-    }
-  } catch (error) {
-    console.error("Database connection error:", error);
-    return next(errorProvider(500, "Failed to establish database connection"));
   }
 };

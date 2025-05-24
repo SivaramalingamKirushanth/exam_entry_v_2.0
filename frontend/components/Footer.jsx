@@ -2,13 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "./ui/button";
-import {
-  FaGithub,
-  FaLinkedin,
-  FaRegTimesCircle,
-  FaTimes,
-  FaTimesCircle,
-} from "react-icons/fa";
+import { FaGithub, FaLinkedin, FaRegTimesCircle } from "react-icons/fa";
+import { BiLogoGmail } from "react-icons/bi";
 
 const devs = [
   {
@@ -146,7 +141,7 @@ export default function Footer() {
                   <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent w-full ml-4"></div>
                 </div>
 
-                <div className="mb-2 flex justify-center">
+                {/* <div className="mb-2 flex justify-center">
                   <div className="w-full md:w-1/2 bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-purple-200 transition-all">
                     <div className="flex justify-between">
                       <div>
@@ -178,6 +173,72 @@ export default function Footer() {
                         </a>
                       </div>
                     </div>
+                  </div>
+                </div> */}
+                {/* <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                  <div className="flex flex-col sm:items-center">
+                    <p className="font-bold text-md text-gray-800">
+                      Zahran Liyasdeen
+                    </p>
+                    <p className="text-sm text-gray-600 sm:text-center">
+                      2020/ICT/119
+                    </p>
+                     <a
+                      href="mailto:zahranliyasdeen@gmail.com"
+                      className="text-sm text-blue-500 hover:text-blue-700 transition-colors sm:text-center mt-1"
+                    >
+                      zahranliyasdeen@gmail.com
+                    </a> 
+                    <p className="text-sm text-gray-600 sm:text-center flex gap-x-2">
+                      <a
+                        href="https://github.com/jallu-dev"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 hover:text-purple-700 transition-colors"
+                      >
+                        <FaGithub size={18} />
+                      </a>
+                      <a
+                        href="https://www.linkedin.com/in/zahran-liyasdeen"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-700 transition-colors"
+                      >
+                        <FaLinkedin size={18} />
+                      </a>
+                    </p>
+                  </div>
+                </div> */}
+                <div className="flex flex-col items-center bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-purple-200 transition-all">
+                  <p className="font-bold text-lg text-gray-800">
+                    Mr. Zahran Liyasdeen
+                  </p>
+                  <p className="text-sm text-gray-600">2020/ICT/119</p>
+                  <div className="flex items-center gap-x-4">
+                    <a
+                      href="mailto:zahranliyasdeen@gmail.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-red-600 hover:text-red-700 transition-colors"
+                    >
+                      <BiLogoGmail size={20} />
+                    </a>
+                    <a
+                      href="https://github.com/jallu-dev"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 hover:text-purple-700 transition-colors"
+                    >
+                      <FaGithub size={20} />
+                    </a>
+                    <a
+                      href="https://www.linkedin.com/in/zahran-liyasdeen"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-700 transition-colors"
+                    >
+                      <FaLinkedin size={20} />
+                    </a>
                   </div>
                 </div>
 

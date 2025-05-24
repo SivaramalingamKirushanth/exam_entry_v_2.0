@@ -42,6 +42,7 @@ import {
   getSubjectBybatchAndDepartment,
   checkSubjectExistOnDepartment,
   checkSubjectExistOnFaculty,
+  getGrades,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -176,5 +177,10 @@ router.put(
   verifyUser(["1", "2", "3", "4"]),
   updateMultipleMedicalEligibility
 );
+router.get(
+  "/getGrades",
+  verifyUser(["1", "2", "3", "4", "5"]),
 
+  getGrades
+);
 export default router;

@@ -46,6 +46,7 @@ const Form = (request) => {
     onSuccess: (res) => {
       queryClient.invalidateQueries(["batchesOfStudent"]);
       toast.success(res.message);
+      router.replace("/home/proper");
     },
     onError: (err) => {
       toast.error("Operation failed");
@@ -54,7 +55,6 @@ const Form = (request) => {
 
   const onSubmit = () => {
     mutate(removedSubjects);
-    router.replace("/home/proper");
   };
 
   useEffect(() => {

@@ -17,6 +17,7 @@ import {
 
 import {
   createSubject,
+  getGrades,
   getSubjectById,
   getSyllabiByDegreeId,
   updateSubject,
@@ -95,6 +96,15 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
     }
   );
 
+  const {
+    data: gradesData,
+    isLoading: isGradesDataLoading,
+    isError: isGradesDataError,
+  } = useQuery({
+    queryFn: getGrades,
+    queryKey: ["grades"],
+  });
+
   useEffect(() => {
     if (data) setFormData(data);
   }, [data]);
@@ -132,6 +142,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
       formData.deg_id &&
       formData.syl_id &&
       formData.sem_no &&
+      formData.pass_grade &&
       formData.level;
     setBtnEnable(isFormValid);
   }, [formData]);
@@ -368,6 +379,24 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                       isDepartmentDataLoading ||
                       isDepartmentDataError
                     }
+                  />
+                </div>
+              </div>
+              <div className={`grid grid-cols-4 items-center gap-4`}>
+                <Label className="text-right">Pass grade</Label>
+                <div className="col-span-3">
+                  <LabelSearchCombobox
+                    name="pass_grade"
+                    items={gradesData}
+                    labelField="grade"
+                    valueField="id"
+                    placeholder="Search grade..."
+                    buttonText="Select grade"
+                    onValueChange={(e) => {
+                      onFormDataChanged(e);
+                    }}
+                    value={formData.pass_grade || null}
+                    disabled={isGradesDataLoading || isGradesDataError}
                   />
                 </div>
               </div>

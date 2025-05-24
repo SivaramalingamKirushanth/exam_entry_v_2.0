@@ -57,6 +57,7 @@ const Form = (request) => {
     onSuccess: (res) => {
       queryClient.invalidateQueries(["batchesOfStudent", "medical"]);
       toast.success(res.message);
+      router.replace("/home/medical");
     },
     onError: (err) => {
       toast.error("Operation failed");
@@ -69,7 +70,6 @@ const Form = (request) => {
       .join(",");
 
     mutate({ subjects_string, batch_id: batch });
-    router.replace("/home/medical");
   };
 
   useEffect(() => {
@@ -168,7 +168,7 @@ const Form = (request) => {
           <div className="md:w-[85%] w-full">
             <div className="my-5 sm:my-10 flex flex-col gap-2">
               {formData?.subjects.length ? (
-                <div className="flex gap-2 items-center text-sm">
+                <div className="hidden sm:flex gap-2 items-center text-sm">
                   <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
                     <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm">
                       Subject Code

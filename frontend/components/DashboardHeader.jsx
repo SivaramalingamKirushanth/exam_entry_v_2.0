@@ -100,7 +100,7 @@ const DashboardHeader = ({ logoutHandler }) => {
               href="/payment settings"
               className="text-sm flex justify-between items-center border-y border-zinc-200 py-3"
             >
-              Payment Settings
+              Payment settings
               <FaRupeeSign />
             </Link>
           ) : (

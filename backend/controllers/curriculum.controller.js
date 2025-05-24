@@ -179,6 +179,7 @@ export const createSubject = async (req, res, next) => {
     sub_name,
     sem_no,
     syl_id,
+    pass_grade,
     d_id,
     level,
     status = "true",
@@ -189,6 +190,7 @@ export const createSubject = async (req, res, next) => {
     !sub_name ||
     !sem_no ||
     !syl_id ||
+    !pass_grade ||
     !d_id ||
     !level ||
     !status
@@ -213,7 +215,7 @@ export const createSubject = async (req, res, next) => {
         );
       }
 
-      await conn.query("CALL CreateSubject(?, ?, ?, ?, ?, ?, ?);", [
+      await conn.query("CALL CreateSubject(?, ?, ?, ?, ?, ?, ?, ?);", [
         sub_code,
         sub_name,
         sem_no,
@@ -221,9 +223,10 @@ export const createSubject = async (req, res, next) => {
         d_id,
         level,
         status,
+        pass_grade,
       ]);
 
-      let desc = `Subject created sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, syl_id=${syl_id}, d_id=${d_id}, level=${level}`;
+      let desc = `Subject created sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, syl_id=${syl_id}, d_id=${d_id}, level=${level}, pass_grade=${pass_grade}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(201).json({
@@ -247,7 +250,16 @@ export const createSubject = async (req, res, next) => {
 };
 
 export const updateSubject = async (req, res, next) => {
-  const { sub_code, sub_name, sem_no, syl_id, d_id, level, sub_id } = req.body;
+  const {
+    sub_code,
+    sub_name,
+    sem_no,
+    syl_id,
+    d_id,
+    level,
+    sub_id,
+    pass_grade,
+  } = req.body;
 
   if (!sub_id) {
     return next(errorProvider(400, "Subject ID (sub_id) is required"));
@@ -258,8 +270,8 @@ export const updateSubject = async (req, res, next) => {
 
     try {
       const [result] = await conn.query(
-        "CALL UpdateSubject(?, ?, ?, ?, ?, ?, ?);",
-        [sub_id, sub_code, sub_name, sem_no, syl_id, d_id, level]
+        "CALL UpdateSubject(?, ?, ?, ?, ?, ?, ?, ?);",
+        [sub_id, sub_code, sub_name, sem_no, syl_id, d_id, level, pass_grade]
       );
 
       if (result.affectedRows === 0) {
@@ -268,7 +280,7 @@ export const updateSubject = async (req, res, next) => {
         );
       }
 
-      let desc = `Subject updated for sub_id=${sub_id}, sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, syl_id=${syl_id}, d_id=${d_id}, level=${level}`;
+      let desc = `Subject updated for sub_id=${sub_id}, sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, syl_id=${syl_id}, d_id=${d_id}, level=${level}, pass_grade=${pass_grade}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(200).json({ message: "Subject updated successfully" });
@@ -1985,5 +1997,25 @@ export const updateMultipleMedicalEligibility = async (req, res, next) => {
   } catch (error) {
     console.error("Database connection error:", error);
     return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getGrades = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [results] = await conn.query("CALL GetGrades();");
+
+      return res.status(200).json(results[0]);
+    } catch (error) {
+      console.error("Error fetching grade details:", error);
+      return next(errorProvider(500, "Failed to fetch grade details"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
   }
 };

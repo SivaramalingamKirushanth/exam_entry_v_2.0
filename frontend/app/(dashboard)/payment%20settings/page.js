@@ -8,8 +8,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-const grades = ["C-", "D+", "D", "F", "N/A"];
-
 const PaymentSettings = () => {
   const [formData, setFormData] = useState({});
   const [btnEnabled, setBtnEnabled] = useState(false);
@@ -51,13 +49,7 @@ const PaymentSettings = () => {
   }, [data]);
 
   useEffect(() => {
-    const enabled =
-      formData.medical &&
-      formData["C-"] &&
-      formData["D+"] &&
-      formData["D"] &&
-      formData["F"] &&
-      formData["N/A"];
+    const enabled = formData.medical && formData.resit && formData.upgrade;
 
     setBtnEnabled(enabled);
   }, [formData]);
@@ -77,41 +69,48 @@ const PaymentSettings = () => {
               type="number"
               min="0"
               placeholder="Enter amount"
-              className="flex h-9 w-44 col-span-3 rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-white file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shrink-0"
+              className="flex h-9 w-44 col-span-3 rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-white file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shrink-0 text-right"
               name="medical"
               id="medical"
               onChange={(e) => onFormDataChanged(e)}
               value={formData.medical || ""}
             />
           </div>
-          <div>
+          <div className="flex gap-x-3 items-center">
             <Label
-              htmlFor="medical"
+              htmlFor="resit"
               className="text-right w-28 inline-block shrink-0 font-bold"
             >
               Resit
             </Label>
-
-            {grades.map((grade) => (
-              <div className="flex gap-x-3 items-center my-1" key={grade}>
-                <Label
-                  htmlFor={grade}
-                  className="text-right w-28 inline-block shrink-0 "
-                >
-                  {grade}
-                </Label>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="Enter amount"
-                  className="flex h-9 w-44 col-span-3 rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-white file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shrink-0"
-                  name={grade}
-                  id={grade}
-                  onChange={(e) => onFormDataChanged(e)}
-                  value={formData[grade] || ""}
-                />
-              </div>
-            ))}
+            <input
+              type="number"
+              min="0"
+              placeholder="Enter amount"
+              className="flex h-9 w-44 col-span-3 rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-white file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shrink-0 text-right"
+              name="resit"
+              id="resit"
+              onChange={(e) => onFormDataChanged(e)}
+              value={formData.resit || ""}
+            />
+          </div>{" "}
+          <div className="flex gap-x-3 items-center">
+            <Label
+              htmlFor="upgrade"
+              className="text-right w-28 inline-block shrink-0 font-bold"
+            >
+              Upgrade
+            </Label>
+            <input
+              type="number"
+              min="0"
+              placeholder="Enter amount"
+              className="flex h-9 w-44 col-span-3 rounded-md border border-input bg-white px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-white file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 shrink-0 text-right"
+              name="upgrade"
+              id="upgrade"
+              onChange={(e) => onFormDataChanged(e)}
+              value={formData.upgrade || ""}
+            />
           </div>
         </div>
         <div className="flex justify-end space-x-2 mt-4">
