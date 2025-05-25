@@ -90,3 +90,8 @@ export const getVenueById = async (data) => {
   const response = await axiosInstance.post("/user/getVenueById", data);
   return response.data;
 };
+
+export const getStudentsByDeg = async (data) => {
+  const response = await axiosInstance.post("/user/getStudentsByDeg", data);
+  return response.data;
+};

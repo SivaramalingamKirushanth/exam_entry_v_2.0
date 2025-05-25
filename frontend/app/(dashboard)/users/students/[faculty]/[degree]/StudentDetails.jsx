@@ -14,6 +14,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getAllStudents,
+  getStudentsByDeg,
   updateStudentStatus,
 } from "@/utils/apiRequests/user.api";
 import Model from "./Model";
@@ -24,6 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { UsersDataTable } from "@/components/UsersDataTable";
 import ImportModel from "./ImportModel";
+import { useSearchParams } from "next/navigation";
 
 const StudentDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
@@ -36,9 +38,12 @@ const StudentDetails = () => {
   const [editId, setEditId] = useState("");
   const queryClient = useQueryClient();
 
+  const searchParams = useSearchParams();
+  const deg_id = searchParams.get("deg_id");
+
   const { data, isLoading, error } = useQuery({
-    queryFn: getAllStudents,
-    queryKey: ["students"],
+    queryFn: () => getStudentsByDeg({ deg_id }),
+    queryKey: ["students", deg_id],
   });
 
   const { mutate } = useMutation({

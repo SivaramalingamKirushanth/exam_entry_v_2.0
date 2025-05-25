@@ -646,6 +646,38 @@ export const getFacultyById = async (req, res, next) => {
   }
 };
 
+export const getActiveDegreesInFaculty = async (req, res, next) => {
+  const { f_id } = req.body;
+
+  if (!f_id) {
+    return next(errorProvider(400, "Missing f_id."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [degrees] = await conn.query("CALL GetActiveDegreesInFaculty(?)", [
+        f_id,
+      ]);
+
+      if (degrees[0].length === 0) {
+        return next(errorProvider(404, `No degree found for f_id: ${f_id}`));
+      }
+
+      return res.status(200).json(degrees[0]);
+    } catch (error) {
+      console.error("Error fetching degrees by f_id:", error);
+      return next(errorProvider(500, "Failed to fetch degrees by f_id"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
 export const getAllDepartments = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();

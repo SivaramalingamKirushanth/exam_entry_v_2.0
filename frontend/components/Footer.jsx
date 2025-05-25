@@ -152,7 +152,7 @@ export default function Footer() {
                         href="mailto:zahranliyasdeen@gmail.com"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-red-600 hover:text-red-700 transition-colors"
+                        className="text-blue-500 hover:text-blue-700 transition-colors"
                       >
                         <BiLogoGmail size={22} />
                       </a>
@@ -160,7 +160,7 @@ export default function Footer() {
                         href="https://github.com/jallu-dev"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-purple-600 hover:text-purple-700 transition-colors"
+                        className="text-blue-500 hover:text-blue-700 transition-colors"
                       >
                         <FaGithub size={20} />
                       </a>
@@ -168,7 +168,7 @@ export default function Footer() {
                         href="https://www.linkedin.com/in/zahran-liyasdeen"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-700 transition-colors"
+                        className="text-blue-500 hover:text-blue-700 transition-colors"
                       >
                         <FaLinkedin size={20} />
                       </a>
@@ -177,72 +177,21 @@ export default function Footer() {
                 </div>
 
                 {/* Team members grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
-                  {devs.slice(0, 3).map((mem, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-purple-200 transition-all"
-                    >
-                      <div>
-                        <p className="font-semibold text-md text-gray-800">
-                          {mem.name}
-                        </p>
-                        <p className="text-sm text-gray-600">{mem.regNo}</p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={mem.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-500 hover:text-purple-600 transition-colors"
-                        >
-                          <FaGithub size={18} />
-                        </a>
-                        <a
-                          href={mem.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-500 hover:text-blue-600 transition-colors"
-                        >
-                          <FaLinkedin size={18} />
-                        </a>
-                      </div>
-                    </div>
-                  ))}
-
-                  {devs.slice(3).map((mem, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-purple-200 transition-all"
-                    >
-                      <div>
-                        <p className="font-semibold text-md text-gray-800">
-                          {mem.name}
-                        </p>
-                        <p className="text-sm text-gray-600">{mem.regNo}</p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={mem.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-500 hover:text-purple-600 transition-colors"
-                        >
-                          <FaGithub size={18} />
-                        </a>
-                        <a
-                          href={mem.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-500 hover:text-blue-600 transition-colors"
-                        >
-                          <FaLinkedin size={18} />
-                        </a>
-                      </div>
-                    </div>
-                  ))}
+                <div className="text-xs text-gray-500 mt-6 bg-gray-50 p-4 rounded-md border border-gray-100">
+                  <p className="mb-1 font-medium text-gray-600">
+                    <em>
+                      Other Members who worked on Exam Entry System v1.0
+                      (initial group project):
+                    </em>
+                  </p>
+                  <ul className="list-disc list-inside">
+                    <li>Chamith Jeewantha (2020/ICT/18)</li>
+                    <li>Awishka Piyumal (2020/ICT/24)</li>
+                    <li>Ilma Ismail (2020/ICT/48)</li>
+                    <li>Chamathka Hettiaracchi (2020/ICT/57)</li>
+                    <li>Ilma Ilmy (2020/ICT/64)</li>
+                    <li>Achira Wijesuriya (2020/ICT/101)</li>
+                  </ul>
                 </div>
               </div>
             </div>

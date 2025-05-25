@@ -1,13 +1,20 @@
 "use client";
 
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { studentRegister } from "@/utils/apiRequests/auth.api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { multipleStudentsRegister } from "@/utils/apiRequests/auth.api";
 import { GiCancel } from "react-icons/gi";
+import Dropzone from "@/components/Dropzone";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   getAllFaculties,
   getDegreesByFacultyId,
@@ -15,21 +22,12 @@ import {
 import { getSyllabiByDegreeId } from "@/utils/apiRequests/curriculum.api";
 import { LabelSearchCombobox } from "@/components/ui/customCommand";
 
-const Model = ({ isOpen, setIsOpen, modelRef }) => {
+const ImportModel = ({ isImportOpen, setIsImportOpen, importModelRef }) => {
+  const [file, setFile] = useState(null);
   const [formData, setFormData] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
-
-  const { status, mutate } = useMutation({
-    mutationFn: studentRegister,
-    onSuccess: (res) => {
-      queryClient.invalidateQueries(["students"]);
-      toast.success(res.message);
-    },
-    onError: (err) => {
-      toast.error("Operation failed");
-    },
-  });
 
   const {
     data: facultyData,
@@ -68,33 +66,38 @@ const Model = ({ isOpen, setIsOpen, modelRef }) => {
         ...curData,
         [e.target?.name]: e.target?.value,
       }));
-    } else {
-      setFormData((curData) => ({
-        ...curData,
-        [e.split(":")[0]]: e.split(":")[1],
-      }));
     }
   };
 
-  const onFormSubmitted = () => {
-    mutate(formData);
-    setFormData({});
-    setIsOpen(false);
-  };
+  const onFormSubmitted = async () => {
+    setIsLoading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("f_id", formData.f_id);
+    formData.append("syl_id", formData.syl_id);
 
-  const onFormReset = () => {
-    setFormData(data || {});
+    try {
+      const result = await multipleStudentsRegister(formData);
+
+      if (result.isFile) {
+        toast.success("Failed records file downloaded.");
+      } else {
+        toast.success(result.message);
+      }
+    } catch (error) {
+      toast.error("Operation failed. Please try again.");
+      console.error("Error:", error);
+    } finally {
+      queryClient.invalidateQueries(["students"]);
+      setFile(null);
+      setFormData({});
+      setIsLoading(false);
+      setIsImportOpen(false);
+    }
   };
 
   useEffect(() => {
-    const isFormValid =
-      formData.name &&
-      formData.user_name &&
-      formData.email &&
-      formData.contact_no &&
-      formData.f_id &&
-      formData.deg_id &&
-      formData.syl_id;
+    const isFormValid = formData.f_id && formData.deg_id && formData.syl_id;
     setBtnEnable(isFormValid);
   }, [formData]);
 
@@ -108,106 +111,24 @@ const Model = ({ isOpen, setIsOpen, modelRef }) => {
 
   return (
     <>
-      {isOpen && (
+      {isImportOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div
-            ref={modelRef}
+            ref={importModelRef}
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
               <h3 className="text-lg font-semibold">Student</h3>
-
               <GiCancel
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
                 onClick={() => {
-                  setIsOpen(false);
+                  setIsImportOpen(false);
+                  setFile(null);
                   setFormData({});
                 }}
               />
             </div>
-
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Name
-                </Label>
-                <Input
-                  id="name"
-                  name="name"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  onBlur={(e) => {
-                    e.target.value = e.target.value.trim();
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.name || ""}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="user_name" className="text-right">
-                  User name
-                </Label>
-                <Input
-                  id="user_name"
-                  name="user_name"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  onBlur={(e) => {
-                    e.target.value = e.target.value.trim();
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.user_name || ""}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="index_num" className="text-right">
-                  Index no
-                  <br /> (optional)
-                </Label>
-                <Input
-                  id="index_num"
-                  name="index_num"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  onBlur={(e) => {
-                    e.target.value = e.target.value.trim();
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.index_num || ""}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  name="email"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  onBlur={(e) => {
-                    e.target.value = e.target.value.trim();
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.email || ""}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="contact_no" className="text-right">
-                  Contact No
-                </Label>
-                <Input
-                  id="contact_no"
-                  name="contact_no"
-                  className="col-span-3"
-                  onChange={(e) => onFormDataChanged(e)}
-                  onBlur={(e) => {
-                    e.target.value = e.target.value.trim();
-                    onFormDataChanged(e);
-                  }}
-                  value={formData?.contact_no || ""}
-                />
-              </div>
+            <div className="grid gap-1 py-1">
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Faculty</Label>
                 <div className="col-span-3">
@@ -229,6 +150,7 @@ const Model = ({ isOpen, setIsOpen, modelRef }) => {
               </div>
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Degree programme</Label>
+
                 <div className="col-span-3">
                   <LabelSearchCombobox
                     name="deg_id"
@@ -247,6 +169,8 @@ const Model = ({ isOpen, setIsOpen, modelRef }) => {
                       setFormData((cur) => ({
                         ...cur,
                         syl_id: "",
+                        level: "",
+                        sem_no: "",
                       }));
                       onFormDataChanged(e);
                     }}
@@ -290,20 +214,47 @@ const Model = ({ isOpen, setIsOpen, modelRef }) => {
               </div>
             </div>
 
-            <div className="flex justify-between space-x-2 mt-4">
+            <div className="font-bahnschriftCon pl-5 mt-1">
+              <h2 className="font-semibold">Instructions</h2>
+              <ul className="list-disc text-sm">
+                <li>Ensure the file is in CSV format.</li>
+                <li>
+                  The first row must be a header row, and the columns must be in
+                  the following exact order:
+                  <ol className="list-decimal list-inside">
+                    <li>
+                      <strong>Name</strong>
+                    </li>
+                    <li>
+                      <strong>User name</strong>
+                    </li>
+                    <li>
+                      <strong>Index no</strong>
+                    </li>
+                    <li>
+                      <strong>Email</strong>
+                    </li>
+                    <li>
+                      <strong>Contact no</strong>
+                    </li>
+                  </ol>
+                </li>
+                <li>
+                  Each row after the header must represent a single student.
+                </li>
+              </ul>
+            </div>
+
+            <div className="grid gap-4 py-2">
+              <Dropzone file={file} setFile={setFile} />
+            </div>
+            <div className="flex justify-end space-x-2 mt-4">
               <Button
                 type="button"
-                variant="warning"
-                onClick={() => onFormReset()}
-              >
-                Reset
-              </Button>
-              <Button
-                type="button"
-                disabled={!btnEnable}
+                disabled={!file || !btnEnable || isLoading}
                 onClick={onFormSubmitted}
               >
-                Create
+                {isLoading ? "Importing..." : "Import"}
               </Button>
             </div>
           </div>
@@ -313,4 +264,4 @@ const Model = ({ isOpen, setIsOpen, modelRef }) => {
   );
 };
 
-export default Model;
+export default ImportModel;

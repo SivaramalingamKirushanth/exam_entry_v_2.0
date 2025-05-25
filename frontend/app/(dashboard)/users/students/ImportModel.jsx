@@ -8,13 +8,7 @@ import { multipleStudentsRegister } from "@/utils/apiRequests/auth.api";
 import { GiCancel } from "react-icons/gi";
 import Dropzone from "@/components/Dropzone";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   getAllFaculties,
   getDegreesByFacultyId,

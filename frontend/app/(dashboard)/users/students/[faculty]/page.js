@@ -8,30 +8,33 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getActiveFacultiesWithDepartmentsCount } from "@/utils/apiRequests/course.api";
+import { getActiveDegreesInFaculty } from "@/utils/apiRequests/course.api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FaPlus } from "react-icons/fa6";
 import { TfiImport } from "react-icons/tfi";
-import Model from "./Model";
-import ImportModel from "./ImportModel";
+import ImportModel from "../ImportModel";
+import Model from "../Model";
 
 const Entries = () => {
-  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const modelRef = useRef(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const importModelRef = useRef(null);
 
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const f_id = searchParams.get("f_id");
+
   const {
-    data: noOfDepartmentsWithFacultyData,
-    isLoading: isNoOfDepartmentsWithFacultyDataLoading,
+    data: activeDegreesInFacultyData,
+    isLoading: isActiveDegreesInFacultyDataLoading,
   } = useQuery({
-    queryFn: getActiveFacultiesWithDepartmentsCount,
-    queryKey: ["noOfDepartmentsWithFaculty"],
+    queryFn: () => getActiveDegreesInFaculty({ f_id }),
+    queryKey: ["getActiveDegreesInFaculty"],
   });
 
   const toggleModel = () => {
@@ -43,7 +46,7 @@ const Entries = () => {
     setIsImportOpen((prev) => !prev);
   };
 
-  if (isNoOfDepartmentsWithFacultyDataLoading)
+  if (isActiveDegreesInFacultyDataLoading)
     return (
       <div className="flex justify-end md:justify-center">
         <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
@@ -75,23 +78,22 @@ const Entries = () => {
           &nbsp;Import students
         </Button>
       </div>
-
       <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
-        {noOfDepartmentsWithFacultyData &&
-          noOfDepartmentsWithFacultyData.map((obj) => (
+        {activeDegreesInFacultyData &&
+          activeDegreesInFacultyData.map((obj) => (
             <Link
               href={{
-                pathname: `${pathname}/${obj.f_name}`,
+                pathname: `${pathname}/${obj.deg_name}`,
                 query: {
-                  f_id: obj.f_id,
+                  deg_id: obj.deg_id,
                 },
               }}
               className="sm:w-[30%] sm:max-w-[30%] hover:shadow-md rounded-xl"
-              key={obj.f_id}
+              key={obj.deg_id}
             >
               <Card>
                 <CardHeader>
-                  <CardTitle className="capitalize">{obj.f_name}</CardTitle>
+                  <CardTitle className="capitalize">{obj.deg_name}</CardTitle>
                   <CardDescription></CardDescription>
                 </CardHeader>
               </Card>

@@ -98,7 +98,7 @@ export function titleCase(str) {
   ];
 
   return str
-    .toLowerCase()
+    ?.toLowerCase()
     .split(" ")
     .map((word, index) => {
       // Find the first alphabetical character in the word

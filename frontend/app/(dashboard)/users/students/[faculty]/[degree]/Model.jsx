@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { studentRegister } from "@/utils/apiRequests/auth.api";
+import { getStudentById, updateStudent } from "@/utils/apiRequests/user.api";
 import { GiCancel } from "react-icons/gi";
 import {
   getAllFaculties,
@@ -15,20 +16,28 @@ import {
 import { getSyllabiByDegreeId } from "@/utils/apiRequests/curriculum.api";
 import { LabelSearchCombobox } from "@/components/ui/customCommand";
 
-const Model = ({ isOpen, setIsOpen, modelRef }) => {
+const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
   const [formData, setFormData] = useState({});
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
 
   const { status, mutate } = useMutation({
-    mutationFn: studentRegister,
+    mutationFn: editId ? updateStudent : studentRegister,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["students"]);
+      setEditId("");
       toast.success(res.message);
     },
     onError: (err) => {
+      setEditId("");
       toast.error("Operation failed");
     },
+  });
+
+  const { data, refetch } = useQuery({
+    queryFn: () => getStudentById(editId),
+    queryKey: ["students", editId],
+    enabled: false,
   });
 
   const {
@@ -61,6 +70,10 @@ const Model = ({ isOpen, setIsOpen, modelRef }) => {
     queryKey: ["activeSyllabi", "degree", formData.deg_id],
     enabled: false,
   });
+
+  useEffect(() => {
+    if (data) setFormData(data);
+  }, [data]);
 
   const onFormDataChanged = (e) => {
     if (e.target) {
@@ -99,6 +112,10 @@ const Model = ({ isOpen, setIsOpen, modelRef }) => {
   }, [formData]);
 
   useEffect(() => {
+    editId && refetch();
+  }, [editId]);
+
+  useEffect(() => {
     if (formData?.f_id) degreeDataRefetch();
   }, [formData?.f_id]);
 
@@ -122,6 +139,7 @@ const Model = ({ isOpen, setIsOpen, modelRef }) => {
                 onClick={() => {
                   setIsOpen(false);
                   setFormData({});
+                  setEditId("");
                 }}
               />
             </div>
@@ -303,7 +321,7 @@ const Model = ({ isOpen, setIsOpen, modelRef }) => {
                 disabled={!btnEnable}
                 onClick={onFormSubmitted}
               >
-                Create
+                {editId ? "Update" : "Create"}
               </Button>
             </div>
           </div>

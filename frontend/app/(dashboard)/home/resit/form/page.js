@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { applyResitExam } from "@/utils/apiRequests/entry.api";
-import { formatResitData } from "@/utils/functions";
+import { formatResitData, titleCase } from "@/utils/functions";
 
 const Form = (request) => {
   const router = useRouter();
@@ -93,8 +93,12 @@ const Form = (request) => {
   const { status, mutate } = useMutation({
     mutationFn: applyResitExam,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["batchesOfStudent", "resit"]);
+      queryClient.invalidateQueries(
+        ["batchesOfStudent", "resit"],
+        ["studentApplicationDetails", "resit"]
+      );
       toast.success(res.message);
+      router.replace("/home");
       router.replace("/home/resit");
     },
     onError: (err) => {
@@ -131,7 +135,7 @@ const Form = (request) => {
               <h1 className="font-extrabold tracking-wide sm:text-lg">
                 Faculty of {applicationData?.f_name}
               </h1>
-              <h1 className="text-sm sm:text-base">{examName}</h1>
+              <h1 className="text-sm sm:text-base">{titleCase(examName)}</h1>
             </div>
             <div className="mt-6 sm:mt-12 flex flex-col sm:flex-row justify-between text-xs sm:text-sm font-semibold w-full px-2">
               <p>

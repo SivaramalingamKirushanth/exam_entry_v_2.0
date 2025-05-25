@@ -68,7 +68,7 @@ const StudentMedicalHome = () => {
     setPaymentId(batch_id);
     toggleModal();
   };
-  // All queries initialized here
+
   const {
     data: bathchesOfStudentData,
     isLoading: isBathchesOfStudentLoading,
@@ -135,10 +135,9 @@ const StudentMedicalHome = () => {
 
       await renderComplete;
 
-      // Convert the admission card to canvas
       const canvas = await html2canvas(container, {
-        scale: 2, // Enhance image quality
-        useCORS: true, // Enable cross-origin image handling
+        scale: 2,
+        useCORS: true,
         logging: false,
         allowTaint: true,
       });
@@ -234,10 +233,16 @@ const StudentMedicalHome = () => {
           <TableCaption>A list of your recent examinations.</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead>Examination</TableHead>
-              <TableHead className="w-[150px]">Status</TableHead>
-              <TableHead className="w-[230px] text-center">Actions</TableHead>
-              <TableHead className="w-[150px]">Deadline</TableHead>
+              <TableHead className="text-center">Examination</TableHead>
+              <TableHead className="max-w-[150px] text-center">
+                Status
+              </TableHead>
+              <TableHead className="max-w-[150px] text-center">
+                Actions
+              </TableHead>
+              <TableHead className="max-w-[150px] text-center">
+                Deadline
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

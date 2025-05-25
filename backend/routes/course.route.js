@@ -30,6 +30,7 @@ import {
   updateDegreeStatus,
   updateDepartmentStatus,
   updateFacultyStatus,
+  getActiveDegreesInFaculty,
 } from "../controllers/course.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -118,4 +119,10 @@ router.get(
   verifyUser(["1"]),
   getAllDegreesWithExtraDetails
 );
+router.post(
+  "/getActiveDegreesInFaculty",
+  verifyUser(["1"]),
+  getActiveDegreesInFaculty
+);
+
 export default router;

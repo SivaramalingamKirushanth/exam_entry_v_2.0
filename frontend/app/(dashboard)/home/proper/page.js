@@ -64,10 +64,16 @@ const StudentHome = () => {
           <TableCaption>A list of your recent examinations.</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead>Examination</TableHead>
-              <TableHead className="w-[150px]">Status</TableHead>
-              <TableHead className="w-[230px] text-center">Actions</TableHead>
-              <TableHead className="w-[150px]">Deadline</TableHead>
+              <TableHead className="text-center">Examination</TableHead>
+              <TableHead className="max-w-[150px] text-center">
+                Status
+              </TableHead>
+              <TableHead className="max-w-[150px] text-center">
+                Actions
+              </TableHead>
+              <TableHead className="max-w-[150px] text-center">
+                Deadline
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -26,6 +26,39 @@ export const getAllStudents = async (req, res, next) => {
   }
 };
 
+export const getStudentsByDeg = async (req, res, next) => {
+  const { deg_id } = req.body;
+
+  if (!deg_id) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [students] = await conn.query("CALL GetStudentsByDeg(?);", [
+        deg_id,
+      ]);
+
+      if (!students[0].length) {
+        return res.status(404).json({ message: "No students found" });
+      }
+
+      return res.status(200).json(students[0]);
+    } catch (error) {
+      console.error("Error retrieving degree students:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving degree students")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
 export const getAllLecturers = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();

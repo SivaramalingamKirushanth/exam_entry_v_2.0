@@ -168,3 +168,11 @@ export const getDegreeByShort = async (short) => {
 
   return response.data;
 };
+
+export const getActiveDegreesInFaculty = async (data) => {
+  const response = await axiosInstance.post(
+    "/course/getActiveDegreesInFaculty",
+    data
+  );
+  return response.data;
+};

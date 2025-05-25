@@ -17,6 +17,7 @@ import {
   createVenue,
   updateVenue,
   getVenueById,
+  getStudentsByDeg,
 } from "../controllers/user.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -50,5 +51,6 @@ router.get("/getVenues", verifyUser(["1"]), getVenues);
 router.post("/createVenue", verifyUser(["1"]), createVenue);
 router.put("/updateVenue", verifyUser(["1"]), updateVenue);
 router.post("/getVenueById", verifyUser(["1"]), getVenueById);
+router.post("/getStudentsByDeg", verifyUser(["1"]), getStudentsByDeg);
 
 export default router;
