@@ -1,65 +1,87 @@
 import express from "express";
 import {
-  getCurriculumsByLecId,
-  createCurriculum,
-  updateCurriculum,
-  getNoOfCurriculums,
-  getAllCurriculums,
-  getAllCurriculumsWithExtraDetails,
-  getCurriculumById,
-  getCurriculumByDegLevSem,
-  getCurriculumBybatchId,
+  getSubjectsByLecId,
+  createSubject,
+  updateSubject,
+  getNoOfSubjects,
+  getAllSubjects,
+  getAllSubjectsWithExtraDetails,
+  getSubjectById,
+  getSubjectBybatchId,
   getStudentApplicationDetails,
-  getCurriculumsByDid,
-  getAllSubjectsForManager,
+  getSubjectsByDid,
+  getAllSubjectsForLecturer,
   updateEligibility,
-  updateCurriculumStatus,
+  updateSubjectStatus,
   updateMultipleEligibility,
-  checkSubjectExist,
   getAllSubjectsForDepartment,
   getAllSubjectsForFaculty,
+  createSyllabus,
+  getAllSyllabiWithExtraDetails,
+  updateSyllabusStatus,
+  getSyllabusById,
+  getSyllabiByDegreeId,
+  updateSyllabus,
+  checkSubjectExistOnBSL,
+  getAllSubjectsForGroupCreation,
+  createGroup,
+  getAllGroupsWithExtraDetails,
+  updateGroupStatus,
+  getGroupById,
+  updateGroup,
+  getNoOfGroups,
+  getNoOfSyllabi,
+  getSubjectsByGrp,
+  getGroupsBySylLevSem,
+  getStudentResitApplicationDetails,
+  updateMultipleResitEligibility,
+  updateResitEligibility,
+  getStudentMedicalApplicationDetails,
+  updateMedicalEligibility,
+  updateMultipleMedicalEligibility,
+  getSubjectBybatchAndDepartment,
+  checkSubjectExistOnDepartment,
+  checkSubjectExistOnFaculty,
+  getGrades,
 } from "../controllers/curriculum.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
 const router = express.Router();
 
-router.get("/getAllCurriculums", verifyUser(["1"]), getAllCurriculums);
+router.get("/getAllSubjects", verifyUser(["1"]), getAllSubjects);
 router.get(
-  "/getAllCurriculumsWithExtraDetails",
+  "/getAllSubjectsWithExtraDetails",
   verifyUser(["1"]),
 
-  getAllCurriculumsWithExtraDetails
+  getAllSubjectsWithExtraDetails
 );
-router.post("/getCurriculumById", verifyUser(["1"]), getCurriculumById);
-router.post(
-  "/getCurriculumByDegLevSem",
-  verifyUser(["1"]),
-  getCurriculumByDegLevSem
-);
-router.get("/getCurriculumsByLecId", verifyUser(["1"]), getCurriculumsByLecId);
-router.get("/getCurriculumsByHod_id", verifyUser(["1"]), getCurriculumsByDid);
-router.post("/createCurriculum", verifyUser(["1"]), createCurriculum);
+router.post("/getSubjectById", verifyUser(["1"]), getSubjectById);
+router.post("/getSubjectsByGrp", verifyUser(["1"]), getSubjectsByGrp);
+router.get("/getSubjectsByLecId", verifyUser(["1"]), getSubjectsByLecId);
+router.get("/getSubjectsByHod_id", verifyUser(["1"]), getSubjectsByDid);
+router.post("/createSubject", verifyUser(["1"]), createSubject);
 router.get(
   "/getStudentApplicationDetails",
   verifyUser(["5"]),
   getStudentApplicationDetails
 );
 router.post(
-  "/getCurriculumBybatchId",
+  "/getSubjectBybatchId",
   verifyUser(["1", "2", "3", "4", "5"]),
-  getCurriculumBybatchId
+  getSubjectBybatchId
 );
-router.put("/updateCurriculum", verifyUser(["1"]), updateCurriculum);
-router.put(
-  "/updateCurriculumStatus",
-  verifyUser(["1"]),
-  updateCurriculumStatus
+router.post(
+  "/getSubjectBybatchAndDepartment",
+  verifyUser(["3"]),
+  getSubjectBybatchAndDepartment
 );
-router.get("/getNoOfCurriculums", verifyUser(["1"]), getNoOfCurriculums);
+router.put("/updateSubject", verifyUser(["1"]), updateSubject);
+router.put("/updateSubjectStatus", verifyUser(["1"]), updateSubjectStatus);
+router.get("/getNoOfSubjects", verifyUser(["1"]), getNoOfSubjects);
 router.get(
-  "/getAllSubjectsForManager",
+  "/getAllSubjectsForLecturer",
   verifyUser(["4"]),
-  getAllSubjectsForManager
+  getAllSubjectsForLecturer
 );
 router.get(
   "/getAllSubjectsForDepartment",
@@ -82,6 +104,83 @@ router.put(
   verifyUser(["1", "2", "3", "4"]),
   updateMultipleEligibility
 );
-router.post("/checkSubjectExist", verifyUser(["4"]), checkSubjectExist);
+router.post(
+  "/checkSubjectExistOnBSL",
+  verifyUser(["4"]),
+  checkSubjectExistOnBSL
+);
+router.post(
+  "/checkSubjectExistOnDepartment",
+  verifyUser(["3"]),
+  checkSubjectExistOnDepartment
+);
+router.post(
+  "/checkSubjectExistOnFaculty",
+  verifyUser(["2"]),
+  checkSubjectExistOnFaculty
+);
+router.post("/createSyllabus", verifyUser(["1"]), createSyllabus);
+router.get(
+  "/getAllSyllabiWithExtraDetails",
+  verifyUser(["1"]),
+  getAllSyllabiWithExtraDetails
+);
+router.put("/updateSyllabusStatus", verifyUser(["1"]), updateSyllabusStatus);
+router.post("/getSyllabusById", verifyUser(["1"]), getSyllabusById);
+router.post("/getSyllabiByDegreeId", verifyUser(["1"]), getSyllabiByDegreeId);
+router.put("/updateSyllabus", verifyUser(["1"]), updateSyllabus);
+router.post(
+  "/getAllSubjectsForGroupCreation",
+  verifyUser(["1"]),
+  getAllSubjectsForGroupCreation
+);
+router.post("/createGroup", verifyUser(["1"]), createGroup);
+router.get(
+  "/getAllGroupsWithExtraDetails",
+  verifyUser(["1"]),
+  getAllGroupsWithExtraDetails
+);
+router.put("/updateGroupStatus", verifyUser(["1"]), updateGroupStatus);
+router.post("/getGroupById", verifyUser(["1"]), getGroupById);
+router.put("/updateGroup", verifyUser(["1"]), updateGroup);
+router.get("/getNoOfGroups", verifyUser(["1"]), getNoOfGroups);
+router.get("/getNoOfSyllabi", verifyUser(["1"]), getNoOfSyllabi);
+router.post("/getGroupsBySylLevSem", verifyUser(["1"]), getGroupsBySylLevSem);
+router.post(
+  "/getStudentResitApplicationDetails",
+  verifyUser(["5"]),
+  getStudentResitApplicationDetails
+);
+router.post(
+  "/getStudentMedicalApplicationDetails",
+  verifyUser(["5"]),
+  getStudentMedicalApplicationDetails
+);
+router.put(
+  "/updateResitEligibility",
+  verifyUser(["1", "2", "3", "4"]),
+  updateResitEligibility
+);
+router.put(
+  "/updateMultipleResitEligibility",
+  verifyUser(["1", "2", "3", "4"]),
+  updateMultipleResitEligibility
+);
 
+router.put(
+  "/updateMedicalEligibility",
+  verifyUser(["1", "2", "3", "4"]),
+  updateMedicalEligibility
+);
+router.put(
+  "/updateMultipleMedicalEligibility",
+  verifyUser(["1", "2", "3", "4"]),
+  updateMultipleMedicalEligibility
+);
+router.get(
+  "/getGrades",
+  verifyUser(["1", "2", "3", "4", "5"]),
+
+  getGrades
+);
 export default router;

@@ -13,18 +13,12 @@ import {
   createDegree,
   getAllFaculties,
   getDegreeById,
-  getDepartmentsByFacultyId,
   updateDegree,
 } from "@/utils/apiRequests/course.api";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
+import { LabelSearchCombobox } from "@/components/ui/customCommand";
+
+const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
   const [formData, setFormData] = useState({
     levels: [],
     no_of_sem_per_year: "2",
@@ -54,15 +48,13 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     enabled: false,
   });
 
-  const { data: facultyData } = useQuery({
+  const {
+    data: facultyData,
+    isLoading: isFacultyDataLoading,
+    isError: isFacultyDataError,
+  } = useQuery({
     queryFn: getAllFaculties,
     queryKey: ["activeFaculties"],
-  });
-
-  const { data: departmentData, refetch: departmentDataRefetch } = useQuery({
-    queryFn: () => getDepartmentsByFacultyId(formData.f_id),
-    queryKey: ["activeDepartments", "faculty", formData.f_id],
-    enabled: false,
   });
 
   useEffect(() => {
@@ -79,11 +71,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       setFormData((curData) => ({
         ...curData,
         [e.target?.name]: e.target?.value,
-      }));
-    } else {
-      setFormData((curData) => ({
-        ...curData,
-        [e.split(":")[0]]: e.split(":")[1],
       }));
     }
   };
@@ -118,7 +105,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       formData.deg_name &&
       formData.short &&
       formData.f_id &&
-      formData.d_id &&
       formData.no_of_sem_per_year &&
       formData.levels.length;
     setBtnEnable(isFormValid);
@@ -128,16 +114,12 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
     editId && refetch();
   }, [editId]);
 
-  useEffect(() => {
-    if (formData?.f_id) departmentDataRefetch();
-  }, [formData?.f_id]);
-
   return (
     <>
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div
-            ref={modalRef}
+            ref={modelRef}
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
@@ -197,45 +179,19 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               </div>
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Faculty</Label>
-                <Select
-                  onValueChange={(e) => {
-                    setFormData((cur) => ({ ...cur, d_id: "" }));
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.f_id ? "f_id:" + formData.f_id : ""}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Faculty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {facultyData?.map((item) => (
-                      <SelectItem key={item.f_id} value={`f_id:${item.f_id}`}>
-                        {item.f_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className={`grid grid-cols-4 items-center gap-4`}>
-                <Label className="text-right">Department</Label>
-                <Select
-                  onValueChange={(e) => {
-                    onFormDataChanged(e);
-                  }}
-                  value={formData.d_id ? "d_id:" + formData.d_id : ""}
-                  disabled={!formData.f_id}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departmentData?.map((item) => (
-                      <SelectItem key={item.d_id} value={`d_id:${item.d_id}`}>
-                        {item.d_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="col-span-3">
+                  <LabelSearchCombobox
+                    name="f_id"
+                    items={facultyData}
+                    labelField="f_name"
+                    valueField="f_id"
+                    placeholder="Search faculty..."
+                    buttonText="Select faculty"
+                    onValueChange={onFormDataChanged}
+                    value={formData.f_id || null}
+                    disabled={isFacultyDataLoading || isFacultyDataError}
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-4 gap-4">

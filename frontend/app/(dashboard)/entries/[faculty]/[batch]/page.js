@@ -9,38 +9,31 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { getCurriculumBybatchId } from "@/utils/apiRequests/curriculum.api";
+import { getSubjectBybatchId } from "@/utils/apiRequests/curriculum.api";
 import { Button } from "@/components/ui/button";
 import { FaGear, FaPlus } from "react-icons/fa6";
 import { TiWarning } from "react-icons/ti";
-import Modal from "./Model";
 import IndexModel from "./IndexModel";
 import { getStudentsWithoutIndexNumber } from "@/utils/apiRequests/entry.api";
 import { getDeadlinesForBatch } from "@/utils/apiRequests/batch.api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { titleCase } from "@/utils/functions";
+import SummaryExcelGenerator from "@/components/SummaryExcelGenerator";
 
 const Batches = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isOpen, setIsOpen] = useState(false);
   const [isIndexOpen, setIsIndexOpen] = useState(false);
-  const modalRef = useRef(null);
-  const indexModalRef = useRef(null);
+  const indexModelRef = useRef(null);
   const [endDate, setEndDate] = useState(null);
 
   const batch_id = searchParams.get("batch_id");
 
-  const toggleModal = () => {
-    setIsOpen((prev) => !prev);
-  };
-
-  const {
-    data: curriculumsOfBatchData,
-    isLoading: isCurriculumsOfBatchDataLoading,
-  } = useQuery({
-    queryFn: () => getCurriculumBybatchId(batch_id),
-    queryKey: ["curriculumsOfBatch", batch_id],
-  });
+  const { data: subjectsOfBatchData, isLoading: isSubjectsOfBatchDataLoading } =
+    useQuery({
+      queryFn: () => getSubjectBybatchId(batch_id),
+      queryKey: ["subjectsOfBatch", batch_id],
+    });
 
   const { data: deadlinesOfBatchData } = useQuery({
     queryFn: () => getDeadlinesForBatch(batch_id),
@@ -52,7 +45,7 @@ const Batches = () => {
     queryKey: ["studentsWithoutIndexNumber", batch_id],
   });
 
-  const toggleIndexModal = () => {
+  const toggleIndexModel = () => {
     if (studentsWithoutIndexNumberData?.count) {
       setIsIndexOpen((prev) => !prev);
     }
@@ -73,16 +66,12 @@ const Batches = () => {
       <div
         className={`flex flex-col sm:flex-row items-center gap-2 sm:gap-0 sm:items-stretch self-stretch w-[80%] md:w-[85%] lg:w-[70%] mb-2 mx-auto justify-between`}
       >
-        <Button onClick={toggleModal} variant="outline">
-          <FaPlus />
-          &nbsp;Insert Medical/Resit
-        </Button>
         {deadlinesOfBatchData &&
           deadlinesOfBatchData.length &&
           endDate &&
           endDate < new Date() &&
           (studentsWithoutIndexNumberData?.count ? (
-            <Button onClick={toggleIndexModal} variant="warning">
+            <Button onClick={toggleIndexModel} variant="warning">
               Index Number Missing &nbsp;
               <TiWarning />
             </Button>
@@ -101,17 +90,18 @@ const Batches = () => {
               </Link>
             </div>
           ))}
+        <SummaryExcelGenerator batch_id={batch_id} />
       </div>
       <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
-        {isCurriculumsOfBatchDataLoading &&
+        {isSubjectsOfBatchDataLoading &&
           [1, 2, 3, 4, 5, 6].map((_, i) => (
             <Skeleton
               key={i}
               className="sm:w-[30%] h-32 sm:max-w-[30%] rounded-xl"
             />
           ))}
-        {curriculumsOfBatchData &&
-          curriculumsOfBatchData.map((obj) => (
+        {subjectsOfBatchData &&
+          subjectsOfBatchData.map((obj) => (
             <Link
               href={{
                 pathname: `${pathname}/${obj.sub_code}`,
@@ -127,8 +117,8 @@ const Batches = () => {
             >
               <Card className="h-full flex flex-col justify-between">
                 <CardHeader>
-                  <CardTitle className="uppercase text-wrap">
-                    {obj.sub_name}
+                  <CardTitle className="text-wrap">
+                    {titleCase(obj.sub_name)}
                   </CardTitle>
                   <CardDescription>{obj.sub_code}</CardDescription>
                 </CardHeader>
@@ -136,17 +126,11 @@ const Batches = () => {
             </Link>
           ))}
       </div>
-      <Modal
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        modalRef={modalRef}
-        curriculumsOfBatchData={curriculumsOfBatchData}
-        batch_id={batch_id}
-      />
+
       <IndexModel
         isIndexOpen={isIndexOpen}
         setIsIndexOpen={setIsIndexOpen}
-        indexModalRef={indexModalRef}
+        indexModelRef={indexModelRef}
         batch_id={batch_id}
         studentsWithoutIndexNumberData={studentsWithoutIndexNumberData}
       />

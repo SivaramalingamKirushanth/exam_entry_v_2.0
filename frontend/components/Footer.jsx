@@ -2,13 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "./ui/button";
-import {
-  FaGithub,
-  FaLinkedin,
-  FaRegTimesCircle,
-  FaTimes,
-  FaTimesCircle,
-} from "react-icons/fa";
+import { FaGithub, FaLinkedin, FaRegTimesCircle } from "react-icons/fa";
+import { BiLogoGmail } from "react-icons/bi";
 
 const devs = [
   {
@@ -50,7 +45,7 @@ const devs = [
 ];
 
 export default function Footer() {
-  const [showModal, setShowModal] = useState(false);
+  const [showModel, setShowModel] = useState(false);
 
   return (
     <>
@@ -61,7 +56,7 @@ export default function Footer() {
             All&nbsp;rights&nbsp;reserved.
           </p>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => setShowModel(true)}
             className="relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 mt-3 text-white shadow-lg overflow-hidden border border-transparent mb-10 sm:mb-4"
           >
             {/* Animated Gradient Border Effect */}
@@ -78,17 +73,17 @@ export default function Footer() {
         </div>
       </footer>
 
-      {showModal && (
+      {showModel && (
         <div
           className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-md transition-all duration-300 ease-out"
           id="modelWindow"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              setShowModal(false);
+              setShowModel(false);
             }
           }}
         >
-          <div className="bg-gradient-to-b from-gray-50 to-white rounded-2xl shadow-xl w-[95%] sm:w-[80%] md:w-[70%] lg:w-[60%] xl:w-[50%] transition-transform transform scale-90 duration-500 ease-out modal-animate max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-gradient-to-b from-gray-50 to-white rounded-2xl shadow-xl w-[95%] sm:w-[80%] md:w-[70%] lg:w-[60%] xl:w-[50%] transition-transform transform scale-90 duration-500 ease-out model-animate max-h-[90vh] overflow-hidden flex flex-col">
             {/* Sticky Header */}
             <div className="px-6 sm:px-8 py-4 border-b border-gray-100 sticky top-0 bg-white bg-opacity-95 backdrop-blur-sm z-10">
               <div className="relative">
@@ -96,9 +91,9 @@ export default function Footer() {
                   Meet the Team
                 </h2>
                 <button
-                  onClick={() => setShowModal(false)}
+                  onClick={() => setShowModel(false)}
                   className="absolute -top-1 -right-4 text-gray-400 hover:text-gray-600 transition-colors"
-                  aria-label="Close modal"
+                  aria-label="Close model"
                 >
                   <FaRegTimesCircle className="h-6 w-6 text-pink-500 hover:text-purple-500" />
                 </button>
@@ -146,108 +141,57 @@ export default function Footer() {
                   <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent w-full ml-4"></div>
                 </div>
 
-                <div className="mb-2 flex justify-center">
-                  <div className="w-full md:w-1/2 bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-purple-200 transition-all">
-                    <div className="flex justify-between">
-                      <div>
-                        <p className="font-bold text-md text-gray-800">
-                          Zahran Liyasdeen
-                        </p>
-                        <p className="text-sm font-semibold bg-gradient-to-r from-purple-700 via-pink-600 to-blue-700 bg-clip-text text-transparent">
-                          Team Lead
-                        </p>
-                        <p className="text-sm text-gray-600">2020/ICT/119</p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <a
-                          href="https://github.com/jallu-dev"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-500 hover:text-purple-600 transition-colors"
-                        >
-                          <FaGithub size={18} />
-                        </a>
-                        <a
-                          href="https://www.linkedin.com/in/zahran-liyasdeen"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-500 hover:text-blue-600 transition-colors"
-                        >
-                          <FaLinkedin size={18} />
-                        </a>
-                      </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-purple-200 transition-all">
+                  <div className="flex flex-col sm:items-center">
+                    <p className="font-bold text-md text-gray-800">
+                      Mr. Zahran Liyasdeen
+                    </p>
+                    <p className="text-sm text-gray-600">2020/ICT/119</p>
+                    <div className="flex items-center gap-x-4 mt-1">
+                      <a
+                        href="mailto:zahranliyasdeen@gmail.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:text-blue-700 transition-colors"
+                      >
+                        <BiLogoGmail size={22} />
+                      </a>
+                      <a
+                        href="https://github.com/jallu-dev"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:text-blue-700 transition-colors"
+                      >
+                        <FaGithub size={20} />
+                      </a>
+                      <a
+                        href="https://www.linkedin.com/in/zahran-liyasdeen"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:text-blue-700 transition-colors"
+                      >
+                        <FaLinkedin size={20} />
+                      </a>
                     </div>
                   </div>
                 </div>
 
                 {/* Team members grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
-                  {devs.slice(0, 3).map((mem, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-purple-200 transition-all"
-                    >
-                      <div>
-                        <p className="font-semibold text-md text-gray-800">
-                          {mem.name}
-                        </p>
-                        <p className="text-sm text-gray-600">{mem.regNo}</p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={mem.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-500 hover:text-purple-600 transition-colors"
-                        >
-                          <FaGithub size={18} />
-                        </a>
-                        <a
-                          href={mem.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-500 hover:text-blue-600 transition-colors"
-                        >
-                          <FaLinkedin size={18} />
-                        </a>
-                      </div>
-                    </div>
-                  ))}
-
-                  {devs.slice(3).map((mem, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:border-purple-200 transition-all"
-                    >
-                      <div>
-                        <p className="font-semibold text-md text-gray-800">
-                          {mem.name}
-                        </p>
-                        <p className="text-sm text-gray-600">{mem.regNo}</p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={mem.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-500 hover:text-purple-600 transition-colors"
-                        >
-                          <FaGithub size={18} />
-                        </a>
-                        <a
-                          href={mem.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-500 hover:text-blue-600 transition-colors"
-                        >
-                          <FaLinkedin size={18} />
-                        </a>
-                      </div>
-                    </div>
-                  ))}
+                <div className="text-xs text-gray-500 mt-6 bg-gray-50 p-4 rounded-md border border-gray-100 text-center">
+                  <p className="mb-1 font-medium text-gray-600">
+                    <em>
+                      Other Members who worked on Exam Entry System v1.0
+                      (initial group project):
+                    </em>
+                  </p>
+                  <ul>
+                    <li>Chamith Jeewantha (2020/ICT/18)</li>
+                    <li>Awishka Piyumal (2020/ICT/24)</li>
+                    <li>Ilma Ismail (2020/ICT/48)</li>
+                    <li>Chamathka Hettiaracchi (2020/ICT/57)</li>
+                    <li>Ilma Ilmy (2020/ICT/64)</li>
+                    <li>Achira Wijesuriya (2020/ICT/101)</li>
+                  </ul>
                 </div>
               </div>
             </div>

@@ -144,16 +144,26 @@ export const uploadAttendanceSheet = async (data) => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", "failed_records.txt"); // File name for download
+      link.setAttribute("download", "report.txt"); // File name for download
       document.body.appendChild(link);
       link.click();
       link.remove();
 
-      return { message: "Failed records file downloaded.", isFile: true };
+      return { message: "Report file downloaded.", isFile: true };
     }
 
     throw new Error("Unexpected response type");
   } catch {
     throw new Error("Failed to upload attendance sheet.");
   }
+};
+
+export const getEligibleResitBatches = async () => {
+  const response = await axiosInstance.get("/batch/getEligibleResitBatches");
+  return response.data;
+};
+
+export const getEligibleMedicalBatches = async () => {
+  const response = await axiosInstance.get("/batch/getEligibleMedicalBatches");
+  return response.data;
 };

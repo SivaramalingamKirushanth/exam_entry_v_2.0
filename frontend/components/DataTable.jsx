@@ -29,7 +29,7 @@ export function DataTable({
   columns,
   data,
   onEditClicked,
-  toggleModal,
+  toggleModel,
   btnText,
 }) {
   const [sorting, setSorting] = useState([]);
@@ -54,7 +54,7 @@ export function DataTable({
     <div>
       <div className="flex items-center mb-4">
         <Button
-          onClick={toggleModal}
+          onClick={toggleModel}
           className="flex items-center bg-primary text-primary-foreground shadow hover:bg-primary/90 rounded-md px-3 py-2 mb-3 text-sm"
         >
           <FaPlus />

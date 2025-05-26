@@ -79,30 +79,30 @@ export const getBatchById = async (req, res, next) => {
       }
 
       // Parse batch_code in Node.js
-      const details = parseString(batch[0][0].batch_code);
+      const { sem: sem_no, ...details } = batch[0][0];
 
-      // Call the second stored procedure to get degree, department, and faculty details
-      const [degFacDepResults] = await conn.query(
-        "CALL GetDegFacDepDetails(?)",
-        [details.degree_name_short]
-      );
+      // Call the second stored procedure to get degree, and faculty details
+      const [degFacResults] = await conn.query("CALL GetDegFacDetails(?)", [
+        details.deg_id,
+      ]);
 
-      // Fetch curriculum and lecturer details for the batch
-      const [batCurLecResult] = await conn.query(
-        "SELECT bcl.* FROM batch_curriculum_lecturer bcl INNER JOIN curriculum c ON bcl.sub_id = c.sub_id WHERE bcl.batch_id = ? AND c.status = 'true'",
+      // Fetch subject and lecturer details for the batch
+      const [batSubLecResult] = await conn.query(
+        "SELECT bsl.* FROM batch_subject_lecturer bsl INNER JOIN subject s ON bsl.sub_id = s.sub_id WHERE bsl.batch_id = ? AND s.status = 'true'",
         [batch_id]
       );
 
-      // Transform curriculum and lecturer details into a key-value map
+      // Transform subject and lecturer details into a key-value map
       const subjects = {};
-      batCurLecResult.forEach((obj) => {
-        subjects[obj.sub_id] = obj.m_id.toString();
+      batSubLecResult.forEach((obj) => {
+        subjects[obj.sub_id] = obj.l_id;
       });
 
       return res.status(200).json({
         status: batch[0][0].status,
+        sem_no,
         ...details,
-        ...degFacDepResults[0][0],
+        ...degFacResults[0][0],
         subjects,
         batch_id,
         application_open: batch[0][0].application_open,
@@ -127,6 +127,7 @@ export const createBatch = async (req, res, next) => {
     subjects,
     status = "true",
     deg_id,
+    syl_id,
     application_open,
     academic_year,
     level,
@@ -135,6 +136,9 @@ export const createBatch = async (req, res, next) => {
     lecturers_end,
     hod_end,
     dean_end,
+    payment_end,
+    admin_end,
+    grp_id,
   } = req.body;
 
   try {
@@ -145,6 +149,8 @@ export const createBatch = async (req, res, next) => {
         !status ||
         !Object.keys(subjects).length ||
         !deg_id ||
+        !syl_id ||
+        !grp_id ||
         !application_open ||
         !academic_year ||
         !level ||
@@ -152,7 +158,9 @@ export const createBatch = async (req, res, next) => {
         !students_end ||
         !lecturers_end ||
         !hod_end ||
-        !dean_end
+        !dean_end ||
+        !payment_end ||
+        !admin_end
       ) {
         return next(errorProvider(400, "All fields are required"));
       }
@@ -172,25 +180,29 @@ export const createBatch = async (req, res, next) => {
 
       // Insert batch and retrieve batch_id
       const [batchResult] = await conn.query(
-        "CALL InsertBatch(?, ?, ?, ?, ?, ?, ?, ?, @batch_id); SELECT @batch_id AS batch_id;",
+        "CALL InsertBatch(?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, @batch_id); SELECT @batch_id AS batch_id;",
         [
           batch_code,
           Object.keys(subjects).join(","),
           status,
           deg_id,
+          syl_id,
           application_open,
           academic_year,
           level,
           sem_no,
+          payment_end,
+          grp_id,
+          admin_end,
         ]
       );
       const batch_id = batchResult[1][0].batch_id;
 
-      // Insert batch curriculum lecturer details
-      await conn.query("CALL InsertBatchCurriculumLecturer(?, ?);", [
+      // Insert batch subject lecturer details
+      await conn.query("CALL InsertBatchSubjectLecturer(?, ?);", [
         batch_id,
         JSON.stringify(
-          Object.entries(subjects).map(([sub_id, m_id]) => ({ sub_id, m_id }))
+          Object.entries(subjects).map(([sub_id, l_id]) => ({ sub_id, l_id }))
         ),
       ]);
 
@@ -238,9 +250,9 @@ export const createBatch = async (req, res, next) => {
         [batch_id, "2", dean_end, dean_end]
       );
 
-      let desc = `Batch created with batch_id=${batch_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, sub_ids=${Object.keys(
+      let desc = `Batch created with batch_id=${batch_id}, syl_id=${syl_id}, grp_id=${grp_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, admin_end=${admin_end}, sub_ids=${Object.keys(
         subjects
-      ).join(",")}, m_ids=${Object.values(subjects).join(",")}`;
+      ).join(",")}, l_ids=${Object.values(subjects).join(",")}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
@@ -272,6 +284,7 @@ export const updateBatch = async (req, res, next) => {
     subjects,
     batch_id,
     deg_id,
+    syl_id,
     application_open,
     academic_year,
     level,
@@ -280,6 +293,9 @@ export const updateBatch = async (req, res, next) => {
     lecturers_end,
     hod_end,
     dean_end,
+    payment_end,
+    admin_end,
+    grp_id,
   } = req.body;
 
   try {
@@ -290,6 +306,8 @@ export const updateBatch = async (req, res, next) => {
         !batch_code ||
         !Object.keys(subjects).length ||
         !deg_id ||
+        !syl_id ||
+        !grp_id ||
         !application_open ||
         !academic_year ||
         !level ||
@@ -297,7 +315,9 @@ export const updateBatch = async (req, res, next) => {
         !students_end ||
         !lecturers_end ||
         !hod_end ||
-        !dean_end
+        !dean_end ||
+        !payment_end ||
+        !admin_end
       ) {
         return next(errorProvider(400, "All fields are required"));
       }
@@ -316,16 +336,23 @@ export const updateBatch = async (req, res, next) => {
       }
 
       // Update batch details
-      await conn.query("CALL UpdateBatchDetails(?, ?, ?, ?, ?, ?, ?, ?);", [
-        batch_id,
-        batch_code,
-        Object.keys(subjects).join(","),
-        deg_id,
-        application_open,
-        academic_year,
-        level,
-        sem_no,
-      ]);
+      await conn.query(
+        "CALL UpdateBatchDetails(?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?);",
+        [
+          batch_id,
+          batch_code,
+          Object.keys(subjects).join(","),
+          deg_id,
+          syl_id,
+          application_open,
+          academic_year,
+          level,
+          sem_no,
+          payment_end,
+          grp_id,
+          admin_end,
+        ]
+      );
 
       // Drop old tables and columns if subjects changed
       if (!lodash.isEqual(Object.keys(old_subjects), Object.keys(subjects))) {
@@ -351,16 +378,14 @@ export const updateBatch = async (req, res, next) => {
         ]);
       }
 
-      // Delete old batch curriculum lecturer rows
-      await conn.query("CALL DeleteBatchCurriculumLecturerRows(?);", [
-        batch_id,
-      ]);
+      // Delete old batch subject lecturer rows
+      await conn.query("CALL DeleteBatchSubjectLecturerRows(?);", [batch_id]);
 
-      // Re-insert batch curriculum lecturer details
-      await conn.query("CALL InsertBatchCurriculumLecturer(?, ?);", [
+      // Re-insert batch subject lecturer details
+      await conn.query("CALL InsertBatchSubjectLecturer(?, ?);", [
         batch_id,
         JSON.stringify(
-          Object.entries(subjects).map(([sub_id, m_id]) => ({ sub_id, m_id }))
+          Object.entries(subjects).map(([sub_id, l_id]) => ({ sub_id, l_id }))
         ),
       ]);
 
@@ -392,9 +417,9 @@ export const updateBatch = async (req, res, next) => {
         [batch_id, "2", dean_end, dean_end]
       );
 
-      let desc = `Batch updated with batch_id=${batch_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, sub_ids=${Object.keys(
+      let desc = `Batch updated with batch_id=${batch_id}, syl_id=${syl_id}, grp_id=${grp_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, admin_end=${admin_end}, sub_ids=${Object.keys(
         subjects
-      ).join(",")}, m_ids=${Object.values(subjects).join(",")}`;
+      ).join(",")}, l_ids=${Object.values(subjects).join(",")}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       await conn.commit();
@@ -667,9 +692,25 @@ export const getBatchesByStudent = async (req, res, next) => {
 };
 
 export const setBatchTimePeriod = async (req, res, next) => {
-  const { batch_id, students_end, lecturers_end, hod_end, dean_end } = req.body;
+  const {
+    batch_id,
+    students_end,
+    lecturers_end,
+    hod_end,
+    dean_end,
+    payment_end,
+    admin_end,
+  } = req.body;
 
-  if (!batch_id || !students_end || !lecturers_end || !hod_end || !dean_end) {
+  if (
+    !batch_id ||
+    !students_end ||
+    !lecturers_end ||
+    !hod_end ||
+    !dean_end ||
+    !payment_end ||
+    !admin_end
+  ) {
     return next(errorProvider(400, "Missing required fields."));
   }
 
@@ -704,7 +745,12 @@ export const setBatchTimePeriod = async (req, res, next) => {
         [batch_id, "2", dean_end, dean_end]
       );
 
-      let desc = `Batch time period inserted or updated for batch_id=${batch_id} to students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}`;
+      await conn.execute(
+        `UPDATE batch SET payment_end = ?, admin_end = ? WHERE batch_id = ?`,
+        [payment_end, admin_end, batch_id]
+      );
+
+      let desc = `Batch time period inserted or updated for batch_id=${batch_id} to students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, admin_end=${admin_end}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res
@@ -869,6 +915,8 @@ export const uploadAttendanceSheet = async (req, res, next) => {
   const failedCases = [];
   const unmatchedSubjects = [];
   const unmatchedStudents = [];
+  const missingSubjects = [];
+  const upsertedStudents = [];
 
   try {
     if (!req.file || !req.file.buffer || !req.body.batch_id) {
@@ -887,7 +935,7 @@ export const uploadAttendanceSheet = async (req, res, next) => {
         if (isFirstRow) {
           incomingSubjects = Object.values(row)
             .slice(1)
-            .map((header) => header.replace(/[^a-zA-Z0-9]/g, ""));
+            .map((header) => header.replace(/[^a-zA-Z0-9]/g, "").toLowerCase());
           isFirstRow = false;
         } else {
           results.push(row); // Collect rows
@@ -900,34 +948,50 @@ export const uploadAttendanceSheet = async (req, res, next) => {
 
           // Fetch subject IDs from DB for the batch
           const [dbSubjectRows] = await conn.query(
-            "SELECT bcl.sub_id, c.sub_code FROM batch_curriculum_lecturer bcl join curriculum c ON bcl.sub_id=c.sub_id WHERE bcl.batch_id = ?",
+            "SELECT bsl.sub_id, s.sub_code FROM batch_subject_lecturer bsl join subject s ON bsl.sub_id=s.sub_id WHERE bsl.batch_id = ?",
             [batchId]
           );
 
           const dbSubjects = dbSubjectRows.reduce((acc, row) => {
-            const sanitizedCode = row.sub_code.replace(/[^a-zA-Z0-9]/g, "");
+            const sanitizedCode = row.sub_code
+              .replace(/[^a-zA-Z0-9]/g, "")
+              .toLowerCase();
             acc[sanitizedCode] = row.sub_id;
             return acc;
           }, {});
 
           // Map incoming subjects to database sub_ids
-          const subIdOrder = incomingSubjects.map((incomingCode) => {
+          const subIdOrder = incomingSubjects.map((incomingCode, i) => {
             const matchingKey = Object.keys(dbSubjects).find(
               (key) => key === incomingCode
             );
 
             if (!matchingKey) {
               unmatchedSubjects.push(incomingCode);
-              return null;
+              return null; // return null if no matching sub_code
             }
 
-            return dbSubjects[matchingKey];
+            return dbSubjects[matchingKey]; // return sub_id of matching sub_code
           });
 
           if (unmatchedSubjects.length > 0) {
             failedCases.push(
               `Unmatched subjects: ${unmatchedSubjects.join(", ")}`
             );
+          }
+
+          Object.keys(dbSubjects).forEach((subCode) => {
+            const exist = incomingSubjects.find(
+              (incomeSubCode) => incomeSubCode == subCode
+            );
+
+            if (!exist) {
+              missingSubjects.push(subCode);
+            }
+          });
+
+          if (missingSubjects.length > 0) {
+            failedCases.push(`Missing subjects: ${missingSubjects.join(", ")}`);
           }
 
           // Process each row and update attendance
@@ -952,23 +1016,52 @@ export const uploadAttendanceSheet = async (req, res, next) => {
             const s_id = userResult[0].s_id;
 
             // Build dynamic update query using attendanceData and subIdOrder
-            const updates = subIdOrder
-              .map((sub_id, index) => {
-                const columnValue = attendanceData[index] || 0; // Match value to the sub_id order
-                return sub_id
-                  ? `sub_${sub_id} = ${conn.escape(columnValue)}`
-                  : null;
-              })
-              .filter(Boolean)
-              .join(", ");
+            const tableName = `batch_${batchId}_students`;
 
-            if (updates) {
-              const tableName = `batch_${batchId}_students`;
-              await conn.query(
-                `UPDATE ${tableName} SET ${updates} WHERE s_id = ?`,
+            // Build column names and values for INSERT
+            const insertCols = ["s_id"];
+            const insertVals = [conn.escape(s_id)];
+            const updateParts = [];
+
+            subIdOrder.forEach((sub_id, index) => {
+              if (sub_id) {
+                const value = attendanceData[index] || 0;
+                const col = `sub_${sub_id}`;
+                insertCols.push(col);
+                insertVals.push(conn.escape(value));
+                updateParts.push(`${col} = VALUES(${col})`);
+              }
+            });
+
+            if (updateParts.length > 0) {
+              const query = `
+    INSERT INTO ${tableName} (${insertCols.join(", ")})
+    VALUES (${insertVals.join(", ")})
+    ON DUPLICATE KEY UPDATE ${updateParts.join(", ")}
+  `;
+              await conn.query(query);
+              const [existingBatchIdsResults] = await conn.execute(
+                "SELECT batch_ids FROM student_detail WHERE s_id=?;",
                 [s_id]
               );
+              const { batch_ids } = existingBatchIdsResults[0];
+              const batch_idsArr = batch_ids.split(",");
+              const alreadyExist = batch_idsArr.some((item) => item == batchId);
+              if (!alreadyExist) {
+                await conn.query("CALL UpdateStudentBatchIds(?,?);", [
+                  batchId,
+                  s_id,
+                ]);
+              }
+
+              upsertedStudents.push(user_name);
             }
+          }
+
+          if (upsertedStudents.length > 0) {
+            failedCases.push(
+              `inserted/updated students: ${upsertedStudents.join(", ")}`
+            );
           }
 
           let desc = `Batch attendace sheet uploaded for batch_id=${batchId}`;
@@ -977,7 +1070,12 @@ export const uploadAttendanceSheet = async (req, res, next) => {
           await conn.commit();
 
           // Generate a failed cases file if needed
-          if (failedCases.length > 0 || unmatchedStudents.length > 0) {
+          if (
+            failedCases.length > 0 ||
+            unmatchedStudents.length > 0 ||
+            missingSubjects.length > 0 ||
+            upsertedStudents.length > 0
+          ) {
             const failedFilePath = path.join(
               __dirname,
               "failed_cases_attendance.txt"
@@ -1054,31 +1152,13 @@ export const getAllBatchesForDepartment = async (req, res, next) => {
         return res.status(404).json({ message: "No active departments found" });
       }
       let department = departments[0];
-      const result = [];
 
-      // Step 2: Get active degrees under this faculty
-      const [degrees] = await conn.query(
-        "CALL GetActiveDegreesInDepartment(?)",
+      const [batches] = await conn.query(
+        "CALL GetActiveBatchesOfDepWithinDeadline(?)",
         [department.d_id]
       );
 
-      if (degrees[0].length > 0) {
-        for (const degree of degrees[0]) {
-          // Step 2: Get active degrees under this faculty
-          const [batches] = await conn.query(
-            "CALL GetActiveBatchesWithinDeadline(?, ?)",
-            [degree.deg_id, role_id]
-          );
-
-          if (batches[0].length > 0) {
-            batches[0].forEach((batch) =>
-              result.push({ ...batch, deg_name: degree.deg_name })
-            );
-          }
-        }
-      }
-
-      return res.status(200).json(result);
+      return res.status(200).json(batches[0]);
     } finally {
       conn.release();
     }
@@ -1099,7 +1179,6 @@ export const getAllBatchesForFaculty = async (req, res, next) => {
     const conn = await pool.getConnection();
 
     try {
-      // Step 1: Get faculty ID for the dean
       const [faculty] = await conn.query(
         "SELECT f_id FROM faculty WHERE user_id = ? AND status = 'true'",
         [user_id]
@@ -1110,38 +1189,25 @@ export const getAllBatchesForFaculty = async (req, res, next) => {
       }
       const facultyId = faculty[0].f_id;
 
-      // Step 2: Get active departments under this faculty
-      const [departments] = await conn.query(
-        "CALL GetDepartmentsByFacultyId(?)",
-        [facultyId]
-      );
-
-      if (departments[0].length === 0) {
-        return res.status(404).json({ message: "No active departments found" });
-      }
-
       const result = [];
 
-      for (const department of departments[0]) {
-        // Step 2: Get active degrees under this faculty
-        const [degrees] = await conn.query(
-          "CALL GetActiveDegreesInDepartment(?)",
-          [department.d_id]
-        );
+      // Step 2: Get active degrees under this faculty
+      const [degrees] = await conn.query("CALL GetActiveDegreesInFaculty(?)", [
+        facultyId,
+      ]);
 
-        if (degrees[0].length > 0) {
-          for (const degree of degrees[0]) {
-            // Step 2: Get active degrees under this faculty
-            const [batches] = await conn.query(
-              "CALL GetActiveBatchesWithinDeadline(?, ?)",
-              [degree.deg_id, role_id]
+      if (degrees[0].length > 0) {
+        for (const degree of degrees[0]) {
+          // Step 2: Get active degrees under this faculty
+          const [batches] = await conn.query(
+            "CALL GetActiveBatchesOfDegWithinDeadline(?, ?)",
+            [degree.deg_id, role_id]
+          );
+
+          if (batches[0].length > 0) {
+            batches[0].forEach((batch) =>
+              result.push({ ...batch, deg_name: degree.deg_name })
             );
-
-            if (batches[0].length > 0) {
-              batches[0].forEach((batch) =>
-                result.push({ ...batch, deg_name: degree.deg_name })
-              );
-            }
           }
         }
       }
@@ -1221,8 +1287,9 @@ export const getBatchOpenDate = async (req, res, next) => {
 
       // Parse batch_code in Node.js
       const application_open = batch[0][0].application_open;
+      const payment_end = batch[0][0].payment_end;
 
-      return res.status(200).json({ application_open });
+      return res.status(200).json({ application_open, payment_end });
     } catch (error) {
       console.error("Error retrieving batch application_open date:", error);
       return next(
@@ -1230,6 +1297,66 @@ export const getBatchOpenDate = async (req, res, next) => {
           500,
           "An error occurred while retrieving batch application_open date"
         )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getEligibleResitBatches = async (req, res, next) => {
+  const { user_id } = req.user;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [batchDetails] = await conn.query(
+        "CALL GetEligibleResitBatches(?);",
+        [user_id]
+      );
+
+      if (!batchDetails[0].length) {
+        return next(errorProvider(404, "No Batches found"));
+      }
+
+      return res.status(200).json(batchDetails[0]);
+    } catch (error) {
+      console.error("Error retrieving batches:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving student batches")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getEligibleMedicalBatches = async (req, res, next) => {
+  const { user_id } = req.user;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [batchDetails] = await conn.query(
+        "CALL GetEligibleMedicalBatches(?);",
+        [user_id]
+      );
+
+      if (!batchDetails[0].length) {
+        return next(errorProvider(404, "No Batches found"));
+      }
+
+      return res.status(200).json(batchDetails[0]);
+    } catch (error) {
+      console.error("Error retrieving batches:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving student batches")
       );
     } finally {
       conn.release();

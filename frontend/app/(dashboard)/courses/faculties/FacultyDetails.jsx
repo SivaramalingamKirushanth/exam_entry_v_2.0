@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Modal from "./Model";
+import Model from "./Model";
 import {
   getAllFacultiesWithExtraDetails,
   updateFacultyStatus,
@@ -29,7 +29,7 @@ const FacultyDetails = () => {
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
-  const modalRef = useRef(null);
+  const modelRef = useRef(null);
   const [editId, setEditId] = useState("");
   const queryClient = useQueryClient();
 
@@ -73,12 +73,16 @@ const FacultyDetails = () => {
       },
     },
     {
-      accessorKey: "department_count",
       header: "No of departments",
+      cell: ({ row }) => {
+        return <p className="text-center">{row.original.department_count}</p>;
+      },
     },
     {
-      accessorKey: "degree_count",
       header: "No of Degree programmes",
+      cell: ({ row }) => {
+        return <p className="text-center">{row.original.degree_count}</p>;
+      },
     },
     {
       id: "email",
@@ -90,6 +94,15 @@ const FacultyDetails = () => {
     {
       accessorKey: "contact_no",
       header: "Contact No",
+      cell: ({ row }) => {
+        return (
+          <p>
+            {row.original.contact_no.slice(0, 3)}{" "}
+            {row.original.contact_no.slice(3, 6)}{" "}
+            {row.original.contact_no.slice(6)}
+          </p>
+        );
+      },
     },
     {
       accessorKey: "status",
@@ -131,7 +144,7 @@ const FacultyDetails = () => {
     setStatus(e);
   };
 
-  const toggleModal = () => {
+  const toggleModel = () => {
     isOpen && setEditId("");
     setIsOpen((prev) => !prev);
   };
@@ -139,7 +152,7 @@ const FacultyDetails = () => {
   const onEditClicked = (e) => {
     if (e.target.classList.contains("editBtn")) {
       setEditId(e.target.id);
-      toggleModal();
+      toggleModel();
     }
   };
 
@@ -197,11 +210,11 @@ const FacultyDetails = () => {
           </div>
         </div>
       </div>
-      <Modal
+      <Model
         editId={editId}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        modalRef={modalRef}
+        modelRef={modelRef}
         setEditId={setEditId}
       />
       <div className="container mx-auto">
@@ -209,7 +222,7 @@ const FacultyDetails = () => {
           columns={columns}
           data={filteredData}
           onEditClicked={onEditClicked}
-          toggleModal={toggleModal}
+          toggleModel={toggleModel}
           btnText="Create faculty"
         />
       </div>

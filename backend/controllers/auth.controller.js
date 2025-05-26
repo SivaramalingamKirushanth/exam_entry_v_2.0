@@ -23,6 +23,7 @@ export const studentRegister = async (req, res, next) => {
     user_name,
     name,
     f_id,
+    syl_id,
     email,
     contact_no,
     index_num = "",
@@ -30,7 +31,15 @@ export const studentRegister = async (req, res, next) => {
   } = req.body;
   const role_id = 5;
 
-  if (!user_name || !name || !f_id || !email || !status || !contact_no) {
+  if (
+    !user_name ||
+    !name ||
+    !f_id ||
+    !syl_id ||
+    !email ||
+    !status ||
+    !contact_no
+  ) {
     return next(errorProvider(400, "Missing credentials"));
   }
 
@@ -76,25 +85,54 @@ export const studentRegister = async (req, res, next) => {
 
       // Insert student details
       const [studentResult] = await conn.query(
-        "CALL InsertStudentDetail( ?, ?, ?, ? ,?, @sId);SELECT @sId AS sId;",
-        [name, f_id, status, index_num, contact_no]
+        "CALL InsertStudentDetail( ?, ?, ?, ?, ? ,?, @sId);SELECT @sId AS sId;",
+        [name, f_id, syl_id, status, index_num, contact_no]
       );
 
       const s_id = studentResult[1][0].sId;
 
       await conn.query("CALL InsertStudent(?, ?);", [user_id, s_id]);
 
-      let desc = `Student created with user_id=${user_id}, s_id=${s_id}, name=${name}, f_id=${f_id}, index_num=${index_num}, contact_no=${contact_no}`;
+      let desc = `Student created with user_id=${user_id}, user_name=${user_name}, s_id=${s_id}, name=${name}, f_id=${f_id}, syl_id=${syl_id}, index_num=${index_num}, contact_no=${contact_no}`;
 
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       try {
         await mailer(
           email,
-          "Registration succesfull",
-          `<h2>You are successfully registered to examinations</h2>
-                <h4>User name : ${user_name}</h4>
-                <h4>Password : ${password}</h4>`
+          "Registration Successful",
+          `
+  <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:20px;text-align:center;">
+      <h1 style="margin:0;font-size:22px;">Examination Registration</h1>
+    </div>
+    <div style="padding:30px;">
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h2>
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        You have been successfully registered for the examinations system.
+      </p>
+
+      <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;">
+        <p style="margin:0;font-size:15px;"><strong>Username:</strong> ${user_name}</p>
+        <p style="margin:0;font-size:15px;"><strong>Password:</strong> ${password}</p>
+      </div>
+
+      <p style="font-size:14px;color:#000;">
+        Please store these credentials safely. You will need them to log into the examination portal.
+      </p>
+
+      <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
+
+      <p style="font-size:14px;color:#000;text-align:center;">
+        For any inquiries, please contact the <strong>Examination Branch</strong>.
+      </p>
+    </div>
+    <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
+      &copy; ${new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.
+            All&nbsp;rights&nbsp;reserved.
+    </div>
+  </div>
+  `
         );
       } catch (mailError) {
         return next(errorProvider(500, "Failed to send mail:" + mailError));
@@ -125,11 +163,17 @@ export const multipleStudentsRegister = async (req, res, next) => {
 
   try {
     // Check if file exists
-    if (!req.file || !req.file.buffer || !req.body.f_id) {
-      return next(errorProvider(400, "No file uploaded"));
+    if (!req.file || !req.file.buffer || !req.body.f_id || !req.body.syl_id) {
+      return next(
+        errorProvider(
+          400,
+          "No file uploaded or missing required data(f_id, syl_id)"
+        )
+      );
     }
 
     let f_id = req.body.f_id;
+    let syl_id = req.body.syl_id;
 
     const buffer = req.file.buffer; // Access the file buffer
     const stream = streamifier.createReadStream(buffer); // Convert buffer to readable stream
@@ -155,7 +199,7 @@ export const multipleStudentsRegister = async (req, res, next) => {
             } = record;
 
             // Validate fields
-            if (!user_name || !name || !f_id || !email || !contact_no) {
+            if (!user_name || !name || !email || !contact_no) {
               failedRecords.push({ record, error: "Missing credentials" });
               continue;
             }
@@ -195,25 +239,54 @@ export const multipleStudentsRegister = async (req, res, next) => {
 
             // Insert student details
             const [studentResult] = await conn.query(
-              "CALL InsertStudentDetail( ?, ?, ?,? ,?, @sId);SELECT @sId AS sId;",
-              [name, f_id, status, index_num, contact_no]
+              "CALL InsertStudentDetail( ?, ?, ?, ?,? ,?, @sId);SELECT @sId AS sId;",
+              [name, f_id, syl_id, status, index_num, contact_no]
             );
 
             const s_id = studentResult[1][0].sId;
 
             await conn.query("CALL InsertStudent(?, ?);", [user_id, s_id]);
 
-            let desc = `Student created with user_id=${user_id}, s_id=${s_id}, name=${name}, f_id=${f_id}, index_num=${index_num}, contact_no=${contact_no}`;
+            let desc = `Student created with user_id=${user_id}, user_name=${user_name}, s_id=${s_id}, name=${name}, f_id=${f_id}, syl_id=${syl_id}, index_num=${index_num}, contact_no=${contact_no}`;
 
             await conn.query("CALL LogAdminAction(?);", [desc]);
 
             try {
               await mailer(
                 email,
-                "Registration succesfull",
-                `<h2>You are successfully registered to examinations</h2>
-                <h4>User name : ${user_name}</h4>
-                <h4>Password : ${password}</h4>`
+                "Registration Successful",
+                `
+  <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:20px;text-align:center;">
+      <h1 style="margin:0;font-size:22px;">Examination Registration</h1>
+    </div>
+    <div style="padding:30px;">
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h2>
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        You have been successfully registered for the examinations system.
+      </p>
+
+      <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;">
+        <p style="margin:0;font-size:15px;"><strong>Username:</strong> ${user_name}</p>
+        <p style="margin:0;font-size:15px;"><strong>Password:</strong> ${password}</p>
+      </div>
+
+      <p style="font-size:14px;color:#000;">
+        Please store these credentials safely. You will need them to log into the examination portal.
+      </p>
+
+      <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
+
+      <p style="font-size:14px;color:#000;text-align:center;">
+        For any inquiries, please contact the <strong>Examination Branch</strong>.
+      </p>
+    </div>
+    <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
+      &copy; ${new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.
+            All&nbsp;rights&nbsp;reserved.
+    </div>
+  </div>
+  `
               );
             } catch (mailError) {
               return next(
@@ -274,7 +347,7 @@ export const multipleStudentsRegister = async (req, res, next) => {
   }
 };
 
-export const managerRegister = async (req, res, next) => {
+export const lecturerRegister = async (req, res, next) => {
   const { user_name, name, email, contact_no, status = "true" } = req.body;
   const role_id = 4;
 
@@ -312,37 +385,66 @@ export const managerRegister = async (req, res, next) => {
       const user_id = userResult[1][0].userId;
 
       // Insert magnager details
-      const [managerResult] = await conn.query(
-        "CALL InsertManagerDetail(?, ?, ? , @mId);SELECT @mId AS mId;",
+      const [lecturerResult] = await conn.query(
+        "CALL InsertLecturerDetail(?, ?, ? , @mId);SELECT @mId AS mId;",
         [name, contact_no, status]
       );
 
-      const m_id = managerResult[1][0].mId;
+      const l_id = lecturerResult[1][0].mId;
 
-      await conn.query("CALL InsertManager(?, ?);", [user_id, m_id]);
+      await conn.query("CALL InsertLecturer(?, ?);", [user_id, l_id]);
 
-      let desc = `Manager created with user_id=${user_id}, m_id=${m_id}, name=${name}, contact_no=${contact_no}`;
+      let desc = `lecturer created with user_id=${user_id}, user_name=${user_name}, l_id=${l_id}, name=${name}, contact_no=${contact_no}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       try {
         await mailer(
           email,
-          "Registration succesfull",
-          `<h2>You are successfully registered to examinations</h2>
-          <h4>User name : ${user_name}</h4>
-          <h4>Password : ${password}</h4>`
+          "Registration Successful",
+          `
+  <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:20px;text-align:center;">
+      <h1 style="margin:0;font-size:22px;">Examination Registration</h1>
+    </div>
+    <div style="padding:30px;">
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h2>
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        You have been successfully registered for the examinations system.
+      </p>
+
+      <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;">
+        <p style="margin:0;font-size:15px;"><strong>Username:</strong> ${user_name}</p>
+        <p style="margin:0;font-size:15px;"><strong>Password:</strong> ${password}</p>
+      </div>
+
+      <p style="font-size:14px;color:#000;">
+        Please store these credentials safely. You will need them to log into the examination portal.
+      </p>
+
+      <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
+
+      <p style="font-size:14px;color:#000;text-align:center;">
+        For any inquiries, please contact the <strong>Examination Branch</strong>.
+      </p>
+    </div>
+    <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
+      &copy; ${new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.
+            All&nbsp;rights&nbsp;reserved.
+    </div>
+  </div>
+  `
         );
       } catch (mailError) {
         errorProvider(500, "Failed to send mail:" + mailError);
       }
       await conn.commit();
 
-      res.status(201).json({ message: "Manager registered successfully" });
+      res.status(201).json({ message: "Lecturer registered successfully" });
     } catch (error) {
       await conn.rollback();
       console.error("Error during transaction:", error);
       return next(
-        errorProvider(500, "An error occurred while registering manager")
+        errorProvider(500, "An error occurred while registering lecturer")
       );
     } finally {
       conn.release();
@@ -350,6 +452,174 @@ export const managerRegister = async (req, res, next) => {
   } catch (error) {
     console.error("Error during registration:", error);
     return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const multipleLecturersRegister = async (req, res, next) => {
+  const results = [];
+  const failedRecords = [];
+  const role_id = 4;
+
+  try {
+    // Check if file exists
+    if (!req.file || !req.file.buffer) {
+      return next(errorProvider(400, "No file uploaded"));
+    }
+
+    const buffer = req.file.buffer; // Access the file buffer
+    const stream = streamifier.createReadStream(buffer); // Convert buffer to readable stream
+
+    // Parse CSV data
+    stream
+      .pipe(csv({ headers: true, skipLines: 1 })) // Read the file
+      .on("data", (row) => {
+        if (Object.keys(row).length) results.push(row); // Collect all rows
+      })
+      .on("end", async () => {
+        const conn = await pool.getConnection();
+
+        try {
+          await conn.beginTransaction();
+          for (const record of results) {
+            const {
+              _0: name,
+              _1: user_name,
+              _2: email,
+              _3: contact_no,
+            } = record;
+
+            // Validate fields
+            if (!user_name || !name || !contact_no) {
+              failedRecords.push({ record, error: "Missing credentials" });
+              continue;
+            }
+
+            let status = "true";
+
+            const password = await generatePassword();
+            const hashedPassword = await hashPassword(password);
+            // Check if user exists
+            const [userExistsResult] = await conn.query(
+              "CALL CheckUserExists(?, ?, @userExists); SELECT @userExists AS userExists;",
+              [user_name, email]
+            );
+            const userExists = userExistsResult[1][0].userExists;
+
+            if (userExists) {
+              failedRecords.push({ record, error: "User already exists" });
+              continue;
+            }
+
+            const [userResult] = await conn.query(
+              "CALL InsertUser(?, ?, ?, ?, @userId); SELECT @userId AS userId;",
+              [user_name, email, hashedPassword, role_id]
+            );
+            const user_id = userResult[1][0].userId;
+
+            // Insert magnager details
+            const [lecturerResult] = await conn.query(
+              "CALL InsertLecturerDetail(?, ?, ? , @mId);SELECT @mId AS mId;",
+              [name, contact_no, status]
+            );
+
+            const l_id = lecturerResult[1][0].mId;
+
+            await conn.query("CALL InsertLecturer(?, ?);", [user_id, l_id]);
+
+            let desc = `Student created with user_id=${user_id}, user_name=${user_name}, l_id=${l_id}, name=${name}, contact_no=${contact_no}`;
+
+            await conn.query("CALL LogAdminAction(?);", [desc]);
+
+            try {
+              await mailer(
+                email,
+                "Registration Successful",
+                `
+  <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:20px;text-align:center;">
+      <h1 style="margin:0;font-size:22px;">Examination Registration</h1>
+    </div>
+    <div style="padding:30px;">
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h2>
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        You have been successfully registered for the examinations system.
+      </p>
+
+      <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;">
+        <p style="margin:0;font-size:15px;"><strong>Username:</strong> ${user_name}</p>
+        <p style="margin:0;font-size:15px;"><strong>Password:</strong> ${password}</p>
+      </div>
+
+      <p style="font-size:14px;color:#000;">
+        Please store these credentials safely. You will need them to log into the examination portal.
+      </p>
+
+      <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
+
+      <p style="font-size:14px;color:#000;text-align:center;">
+        For any inquiries, please contact the <strong>Examination Branch</strong>.
+      </p>
+    </div>
+    <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
+      &copy; ${new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.
+            All&nbsp;rights&nbsp;reserved.
+    </div>
+  </div>
+  `
+              );
+            } catch (mailError) {
+              errorProvider(500, "Failed to send mail:" + mailError);
+            }
+            await conn.commit();
+          }
+
+          if (failedRecords.length > 0) {
+            const filePath = path.join(__dirname, "failed_records.txt");
+            const fileContent = failedRecords
+              .map(
+                (record) =>
+                  `Name: ${record.record._0}\nUsername: ${record.record._1}\nEmail: ${record.record._2}\nContact No: ${record.record._3}\nError: ${record.error}\n\n`
+              )
+              .join("");
+
+            fs.writeFileSync(filePath, fileContent);
+
+            res.setHeader(
+              "Content-Disposition",
+              `attachment; filename=failed_records.txt`
+            );
+            res.setHeader("Content-Type", "text/plain");
+
+            // Stream the file directly to the response
+            const fileStream = fs.createReadStream(filePath);
+            fileStream.pipe(res);
+
+            fileStream.on("end", () => {
+              // Clean up the file after sending
+              fs.unlinkSync(filePath);
+            });
+
+            return;
+          }
+
+          return res.status(201).json({
+            message: "Students registered successfully",
+          });
+        } catch (error) {
+          await conn.rollback();
+          console.error("Error during transaction:", error);
+          return next(errorProvider(500, "Failed to register students"));
+        } finally {
+          conn.release();
+        }
+      })
+      .on("error", (err) => {
+        console.error("Error processing CSV:", err);
+        return next(errorProvider(500, "Error processing CSV file"));
+      });
+  } catch (error) {
+    console.error("Error handling upload:", error);
+    return next(errorProvider(500, "Failed to handle uploaded file"));
   }
 };
 
@@ -395,7 +665,7 @@ export const login = async (req, res, next) => {
         expiresIn: remember_me ? "2 days" : "1h",
       });
 
-      // Send response     
+      // Send response
 
       return res
         .cookie("access-token", token, {
@@ -430,7 +700,7 @@ export const me = async (req, res, next) => {
           procedureName = "GetStudentDetails";
           break;
         case "4":
-          procedureName = "GetManagerDetails";
+          procedureName = "GetLecturerDetails";
           break;
         case "3":
           procedureName = "GetDepartmentDetails";
@@ -562,14 +832,51 @@ export const forgotPassword = async (req, res, next) => {
 
       // Send email
       const resetLink = `${FRONTEND_SERVER}/reset-password?token=${resetToken}`;
-      const htmlContent = `<p>You are receiving this email because you have requested a password reset for your account.</p>
-                           <p>Please click on the following link to reset your password:</p>
-                           <a href="${resetLink}">Reset Password</a>
-                           <p>OR</p>
-                           <p>Paste this into your browser to complete the process:</p>
-                           <p>${resetLink}</p>
-                           <p>This link will expire in 15 minutes.</p>
-                           <p>If you didn't request this, please ignore this email.</p>`;
+
+      const htmlContent = `
+  <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:20px;text-align:center;">
+      <h1 style="margin:0;font-size:22px;">Password Reset Request</h1>
+    </div>
+    <div style="padding:30px;">
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        You are receiving this email because a password reset was requested for your account.
+      </p>
+
+      <div style="margin:25px 0;text-align:center;">
+        <a href="${resetLink}" style="display:inline-block;padding:10px 20px;background:#000;color:#fff;text-decoration:none;border-radius:4px;font-weight:bold;">
+          Reset Password
+        </a>
+      </div>
+
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        OR paste the following link into your browser:
+      </p>
+      <p style="font-size:14px;color:#000;word-break:break-all;">
+        ${resetLink}
+      </p>
+
+      <p style="font-size:14px;color:#000;">
+        This link will expire in <strong>15 minutes</strong>.
+      </p>
+
+      <p style="font-size:14px;color:#000;">
+        If you didn't request this, please ignore this email.
+      </p>
+
+      <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
+
+      <p style="font-size:14px;color:#000;text-align:center;">
+        For any inquiries, please contact the <strong>Examination Branch</strong>.
+      </p>
+    </div>
+    <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
+      &copy; ${new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.
+            All&nbsp;rights&nbsp;reserved.
+    </div>
+  </div>
+`;
+
       await mailer(email, "Password Reset Request", htmlContent);
 
       res.status(200).json({

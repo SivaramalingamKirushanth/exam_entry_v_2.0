@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GiCancel } from "react-icons/gi";
@@ -14,9 +13,7 @@ import {
   updateFaculty,
 } from "@/utils/apiRequests/course.api";
 
-import { getAllActiveManagers } from "@/utils/apiRequests/user.api";
-
-const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
+const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
   const [formData, setFormData] = useState({});
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
@@ -83,7 +80,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div
-            ref={modalRef}
+            ref={modelRef}
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">

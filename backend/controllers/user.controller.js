@@ -26,21 +26,29 @@ export const getAllStudents = async (req, res, next) => {
   }
 };
 
-export const getAllManagers = async (req, res, next) => {
+export const getStudentsByDeg = async (req, res, next) => {
+  const { deg_id } = req.body;
+
+  if (!deg_id) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
   try {
     const conn = await pool.getConnection();
     try {
-      const [managers] = await conn.query("CALL GetAllManagers();");
+      const [students] = await conn.query("CALL GetStudentsByDeg(?);", [
+        deg_id,
+      ]);
 
-      if (!managers[0].length) {
-        return res.status(404).json({ message: "No managers found" });
+      if (!students[0].length) {
+        return res.status(404).json({ message: "No students found" });
       }
 
-      return res.status(200).json(managers[0]);
+      return res.status(200).json(students[0]);
     } catch (error) {
-      console.error("Error retrieving managers:", error);
+      console.error("Error retrieving degree students:", error);
       return next(
-        errorProvider(500, "An error occurred while retrieving managers")
+        errorProvider(500, "An error occurred while retrieving degree students")
       );
     } finally {
       conn.release();
@@ -51,21 +59,21 @@ export const getAllManagers = async (req, res, next) => {
   }
 };
 
-export const getAllActiveManagers = async (req, res, next) => {
+export const getAllLecturers = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
-      const [managers] = await conn.query("CALL GetAllActiveManagers();");
+      const [lecturers] = await conn.query("CALL GetAllLecturers();");
 
-      if (!managers[0].length) {
-        return res.status(404).json({ message: "No active managers found" });
+      if (!lecturers[0].length) {
+        return res.status(404).json({ message: "No lecturers found" });
       }
 
-      return res.status(200).json(managers[0]);
+      return res.status(200).json(lecturers[0]);
     } catch (error) {
-      console.error("Error retrieving active managers:", error);
+      console.error("Error retrieving lecturers:", error);
       return next(
-        errorProvider(500, "An error occurred while retrieving active managers")
+        errorProvider(500, "An error occurred while retrieving lecturers")
       );
     } finally {
       conn.release();
@@ -76,23 +84,53 @@ export const getAllActiveManagers = async (req, res, next) => {
   }
 };
 
-export const getManagerById = async (req, res, next) => {
+export const getAllActiveLecturers = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [lecturers] = await conn.query("CALL GetAllActiveLecturers();");
+
+      if (!lecturers[0].length) {
+        return res.status(404).json({ message: "No active lecturers found" });
+      }
+
+      return res.status(200).json(lecturers[0]);
+    } catch (error) {
+      console.error("Error retrieving active lecturers:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while retrieving active lecturers"
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getLecturerById = async (req, res, next) => {
   const { user_id } = req.body;
 
   try {
     const conn = await pool.getConnection();
     try {
-      const [manager] = await conn.query("CALL GetManagerById(?);", [user_id]);
+      const [lecturer] = await conn.query("CALL GetLecturerById(?);", [
+        user_id,
+      ]);
 
-      if (!manager[0].length) {
-        return res.status(404).json({ message: "No manager found" });
+      if (!lecturer[0].length) {
+        return res.status(404).json({ message: "No lecturer found" });
       }
 
-      return res.status(200).json(manager[0][0]);
+      return res.status(200).json(lecturer[0][0]);
     } catch (error) {
-      console.error("Error retrieving manager:", error);
+      console.error("Error retrieving lecturer:", error);
       return next(
-        errorProvider(500, "An error occurred while retrieving manager")
+        errorProvider(500, "An error occurred while retrieving lecturer")
       );
     } finally {
       conn.release();
@@ -240,35 +278,35 @@ export const updateStudentStatus = async (req, res, next) => {
   }
 };
 
-export const updateManager = async (req, res, next) => {
-  const { name, email, contact_no, m_id, user_name } = req.body;
+export const updateLecturer = async (req, res, next) => {
+  const { name, email, contact_no, l_id, user_name } = req.body;
 
-  if (!m_id || !name || !email || !contact_no || !user_name) {
+  if (!l_id || !name || !email || !contact_no || !user_name) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
   try {
     const conn = await pool.getConnection();
     try {
-      await conn.query("CALL UpdateManager(?, ?, ?, ?, ?);", [
+      await conn.query("CALL UpdateLecturer(?, ?, ?, ?, ?);", [
         name,
         email,
         user_name,
         contact_no,
-        m_id,
+        l_id,
       ]);
 
-      let desc = `Manager updated for m_id=${m_id}, name=${name}, email=${email}, user_name=${user_name}, contact_no=${contact_no}`;
+      let desc = `Lecturer updated for l_id=${l_id}, name=${name}, email=${email}, user_name=${user_name}, contact_no=${contact_no}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
-      return res.status(200).json({ message: "Manager updated successfully" });
+      return res.status(200).json({ message: "Lecturer updated successfully" });
     } catch (error) {
       if (error.sqlMessage?.includes("Email or username already exists")) {
         return next(errorProvider(409, "Email or username already exists"));
       }
-      console.error("Error updating manager:", error);
+      console.error("Error updating lecturer:", error);
       return next(
-        errorProvider(500, "An error occurred while updating the manager")
+        errorProvider(500, "An error occurred while updating the lecturer")
       );
     } finally {
       conn.release();
@@ -279,28 +317,28 @@ export const updateManager = async (req, res, next) => {
   }
 };
 
-export const updateManagerStatus = async (req, res, next) => {
-  const { status, id: m_id } = req.body;
+export const updateLecturerStatus = async (req, res, next) => {
+  const { status, id: l_id } = req.body;
 
-  if (!m_id || !status) {
+  if (!l_id || !status) {
     return next(errorProvider(400, "Missing required fields"));
   }
 
   try {
     const conn = await pool.getConnection();
     try {
-      await conn.query("CALL updateManagerStatus(?, ?);", [status, m_id]);
+      await conn.query("CALL updateLecturerStatus(?, ?);", [status, l_id]);
 
-      let desc = `Manager status changed for m_id=${m_id} to status=${status}`;
+      let desc = `Lecturer status changed for l_id=${l_id} to status=${status}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res
         .status(200)
-        .json({ message: "Manager status updated successfully" });
+        .json({ message: "Lecturer status updated successfully" });
     } catch (error) {
-      console.error("Error updating manager:", error);
+      console.error("Error updating lecturer:", error);
       return next(
-        errorProvider(500, "An error occurred while updating the manager")
+        errorProvider(500, "An error occurred while updating the lecturer")
       );
     } finally {
       conn.release();
@@ -311,21 +349,24 @@ export const updateManagerStatus = async (req, res, next) => {
   }
 };
 
-export const getNoOfManagers = async (req, res, next) => {
+export const getNoOfLecturers = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
-      const [result] = await conn.query("CALL GetNoOfManagers();");
+      const [result] = await conn.query("CALL GetNoOfLecturers();");
 
-      const { manager_count } = result[0][0];
+      const { lecturer_count } = result[0][0];
 
       return res.status(200).json({
-        count: manager_count,
+        count: lecturer_count,
       });
     } catch (error) {
-      console.error("Error retrieving number of managers:", error);
+      console.error("Error retrieving number of lecturers:", error);
       return next(
-        errorProvider(500, "An error occurred while fetching the manager count")
+        errorProvider(
+          500,
+          "An error occurred while fetching the lecturer count"
+        )
       );
     } finally {
       conn.release();
@@ -378,6 +419,136 @@ export const getSummaryData = async (req, res, next) => {
     }
   } catch (error) {
     console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const createVenue = async (req, res, next) => {
+  let { short_code, description, seat_count } = req.body;
+
+  if (!short_code || !description || !seat_count) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      await conn.query("CALL CreateVenue(?, ?, ?);", [
+        short_code,
+        description,
+        seat_count,
+      ]);
+
+      let desc = `Faculty created with short_code=${short_code}, description=${description}, seat_count=${seat_count}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      await conn.commit();
+
+      return res.status(201).json({ message: "Venue created successfully" });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error while creating Venue:", error);
+      return next(errorProvider(500, "An error occurred while creating Venue"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const updateVenue = async (req, res, next) => {
+  const { id, short_code, description, seat_count } = req.body;
+
+  if (!id || !short_code || !description || !seat_count) {
+    return next(errorProvider(400, "Missing required fields"));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      await conn.query("CALL UpdateVenue(?, ?, ?,?);", [
+        id,
+        short_code,
+        description,
+        seat_count,
+      ]);
+
+      let desc = `Venue updated for id=${id} with short_code=${short_code}, description=${description}, seat_count=${seat_count}`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      await conn.commit();
+
+      return res.status(200).json({ message: "Venue updated successfully" });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error while updating Venue:", error);
+      return next(errorProvider(500, "An error occurred while updating Venue"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getVenues = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [venues] = await conn.query("CALL GetVenues();");
+
+      if (!venues[0].length) {
+        return res.status(404).json({ message: "No Venues found" });
+      }
+
+      return res.status(200).json(venues[0]);
+    } catch (error) {
+      console.error("Error retrieving venues:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving venues")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const getVenueById = async (req, res, next) => {
+  const { id } = req.body;
+
+  if (!id) {
+    return next(errorProvider(400, "Missing id."));
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    try {
+      const [results] = await conn.query("CALL GetVenueById(?);", [id]);
+
+      if (results[0].length === 0) {
+        return next(errorProvider(404, `No Venue found for id: ${id}`));
+      }
+
+      return res.status(200).json(results[0][0]);
+    } catch (error) {
+      console.error("Error fetching Venue by ID:", error);
+      return next(errorProvider(500, "Failed to fetch Venue by ID"));
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Error establishing database connection:", error);
     return next(errorProvider(500, "Failed to establish database connection"));
   }
 };

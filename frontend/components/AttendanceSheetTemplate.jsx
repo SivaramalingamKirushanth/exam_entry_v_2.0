@@ -9,14 +9,15 @@ const RichTextEditorIndividual = dynamic(
 );
 
 import React, { useEffect, useState } from "react";
-import UoV_Logo from "./../images/UoV_Logo.png";
-import Image from "next/image";
-import { useQuery } from "@tanstack/react-query";
+
 import {
+  deserializeString,
   getDayName,
   getModifiedDate,
-  numberToOrdinalWord,
-  parseString,
+  getUnmodifiedDate,
+  hasNumber,
+  makePagination,
+  reconstructGroupsObject,
   sortByExamType,
   titleCase,
 } from "@/utils/functions";
@@ -56,50 +57,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { LabelSearchCombobox } from "./ui/customCommand";
 
 function arrayPadEnd(array) {
   const arr = new Array(80 - array.length).fill(0);
   let final = [...array, ...arr];
   return final;
 }
-
-const makePagination = (sortedArray) => {
-  let examTypesRemoved = sortedArray.slice();
-
-  let examTypeMExist = examTypesRemoved.findIndex((obj) => obj == "M");
-  if (examTypeMExist >= 0) examTypesRemoved.splice(examTypeMExist, 1);
-
-  let examTypeRExist = examTypesRemoved.findIndex((obj) => obj == "R");
-  if (examTypeRExist >= 0) examTypesRemoved.splice(examTypeRExist, 1);
-
-  let exam_type = "P";
-  let grpArr = [];
-  let pageArr = [];
-  let pageArrInd = 0;
-
-  for (let j = 0; j < examTypesRemoved.length; j++) {
-    if (examTypesRemoved[j].exam_type != exam_type) {
-      pageArr.push(examTypesRemoved[j].exam_type);
-      exam_type = examTypesRemoved[j].exam_type;
-      pageArrInd++;
-    }
-
-    pageArr.push(examTypesRemoved[j]);
-
-    if (pageArrInd == 79 || j == examTypesRemoved.length - 1) {
-      grpArr.push(pageArr);
-      pageArr = [];
-      pageArrInd = 0;
-    } else {
-      pageArrInd++;
-    }
-
-    if (j == examTypesRemoved.length - 1) {
-      break;
-    }
-  }
-  return grpArr;
-};
 
 const AttendanceSheetTemplate = ({
   setFormData,
@@ -122,6 +86,10 @@ const AttendanceSheetTemplate = ({
   finalNameList,
   totalStudents,
   studentsInTheGroup,
+  venuesData,
+  isVenuesDataLoading,
+  isVenuesDataError,
+  setGroupsCount,
 }) => {
   const [splittedArray, setSplittedArray] = useState([]);
 
@@ -129,13 +97,13 @@ const AttendanceSheetTemplate = ({
     let fromGroup = [...finalNameList[from]].flat();
     let toGroup = [...finalNameList[to]].flat();
 
-    let ele = fromGroup.find((obj) => obj.s_id == s_id);
-    let eleInd = fromGroup.findIndex((obj) => obj.s_id == s_id);
+    let ele = fromGroup.find((obj) => obj?.s_id == s_id);
+    let eleInd = fromGroup.findIndex((obj) => obj?.s_id == s_id);
     if (eleInd >= 0) {
       fromGroup.splice(eleInd, 1);
     }
 
-    let exist = toGroup.some((obj) => obj.s_id == s_id);
+    let exist = toGroup.some((obj) => obj?.s_id == s_id);
     if (!exist && ele) {
       toGroup.push(ele);
     }
@@ -154,6 +122,7 @@ const AttendanceSheetTemplate = ({
     });
   };
 
+  //NORMAL-------------
   const handleMonthChange = (month, yearIndex, monthIndex) => {
     setFormData((cur) => {
       const updatedDates = [...cur.date];
@@ -233,13 +202,95 @@ const AttendanceSheetTemplate = ({
     e.target.value = value;
   };
 
+  //HELD----------------
+  const handleHeldMonthChange = (month, yearIndex, monthIndex) => {
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates[yearIndex].months[monthIndex] = month;
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const addNewHeldMonth = (yearIndex) => {
+    const monthsLength = formData?.heldDate[yearIndex]?.months?.length;
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+
+      if (
+        updatedDates[yearIndex]?.months &&
+        updatedDates[yearIndex]?.months.length < monthsLength + 1
+      ) {
+        let lastItem =
+          updatedDates[yearIndex].months[
+            updatedDates[yearIndex].months.length - 1
+          ];
+        updatedDates[yearIndex].months.push(lastItem == 11 ? 0 : +lastItem + 1);
+      }
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const handleHeldYearChange = (e, yearIndex) => {
+    const year = e.target.value;
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates[yearIndex].year = year;
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const addNewHeldYearBlock = () => {
+    setFormData((cur) => {
+      let lastYear = cur.heldDate[cur.heldDate.length - 1].year;
+
+      return {
+        ...cur,
+        heldDate: [...cur.heldDate, { year: +lastYear + 1, months: [0] }],
+      };
+    });
+  };
+
+  const removeHeldYearBlock = (yearIndex) => {
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates.splice(yearIndex, 1);
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const removeHeldMonth = (yearIndex, monthIndex) => {
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates[yearIndex].months.splice(monthIndex, 1);
+      return { ...cur, heldDate: updatedDates };
+    });
+  };
+
+  const onHeldYearBlured = (e, yearIndex) => {
+    let value = +e.target.value;
+    if (value < +e.target.min) {
+      value = +e.target.min;
+    } else if (value > +e.target.max) {
+      value = +e.target.max;
+    }
+
+    setFormData((cur) => {
+      const updatedDates = [...cur.heldDate];
+      updatedDates[yearIndex].year = value;
+      return { ...cur, heldDate: updatedDates };
+    });
+    e.target.value = value;
+  };
+
   useEffect(() => {
     if (latestAttendanceTemplateData) {
       let obj = {};
-      if (latestAttendanceTemplateData.exist) {
-        obj.description = latestAttendanceTemplateData?.data?.description;
+      let groups = {};
+      const latestData = latestAttendanceTemplateData?.data;
 
-        const transformedDate = latestAttendanceTemplateData?.data?.exam_date
+      if (latestAttendanceTemplateData.exist) {
+        obj.description = latestData?.description;
+        const transformedDate = latestData?.exam_date
           ?.split(",")
           .map((item) => {
             const [year, months] = item.split(":");
@@ -250,14 +301,64 @@ const AttendanceSheetTemplate = ({
           });
 
         obj.date = transformedDate;
+
+        if (hasNumber(latestData?.exam_held_date)) {
+          const transformedHeldDate = latestData?.exam_held_date
+            ?.split(",")
+            .map((item) => {
+              const [year, months] = item.split(":");
+              return {
+                year: parseInt(year),
+                months: months.split(";").map((mon) => +mon),
+              };
+            });
+          obj.heldDate = transformedHeldDate;
+        } else {
+          obj.heldDate = [{ year: "", months: [""] }];
+        }
+        if (latestAttendanceTemplateData.subExist) {
+          setGroupsCount(latestData?.no_of_groups);
+
+          const studentDetail = latestData?.student_detail;
+          const recon = deserializeString(studentDetail);
+          if (Object.keys(recon).length) {
+            setFinalNameList(recon);
+          }
+
+          groups = reconstructGroupsObject(
+            latestData?.venues,
+            latestData?.dates,
+            latestData?.times
+          );
+
+          Object.keys(groups).forEach((key) => {
+            if (groups[key]?.actual_date?.trim()) {
+              const e = getUnmodifiedDate(groups[key]?.actual_date);
+              groups[key].actual_date = `${
+                groups[key]?.actual_date
+              } (${getDayName(e)})`;
+            } else {
+              groups[key].actual_date = "";
+            }
+
+            if (groups[key]?.fromTime) {
+              groups[key].fromTime = groups[key]?.fromTime.slice(0, 5);
+            }
+
+            if (groups[key]?.toTime) {
+              groups[key].toTime = groups[key]?.toTime.slice(0, 5);
+            }
+          });
+        }
       } else {
-        obj.description = latestAttendanceTemplateData?.data?.description;
+        obj.description = latestData?.description || "";
       }
 
       setFormData((cur) => {
         return {
           ...cur,
           ...obj,
+          ...groups,
         };
       });
     }
@@ -311,9 +412,9 @@ const AttendanceSheetTemplate = ({
         </div>
         <div className="flex flex-wrap">
           {titleCase(
-            `${level_ordinal} examination in ${batchFullDetailsData?.deg_name} - ${academicYear} - ${sem_ordinal} semester -`
+            `${level_ordinal} examination in ${batchFullDetailsData?.course_title} - ${academicYear} - ${sem_ordinal} semester -`
           )}
-          <div className="flex space-x-2 items-center flex-wrap">
+          <div className="flex space-x-2 space-y-2 items-center flex-wrap ">
             {formData.date?.map((yearBlock, yearIndex) => (
               <React.Fragment key={yearIndex}>
                 <span>
@@ -436,6 +537,140 @@ const AttendanceSheetTemplate = ({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            <span className="inline-block ml-3 mx-3">&#8208;</span>
+            <p>Held on</p>
+
+            {formData.heldDate?.map((yearBlock, yearIndex) => (
+              <React.Fragment key={yearIndex}>
+                <span>
+                  {formData.heldDate?.length > 1 && (yearIndex || "") && ","}
+                </span>
+                <div key={yearIndex} className="flex space-x-3">
+                  <div className="flex items-center space-x-2">
+                    {yearBlock.months?.map((month, monthIndex) => (
+                      <div
+                        key={monthIndex}
+                        className="flex items-center space-x-1"
+                      >
+                        {yearBlock.months?.length > 1 && (monthIndex || "") && (
+                          <span> &#47;</span>
+                        )}
+                        <Select
+                          onValueChange={(selectedMonth) =>
+                            handleHeldMonthChange(
+                              selectedMonth,
+                              yearIndex,
+                              monthIndex
+                            )
+                          }
+                          value={month}
+                        >
+                          <SelectTrigger className="w-32 h-8">
+                            <SelectValue placeholder="Month" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel
+                                className="cursor-default"
+                                onClick={() =>
+                                  handleHeldMonthChange(
+                                    "",
+                                    yearIndex,
+                                    monthIndex
+                                  )
+                                }
+                              >
+                                Months
+                              </SelectLabel>
+                              {[
+                                "January",
+                                "February",
+                                "March",
+                                "April",
+                                "May",
+                                "June",
+                                "July",
+                                "August",
+                                "September",
+                                "October",
+                                "November",
+                                "December",
+                              ].map((m, i) => (
+                                <SelectItem key={i} value={i}>
+                                  {m}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+
+                        {yearBlock.months.length > 1 && (monthIndex || "") && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              removeHeldMonth(yearIndex, monthIndex)
+                            }
+                            className="text-red-500 text-xs rounded-full size-6 p-0"
+                          >
+                            <FaTimes />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger
+                          onClick={() => addNewHeldMonth(yearIndex)}
+                          className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 text-xs rounded-full size-6 p-0"
+                        >
+                          <FaPlus />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Add a month</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      placeholder="Year"
+                      className="w-20 rounded-md border px-2 py-1 text-sm h-8"
+                      value={yearBlock.year}
+                      onChange={(e) => handleHeldYearChange(e, yearIndex)}
+                    />
+
+                    {yearIndex ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeHeldYearBlock(yearIndex)}
+                        className="text-red-500 text-xs rounded-full size-6 p-0"
+                      >
+                        <FaTimes />
+                      </Button>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                </div>
+              </React.Fragment>
+            ))}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger
+                  onClick={addNewHeldYearBlock}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 text-xs rounded-full size-6 p-0"
+                >
+                  <FaPlus />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add a month of another year</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </div>
@@ -449,7 +684,7 @@ const AttendanceSheetTemplate = ({
         <div className="flex flex-col gap-1">
           <div className="flex">
             <div className="w-36 flex justify-between shrink-0">
-              Course unit no <span>:&nbsp;</span>
+              Unit code <span>:&nbsp;</span>
             </div>
             <div>{sub_code}</div>
           </div>
@@ -457,18 +692,32 @@ const AttendanceSheetTemplate = ({
             <div className="w-36 flex justify-between shrink-0">
               Center <span>:&nbsp;</span>
             </div>
-            <Input
-              onChange={(e) =>
-                setFormData((cur) => ({
-                  ...cur,
-                  [groupNo]: {
-                    ...cur[groupNo],
-                    center: e.target.value,
-                  },
-                }))
-              }
-              value={formData[groupNo]?.center}
-            />
+
+            <div className="w-36">
+              <LabelSearchCombobox
+                items={venuesData}
+                labelField="short_code"
+                valueField="id"
+                placeholder="Search venue..."
+                buttonText={
+                  isVenuesDataError
+                    ? "Not found"
+                    : isVenuesDataLoading
+                    ? "Loading..."
+                    : "Select venue"
+                }
+                onValueChange={(e) => {
+                  setFormData((cur) => ({
+                    ...cur,
+                    [groupNo]: {
+                      ...cur[groupNo],
+                      center: e.target.value,
+                    },
+                  }));
+                }}
+                value={Number(formData[groupNo]?.center) || ""}
+              />
+            </div>
           </div>
           <div className="flex">
             <div className="w-36 flex justify-between shrink-0">
@@ -527,7 +776,7 @@ const AttendanceSheetTemplate = ({
                     ...cur,
                     [groupNo]: {
                       ...cur[groupNo],
-                      fromTime: e.target.value,
+                      fromTime: e.target.value + ":00",
                     },
                   }))
                 }
@@ -543,7 +792,7 @@ const AttendanceSheetTemplate = ({
                     ...cur,
                     [groupNo]: {
                       ...cur[groupNo],
-                      toTime: e.target.value,
+                      toTime: e.target.value + ":00",
                     },
                   }))
                 }
@@ -563,9 +812,7 @@ const AttendanceSheetTemplate = ({
           </div>
         </div>
       </div>
-
       <h3 className="text-xl mt-1 uppercase text-center">attendance list</h3>
-
       <RichTextEditorIndividual
         setFormData={setFormData}
         text={formData.description}
@@ -650,7 +897,6 @@ const AttendanceSheetTemplate = ({
           </table>
         ))}
       </div>
-
       {/* Footer */}
       <div className="flex justify-between mt-4">
         <div className="flex flex-col space-y-2">

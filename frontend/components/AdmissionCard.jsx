@@ -61,26 +61,48 @@ const AdmissionCard = ({
           faculty of {batchFullDetailsData?.f_name}
         </h2>
         <div className="flex justify-center font-semibold text-base uppercase space-x-2 items-center flex-wrap leading-[1]">
-          {level_ordinal} examination in {batchFullDetailsData?.deg_name} -{" "}
+          {level_ordinal} examination in {batchFullDetailsData?.course_title} -{" "}
           {academicYear} - {sem_ordinal}&nbsp;semester -{" "}
           {formData.date?.map((obj, ind) =>
             ind
-              ? ", " +
+              ? " ," +
                 obj.months
                   .map((month, index) =>
                     index ? `/${months[month]}` : `${months[month]}`
                   )
                   .join("") +
-                "\u00a0" +
+                " " +
                 obj.year
               : obj.months
                   .map((month, index) =>
                     index ? `/${months[month]}` : `${months[month]}`
                   )
                   .join("") +
-                "\u00a0" +
+                " " +
                 obj.year
-          )}
+          )}{" "}
+          {formData.heldDate?.[0]?.year &&
+            formData.heldDate?.[0]?.months?.length &&
+            typeof formData.heldDate?.[0]?.months?.[0] == "number" &&
+            " - Held on " +
+              formData.heldDate?.map((obj, ind) =>
+                ind
+                  ? " ," +
+                    obj.months
+                      .map((month, index) =>
+                        index ? `/${months[month]}` : `${months[month]}`
+                      )
+                      .join("") +
+                    " " +
+                    obj.year
+                  : obj.months
+                      .map((month, index) =>
+                        index ? `/${months[month]}` : `${months[month]}`
+                      )
+                      .join("") +
+                    " " +
+                    obj.year
+              )}
         </div>
         <h3 className="text-xl uppercase font-bold l">Admission Card</h3>
       </div>
@@ -138,39 +160,44 @@ const AdmissionCard = ({
           {Object.keys(student?.subjects).length &&
             formData.subjects.length &&
             formData.subjects.map((arr, ind) =>
-              arr.map((subId, index) => (
-                <tr key={index}>
-                  <td className="border border-black text-center text-sm">
-                    <div className="flex justify-center -mt-1 pb-2 items-center leading-[1]">
-                      {index ? "" : ind + 1}
-                    </div>
-                  </td>
-                  <td className="border border-black text-sm w-20">
-                    <div className="flex items-center -mt-1 pb-2 leading-[1] pl-1">
-                      {subjectObject[subId].sub_code}
-                    </div>
-                  </td>
-                  <td className="border border-black text-sm w-80">
-                    <div className="flex justify-start -mt-1 pb-2 items-center leading-[1] px-1">
-                      {subjectObject[subId].sub_name}
-                    </div>
-                  </td>
-                  <td className="border border-black p-1 pb-2 text-center text-sm">
-                    <div className="flex justify-center items-center leading-[1]">
-                      {student?.subjects.some((obj) => obj.sub_id == subId) &&
-                      student?.subjects.filter((obj) => obj.sub_id == subId)[0]
-                        .eligibility == "true" ? (
-                        <FaCheck />
-                      ) : (
-                        <FaTimes />
-                      )}
-                    </div>
-                  </td>
-                  <td className="border border-black p-1 pb-2 text-center text-sm w-16"></td>
-                  <td className="border border-black p-1 pb-2 text-sm"></td>
-                  <td className="border border-black p-1 pb-2 text-sm"></td>
-                </tr>
-              ))
+              arr
+                .filter((item) =>
+                  student?.subjects.some((obj) => obj.sub_id == item)
+                )
+                .map((subId, index) => (
+                  <tr key={index}>
+                    <td className="border border-black text-center text-sm">
+                      <div className="flex justify-center -mt-1 pb-2 items-center leading-[1]">
+                        {index ? "" : ind + 1}
+                      </div>
+                    </td>
+                    <td className="border border-black text-sm w-20">
+                      <div className="flex items-center -mt-1 pb-2 leading-[1] pl-1">
+                        {subjectObject[subId].sub_code}
+                      </div>
+                    </td>
+                    <td className="border border-black text-sm w-80">
+                      <div className="flex justify-start -mt-1 pb-2 items-center leading-[1] px-1">
+                        {subjectObject[subId].sub_name}
+                      </div>
+                    </td>
+                    <td className="border border-black p-1 pb-2 text-center text-sm">
+                      <div className="flex justify-center items-center leading-[1]">
+                        {student?.subjects.some((obj) => obj.sub_id == subId) &&
+                        student?.subjects.filter(
+                          (obj) => obj.sub_id == subId
+                        )[0].eligibility == "true" ? (
+                          <FaCheck />
+                        ) : (
+                          <FaTimes />
+                        )}
+                      </div>
+                    </td>
+                    <td className="border border-black p-1 pb-2 text-center text-sm w-16"></td>
+                    <td className="border border-black p-1 pb-2 text-sm"></td>
+                    <td className="border border-black p-1 pb-2 text-sm"></td>
+                  </tr>
+                ))
             )}
         </tbody>
       </table>

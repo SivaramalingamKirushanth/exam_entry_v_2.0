@@ -4,7 +4,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 
-const EligibilityHeader = ({ filteredData, onMultipleEligibilityChanged }) => {
+const EligibilityHeader = ({
+  filteredData,
+  onMultipleEligibilityChanged,
+  end_date,
+}) => {
   const [remark, setRemark] = useState("");
   const triggerRef = useRef(null);
 
@@ -21,7 +25,7 @@ const EligibilityHeader = ({ filteredData, onMultipleEligibilityChanged }) => {
           triggerRef.current.click();
         }}
         checked={filteredData.length && !isAnyoneNotEligible}
-        disabled={!filteredData.length}
+        disabled={!filteredData.length || new Date() > new Date(end_date)}
       />
       <Popover>
         <PopoverTrigger ref={triggerRef} className="w-[0px]" />

@@ -50,7 +50,7 @@ const Faculties = () => {
           batchesByFacultyData.map((obj) => {
             const level_ordinal = numberToOrdinalWord(obj.level);
             const sem_ordinal = numberToOrdinalWord(obj.sem);
-            const endDate = new Date(obj.end_date);
+            const endDate = new Date(obj.admin_end);
             const now = new Date();
             return (
               <Link
@@ -67,7 +67,7 @@ const Faculties = () => {
                   <CardHeader>
                     <CardTitle className="uppercase text-center">
                       <p>
-                        {level_ordinal} examination in {obj.deg_name}
+                        {level_ordinal} examination in {obj.course_title}
                       </p>
                       <p>{obj.academic_year}</p>
                       <br />

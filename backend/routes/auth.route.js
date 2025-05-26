@@ -1,7 +1,7 @@
 import express from "express";
 import {
   studentRegister,
-  managerRegister,
+  lecturerRegister,
   login,
   me,
   logout,
@@ -9,6 +9,7 @@ import {
   resetPassword,
   forgotPassword,
   changePassword,
+  multipleLecturersRegister,
 } from "../controllers/auth.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 import multer from "multer";
@@ -23,7 +24,13 @@ router.post(
   upload.single("file"),
   multipleStudentsRegister
 );
-router.post("/managerRegister", verifyUser(["1"]), managerRegister);
+router.post("/lecturerRegister", verifyUser(["1"]), lecturerRegister);
+router.post(
+  "/multipleLecturersRegister",
+  verifyUser(["1"]),
+  upload.single("file"),
+  multipleLecturersRegister
+);
 router.get("/me", verifyUser(["1", "2", "3", "4", "5"]), me);
 router.post("/login", login);
 router.post("/logout", logout);

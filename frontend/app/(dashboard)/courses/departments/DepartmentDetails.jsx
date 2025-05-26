@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Modal from "./Model";
+import Model from "./Model";
 import {
   getAllDepartmentsWithExtraDetails,
   updateDepartmentStatus,
@@ -23,12 +23,13 @@ import { ArrowUpDown } from "lucide-react";
 import { FaPen } from "react-icons/fa6";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+
 const DepartmentDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
-  const modalRef = useRef(null);
+  const modelRef = useRef(null);
   const [editId, setEditId] = useState("");
   const queryClient = useQueryClient();
 
@@ -72,11 +73,7 @@ const DepartmentDetails = () => {
     },
     {
       accessorKey: "faculty_name",
-      header: "Faculty",
-    },
-    {
-      accessorKey: "degree_count",
-      header: "No of Degree programmes",
+      header: "Parent Faculty",
     },
     {
       id: "email",
@@ -88,6 +85,15 @@ const DepartmentDetails = () => {
     {
       accessorKey: "contact_no",
       header: "Contact No",
+      cell: ({ row }) => {
+        return (
+          <p>
+            {row.original.contact_no.slice(0, 3)}{" "}
+            {row.original.contact_no.slice(3, 6)}{" "}
+            {row.original.contact_no.slice(6)}
+          </p>
+        );
+      },
     },
     {
       accessorKey: "status",
@@ -129,7 +135,7 @@ const DepartmentDetails = () => {
     setStatus(e);
   };
 
-  const toggleModal = () => {
+  const toggleModel = () => {
     isOpen && setEditId("");
     setIsOpen((prev) => !prev);
   };
@@ -137,7 +143,7 @@ const DepartmentDetails = () => {
   const onEditClicked = (e) => {
     if (e.target.classList.contains("editBtn")) {
       setEditId(e.target.id);
-      toggleModal();
+      toggleModel();
     }
   };
 
@@ -195,11 +201,11 @@ const DepartmentDetails = () => {
           </div>
         </div>
       </div>
-      <Modal
+      <Model
         editId={editId}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        modalRef={modalRef}
+        modelRef={modelRef}
         setEditId={setEditId}
       />
       <div className="container mx-auto">
@@ -207,7 +213,7 @@ const DepartmentDetails = () => {
           columns={columns}
           data={filteredData}
           onEditClicked={onEditClicked}
-          toggleModal={toggleModal}
+          toggleModel={toggleModel}
           btnText="Create department"
         />
       </div>

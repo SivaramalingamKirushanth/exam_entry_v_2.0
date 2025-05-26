@@ -23,7 +23,7 @@ import {
   parseString,
   sortByExamType,
 } from "@/utils/functions";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -33,6 +33,7 @@ import { createRoot } from "react-dom/client";
 import AttendanceSheetTemplate from "@/components/AttendanceSheetTemplate";
 import AttendanceSheet from "@/components/AttendanceSheet";
 import Image from "next/image";
+import { getVenues } from "@/utils/apiRequests/user.api";
 
 function divideStudents(totalStudents, noOfGroups) {
   const groupSize = Math.ceil(totalStudents / noOfGroups);
@@ -57,10 +58,14 @@ const Attendance = () => {
   const [currentEditor, setCurrentEditor] = useState(null);
   const [formData, setFormData] = useState({
     batch_id,
+    sub_id,
     date: [{ year: new Date().getFullYear(), months: [new Date().getMonth()] }],
+    heldDate: [{ year: "", months: [""] }],
     description:
       '<p>Supervisors are kindly requested to mark absentees clearly "ABSENT" and "✔" those Present. One copy is to be returned under separate cover to the Deputy Registrar and one to be enclosed in the relevant packet of answer script, when answer scripts separately for each of a paper it is necessary to enclose a copy each of the attendance list in each packet.</p>',
   });
+
+  const queryClient = useQueryClient();
 
   const onGroupsCountBlured = (e) => {
     let value = +e.target.value;
@@ -81,108 +86,132 @@ const Attendance = () => {
     }
 
     const margin = 5; // Top and bottom margin in mm
+    try {
+      setGenerating(true);
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
+      const quality = 2;
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    setGenerating(true);
+      for (const [grpNo, grpArr] of Object.entries(finalNameList)) {
+        for (let pageInd = 0; pageInd < grpArr.length; pageInd++) {
+          const pageArr = grpArr[pageInd];
 
-    for (const [grpNo, grpArr] of Object.entries(finalNameList)) {
-      for (let pageInd = 0; pageInd < grpArr.length; pageInd++) {
-        const pageArr = grpArr[pageInd];
+          const container = document.createElement("div");
+          container.style.width = "210mm"; // A4 width
+          container.style.padding = "10px";
+          container.style.backgroundColor = "#fff";
+          container.style.boxSizing = "border-box";
+          container.style.position = "absolute";
+          container.style.left = "-9999px";
+          container.id = `AttendanceSheet-G${grpNo}-P${pageInd + 1}`;
+          document.body.appendChild(container);
 
-        const container = document.createElement("div");
-        container.style.width = "210mm"; // A4 width
-        container.style.padding = "20px";
-        container.style.backgroundColor = "#fff";
-        container.id = `AttendanceSheet-G${grpNo}-P${pageInd + 1}`;
-        document.body.appendChild(container);
-
-        const root = createRoot(container);
-        const renderComplete = new Promise((resolve) => {
-          root.render(
-            <AttendanceSheet
-              level_ordinal={level_ordinal}
-              batchFullDetailsData={batchFullDetailsData}
-              academicYear={academicYear}
-              formData={formData}
-              sem_ordinal={sem_ordinal}
-              onRenderComplete={resolve}
-              sub_name={sub_name}
-              sub_code={sub_code}
-              pageArr={pageArr}
-              pageNo={pageInd + 1}
-              groupNo={grpNo}
-              totalPages={grpArr.length}
-              totalGroups={Object.keys(finalNameList).length}
-              totalStudents={eligibleStudentsForASubjectData.length}
-              studentsInTheGroup={
-                grpArr.flat().filter((obj) => typeof obj != "string").length
-              }
-            />
-          );
-        });
-
-        await renderComplete;
-
-        // Calculate the total height of the rendered admission card
-        const totalHeightPx = container.offsetHeight;
-        const pageHeightPx = 1122; // A4 height in pixels at 96 DPI
-        const scale = 2;
-
-        let currentPage = 0;
-        while (currentPage * pageHeightPx < totalHeightPx) {
-          const canvas = await html2canvas(container, {
-            scale,
-            useCORS: true,
-            height: pageHeightPx,
-            y: currentPage * pageHeightPx,
-            scrollY: -currentPage * pageHeightPx,
-            windowWidth: container.offsetWidth,
-            windowHeight: totalHeightPx,
+          const root = createRoot(container);
+          const renderComplete = new Promise((resolve) => {
+            root.render(
+              <AttendanceSheet
+                level_ordinal={level_ordinal}
+                batchFullDetailsData={batchFullDetailsData}
+                academicYear={academicYear}
+                formData={formData}
+                sem_ordinal={sem_ordinal}
+                onRenderComplete={resolve}
+                sub_name={sub_name}
+                sub_code={sub_code}
+                pageArr={pageArr}
+                pageNo={pageInd + 1}
+                groupNo={grpNo}
+                totalPages={grpArr.length}
+                totalGroups={Object.keys(finalNameList).length}
+                totalStudents={eligibleStudentsForASubjectData.length}
+                studentsInTheGroup={
+                  grpArr.flat().filter((obj) => typeof obj != "string").length
+                }
+                venuesData={venuesData}
+              />
+            );
           });
 
-          const imgData = canvas.toDataURL("image/png");
-          const imgProps = pdf.getImageProperties(imgData);
-          const pdfWidth = pdf.internal.pageSize.getWidth();
-          const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+          await renderComplete;
 
-          // Calculate the image height and position considering margins
-          const availableHeight = pdf.internal.pageSize.getHeight() - margin;
-          const scaledHeight = Math.min(pdfHeight, availableHeight);
-          const yPosition = margin;
+          // Calculate the total height of the rendered admission card
+          const totalHeightPx = container.offsetHeight;
+          const pageHeightPx = 1122; // A4 height in pixels at 96 DPI
+          const scale = 2;
 
-          // Add the image to the PDF with margins
-          pdf.addImage(imgData, "PNG", 0, yPosition, pdfWidth, scaledHeight);
+          let currentPage = 0;
+          while (currentPage * pageHeightPx < totalHeightPx) {
+            const canvas = await html2canvas(container, {
+              scale,
+              useCORS: true,
+              logging: false,
+              allowTaint: true,
+              height: pageHeightPx,
+              y: currentPage * pageHeightPx,
+              scrollY: -currentPage * pageHeightPx,
+              windowWidth: container.offsetWidth,
+              windowHeight: totalHeightPx,
+            });
 
-          // Add a new page for the next segment, except the last one
-          if ((currentPage + 1) * pageHeightPx < totalHeightPx) {
+            const imgData = canvas.toDataURL("image/png", 1.0);
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            // Calculate the image height and position considering margins
+            const availableHeight = pdf.internal.pageSize.getHeight() - margin;
+            const scaledHeight = Math.min(pdfHeight, availableHeight);
+            const yPosition = margin;
+
+            // Add the image to the PDF with margins
+            pdf.addImage(imgData, "PNG", 0, yPosition, pdfWidth, scaledHeight);
+
+            // Add a new page for the next segment, except the last one
+            if ((currentPage + 1) * pageHeightPx < totalHeightPx) {
+              pdf.addPage();
+            }
+            currentPage++;
+          }
+
+          // Clean up the DOM after rendering
+          document.body.removeChild(container);
+
+          // Add a new page for the next student, except the last one
+          if (pageInd < grpArr.length - 1) {
             pdf.addPage();
           }
-          currentPage++;
         }
-
-        // Clean up the DOM after rendering
-        document.body.removeChild(container);
-
-        // Add a new page for the next student, except the last one
-        if (pageInd < grpArr.length - 1) {
+        if (grpNo - 1 < Object.entries(finalNameList).length - 1) {
           pdf.addPage();
         }
       }
-      if (grpNo - 1 < Object.entries(finalNameList).length - 1) {
-        pdf.addPage();
-      }
+
+      pdf.save(
+        `${batchFullDetailsData.batch_code}_${sub_code}_attendance_sheet.pdf`
+      );
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setGenerating(false);
     }
-
-    pdf.save(
-      `${batchFullDetailsData.batch_code}_${sub_code}_attendance_sheet.pdf`
-    );
-
-    setGenerating(false);
   };
 
   const { data: eligibleStudentsForASubjectData } = useQuery({
     queryFn: () => getEligibleStudentsBySub({ batch_id, sub_id }),
     queryKey: ["eligibleStudentsForASubject", batch_id, sub_id],
+  });
+
+  const {
+    data: venuesData,
+    isLoading: isVenuesDataLoading,
+    isError: isVenuesDataError,
+  } = useQuery({
+    queryFn: getVenues,
+    queryKey: ["venues"],
   });
 
   useEffect(() => {
@@ -207,9 +236,38 @@ const Attendance = () => {
           j++
         ) {
           if (sortedArray[j].exam_type != exam_type) {
+            if (pageArrInd !== 0) {
+              pageArr.push("");
+              //checking availability after pushing the empty
+              if (pageArrInd == 79) {
+                grpArr.push(pageArr);
+                pageArr = [];
+                pageArrInd = 0;
+              } else {
+                pageArrInd++;
+              }
+
+              pageArr.push("");
+              //checking availability after pushing the empty
+              if (pageArrInd == 79) {
+                grpArr.push(pageArr);
+                pageArr = [];
+                pageArrInd = 0;
+              } else {
+                pageArrInd++;
+              }
+            }
+
             pageArr.push(sortedArray[j].exam_type);
             exam_type = sortedArray[j].exam_type;
-            pageArrInd++;
+            //checking availability after pushing the exam_type
+            if (pageArrInd == 79) {
+              grpArr.push(pageArr);
+              pageArr = [];
+              pageArrInd = 0;
+            } else {
+              pageArrInd++;
+            }
           }
           pageArr.push(sortedArray[j]);
 
@@ -239,7 +297,7 @@ const Attendance = () => {
   }, [groupsCount, eligibleStudentsForASubjectData]);
 
   const { data: latestAttendanceTemplateData } = useQuery({
-    queryFn: () => getLatestAttendanceTemplate(batch_id),
+    queryFn: () => getLatestAttendanceTemplate({ batch_id, sub_id }),
     queryKey: ["latestAttendanceTemplate", batch_id],
   });
 
@@ -256,6 +314,7 @@ const Attendance = () => {
     mutationFn: createOrUpdateAttendance,
     onSuccess: (res) => {
       toast.success(res.message);
+      queryClient.invalidateQueries(["latestAttendanceTemplate", batch_id]);
     },
     onError: (err) => {
       toast.error("Operation failed");
@@ -263,7 +322,23 @@ const Attendance = () => {
   });
 
   const onGenerate = () => {
-    mutate(formData);
+    const studentDetails = Object.entries(finalNameList)
+      .map(
+        (arr) =>
+          arr[0] +
+          "," +
+          arr[1].map(
+            (arr, i) =>
+              i +
+              ":" +
+              arr
+                .filter((item) => typeof item != "string")
+                .map((obj) => Object.values(obj).join(";"))
+          )
+      )
+      .join("+");
+
+    mutate({ ...formData, no_of_groups: groupsCount, studentDetails });
     generateAttendanceSheetPDFs();
   };
 
@@ -331,6 +406,10 @@ const Attendance = () => {
             studentsInTheGroup={
               grpArr.flat().filter((obj) => typeof obj != "string").length
             }
+            setGroupsCount={setGroupsCount}
+            venuesData={venuesData}
+            isVenuesDataLoading={isVenuesDataLoading}
+            isVenuesDataError={isVenuesDataError}
           />
         ))
       )}

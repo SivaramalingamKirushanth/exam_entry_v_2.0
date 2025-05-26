@@ -37,7 +37,8 @@ const Dropzone = ({ file, setFile }) => {
   });
 
   // Remove the file
-  const handleRemoveFile = () => {
+  const handleRemoveFile = (e) => {
+    e.stopPropagation();
     setFile(null);
     setError(null);
   };
@@ -53,10 +54,10 @@ const Dropzone = ({ file, setFile }) => {
           dragged
             ? "bg-blue-100 border-blue-500 text-blue-500"
             : "bg-gray-100 border-gray-400 text-gray-700"
-        } border-2 font-semibold flex flex-col justify-center items-center border-dashed rounded-lg h-40 p-8`}
+        } border-2 font-semibold flex flex-col justify-center items-center border-dashed rounded-lg h-20 p-8`}
       >
         {!file && !error && (
-          <>
+          <div className="flex justify-between items-center gap-x-8">
             <FaDownload
               className={`transition-all duration-300 ${
                 dragged ? "text-blue-500" : "text-gray-400"
@@ -65,13 +66,15 @@ const Dropzone = ({ file, setFile }) => {
             <p className="dropzone-content text-center">
               Drag &amp; drop a CSV file here, or click to select a file
             </p>
-          </>
+          </div>
         )}
         {file && (
-          <div className="text-center">
-            <FaFileCsv className="text-5xl mx-auto mb-4" />
+          <div className="flex justify-between items-center gap-x-8">
+            <div>
+              <FaFileCsv className="text-3xl mx-auto mb-1" />
+              <p className="text-sm font-semibold text-gray-800">{file.name}</p>
+            </div>
 
-            <p className="text-sm font-semibold text-gray-800">{file.name}</p>
             <button
               className="mt-2 bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-4 rounded-lg flex items-center gap-2 mx-auto"
               onClick={handleRemoveFile}

@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Modal from "./Model";
+import Model from "./Model";
 import {
   getAllDegreesWithExtraDetails,
   updateDegreeStatus,
@@ -28,7 +28,7 @@ const DegreeDetails = () => {
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
-  const modalRef = useRef(null);
+  const modelRef = useRef(null);
   const [editId, setEditId] = useState("");
 
   const queryClient = useQueryClient();
@@ -78,11 +78,7 @@ const DegreeDetails = () => {
     },
     {
       accessorKey: "faculty_name",
-      header: "Faculty",
-    },
-    {
-      accessorKey: "department_name",
-      header: "Department",
+      header: "Awarding Faculty",
     },
     {
       accessorKey: "levels",
@@ -152,7 +148,7 @@ const DegreeDetails = () => {
     setStatus(e);
   };
 
-  const toggleModal = () => {
+  const toggleModel = () => {
     isOpen && setEditId("");
     setIsOpen((prev) => !prev);
   };
@@ -160,7 +156,7 @@ const DegreeDetails = () => {
   const onEditClicked = (e) => {
     if (e.target.classList.contains("editBtn")) {
       setEditId(e.target.id);
-      toggleModal();
+      toggleModel();
     }
   };
 
@@ -218,11 +214,11 @@ const DegreeDetails = () => {
           </div>
         </div>
       </div>
-      <Modal
+      <Model
         editId={editId}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        modalRef={modalRef}
+        modelRef={modelRef}
         setEditId={setEditId}
       />
       <div className="container mx-auto">
@@ -230,7 +226,7 @@ const DegreeDetails = () => {
           columns={columns}
           data={filteredData}
           onEditClicked={onEditClicked}
-          toggleModal={toggleModal}
+          toggleModel={toggleModel}
           btnText="Create degree programme"
         />
       </div>

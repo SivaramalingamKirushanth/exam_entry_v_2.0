@@ -44,8 +44,10 @@ const AttendanceSheet = ({
   totalGroups,
   totalStudents,
   studentsInTheGroup,
+  venuesData,
 }) => {
   const [splittedArray, setSplittedArray] = useState([]);
+  const [center, setCenter] = useState("");
 
   useEffect(() => {
     if (pageArr.length) {
@@ -61,6 +63,18 @@ const AttendanceSheet = ({
       setSplittedArray(final);
     }
   }, [pageArr]);
+
+  useEffect(() => {
+    if (venuesData) {
+      let venId = formData[groupNo]?.center;
+      if (venId) {
+        let venObj = venuesData.find((obj) => obj.id == venId);
+        if (venObj) {
+          setCenter(venObj.short_code);
+        }
+      }
+    }
+  }, [venuesData]);
 
   useEffect(() => {
     if (onRenderComplete && splittedArray.length) {
@@ -88,7 +102,7 @@ const AttendanceSheet = ({
           Examination <span>:&nbsp;</span>
         </div>
         <div className="flex flex-wrap items-center uppercase">
-          {level_ordinal} examination in {batchFullDetailsData?.deg_name} -{" "}
+          {level_ordinal} examination in {batchFullDetailsData?.course_title} -{" "}
           {academicYear} - {sem_ordinal} semester - &nbsp;
           {formData.date?.map((obj, ind) =>
             ind
@@ -107,7 +121,29 @@ const AttendanceSheet = ({
                   .join("") +
                 " " +
                 obj.year
-          )}
+          )}{" "}
+          {formData.heldDate?.[0]?.year &&
+            formData.heldDate?.[0]?.months?.length &&
+            typeof formData.heldDate?.[0]?.months?.[0] == "number" &&
+            " - Held on " +
+              formData.heldDate?.map((obj, ind) =>
+                ind
+                  ? " ," +
+                    obj.months
+                      .map((month, index) =>
+                        index ? `/${months[month]}` : `${months[month]}`
+                      )
+                      .join("") +
+                    " " +
+                    obj.year
+                  : obj.months
+                      .map((month, index) =>
+                        index ? `/${months[month]}` : `${months[month]}`
+                      )
+                      .join("") +
+                    " " +
+                    obj.year
+              )}
         </div>
       </div>
       <div className="flex mb-1">
@@ -120,7 +156,7 @@ const AttendanceSheet = ({
         <div className="flex flex-col gap-1">
           <div className="flex">
             <div className="w-36 flex justify-between shrink-0">
-              Course unit no <span>:&nbsp;</span>
+              Unit code <span>:&nbsp;</span>
             </div>
             <div>{sub_code}</div>
           </div>
@@ -128,7 +164,7 @@ const AttendanceSheet = ({
             <div className="w-36 flex justify-between shrink-0">
               Center <span>:&nbsp;</span>
             </div>
-            <div>{formData[groupNo]?.center || ""}</div>
+            <div>{center}</div>
           </div>
           <div className="flex">
             <div className="w-36 flex justify-between shrink-0">

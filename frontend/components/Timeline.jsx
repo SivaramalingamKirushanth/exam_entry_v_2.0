@@ -5,11 +5,11 @@ const Timeline = ({ timelineData }) => {
   };
 
   return (
-    <ol className="relative border-s border-gray-200 dark:border-gray-700">
+    <ol className="relative border-s border-gray-200 dark:border-gray-700 max-h-48 overflow-auto pr-1">
       {timelineData?.map((item, index) => (
         <li key={index} className="mb-10 ms-4">
-          <div className="absolute w-3 h-3 bg-gray-200 rounded-full mt-1.5 -start-1.5 border border-white dark:border-gray-900 dark:bg-gray-700"></div>
-          <time className="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+          <div className="absolute w-3 h-3 bg-gray-200 rounded-full mt-1 -start-0.5 border border-white dark:border-gray-900 dark:bg-gray-700"></div>
+          <time className="mb-1 text-sm font-normal leading-none text-gray-500 dark:text-gray-500">
             {new Intl.DateTimeFormat("en-US", options).format(
               new Date(item.date_time)
             )}
@@ -33,7 +33,7 @@ const Timeline = ({ timelineData }) => {
             </svg>
             {item.status_to}
           </h3>
-          <div className="mb-1 text-base font-normal text-gray-500 dark:text-gray-400">
+          <div className="mb-1 text-base font-normal text-gray-500 dark:text-gray-500">
             {item.remark}
           </div>
           <p className="mb-4 text-sm italic text-end text-gray-500 dark:text-gray-600">

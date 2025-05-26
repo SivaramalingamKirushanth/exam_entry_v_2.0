@@ -43,8 +43,7 @@ const adminRegister = async () => {
       await conn.beginTransaction();
 
       const [adminExists] = await conn.execute(
-        "SELECT COUNT(*) AS count FROM user WHERE user_name = ? OR email = ?",
-        [ADMIN_USERNAME, ADMIN_EMAIL]
+        "SELECT COUNT(*) AS count FROM user WHERE role_id = '1'"
       );
 
       if (adminExists[0].count == 0) {

@@ -9,7 +9,7 @@ const AdmissionCardTemplate = dynamic(
 );
 import { Button } from "@/components/ui/button";
 import { getBatchFullDetails } from "@/utils/apiRequests/batch.api";
-import { getCurriculumBybatchId } from "@/utils/apiRequests/curriculum.api";
+import { getSubjectBybatchId } from "@/utils/apiRequests/curriculum.api";
 import {
   createOrUpdateAdmission,
   fetchStudentsWithSubjects,
@@ -45,6 +45,7 @@ const AdmissionPage = () => {
     generated_date: getModifiedDate(new Date()),
     subjects: [],
     date: [{ year: new Date().getFullYear(), months: [new Date().getMonth()] }],
+    heldDate: [{ year: "", months: [""] }],
     description:
       "<p>Candidates are expected to produce this admission card to the  Supervisor/Invigilator/Examiner at the Examination Hall. This form &nbsp; &nbsp; &nbsp; should be filled and signed by the candidates in the presence of the Supervisor/Invigilator/Examiner every time a paper test is taken. The &nbsp; Supervisor/Invigilator/Examiner is expected to authenticate the signature of the candidate by placing his/her initials in the appropriate column. Students are requested to hand over the admission card to the Supervisor on the last day of the paper.</p>",
     instructions:
@@ -105,9 +106,6 @@ const AdmissionPage = () => {
               />
             );
           });
-
-          // Wait for a little extra time to ensure rendering is complete
-          // await new Promise((resolve) => setTimeout(resolve, 500));
 
           // Use html2canvas with better settings
           const canvas = await html2canvas(container, {
@@ -177,7 +175,7 @@ const AdmissionPage = () => {
     error,
   } = useQuery({
     queryFn: () => getBatchFullDetails(batch_id),
-    queryKey: ["batchFullDetails"],
+    queryKey: ["batchFullDetails", batch_id],
   });
 
   const { data: studentsWithSubjectsData } = useQuery({
@@ -187,7 +185,7 @@ const AdmissionPage = () => {
 
   const { data: batchCurriculumData, isLoading: isCurriculumDataLoading } =
     useQuery({
-      queryFn: () => getCurriculumBybatchId(batch_id),
+      queryFn: () => getSubjectBybatchId(batch_id),
       queryKey: ["batchCurriculum"],
     });
 

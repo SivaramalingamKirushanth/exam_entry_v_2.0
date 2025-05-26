@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 const IndexModel = ({
   isIndexOpen,
   setIsIndexOpen,
-  indexModalRef,
+  indexModelRef,
   batch_id,
   studentsWithoutIndexNumberData,
 }) => {
@@ -94,7 +94,7 @@ const IndexModel = ({
       {isIndexOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-2 sm:p-0">
           <div
-            ref={indexModalRef}
+            ref={indexModelRef}
             className="bg-white rounded-lg shadow-lg sm:w-[50vw] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">

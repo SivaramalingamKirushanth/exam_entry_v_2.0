@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 
-const EligibilityCell = ({ row, onEligibilityChanged }) => {
+const EligibilityCell = ({ row, onEligibilityChanged,end_date }) => {
   const [remark, setRemark] = useState("");
 
   return (
@@ -16,7 +16,8 @@ const EligibilityCell = ({ row, onEligibilityChanged }) => {
             e.preventDefault();
             e.target.parentElement.click();
           }}
-          checked={row.original.eligibility == "true"}
+          checked={row.original.eligibility == "true" }
+          disabled={new Date()>new Date(end_date)}
         />
       </PopoverTrigger>
       <PopoverContent className="w-64 h-40 flex flex-col gap-2 items-start">

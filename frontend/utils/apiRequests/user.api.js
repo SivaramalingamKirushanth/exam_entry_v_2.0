@@ -1,12 +1,12 @@
 import axiosInstance from "@/lib/axiosInstance";
 
-export const getAllManagers = async () => {
-  const response = await axiosInstance.get("/user/getAllManagers");
+export const getAllLecturers = async () => {
+  const response = await axiosInstance.get("/user/getAllLecturers");
   return response.data;
 };
 
-export const getAllActiveManagers = async () => {
-  const response = await axiosInstance.get("/user/getAllActiveManagers");
+export const getAllActiveLecturers = async () => {
+  const response = await axiosInstance.get("/user/getAllActiveLecturers");
   return response.data;
 };
 
@@ -15,8 +15,8 @@ export const getAllStudents = async () => {
   return response.data;
 };
 
-export const getManagerById = async (user_id) => {
-  const response = await axiosInstance.post("/user/getManagerById", {
+export const getLecturerById = async (user_id) => {
+  const response = await axiosInstance.post("/user/getLecturerById", {
     user_id,
   });
   return response.data;
@@ -36,13 +36,13 @@ export const getFacStudentByBatchId = async (batch_id) => {
   return response.data;
 };
 
-export const updateManager = async (data) => {
-  const response = await axiosInstance.put("/user/updateManager", data);
+export const updateLecturer = async (data) => {
+  const response = await axiosInstance.put("/user/updateLecturer", data);
   return response.data;
 };
 
-export const updateManagerStatus = async (data) => {
-  const response = await axiosInstance.put("/user/updateManagerStatus", data);
+export const updateLecturerStatus = async (data) => {
+  const response = await axiosInstance.put("/user/updateLecturerStatus", data);
   return response.data;
 };
 
@@ -56,8 +56,8 @@ export const updateStudentStatus = async (data) => {
   return response.data;
 };
 
-export const getNoOfManagers = async () => {
-  const response = await axiosInstance.get("/user/getNoOfManagers");
+export const getNoOfLecturers = async () => {
+  const response = await axiosInstance.get("/user/getNoOfLecturers");
   return response.data;
 };
 
@@ -68,5 +68,30 @@ export const getNoOfStudents = async () => {
 
 export const getSummaryData = async () => {
   const response = await axiosInstance.get("/user/getSummaryData");
+  return response.data;
+};
+
+export const getVenues = async () => {
+  const response = await axiosInstance.get("/user/getVenues");
+  return response.data;
+};
+
+export const createVenue = async (data) => {
+  const response = await axiosInstance.post("/user/createVenue", data);
+  return response.data;
+};
+
+export const updateVenue = async (data) => {
+  const response = await axiosInstance.put("/user/updateVenue", data);
+  return response.data;
+};
+
+export const getVenueById = async (data) => {
+  const response = await axiosInstance.post("/user/getVenueById", data);
+  return response.data;
+};
+
+export const getStudentsByDeg = async (data) => {
+  const response = await axiosInstance.post("/user/getStudentsByDeg", data);
   return response.data;
 };

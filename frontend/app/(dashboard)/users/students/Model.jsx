@@ -4,53 +4,63 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { studentRegister } from "@/utils/apiRequests/auth.api";
-import { getStudentById, updateStudent } from "@/utils/apiRequests/user.api";
 import { GiCancel } from "react-icons/gi";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { getAllFaculties } from "@/utils/apiRequests/course.api";
+  getAllFaculties,
+  getDegreesByFacultyId,
+} from "@/utils/apiRequests/course.api";
+import { getSyllabiByDegreeId } from "@/utils/apiRequests/curriculum.api";
+import { LabelSearchCombobox } from "@/components/ui/customCommand";
 
-const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
+const Model = ({ isOpen, setIsOpen, modelRef }) => {
   const [formData, setFormData] = useState({});
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
 
   const { status, mutate } = useMutation({
-    mutationFn: editId ? updateStudent : studentRegister,
+    mutationFn: studentRegister,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["students"]);
-      setEditId("");
       toast.success(res.message);
     },
     onError: (err) => {
-      setEditId("");
       toast.error("Operation failed");
     },
   });
 
-  const { data, refetch } = useQuery({
-    queryFn: () => getStudentById(editId),
-    queryKey: ["students", editId],
+  const {
+    data: facultyData,
+    isLoading: isFacultyDataLoading,
+    isError: isFacultyDataError,
+  } = useQuery({
+    queryFn: getAllFaculties,
+    queryKey: ["activeFaculties"],
+  });
+
+  const {
+    data: degreeData,
+    refetch: degreeDataRefetch,
+    isLoading: isDegreeDataLoading,
+    isError: isDegreeDataError,
+  } = useQuery({
+    queryFn: () => getDegreesByFacultyId(formData.f_id),
+    queryKey: ["activeDegrees", "faculty", formData.f_id],
     enabled: false,
   });
 
-  const { data: facultyData } = useQuery({
-    queryFn: getAllFaculties,
-    queryKey: ["faculties"],
+  const {
+    data: syllabusData,
+    refetch: syllabusDataRefetch,
+    isLoading: isSyllabusDataLoading,
+    error: isSyllabusDataError,
+  } = useQuery({
+    queryFn: () => getSyllabiByDegreeId(formData.deg_id),
+    queryKey: ["activeSyllabi", "degree", formData.deg_id],
+    enabled: false,
   });
-
-  useEffect(() => {
-    if (data) setFormData(data);
-  }, [data]);
 
   const onFormDataChanged = (e) => {
     if (e.target) {
@@ -82,20 +92,26 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
       formData.user_name &&
       formData.email &&
       formData.contact_no &&
-      formData.f_id;
+      formData.f_id &&
+      formData.deg_id &&
+      formData.syl_id;
     setBtnEnable(isFormValid);
   }, [formData]);
 
   useEffect(() => {
-    editId && refetch();
-  }, [editId]);
+    if (formData?.f_id) degreeDataRefetch();
+  }, [formData?.f_id]);
+
+  useEffect(() => {
+    if (formData?.deg_id) syllabusDataRefetch();
+  }, [formData?.deg_id]);
 
   return (
     <>
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div
-            ref={modalRef}
+            ref={modelRef}
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
@@ -106,7 +122,6 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 onClick={() => {
                   setIsOpen(false);
                   setFormData({});
-                  setEditId("");
                 }}
               />
             </div>
@@ -195,21 +210,83 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
               </div>
               <div className={`grid grid-cols-4 items-center gap-4`}>
                 <Label className="text-right">Faculty</Label>
-                <Select
-                  onValueChange={(e) => onFormDataChanged(e)}
-                  value={formData.f_id ? "f_id:" + formData.f_id : ""}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Faculty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {facultyData?.map((item) => (
-                      <SelectItem key={item.f_id} value={`f_id:${item.f_id}`}>
-                        {item.f_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="col-span-3">
+                  <LabelSearchCombobox
+                    name="f_id"
+                    items={facultyData}
+                    labelField="f_name"
+                    valueField="f_id"
+                    placeholder="Search faculty..."
+                    buttonText="Select faculty"
+                    onValueChange={(e) => {
+                      setFormData((cur) => ({ ...cur, deg_id: "" }));
+                      onFormDataChanged(e);
+                    }}
+                    value={formData.f_id || null}
+                    disabled={isFacultyDataLoading || isFacultyDataError}
+                  />
+                </div>
+              </div>
+              <div className={`grid grid-cols-4 items-center gap-4`}>
+                <Label className="text-right">Degree programme</Label>
+                <div className="col-span-3">
+                  <LabelSearchCombobox
+                    name="deg_id"
+                    items={degreeData}
+                    labelField="deg_name"
+                    valueField="deg_id"
+                    placeholder="Search degree..."
+                    buttonText={
+                      isDegreeDataError
+                        ? "Not found"
+                        : isDegreeDataLoading
+                        ? "Loading..."
+                        : "Select degree"
+                    }
+                    onValueChange={(e) => {
+                      setFormData((cur) => ({
+                        ...cur,
+                        syl_id: "",
+                      }));
+                      onFormDataChanged(e);
+                    }}
+                    value={formData.deg_id || null}
+                    disabled={
+                      !degreeData || isDegreeDataLoading || isDegreeDataError
+                    }
+                  />
+                </div>
+              </div>
+              <div className={`grid grid-cols-4 items-center gap-4`}>
+                <Label className="text-right">Syllabus</Label>
+                <div className="col-span-3">
+                  <LabelSearchCombobox
+                    name="syl_id"
+                    items={syllabusData?.map((obj) => ({
+                      ...obj,
+                      commenced_year: obj.commenced_year + "",
+                    }))}
+                    labelField="commenced_year"
+                    valueField="syl_id"
+                    placeholder="Search syllabus..."
+                    buttonText={
+                      isSyllabusDataError
+                        ? "Not found"
+                        : isSyllabusDataLoading
+                        ? "Loading..."
+                        : "Select syllabus"
+                    }
+                    onValueChange={(e) => {
+                      onFormDataChanged(e);
+                    }}
+                    value={formData.syl_id || null}
+                    disabled={
+                      !syllabusData ||
+                      isSyllabusDataLoading ||
+                      isSyllabusDataError
+                    }
+                  />
+                </div>
               </div>
             </div>
 
@@ -226,7 +303,7 @@ const Model = ({ editId, isOpen, setIsOpen, modalRef, setEditId }) => {
                 disabled={!btnEnable}
                 onClick={onFormSubmitted}
               >
-                {editId ? "Update" : "Create"}
+                Create
               </Button>
             </div>
           </div>

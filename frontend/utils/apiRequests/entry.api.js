@@ -1,9 +1,19 @@
 import axiosInstance from "@/lib/axiosInstance";
 
 export const applyExam = async (removedSubjects) => {
-  const response = await axiosInstance.put("/entry/applyExam", {
+  const response = await axiosInstance.post("/entry/applyExam", {
     removedSubjects,
   });
+  return response.data;
+};
+
+export const applyResitExam = async (data) => {
+  const response = await axiosInstance.post("/entry/applyResitExam", data);
+  return response.data;
+};
+
+export const applyMedicalExam = async (data) => {
+  const response = await axiosInstance.post("/entry/applyMedicalExam", data);
   return response.data;
 };
 
@@ -15,9 +25,17 @@ export const getStudentSubjects = async (batch_id, s_id) => {
   return response.data;
 };
 
-export const addMedicalResitStudents = async (data) => {
+export const acceptMedicalResitStudents = async (data) => {
   const response = await axiosInstance.post(
-    "/entry/addMedicalResitStudents",
+    "/entry/acceptMedicalResitStudents",
+    data
+  );
+  return response.data;
+};
+
+export const rejectMedicalResitApplication = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/rejectMedicalResitApplication",
     data
   );
   return response.data;
@@ -106,10 +124,10 @@ export const createOrUpdateAttendance = async (data) => {
   return response.data;
 };
 
-export const getLatestAttendanceTemplate = async (batch_id) => {
+export const getLatestAttendanceTemplate = async (data) => {
   const response = await axiosInstance.post(
     "/entry/getLatestAttendanceTemplate",
-    { batch_id }
+    data
   );
   return response.data;
 };
@@ -122,13 +140,16 @@ export const deleteBatchSubjectEntries = async (batch_id) => {
   return response.data;
 };
 
-export const getDeanDashboardData = async () => {
-  const response = await axiosInstance.get("/entry/getDeanDashboardData");
+export const getDeanDashboardData = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getDeanDashboardData",
+    data
+  );
   return response.data;
 };
 
-export const getHodDashboardData = async () => {
-  const response = await axiosInstance.get("/entry/getHodDashboardData");
+export const getHodDashboardData = async (data) => {
+  const response = await axiosInstance.post("/entry/getHodDashboardData", data);
   return response.data;
 };
 
@@ -158,6 +179,125 @@ export const getAppliedStudentsForSubjectOfDepartment = async (
   const response = await axiosInstance.post(
     "/entry/getAppliedStudentsForSubjectOfDepartment",
     { batch_id, sub_id }
+  );
+  return response.data;
+};
+
+export const getAppliedResitStudentsByBatchAndSubject = async (
+  batch_id,
+  sub_id
+) => {
+  const response = await axiosInstance.post(
+    "/entry/getAppliedResitStudentsByBatchAndSubject",
+    { batch_id, sub_id }
+  );
+  return response.data;
+};
+
+export const getAppliedMedicalStudentsByBatchAndSubject = async (
+  batch_id,
+  sub_id
+) => {
+  const response = await axiosInstance.post(
+    "/entry/getAppliedMedicalStudentsByBatchAndSubject",
+    { batch_id, sub_id }
+  );
+  return response.data;
+};
+
+export const getStudentMedicalResitApplications = async () => {
+  const response = await axiosInstance.get(
+    "/entry/getStudentMedicalResitApplications"
+  );
+  return response.data;
+};
+
+export const updateReference = async (data) => {
+  const response = await axiosInstance.post("/entry/updateReference", data);
+  return response.data;
+};
+
+export const updateVerified = async (data) => {
+  const response = await axiosInstance.post("/entry/updateVerified", data);
+  return response.data;
+};
+
+export const moveToMedical = async (data) => {
+  const response = await axiosInstance.post("/entry/moveToMedical", data);
+  return response.data;
+};
+
+export const moveToResit = async (data) => {
+  const response = await axiosInstance.post("/entry/moveToResit", data);
+  return response.data;
+};
+
+export const checkPendingMedicalResitRequests = async () => {
+  const response = await axiosInstance.get(
+    "/entry/checkPendingMedicalResitRequests"
+  );
+  return response.data;
+};
+
+export const getBatchDeadlineAndApprovalStatus = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getBatchDeadlineAndApprovalStatus",
+    data
+  );
+  return response.data;
+};
+
+export const setApproval = async (data) => {
+  const response = await axiosInstance.post("/entry/setApproval", data);
+  return response.data;
+};
+
+export const upsertPayments = async (data) => {
+  const response = await axiosInstance.post("/entry/upsertPayments", data);
+  return response.data;
+};
+
+export const getAllPayments = async () => {
+  const response = await axiosInstance.get("/entry/getAllPayments");
+  return response.data;
+};
+
+export const getEligibleMedicalSubjects = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getEligibleMedicalSubjects",
+    data
+  );
+  return response.data;
+};
+
+export const getEligibleResitSubjects = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getEligibleResitSubjects",
+    data
+  );
+  return response.data;
+};
+
+export const getSummarySubjectsData = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getSummarySubjectsData",
+    data
+  );
+  return response.data;
+};
+
+export const getDynamicBatchTablesData = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getDynamicBatchTablesData",
+    data
+  );
+  return response.data;
+};
+
+export const updateRequestReference = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/updateRequestReference",
+    data
   );
   return response.data;
 };

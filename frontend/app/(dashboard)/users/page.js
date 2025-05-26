@@ -1,14 +1,15 @@
 "use client";
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getNoOfManagers, getNoOfStudents } from "@/utils/apiRequests/user.api";
+import {
+  getNoOfLecturers,
+  getNoOfStudents,
+} from "@/utils/apiRequests/user.api";
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -16,10 +17,10 @@ import { usePathname } from "next/navigation";
 
 const Users = () => {
   const pathname = usePathname();
-  const { data: noOfManagersData, isLoading: isNoOfManagersDataLoading } =
+  const { data: noOfLecturersData, isLoading: isNoOfLecturersDataLoading } =
     useQuery({
-      queryFn: getNoOfManagers,
-      queryKey: ["noOfManagers"],
+      queryFn: getNoOfLecturers,
+      queryKey: ["noOfLecturers"],
     });
 
   const { data: noOfStudentsData, isLoading: isNoOfStudentsDataLoading } =
@@ -28,7 +29,7 @@ const Users = () => {
       queryKey: ["noOfStudents"],
     });
 
-  if (isNoOfManagersDataLoading || isNoOfStudentsDataLoading)
+  if (isNoOfLecturersDataLoading || isNoOfStudentsDataLoading)
     return (
       <div className="flex justify-end md:justify-center">
         <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
@@ -46,14 +47,14 @@ const Users = () => {
     <div className="flex justify-end md:justify-center">
       <div className="w-[80%] md:w-[85%] lg:w-[70%] flex flex-col sm:flex-row gap-6 flex-wrap">
         <Link
-          href={`${pathname}/managers`}
+          href={`${pathname}/lecturers`}
           className="sm:w-[30%] sm:max-w-[30%] hover:shadow-md rounded-xl"
         >
           <Card>
             <CardHeader>
-              <CardTitle>Managers</CardTitle>
+              <CardTitle>Lecturers</CardTitle>
               <CardDescription>
-                {noOfManagersData?.count} {noOfManagersData && "Managers"}
+                {noOfLecturersData?.count} {noOfLecturersData && "Lecturers"}
               </CardDescription>
             </CardHeader>
           </Card>
