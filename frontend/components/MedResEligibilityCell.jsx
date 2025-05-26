@@ -11,26 +11,39 @@ import {
   SelectValue,
 } from "./ui/select";
 
-const MedResEligibilityCell = ({ row, onEligibilityChanged,end_date }) => {
-  const [remark, setRemark] = useState("Details verified");
+const MedResEligibilityCell = ({
+  row,
+  onEligibilityChanged,
+  end_date,
+  lec,
+}) => {
+  const [remark, setRemark] = useState("");
 
   return (
     <h1 className="capitalize shrink-0 text-center text-sm sm:text-base">
       <Select
         onValueChange={(e) => {
-          if (remark) {
+          if (lec) {
             onEligibilityChanged(row.original.s_id, e, remark);
+          } else {
+            if (remark) {
+              onEligibilityChanged(row.original.s_id, e, remark);
+            }
           }
         }}
         value={row.original.eligibility}
-        disabled={new Date()>new Date(end_date)}
+        disabled={new Date() > new Date(end_date)}
       >
         <SelectTrigger className="w-32">
           <SelectValue placeholder="Pending" />
         </SelectTrigger>
         <SelectContent className="p-2 w-64">
-          <p className="font-semibold flex justify-between text-sm w-full">
-            <span>Enter Remark</span>
+          <p className="font-semibold flex flex-col gap-y-1 text-sm w-full">
+            {lec ? (
+              <span>Enter Remark (optional)</span>
+            ) : (
+              <span>Enter Remark</span>
+            )}
             <span>{row.original.user_name}</span>
           </p>
           <Textarea
@@ -38,10 +51,10 @@ const MedResEligibilityCell = ({ row, onEligibilityChanged,end_date }) => {
             value={remark}
             className="my-2"
           />
-          <SelectItem disabled={!remark} value="true">
+          <SelectItem disabled={!lec && !remark} value="true">
             Eligible
           </SelectItem>
-          <SelectItem disabled={!remark} value="false">
+          <SelectItem disabled={!lec && !remark} value="false">
             Not Eligible
           </SelectItem>
         </SelectContent>

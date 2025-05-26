@@ -20,8 +20,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { applyResitExam } from "@/utils/apiRequests/entry.api";
 import { formatResitData, titleCase } from "@/utils/functions";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { createRoot } from "react-dom/client";
+import ExamApplicationPrint from "./ExamApplicationPrint";
 
 const Form = (request) => {
   const router = useRouter();
@@ -32,6 +47,104 @@ const Form = (request) => {
   const [subjectsArr, setSubjectArr] = useState([]);
   const [formData, setFormData] = useState({ subjects: [] });
   const [attemptsData, setAttemptsData] = useState({});
+  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+
+  const generatePDF = async () => {
+    if (typeof document === "undefined") {
+      console.error("This function can only run in a browser environment.");
+      return;
+    }
+
+    try {
+      // Create a container with precise A4 dimensions (like admission card method)
+      const container = document.createElement("div");
+      container.style.width = "210mm";
+      container.style.padding = "10mm";
+      container.style.backgroundColor = "#fff";
+      container.style.boxSizing = "border-box";
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.id = `exam-application-print-container`;
+
+      document.body.appendChild(container);
+
+      const root = createRoot(container);
+
+      await new Promise((resolve) => {
+        root.render(
+          <ExamApplicationPrint
+            applicationData={applicationData}
+            examName={examName}
+            subjects={formData.subjects}
+            onRenderComplete={resolve}
+            attemptsData={attemptsData}
+          />
+        );
+      });
+
+      // Use html2canvas with better settings (same as admission card)
+      const quality = 2; // Higher value = better quality
+      const canvas = await html2canvas(container, {
+        scale: quality,
+        useCORS: true,
+        logging: false,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+      });
+
+      // Create PDF with same settings as admission card
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
+
+      // Convert canvas to image
+      const imgData = canvas.toDataURL("image/JPEG", 1.0);
+
+      // Calculate dimensions to fit the page (same as admission card method)
+      const imgWidth = pdf.internal.pageSize.getWidth();
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // Add image to PDF - ensure it fits on one page
+      const contentHeight = Math.min(imgHeight, pageHeight - 10); // Subtract margin
+      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, contentHeight);
+
+      // Handle content that exceeds page height by adding additional pages
+      if (imgHeight > pageHeight) {
+        let heightLeft = imgHeight - pageHeight;
+        let position = -pageHeight;
+
+        while (heightLeft > 0) {
+          position = position - pageHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+      }
+
+      // Clean up by removing the container
+      document.body.removeChild(container);
+
+      // Save the PDF
+      const fileName = `Exam_Application_${
+        applicationData?.user_name || "Student"
+      }_${new Date().toISOString().split("T")[0]}.pdf`;
+      pdf.save(fileName);
+
+      toast.success("Application form downloaded as PDF");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF");
+    }
+  };
+
+  const handleSubmit = () => {
+    setIsSubmitDialogOpen(true);
+  };
 
   const handleChange = (selectedOptions) => {
     setFormData((prev) => ({
@@ -92,7 +205,9 @@ const Form = (request) => {
 
   const { status, mutate } = useMutation({
     mutationFn: applyResitExam,
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
+      await generatePDF();
+
       queryClient.invalidateQueries(
         ["batchesOfStudent", "resit"],
         ["studentApplicationDetails", "resit"]
@@ -106,7 +221,9 @@ const Form = (request) => {
     },
   });
 
-  const onSubmit = () => {
+  const handleConfirmSubmit = () => {
+    setIsSubmitDialogOpen(false);
+
     const subjects_string = formatResitData(attemptsData);
 
     mutate({ subjects_string, batch_id: batch });
@@ -125,6 +242,16 @@ const Form = (request) => {
       setSubjectArr(modifiedArr);
     }
   }, [applicationData]);
+
+  useEffect(() => {
+    console.log(applicationData);
+  }, [applicationData]);
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
+  useEffect(() => {
+    console.log(attemptsData);
+  }, [attemptsData]);
 
   return (
     <>
@@ -254,7 +381,7 @@ const Form = (request) => {
                             <Select onValueChange={(e) => onSelectChange(e)}>
                               <SelectTrigger className="w-[90%]">
                                 <SelectValue
-                                  placeholder={`${attempt.no}${attempt.suffix} Try`}
+                                  placeholder={`${attempt.no}${attempt.suffix} Attempt`}
                                 />
                               </SelectTrigger>
                               <SelectContent>
@@ -263,7 +390,7 @@ const Form = (request) => {
                                   className="text-center font-bold w-full"
                                 >
                                   {attempt.no}
-                                  {attempt.suffix} Try
+                                  {attempt.suffix} Attempt
                                 </SelectItem>
                                 {gradesData?.map((grdObj) => (
                                   <SelectItem
@@ -299,12 +426,49 @@ const Form = (request) => {
             <div className="flex justify-center sm:justify-end">
               {Object.keys(applicationData).length &&
               Object.keys(attemptsData)?.length ? (
-                <Button
-                  onClick={onSubmit}
-                  className="h-8 rounded-md px-3 text-xs sm:h-9 sm:px-4 sm:py-2"
+                <AlertDialog
+                  open={isSubmitDialogOpen}
+                  onOpenChange={setIsSubmitDialogOpen}
                 >
-                  Submit
-                </Button>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      onClick={handleSubmit}
+                      className="h-8 rounded-md px-3 text-xs sm:h-9 sm:px-4 sm:py-2"
+                      disabled={status === "pending"}
+                    >
+                      {status === "pending" ? "Submitting..." : "Submit"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Confirm Exam Application Submission
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to submit your exam application?
+                        <br />
+                        <br />
+                        <strong>Important:</strong> Once submitted, you will not
+                        be able to edit or re-apply for this examination. Please
+                        review your selected subjects carefully before
+                        confirming.
+                        <br />
+                        <br />
+                        After submission, your application form will be
+                        automatically downloaded as a PDF for your records.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleConfirmSubmit}
+                        className="bg-black"
+                      >
+                        Confirm & Submit
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               ) : (
                 <span></span>
               )}

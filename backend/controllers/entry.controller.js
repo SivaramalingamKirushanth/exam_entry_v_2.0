@@ -1806,8 +1806,9 @@ export const getBatchDeadlineAndApprovalStatus = async (req, res, next) => {
       const result = rows[0][0];
 
       return res.status(200).json({
-        end_date: result.end_date,
-        accepted_status: result.accepted_status,
+        end_date: result?.end_date,
+        admin_end: result?.admin_end,
+        accepted_status: result?.accepted_status,
       });
     } catch (error) {
       console.error(

@@ -17,6 +17,7 @@ import { FaChevronDown, FaChevronRight } from "react-icons/fa6";
 import ResitStudentDetails from "./ResitStudentDetails";
 import MedicalStudentDetails from "./MedicalStudentDetails";
 import { FaQuestionCircle } from "react-icons/fa";
+import { getBatchDeadlineAndApprovalStatus } from "@/utils/apiRequests/entry.api";
 
 const Subjects = () => {
   const searchParams = useSearchParams();

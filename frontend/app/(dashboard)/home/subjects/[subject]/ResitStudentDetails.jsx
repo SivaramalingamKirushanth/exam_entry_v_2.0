@@ -7,10 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { EntriesDataTable } from "@/components/EntriesDataTable";
-import {
-  updateMultipleResitEligibility,
-  updateResitEligibility,
-} from "@/utils/apiRequests/curriculum.api";
+
 import { toast } from "sonner";
 import { getAppliedResitStudentsByBatchAndSubject } from "@/utils/apiRequests/entry.api";
 
@@ -18,6 +15,10 @@ import { useUser } from "@/utils/useUser";
 
 import MedResEligibilityCell from "@/components/MedResEligibilityCell";
 import MedResEligibilityHeader from "@/components/MedResEligibilityHeader";
+import {
+  updateMultipleResitEligibility,
+  updateResitEligibility,
+} from "@/utils/apiRequests/curriculum.api";
 
 const grades = {
   0: "N/A",
@@ -155,6 +156,7 @@ const ResitStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
           filteredData={filteredData}
           setIsAnyonePending={setIsAnyonePending}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
+          lec={true}
         />
       ),
 
@@ -163,6 +165,7 @@ const ResitStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
           <MedResEligibilityCell
             row={row}
             onEligibilityChanged={onEligibilityChanged}
+            lec={true}
           />
         </div>
       ),

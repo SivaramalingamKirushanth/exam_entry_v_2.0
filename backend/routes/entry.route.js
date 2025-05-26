@@ -158,7 +158,7 @@ router.get(
 );
 router.post(
   "/getBatchDeadlineAndApprovalStatus",
-  verifyUser(["2", "3"]),
+  verifyUser(["1", "2", "3"]),
   getBatchDeadlineAndApprovalStatus
 );
 router.post("/setApproval", verifyUser(["2", "3"]), setApproval);

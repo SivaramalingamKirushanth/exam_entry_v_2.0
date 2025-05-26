@@ -24,6 +24,7 @@ import {
   getAppliedStudentsForSubject,
   getAppliedStudentsForSubjectOfDepartment,
   getAppliedStudentsForSubjectOfFaculty,
+  getBatchDeadlineAndApprovalStatus,
 } from "@/utils/apiRequests/entry.api";
 import { getDeadlinesForBatch } from "@/utils/apiRequests/batch.api";
 import { useUser } from "@/utils/useUser";
@@ -52,6 +53,11 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
       roleId == "1" ? getAppliedStudentsForSubject(batch_id, sub_id) : null,
     queryKey: ["students", "subject", sub_id],
     enabled: roleId == "1",
+  });
+
+  const { data: approvalAndEnddateOfBatchData } = useQuery({
+    queryFn: () => getBatchDeadlineAndApprovalStatus({ batch_id }),
+    queryKey: ["approval", batch_id],
   });
 
   if (error?.response?.status == 500) {
@@ -159,6 +165,7 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
         <EligibilityHeader
           filteredData={filteredData}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
+          end_date={approvalAndEnddateOfBatchData.admin_end}
         />
       ),
 
@@ -166,6 +173,7 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
         <EligibilityCell
           row={row}
           onEligibilityChanged={onEligibilityChanged}
+          end_date={approvalAndEnddateOfBatchData.admin_end}
         />
       ),
     },

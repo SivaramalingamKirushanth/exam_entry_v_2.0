@@ -2,11 +2,21 @@ import { Badge } from "@/components/ui/badge";
 import { titleCase } from "@/utils/functions";
 import { useEffect } from "react";
 
+const grades = {
+  0: "N/A",
+  1: "F",
+  2: "E",
+  3: "D",
+  4: "D+",
+  5: "C-",
+};
+
 const ExamApplicationPrint = ({
   applicationData,
   examName,
-  subjects = [],
   onRenderComplete,
+  attemptsData,
+  subjects,
 }) => {
   const activeSubjects =
     applicationData?.subjects?.filter((obj) =>
@@ -50,7 +60,6 @@ const ExamApplicationPrint = ({
           </div>
         </div>
 
-        {/* Student Information */}
         <div className="mb-6">
           <h4 className="text-sm font-semibold mb-3 uppercase border-b border-gray-200 pb-1">
             Student Information
@@ -64,7 +73,7 @@ const ExamApplicationPrint = ({
             </div>
             <div className="flex">
               <span className="font-semibold w-20 uppercase">Type:</span>
-              <span className="uppercase">Medical</span>
+              <span className="uppercase">Resit</span>
             </div>
             <div className="flex">
               <span className="font-semibold w-20 uppercase">Name:</span>
@@ -79,15 +88,12 @@ const ExamApplicationPrint = ({
           </div>
         </div>
 
-        {/* Subjects Applied */}
         <div className="mb-6">
           <h4 className="text-sm font-semibold mb-3 uppercase border-b border-gray-200 pb-1">
             Subjects Applied For Examination
           </h4>
 
-          {/* Fixed Table Structure */}
           <table className="w-full border-collapse border border-gray-300 text-xs">
-            {/* Table Header */}
             <thead>
               <tr className="bg-gray-100">
                 <th
@@ -98,14 +104,31 @@ const ExamApplicationPrint = ({
                 </th>
                 <th
                   className="border border-gray-300 p-2 text-center font-semibold uppercase"
-                  style={{ width: "340px" }}
+                  style={{ width: "160px" }}
                 >
                   Subject Name
+                </th>
+                <th
+                  className="border border-gray-300 p-2 text-center font-semibold uppercase"
+                  style={{ width: "60px" }}
+                >
+                  1st Attempt
+                </th>
+                <th
+                  className="border border-gray-300 p-2 text-center font-semibold uppercase"
+                  style={{ width: "60px" }}
+                >
+                  2nd Attempt
+                </th>
+                <th
+                  className="border border-gray-300 p-2 text-center font-semibold uppercase"
+                  style={{ width: "60px" }}
+                >
+                  3rd Attempt
                 </th>
               </tr>
             </thead>
 
-            {/* Table Body - Always show at least 10 rows */}
             <tbody>
               {Array.from({ length: Math.max(10, activeSubjects.length) }).map(
                 (_, index) => {
@@ -120,6 +143,21 @@ const ExamApplicationPrint = ({
                       </td>
                       <td className="border border-gray-300 p-2 text-left capitalize">
                         {subject?.sub_name || ""}
+                      </td>
+                      <td className="border border-gray-300 p-2 text-center">
+                        {attemptsData[subject?.sub_id]?.["1"]
+                          ? grades[attemptsData[subject?.sub_id]?.["1"]]
+                          : ""}
+                      </td>
+                      <td className="border border-gray-300 p-2 text-center">
+                        {attemptsData[subject?.sub_id]?.["2"]
+                          ? grades[attemptsData[subject?.sub_id]?.["2"]]
+                          : ""}
+                      </td>
+                      <td className="border border-gray-300 p-2 text-center">
+                        {attemptsData[subject?.sub_id]?.["3"]
+                          ? grades[attemptsData[subject?.sub_id]?.["3"]]
+                          : ""}
                       </td>
                     </tr>
                   );

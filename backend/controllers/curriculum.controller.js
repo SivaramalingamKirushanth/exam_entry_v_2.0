@@ -1706,15 +1706,7 @@ export const updateResitEligibility = async (req, res, next) => {
   const { user_id, role_id } = req.user;
   const { batch_id, sub_id, eligibility, s_id, remark } = req.body;
 
-  if (
-    !user_id ||
-    !s_id ||
-    !sub_id ||
-    !batch_id ||
-    !eligibility ||
-    !role_id ||
-    !remark
-  ) {
+  if (!user_id || !s_id || !sub_id || !batch_id || !eligibility || !role_id) {
     return next(errorProvider(400, "Missing required fields."));
   }
 
@@ -1855,15 +1847,7 @@ export const updateMedicalEligibility = async (req, res, next) => {
   const { user_id, role_id } = req.user;
   const { batch_id, sub_id, eligibility, s_id, remark } = req.body;
 
-  if (
-    !user_id ||
-    !s_id ||
-    !sub_id ||
-    !batch_id ||
-    !eligibility ||
-    !role_id ||
-    !remark
-  ) {
+  if (!user_id || !s_id || !sub_id || !batch_id || !eligibility || !role_id) {
     return next(errorProvider(400, "Missing required fields."));
   }
 

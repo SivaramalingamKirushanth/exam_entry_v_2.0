@@ -189,6 +189,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
         old_subjects: data.subjects,
         application_open: convertUTCToLocal(data.application_open),
         payment_end: convertUTCToLocal(data.payment_end),
+        admin_end: convertUTCToLocal(data.admin_end),
       });
     }
   }, [data]);
@@ -242,12 +243,16 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
       if (new Date(data?.application_open) < new Date()) {
         const { students_end, lecturers_end, hod_end, dean_end } = timePeriods;
 
+        const { payment_end, admin_end } = formData;
+
         batchTimePeriodMutate({
           batch_id: editId,
           students_end,
           lecturers_end,
           hod_end,
           dean_end,
+          payment_end,
+          admin_end,
         });
       } else {
         const {
@@ -262,6 +267,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
           sem_no,
           academic_year,
           payment_end,
+          admin_end,
           grp_id,
         } = formData;
         const { students_end, lecturers_end, hod_end, dean_end } = timePeriods;
@@ -283,6 +289,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
           hod_end,
           dean_end,
           payment_end,
+          admin_end,
           grp_id,
         });
       }
@@ -296,6 +303,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
         sem_no,
         academic_year,
         payment_end,
+        admin_end,
         grp_id,
       } = formData;
       const { students_end, lecturers_end, hod_end, dean_end } = timePeriods;
@@ -314,6 +322,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
         hod_end,
         dean_end,
         payment_end,
+        admin_end,
         grp_id,
       });
     }
@@ -331,6 +340,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
         old_subjects: data.subjects,
         application_open: convertUTCToLocal(data.application_open),
         payment_end: convertUTCToLocal(data.payment_end),
+        admin_end: convertUTCToLocal(data.admin_end),
       });
     } else {
       setFormData({});
@@ -414,7 +424,8 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
         timePeriods?.lecturers_end &&
         timePeriods?.hod_end &&
         timePeriods?.dean_end &&
-        formData?.payment_end;
+        formData?.payment_end &&
+        formData?.admin_end;
 
       setDatesPartValid(sidePartEnable && isDatesPartValid);
     }
@@ -982,7 +993,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                               type="datetime-local"
                               id="students_end"
                               name="students_end"
-                              className="col-span-3"
+                              className={`col-span-3 ${
+                                data &&
+                                new Date(data?.admin_end) < new Date() &&
+                                "text-slate-400"
+                              }`}
                               onChange={(e) =>
                                 setTimePeriods((cur) => ({
                                   ...cur,
@@ -990,6 +1005,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                                 }))
                               }
                               value={timePeriods?.students_end || ""}
+                              disabled={
+                                data
+                                  ? new Date(data?.admin_end) < new Date()
+                                  : false
+                              }
                             />
                           </div>
                         </div>
@@ -1005,7 +1025,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                               type="datetime-local"
                               id="lecturers_end"
                               name="lecturers_end"
-                              className="col-span-3"
+                              className={`col-span-3 ${
+                                data &&
+                                new Date(data?.admin_end) < new Date() &&
+                                "text-slate-400"
+                              }`}
                               onChange={(e) =>
                                 setTimePeriods((cur) => ({
                                   ...cur,
@@ -1013,6 +1037,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                                 }))
                               }
                               value={timePeriods?.lecturers_end || ""}
+                              disabled={
+                                data
+                                  ? new Date(data?.admin_end) < new Date()
+                                  : false
+                              }
                             />
                           </div>
                           <div className="items-center gap-3">
@@ -1026,7 +1055,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                               type="datetime-local"
                               id="hod_end"
                               name="hod_end"
-                              className="col-span-3"
+                              className={`col-span-3 ${
+                                data &&
+                                new Date(data?.admin_end) < new Date() &&
+                                "text-slate-400"
+                              }`}
                               onChange={(e) =>
                                 setTimePeriods((cur) => ({
                                   ...cur,
@@ -1034,6 +1067,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                                 }))
                               }
                               value={timePeriods?.hod_end || ""}
+                              disabled={
+                                data
+                                  ? new Date(data?.admin_end) < new Date()
+                                  : false
+                              }
                             />
                           </div>
                         </div>
@@ -1049,7 +1087,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                               type="datetime-local"
                               id="dean_end"
                               name="dean_end"
-                              className="col-span-3"
+                              className={`col-span-3 ${
+                                data &&
+                                new Date(data?.admin_end) < new Date() &&
+                                "text-slate-400"
+                              }`}
                               onChange={(e) =>
                                 setTimePeriods((cur) => ({
                                   ...cur,
@@ -1057,6 +1099,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                                 }))
                               }
                               value={timePeriods?.dean_end || ""}
+                              disabled={
+                                data
+                                  ? new Date(data?.admin_end) < new Date()
+                                  : false
+                              }
                             />
                           </div>
                           <div className="items-center gap-3">
@@ -1070,9 +1117,45 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                               type="datetime-local"
                               id="payment_end"
                               name="payment_end"
-                              className="col-span-3"
+                              className={`col-span-3 ${
+                                data &&
+                                new Date(data?.admin_end) < new Date() &&
+                                "text-slate-400"
+                              }`}
                               onChange={(e) => onFormDataChanged(e)}
                               value={formData.payment_end || ""}
+                              disabled={
+                                data
+                                  ? new Date(data?.admin_end) < new Date()
+                                  : false
+                              }
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-center px-2">
+                          <div className="items-center gap-3">
+                            <Label
+                              htmlFor="admin_end"
+                              className="w-32 inline-block"
+                            >
+                              Admin&apos;s deadline
+                            </Label>
+                            <input
+                              type="datetime-local"
+                              id="admin_end"
+                              name="admin_end"
+                              className={`col-span-3 ${
+                                data &&
+                                new Date(data?.admin_end) < new Date() &&
+                                "text-slate-400"
+                              }`}
+                              onChange={(e) => onFormDataChanged(e)}
+                              value={formData?.admin_end || ""}
+                              disabled={
+                                data
+                                  ? new Date(data?.admin_end) < new Date()
+                                  : false
+                              }
                             />
                           </div>
                         </div>
@@ -1589,7 +1672,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                             type="datetime-local"
                             id="students_end"
                             name="students_end"
-                            className="col-span-3"
+                            className={`col-span-3 ${
+                              data &&
+                              new Date(data?.admin_end) < new Date() &&
+                              "text-slate-400"
+                            }`}
                             onChange={(e) =>
                               setTimePeriods((cur) => ({
                                 ...cur,
@@ -1597,6 +1684,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                               }))
                             }
                             value={timePeriods?.students_end || ""}
+                            disabled={
+                              data
+                                ? new Date(data?.admin_end) < new Date()
+                                : false
+                            }
                           />
                         </div>
                       </div>
@@ -1612,7 +1704,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                             type="datetime-local"
                             id="lecturers_end"
                             name="lecturers_end"
-                            className="col-span-3"
+                            className={`col-span-3 ${
+                              data &&
+                              new Date(data?.admin_end) < new Date() &&
+                              "text-slate-400"
+                            }`}
                             onChange={(e) =>
                               setTimePeriods((cur) => ({
                                 ...cur,
@@ -1620,6 +1716,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                               }))
                             }
                             value={timePeriods?.lecturers_end || ""}
+                            disabled={
+                              data
+                                ? new Date(data?.admin_end) < new Date()
+                                : false
+                            }
                           />
                         </div>
                         <div className="items-center gap-3">
@@ -1633,7 +1734,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                             type="datetime-local"
                             id="hod_end"
                             name="hod_end"
-                            className="col-span-3"
+                            className={`col-span-3 ${
+                              data &&
+                              new Date(data?.admin_end) < new Date() &&
+                              "text-slate-400"
+                            }`}
                             onChange={(e) =>
                               setTimePeriods((cur) => ({
                                 ...cur,
@@ -1641,6 +1746,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                               }))
                             }
                             value={timePeriods?.hod_end || ""}
+                            disabled={
+                              data
+                                ? new Date(data?.admin_end) < new Date()
+                                : false
+                            }
                           />
                         </div>
                       </div>
@@ -1656,7 +1766,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                             type="datetime-local"
                             id="dean_end"
                             name="dean_end"
-                            className="col-span-3"
+                            className={`col-span-3 ${
+                              data &&
+                              new Date(data?.admin_end) < new Date() &&
+                              "text-slate-400"
+                            }`}
                             onChange={(e) =>
                               setTimePeriods((cur) => ({
                                 ...cur,
@@ -1664,6 +1778,11 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                               }))
                             }
                             value={timePeriods?.dean_end || ""}
+                            disabled={
+                              data
+                                ? new Date(data?.admin_end) < new Date()
+                                : false
+                            }
                           />
                         </div>
                         <div className="items-center gap-3">
@@ -1677,9 +1796,45 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                             type="datetime-local"
                             id="payment_end"
                             name="payment_end"
-                            className="col-span-3"
+                            className={`col-span-3 ${
+                              data &&
+                              new Date(data?.admin_end) < new Date() &&
+                              "text-slate-400"
+                            }`}
                             onChange={(e) => onFormDataChanged(e)}
-                            value={timePeriods?.payment_end || ""}
+                            value={formData?.payment_end || ""}
+                            disabled={
+                              data
+                                ? new Date(data?.admin_end) < new Date()
+                                : false
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-center px-2">
+                        <div className="items-center gap-3">
+                          <Label
+                            htmlFor="admin_end"
+                            className="w-32 inline-block"
+                          >
+                            Admin&apos;s deadline
+                          </Label>
+                          <input
+                            type="datetime-local"
+                            id="admin_end"
+                            name="admin_end"
+                            className={`col-span-3 ${
+                              data &&
+                              new Date(data?.admin_end) < new Date() &&
+                              "text-slate-400"
+                            }`}
+                            onChange={(e) => onFormDataChanged(e)}
+                            value={formData?.admin_end || ""}
+                            disabled={
+                              data
+                                ? new Date(data?.admin_end) < new Date()
+                                : false
+                            }
                           />
                         </div>
                       </div>

@@ -50,7 +50,7 @@ const Faculties = () => {
           batchesByFacultyData.map((obj) => {
             const level_ordinal = numberToOrdinalWord(obj.level);
             const sem_ordinal = numberToOrdinalWord(obj.sem);
-            const endDate = new Date(obj.end_date);
+            const endDate = new Date(obj.admin_end);
             const now = new Date();
             return (
               <Link

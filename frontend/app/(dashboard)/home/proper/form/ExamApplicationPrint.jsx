@@ -62,14 +62,18 @@ const ExamApplicationPrint = ({
               </span>
             </div>
             <div className="flex">
+              <span className="font-semibold w-20 uppercase">Type:</span>
+              <span className="uppercase">Proper</span>
+            </div>
+            <div className="flex">
+              <span className="font-semibold w-20 uppercase">Name:</span>
+              <span className="uppercase">{applicationData?.name || "-"}</span>
+            </div>
+            <div className="flex">
               <span className="font-semibold w-20 uppercase">Index No:</span>
               <span className="uppercase">
                 {applicationData?.index_num || "-"}
               </span>
-            </div>
-            <div className="flex col-span-2">
-              <span className="font-semibold w-20 uppercase">Name:</span>
-              <span className="uppercase">{applicationData?.name || "-"}</span>
             </div>
           </div>
         </div>

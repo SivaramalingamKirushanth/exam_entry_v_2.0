@@ -387,15 +387,7 @@ const Form = (request) => {
           </div>
         </div>
       )}
-      <div className="fixed -top-[9999px] left-0 opacity-0 pointer-events-none">
-        <div id="print-application-form">
-          <ExamApplicationPrint
-            applicationData={applicationData}
-            examName={examName}
-            subjects={formData.subjects}
-          />
-        </div>
-      </div>
+   
     </>
   );
 };

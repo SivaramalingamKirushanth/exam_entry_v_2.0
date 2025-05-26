@@ -16,8 +16,9 @@ const MedResEligibilityHeader = ({
   onMultipleEligibilityChanged,
   setIsAnyonePending,
   end_date,
+  lec,
 }) => {
-  const [remark, setRemark] = useState("Details verified");
+  const [remark, setRemark] = useState("");
 
   const isAnyonePending = filteredData.some((stu) => stu.eligibility == "");
   setIsAnyonePending(isAnyonePending);
@@ -35,8 +36,12 @@ const MedResEligibilityHeader = ({
 
       <Select
         onValueChange={(e) => {
-          if (remark) {
-            onMultipleEligibilityChanged(e, remark);
+          if (lec) {
+            onEligibilityChanged(row.original.s_id, e, remark);
+          } else {
+            if (remark) {
+              onEligibilityChanged(row.original.s_id, e, remark);
+            }
           }
         }}
         value={isAnyonePending ? "" : !isAnyoneNotEligible + ""}
@@ -46,8 +51,12 @@ const MedResEligibilityHeader = ({
           <SelectValue placeholder="Pending" />
         </SelectTrigger>
         <SelectContent className="p-2 w-64">
-          <p className="font-semibold flex justify-between text-sm w-full">
-            <span>Enter Remark</span>
+          <p className="font-semibold flex flex-col gap-y-1 text-sm w-full">
+            {lec ? (
+              <span>Enter Remark (optional)</span>
+            ) : (
+              <span>Enter Remark</span>
+            )}
             <span>All/Filtered Students</span>
           </p>
           <Textarea
@@ -55,10 +64,10 @@ const MedResEligibilityHeader = ({
             value={remark}
             className="my-2"
           />
-          <SelectItem disabled={!remark} value="true">
+          <SelectItem disabled={!lec && !remark} value="true">
             Eligible
           </SelectItem>
-          <SelectItem disabled={!remark} value="false">
+          <SelectItem disabled={!lec && !remark} value="false">
             Not Eligible
           </SelectItem>
         </SelectContent>

@@ -177,14 +177,14 @@ export default function Footer() {
                 </div>
 
                 {/* Team members grid */}
-                <div className="text-xs text-gray-500 mt-6 bg-gray-50 p-4 rounded-md border border-gray-100">
+                <div className="text-xs text-gray-500 mt-6 bg-gray-50 p-4 rounded-md border border-gray-100 text-center">
                   <p className="mb-1 font-medium text-gray-600">
                     <em>
                       Other Members who worked on Exam Entry System v1.0
                       (initial group project):
                     </em>
                   </p>
-                  <ul className="list-disc list-inside">
+                  <ul>
                     <li>Chamith Jeewantha (2020/ICT/18)</li>
                     <li>Awishka Piyumal (2020/ICT/24)</li>
                     <li>Ilma Ismail (2020/ICT/48)</li>

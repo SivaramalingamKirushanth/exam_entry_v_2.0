@@ -36,10 +36,47 @@ const DashboardHeader = ({ logoutHandler }) => {
   if (error) return (window.location.href = "/");
 
   return (
-    <div className="fixed top-14 sm:top-16 md:top-18 lg:top-20 z-50 w-full border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 h-12 shadow flex justify-end sm:justify-between px-2 sm:px-5  items-center text-sm md:text-base">
+    <div className="fixed top-14 sm:top-16 md:top-18 lg:top-20 z-50 w-full border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 h-12 shadow flex justify-between px-2 sm:px-5  items-center text-sm md:text-base">
       <Breadcrumb className="hidden sm:inline-block">
         <BreadcrumbList>
           {pathname.map((item, ind) => {
+            if (ind !== pathname.length - 1) {
+              return (
+                <React.Fragment key={ind}>
+                  <BreadcrumbItem>
+                    <span
+                      className={`${
+                        regex.test(decodeURI(item)) ? "uppercase" : "capitalize"
+                      } `}
+                    >
+                      {decodeURI(item)}
+                    </span>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                </React.Fragment>
+              );
+            } else {
+              return (
+                <BreadcrumbItem key={ind}>
+                  <BreadcrumbPage>
+                    <span
+                      className={`${
+                        regex.test(decodeURI(item)) ? "uppercase" : "capitalize"
+                      } font-semibold `}
+                    >
+                      {decodeURI(item)}
+                    </span>
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              );
+            }
+          })}
+        </BreadcrumbList>
+      </Breadcrumb>
+      {/* for sm screens */}
+      <Breadcrumb className="sm:hidden">
+        <BreadcrumbList>
+          {pathname.slice(pathname.length - 2).map((item, ind) => {
             if (ind !== pathname.length - 1) {
               return (
                 <React.Fragment key={ind}>

@@ -137,6 +137,7 @@ export const createBatch = async (req, res, next) => {
     hod_end,
     dean_end,
     payment_end,
+    admin_end,
     grp_id,
   } = req.body;
 
@@ -158,7 +159,8 @@ export const createBatch = async (req, res, next) => {
         !lecturers_end ||
         !hod_end ||
         !dean_end ||
-        !payment_end
+        !payment_end ||
+        !admin_end
       ) {
         return next(errorProvider(400, "All fields are required"));
       }
@@ -178,7 +180,7 @@ export const createBatch = async (req, res, next) => {
 
       // Insert batch and retrieve batch_id
       const [batchResult] = await conn.query(
-        "CALL InsertBatch(?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, @batch_id); SELECT @batch_id AS batch_id;",
+        "CALL InsertBatch(?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, @batch_id); SELECT @batch_id AS batch_id;",
         [
           batch_code,
           Object.keys(subjects).join(","),
@@ -191,6 +193,7 @@ export const createBatch = async (req, res, next) => {
           sem_no,
           payment_end,
           grp_id,
+          admin_end,
         ]
       );
       const batch_id = batchResult[1][0].batch_id;
@@ -247,7 +250,7 @@ export const createBatch = async (req, res, next) => {
         [batch_id, "2", dean_end, dean_end]
       );
 
-      let desc = `Batch created with batch_id=${batch_id}, syl_id=${syl_id}, grp_id=${grp_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, sub_ids=${Object.keys(
+      let desc = `Batch created with batch_id=${batch_id}, syl_id=${syl_id}, grp_id=${grp_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, admin_end=${admin_end}, sub_ids=${Object.keys(
         subjects
       ).join(",")}, l_ids=${Object.values(subjects).join(",")}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
@@ -291,6 +294,7 @@ export const updateBatch = async (req, res, next) => {
     hod_end,
     dean_end,
     payment_end,
+    admin_end,
     grp_id,
   } = req.body;
 
@@ -312,7 +316,8 @@ export const updateBatch = async (req, res, next) => {
         !lecturers_end ||
         !hod_end ||
         !dean_end ||
-        !payment_end
+        !payment_end ||
+        !admin_end
       ) {
         return next(errorProvider(400, "All fields are required"));
       }
@@ -332,7 +337,7 @@ export const updateBatch = async (req, res, next) => {
 
       // Update batch details
       await conn.query(
-        "CALL UpdateBatchDetails(?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);",
+        "CALL UpdateBatchDetails(?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?);",
         [
           batch_id,
           batch_code,
@@ -345,6 +350,7 @@ export const updateBatch = async (req, res, next) => {
           sem_no,
           payment_end,
           grp_id,
+          admin_end,
         ]
       );
 
@@ -411,7 +417,7 @@ export const updateBatch = async (req, res, next) => {
         [batch_id, "2", dean_end, dean_end]
       );
 
-      let desc = `Batch updated with batch_id=${batch_id}, syl_id=${syl_id}, grp_id=${grp_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, sub_ids=${Object.keys(
+      let desc = `Batch updated with batch_id=${batch_id}, syl_id=${syl_id}, grp_id=${grp_id}, application_open=${application_open}, students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, admin_end=${admin_end}, sub_ids=${Object.keys(
         subjects
       ).join(",")}, l_ids=${Object.values(subjects).join(",")}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
@@ -686,9 +692,25 @@ export const getBatchesByStudent = async (req, res, next) => {
 };
 
 export const setBatchTimePeriod = async (req, res, next) => {
-  const { batch_id, students_end, lecturers_end, hod_end, dean_end } = req.body;
+  const {
+    batch_id,
+    students_end,
+    lecturers_end,
+    hod_end,
+    dean_end,
+    payment_end,
+    admin_end,
+  } = req.body;
 
-  if (!batch_id || !students_end || !lecturers_end || !hod_end || !dean_end) {
+  if (
+    !batch_id ||
+    !students_end ||
+    !lecturers_end ||
+    !hod_end ||
+    !dean_end ||
+    !payment_end ||
+    !admin_end
+  ) {
     return next(errorProvider(400, "Missing required fields."));
   }
 
@@ -723,7 +745,12 @@ export const setBatchTimePeriod = async (req, res, next) => {
         [batch_id, "2", dean_end, dean_end]
       );
 
-      let desc = `Batch time period inserted or updated for batch_id=${batch_id} to students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}`;
+      await conn.execute(
+        `UPDATE batch SET payment_end = ?, admin_end = ? WHERE batch_id = ?`,
+        [payment_end, admin_end, batch_id]
+      );
+
+      let desc = `Batch time period inserted or updated for batch_id=${batch_id} to students_end=${students_end}, lecturers_end=${lecturers_end}, hod_end=${hod_end}, dean_end=${dean_end}, payment_end=${payment_end}, admin_end=${admin_end}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res
