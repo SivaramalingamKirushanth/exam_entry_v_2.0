@@ -115,6 +115,7 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
           filteredData={filteredData}
           setIsAnyonePending={setIsAnyonePending}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
+          lec={true}
         />
       ),
 
@@ -123,6 +124,7 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
           <MedResEligibilityCell
             row={row}
             onEligibilityChanged={onEligibilityChanged}
+            lec={true}
           />
         </div>
       ),

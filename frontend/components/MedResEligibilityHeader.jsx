@@ -21,7 +21,7 @@ const MedResEligibilityHeader = ({
   const [remark, setRemark] = useState("");
 
   const isAnyonePending = filteredData.some((stu) => stu.eligibility == "");
-  setIsAnyonePending(isAnyonePending);
+
   const isAnyoneNotEligible = filteredData.some(
     (stu) => stu.eligibility == "false"
   );
@@ -37,15 +37,15 @@ const MedResEligibilityHeader = ({
       <Select
         onValueChange={(e) => {
           if (lec) {
-            onEligibilityChanged(row.original.s_id, e, remark);
+            onMultipleEligibilityChanged(e, remark);
           } else {
             if (remark) {
-              onEligibilityChanged(row.original.s_id, e, remark);
+              onMultipleEligibilityChanged(e, remark);
             }
           }
         }}
         value={isAnyonePending ? "" : !isAnyoneNotEligible + ""}
-        disabled={new Date() > new Date(end_date)}
+        disabled={new Date() > new Date(end_date) || !filteredData.length}
       >
         <SelectTrigger className="w-32">
           <SelectValue placeholder="Pending" />

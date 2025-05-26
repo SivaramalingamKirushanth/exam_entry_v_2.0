@@ -317,7 +317,7 @@ const StudentMedicalHome = () => {
                           </Button>
                         )}
 
-                        {batch.medical_status !== "payment pending" ? (
+                        {new Date(batch.dean_end) > new Date() ? (
                           <Button
                             variant="outline"
                             className="uppercase"
@@ -337,7 +337,7 @@ const StudentMedicalHome = () => {
                           </Button>
                         )}
 
-                        {batch.medical_status !== "payment pending" ? (
+                        {new Date(batch.dean_end) > new Date() ? (
                           <Button
                             variant="outline"
                             className="uppercase"
@@ -451,7 +451,7 @@ const StudentMedicalHome = () => {
                     </Button>
                   )}
 
-                  {batch.medical_status !== "payment pending" ? (
+                  {new Date(batch.dean_end) > new Date() ? (
                     <Button
                       variant="outline"
                       className="uppercase"
@@ -470,7 +470,7 @@ const StudentMedicalHome = () => {
                       Download Invoice
                     </Button>
                   )}
-                  {batch.medical_status !== "payment pending" ? (
+                  {new Date(batch.dean_end) > new Date() ? (
                     <Button
                       variant="outline"
                       className="uppercase"
