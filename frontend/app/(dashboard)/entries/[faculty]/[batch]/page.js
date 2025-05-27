@@ -53,9 +53,7 @@ const Batches = () => {
 
   useEffect(() => {
     if (deadlinesOfBatchData && deadlinesOfBatchData.length) {
-      let end = new Date(
-        deadlinesOfBatchData.find((obj) => obj.user_type == "2")?.deadline
-      );
+      let end = new Date(deadlinesOfBatchData[0]?.admin_end);
 
       setEndDate(end);
     }

@@ -165,7 +165,7 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
         <EligibilityHeader
           filteredData={filteredData}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
-          end_date={approvalAndEnddateOfBatchData.admin_end}
+          end_date={approvalAndEnddateOfBatchData?.admin_end}
         />
       ),
 
@@ -173,7 +173,7 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
         <EligibilityCell
           row={row}
           onEligibilityChanged={onEligibilityChanged}
-          end_date={approvalAndEnddateOfBatchData.admin_end}
+          end_date={approvalAndEnddateOfBatchData?.admin_end}
         />
       ),
     },

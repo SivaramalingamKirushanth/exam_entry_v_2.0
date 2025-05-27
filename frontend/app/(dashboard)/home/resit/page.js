@@ -319,7 +319,7 @@ const StudentResitHome = () => {
                           </Button>
                         )}
 
-                        {batch.resit_status !== "payment pending" ? (
+                        {new Date(batch.dean_end) > new Date() ? (
                           <Button
                             variant="outline"
                             className="uppercase"
@@ -339,7 +339,7 @@ const StudentResitHome = () => {
                           </Button>
                         )}
 
-                        {batch.resit_status !== "payment pending" ? (
+                        {new Date(batch.dean_end) > new Date() ? (
                           <Button
                             variant="outline"
                             className="uppercase"
@@ -453,7 +453,7 @@ const StudentResitHome = () => {
                     </Button>
                   )}
 
-                  {batch.resit_status !== "payment pending" ? (
+                  {new Date(batch.dean_end) > new Date() ? (
                     <Button
                       variant="outline"
                       className="uppercase"
@@ -472,7 +472,7 @@ const StudentResitHome = () => {
                       Download Invoice
                     </Button>
                   )}
-                  {batch.resit_status !== "payment pending" ? (
+                  {new Date(batch.dean_end) > new Date() ? (
                     <Button
                       variant="outline"
                       className="uppercase"

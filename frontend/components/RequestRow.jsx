@@ -30,6 +30,8 @@ const grades = {
 };
 
 const RequestRow = ({ obj }) => {
+  const queryClient = useQueryClient();
+
   const [formData, setFormData] = useState({});
   const [updateResitRef, setUpdateResitRef] = useState("");
   const [updateMedicalRef, setUpdateMedicalRef] = useState("");
@@ -45,12 +47,10 @@ const RequestRow = ({ obj }) => {
     stu_deadline: "",
   });
 
-  const queryClient = useQueryClient();
-
   const { mutate: mutateRef } = useMutation({
     mutationFn: updateReference,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["requests"]);
+      queryClient.invalidateQueries(["requests", "medical", "resit"]);
       toast.success(res.message);
     },
     onError: (err) => {
@@ -71,7 +71,8 @@ const RequestRow = ({ obj }) => {
   const { mutate: acceptMutate } = useMutation({
     mutationFn: acceptMedicalResitStudents,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["requests"]);
+      queryClient.invalidateQueries(["requests", "medical", "resit"]);
+
       toast.success(res.message);
     },
     onError: (err) => {
@@ -82,7 +83,7 @@ const RequestRow = ({ obj }) => {
   const { mutate: rejectMutate } = useMutation({
     mutationFn: rejectMedicalResitApplication,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["requests"]);
+      queryClient.invalidateQueries(["requests", "medical", "resit"]);
       toast.success(res.message);
     },
     onError: (err) => {
@@ -147,8 +148,6 @@ const RequestRow = ({ obj }) => {
   const onReject = () => {
     rejectMutate({ s_id: obj?.s_id, batch_id: obj?.batch_id });
   };
-
-  onCheckedChanged;
 
   useEffect(() => {
     if (obj) {

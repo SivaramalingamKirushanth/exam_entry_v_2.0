@@ -777,7 +777,6 @@ export const createOrUpdateAttendance = async (req, res, next) => {
     ...groups
   } = req.body;
 
-  console.log(no_of_groups);
   try {
     const transformedDate = date
       ?.map((dateObj) => `${dateObj.year}:${dateObj.months.join(";")}`)
@@ -802,7 +801,7 @@ export const createOrUpdateAttendance = async (req, res, next) => {
         groups?.[i]?.["toTime"] || ""
       }`;
     }
-    console.log(venues, dates, times);
+
     // Database connection and procedure execution
     const conn = await pool.getConnection();
     try {
@@ -1484,10 +1483,10 @@ export const getStudentMedicalResitApplications = async (req, res, next) => {
         "CALL GetStudentMedicalResitApplications()"
       );
 
+      console.log(rows);
+
       if (rows[0].length === 0) {
-        return res.status(404).json({
-          message: "No requests found.",
-        });
+        return res.status(200).json([]);
       }
 
       const grouped = {};
