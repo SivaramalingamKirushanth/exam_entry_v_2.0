@@ -16,7 +16,7 @@ import "./utils/cronScheduler.js";
 
 dotenv.config();
 
-const PORT = process.env.PORT;
+const PORT =  parseInt(process.env.PORT) || 5000; // Default to 5000 if PORT is not set
 const FRONTEND_SERVER = process.env.FRONTEND_SERVER;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
@@ -45,6 +45,7 @@ const adminRegister = async () => {
       const [adminExists] = await conn.execute(
         "SELECT COUNT(*) AS count FROM user WHERE role_id = '1'"
       );
+      console.log("Checking if admin exists:", adminExists[0].count);
 
       if (adminExists[0].count == 0) {
         const [userResult] = await conn.execute(

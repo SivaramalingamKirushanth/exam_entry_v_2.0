@@ -9,7 +9,8 @@ lerna-debug.log*
 .DS_Store
 .env
 .env*.local
-
+Dockerfile
+docker-compose.yml
 # Main project build artifacts and config caches
 /build
 *.tsbuildinfo

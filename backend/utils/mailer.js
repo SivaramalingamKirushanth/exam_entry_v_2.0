@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
 const mailer = async (receiver, subject, htmlContent) => {
   try {
     const info = await transporter.sendMail({
-      from: `"Examination Branch" <${process.env.EMAIL}>`,
+      from: `"System for Examination Entry (SEE)" <${process.env.EMAIL}>`,
       to: receiver,
       subject,
       html: htmlContent,

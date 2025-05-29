@@ -26,6 +26,7 @@ const grades = {
   3: "D",
   4: "D+",
   5: "C-",
+  6: "C",
 };
 
 const ResitStudentDetails = ({

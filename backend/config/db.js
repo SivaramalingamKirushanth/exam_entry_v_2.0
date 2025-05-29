@@ -5,14 +5,14 @@ dotenv.config();
 
 // Create configuration using separate environment variables
 const connectionConfig = {
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
+  host: process.env.DB_HOST||"localhost", // Default host if not set
+  port: parseInt(process.env.DB_PORT, 10) || 3306, // Default MySQL port is 3306
   user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD|| "myPassword", // Default password if not set
+  database: process.env.DB_NAME||"exam_entry", // Default database name if not set
   // Add your additional options here
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 5,
   queueLimit: 0,
   multipleStatements: true,
   connectTimeout: 10000,
@@ -23,7 +23,9 @@ const pool = mysql.createPool(connectionConfig);
 
 pool.getConnection((err, connection) => {
   if (err) {
-    console.error("Error connecting to MySQL:", err);
+    console.log("Trying to connect to MySQL Port:", process.env.DB_PORT,"Host:", process.env.DB_HOST);
+    console.error(`Error connecting to MySQL at ${connectionConfig.host}:${connectionConfig.port}`, err);
+
   } else {
     console.log("Connected to MySQL");
     connection.release(); // Release the connection back to the pool

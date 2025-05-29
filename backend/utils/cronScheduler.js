@@ -45,7 +45,7 @@ export const sendBatchNotifications = async () => {
     <div style="padding:30px;">
       <h2 style="margin-top:0;color:#000;font-size:20px;">Action Required</h2>
       <p style="font-size:15px;color:#000;line-height:1.6;">
-        You can now access the <strong>entry forms</strong> for <strong>Batch ${batch_code}</strong>.
+        You can now access the <strong>exam entry forms</strong> for <strong>Batch ${batch_code}</strong>.
       </p>
       <p style="font-size:15px;color:#000;">
         Please complete your review before the deadline.
@@ -58,7 +58,7 @@ export const sendBatchNotifications = async () => {
       <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
 
       <p style="font-size:14px;color:#000;text-align:center;">
-        For any inquiries, please contact the <strong>Examination Branch</strong>.
+        For any technical inquiries, please contact the <strong>see@vau.ac.lk</strong>.
       </p>
     </div>
     <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">

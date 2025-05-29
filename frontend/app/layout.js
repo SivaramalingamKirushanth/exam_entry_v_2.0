@@ -18,8 +18,8 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "UOV EXAMINATION",
-  description: "UOV EXAMINATION PORTAL",
+  title: "System for Examination Entry (SEE)",
+  description: "University of Vavuniya - Examination Entry System",
 };
 
 export default function RootLayout({ children }) {

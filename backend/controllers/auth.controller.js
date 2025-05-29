@@ -8,7 +8,7 @@ import errorProvider from "../utils/errorProvider.js";
 import mailer from "../utils/mailer.js";
 import path from "path";
 import fs from "fs";
-import crypto from "crypto";
+import crypto, { setEngine } from "crypto";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -104,12 +104,13 @@ export const studentRegister = async (req, res, next) => {
           `
   <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
     <div style="background:#000;color:#fff;padding:20px;text-align:center;">
-      <h1 style="margin:0;font-size:22px;">Examination Registration</h1>
+      <h1 style="margin:0;font-size:22px;">System for Examination Entry Registration</h1>
     </div>
     <div style="padding:30px;">
-      <h2 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h2>
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Dear ${name}</h2>
+      <h3 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h3>
       <p style="font-size:15px;color:#000;line-height:1.6;">
-        You have been successfully registered for the examinations system.
+         You have been successfully registered in the System for Examinations Entry (SEE).
       </p>
 
       <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;">
@@ -118,13 +119,13 @@ export const studentRegister = async (req, res, next) => {
       </div>
 
       <p style="font-size:14px;color:#000;">
-        Please store these credentials safely. You will need them to log into the examination portal.
+        Please store these credentials safely. You will need them to log into the Examination Entry portal https://see.vau.ac.lk.
       </p>
 
       <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
 
       <p style="font-size:14px;color:#000;text-align:center;">
-        For any inquiries, please contact the <strong>Examination Branch</strong>.
+        For any technical inquiries, please email to <strong>see@vau.ac.lk</strong>.
       </p>
     </div>
     <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
@@ -258,12 +259,13 @@ export const multipleStudentsRegister = async (req, res, next) => {
                 `
   <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
     <div style="background:#000;color:#fff;padding:20px;text-align:center;">
-      <h1 style="margin:0;font-size:22px;">Examination Registration</h1>
+      <h1 style="margin:0;font-size:22px;">System for Examination Entry Registration</h1>
     </div>
     <div style="padding:30px;">
-      <h2 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h2>
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Dear ${name}</h2>
+      <h3 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h3>
       <p style="font-size:15px;color:#000;line-height:1.6;">
-        You have been successfully registered for the examinations system.
+        You have been successfully registered in the System for Examinations Entry (SEE).
       </p>
 
       <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;">
@@ -272,13 +274,13 @@ export const multipleStudentsRegister = async (req, res, next) => {
       </div>
 
       <p style="font-size:14px;color:#000;">
-        Please store these credentials safely. You will need them to log into the examination portal.
+        Please save this credentials. You will need them to log into the examination entry portal.
       </p>
 
       <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
 
       <p style="font-size:14px;color:#000;text-align:center;">
-        For any inquiries, please contact the <strong>Examination Branch</strong>.
+        For any technical inquiries, please mail to <strong>see@vau.ac.lk</strong>.
       </p>
     </div>
     <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
@@ -404,12 +406,13 @@ export const lecturerRegister = async (req, res, next) => {
           `
   <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
     <div style="background:#000;color:#fff;padding:20px;text-align:center;">
-      <h1 style="margin:0;font-size:22px;">Examination Registration</h1>
+      <h1 style="margin:0;font-size:22px;">System for Examination Entry Registration Notification</h1>
     </div>
     <div style="padding:30px;">
-      <h2 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h2>
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Dear ${name}</h2>
+      <h3 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h3>
       <p style="font-size:15px;color:#000;line-height:1.6;">
-        You have been successfully registered for the examinations system.
+        You have been successfully registered in the System for Examinations Entry (SEE).
       </p>
 
       <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;">
@@ -418,13 +421,13 @@ export const lecturerRegister = async (req, res, next) => {
       </div>
 
       <p style="font-size:14px;color:#000;">
-        Please store these credentials safely. You will need them to log into the examination portal.
+        Please store these credentials safely. You will need them to log into the portal http://see.vau.ac.lk.
       </p>
 
       <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
 
       <p style="font-size:14px;color:#000;text-align:center;">
-        For any inquiries, please contact the <strong>Examination Branch</strong>.
+        For any technical inquiries, please mail to <strong>see@vau.ac.lk</strong>.
       </p>
     </div>
     <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
@@ -537,12 +540,13 @@ export const multipleLecturersRegister = async (req, res, next) => {
                 `
   <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
     <div style="background:#000;color:#fff;padding:20px;text-align:center;">
-      <h1 style="margin:0;font-size:22px;">Examination Registration</h1>
+      <h1 style="margin:0;font-size:22px;">System for Examination Entry Registration</h1>
     </div>
     <div style="padding:30px;">
-      <h2 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h2>
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Dear ${name}</h2>      
+      <h3 style="margin-top:0;color:#000;font-size:20px;">Registration Successful</h3>
       <p style="font-size:15px;color:#000;line-height:1.6;">
-        You have been successfully registered for the examinations system.
+        You have been successfully registered in the System for Examinations Entry (SEE).
       </p>
 
       <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;">
@@ -551,13 +555,13 @@ export const multipleLecturersRegister = async (req, res, next) => {
       </div>
 
       <p style="font-size:14px;color:#000;">
-        Please store these credentials safely. You will need them to log into the examination portal.
+        Please store these credentials safely. You will need them to log into the portal http://see.vau.ac.lk.
       </p>
 
       <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
 
       <p style="font-size:14px;color:#000;text-align:center;">
-        For any inquiries, please contact the <strong>Examination Branch</strong>.
+        For any technical inquiries, please email to <strong>see@vau.ac.lk</strong>.
       </p>
     </div>
     <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
@@ -831,7 +835,7 @@ export const forgotPassword = async (req, res, next) => {
       );
 
       // Send email
-      const resetLink = `${FRONTEND_SERVER}/reset-password?token=${resetToken}`;
+      const resetLink = `${see.vau.ac.lk}/reset-password?token=${resetToken}`;
 
       const htmlContent = `
   <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
@@ -867,7 +871,7 @@ export const forgotPassword = async (req, res, next) => {
       <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
 
       <p style="font-size:14px;color:#000;text-align:center;">
-        For any inquiries, please contact the <strong>Examination Branch</strong>.
+        For any inquiries, please contact <strong>see@vau.ac.lk</strong>.
       </p>
     </div>
     <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">

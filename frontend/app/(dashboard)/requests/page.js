@@ -28,7 +28,7 @@ const Batches = () => {
   const onClearClicked = () => setSearchValue("");
 
   useEffect(() => {
-    if (requestsData.length) {
+    if (requestsData?.length) {
       let filtData1 = searchValue
         ? requestsData.filter((item) =>
             item._user_name.toLowerCase().includes(searchValue.toLowerCase())
