@@ -10,7 +10,7 @@ const Header = () => {
         className="h-[40px] w-[40px] sm:h-[50px] sm:w-[50px] md:h-[60px] md:w-[60px] lg:h-[70px] lg:w-[70px]"
       />
       <h1 className="uppercase grow text-xl md:text-2xl lg:text-3xl text-center">
-        uov examination
+        System for Examination Entry
       </h1>
     </div>
   );
