@@ -288,6 +288,8 @@ const StudentResitHome = () => {
                             ? "warning"
                             : batch.resit_status === "pending"
                             ? "pending"
+                            : batch.resit_status === "processing"
+                            ? "processing"
                             : batch.resit_status === "expired"
                             ? "failure"
                             : "active"
@@ -325,7 +327,7 @@ const StudentResitHome = () => {
                             className="uppercase"
                             disabled={true}
                           >
-                            Download Invoice
+                            Download payment Invoice
                           </Button>
                         ) : (
                           <Button
@@ -335,7 +337,7 @@ const StudentResitHome = () => {
                               onInvoiceDownloadClick(batch.batch_id)
                             }
                           >
-                            Download Invoice
+                            Download payment Invoice
                           </Button>
                         )}
 
@@ -345,7 +347,7 @@ const StudentResitHome = () => {
                             className="uppercase"
                             disabled={true}
                           >
-                            Submit reference
+                            Submit payment reference
                           </Button>
                         ) : (
                           <Button
@@ -353,7 +355,7 @@ const StudentResitHome = () => {
                             className="uppercase"
                             onClick={() => onPaymentClicked(batch.batch_id)}
                           >
-                            Submit reference
+                            Submit payment reference
                           </Button>
                         )}
                       </div>
@@ -421,6 +423,8 @@ const StudentResitHome = () => {
                         ? "warning"
                         : batch.resit_status === "pending"
                         ? "pending"
+                        : batch.resit_status === "processing"
+                        ? "processing"
                         : batch.resit_status === "expired"
                         ? "failure"
                         : "active"
@@ -460,7 +464,7 @@ const StudentResitHome = () => {
                       size="sm"
                       disabled={true}
                     >
-                      Download Invoice
+                      Download payment Invoice
                     </Button>
                   ) : (
                     <Button
@@ -469,7 +473,7 @@ const StudentResitHome = () => {
                       size="sm"
                       onClick={() => onInvoiceDownloadClick(batch.batch_id)}
                     >
-                      Download Invoice
+                      Download payment Invoice
                     </Button>
                   )}
                   {new Date(batch.dean_end) > new Date() ? (
@@ -478,7 +482,7 @@ const StudentResitHome = () => {
                       className="uppercase"
                       disabled={true}
                     >
-                      Submit reference
+                      Submit payment reference
                     </Button>
                   ) : (
                     <Button
@@ -486,7 +490,7 @@ const StudentResitHome = () => {
                       className="uppercase"
                       onClick={() => onPaymentClicked(batch.batch_id)}
                     >
-                      Submit reference
+                      Submit payment reference
                     </Button>
                   )}
                 </div>

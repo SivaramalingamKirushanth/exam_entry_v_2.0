@@ -607,7 +607,7 @@ export const multipleLecturersRegister = async (req, res, next) => {
           }
 
           return res.status(201).json({
-            message: "Students registered successfully",
+            message: "Lecturers registered successfully",
           });
         } catch (error) {
           await conn.rollback();

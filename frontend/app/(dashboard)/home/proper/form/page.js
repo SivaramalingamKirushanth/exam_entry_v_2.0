@@ -171,10 +171,6 @@ const Form = (request) => {
     mutate(removedSubjects);
   };
 
-  useEffect(() => {
-    if (error) router.replace("/home/proper");
-  }, [error]);
-
   return (
     <>
       {applicationData && Object.keys(applicationData).length && (

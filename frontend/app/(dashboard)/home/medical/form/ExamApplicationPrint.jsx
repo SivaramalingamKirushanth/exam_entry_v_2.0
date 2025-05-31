@@ -89,7 +89,7 @@ const ExamApplicationPrint = ({
           <table className="w-full border-collapse border border-gray-300 text-xs">
             {/* Table Header */}
             <thead>
-              <tr className="bg-gray-100">
+              <tr>
                 <th
                   className="border border-gray-300 p-2 text-center font-semibold uppercase"
                   style={{ width: "80px" }}
@@ -111,10 +111,7 @@ const ExamApplicationPrint = ({
                 (_, index) => {
                   const subject = activeSubjects[index];
                   return (
-                    <tr
-                      key={index}
-                      className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
-                    >
+                    <tr key={index}>
                       <td className="border border-gray-300 p-2 text-center uppercase font-medium">
                         {subject?.sub_code || ""}
                       </td>
@@ -128,11 +125,11 @@ const ExamApplicationPrint = ({
             </tbody>
           </table>
 
-          <div className="mt-3 p-3 bg-blue-50 rounded border">
+          <div className="mt-3 p-3 rounded border">
             <div className="flex justify-between items-center text-xs">
               <div>
                 <span className="font-semibold">Total Subjects Applied:</span>
-                <span className="ml-2 text-sm font-bold text-blue-600">
+                <span className="ml-2 text-sm font-bold">
                   {activeSubjects.length}
                 </span>
               </div>

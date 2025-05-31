@@ -194,10 +194,6 @@ const Form = (request) => {
   });
 
   useEffect(() => {
-    if (error) router.replace("/home/medical");
-  }, [error]);
-
-  useEffect(() => {
     if (applicationData?.subjects.length) {
       const modifiedArr = applicationData?.subjects.map((obj) => ({
         value: obj.sub_id,
@@ -387,7 +383,6 @@ const Form = (request) => {
           </div>
         </div>
       )}
-   
     </>
   );
 };
