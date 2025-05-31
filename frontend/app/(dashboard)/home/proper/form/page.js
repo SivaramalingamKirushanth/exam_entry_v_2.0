@@ -69,7 +69,7 @@ const Form = (request) => {
       );
       toast.success(res.message);
       router.replace("/home");
-      router.replace("/home/proper");
+      router.push("/home/proper");
     },
     onError: (err) => {
       toast.error("Operation failed");

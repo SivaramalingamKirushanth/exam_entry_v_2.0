@@ -1609,14 +1609,12 @@ export const getStudentResitApplicationDetails = async (req, res, next) => {
       const studentDetails = results[0][0]; // First result set
       const subjects = results[1]; // Second result set
 
-      if (!subjects.length) {
-        return next(errorProvider(404, "No subjects found for this batch."));
-      }
+      if (subjects.length) {
+        const batchId = subjects[0].batch_id; // Ensure batch ID is retrieved
 
-      const batchId = subjects[0].batch_id; // Ensure batch ID is retrieved
-
-      if (!batchId) {
-        return next(errorProvider(500, "Batch ID is missing."));
+        if (!batchId) {
+          return next(errorProvider(500, "Batch ID is missing."));
+        }
       }
 
       const response = {
@@ -1665,14 +1663,12 @@ export const getStudentMedicalApplicationDetails = async (req, res, next) => {
       const studentDetails = results[0][0]; // First result set
       const subjects = results[1]; // Second result set
 
-      if (!subjects.length) {
-        return next(errorProvider(404, "No subjects found for this batch."));
-      }
+      if (subjects.length) {
+        const batchId = subjects[0].batch_id; // Ensure batch ID is retrieved
 
-      const batchId = subjects[0].batch_id; // Ensure batch ID is retrieved
-
-      if (!batchId) {
-        return next(errorProvider(500, "Batch ID is missing."));
+        if (!batchId) {
+          return next(errorProvider(500, "Batch ID is missing."));
+        }
       }
 
       const response = {

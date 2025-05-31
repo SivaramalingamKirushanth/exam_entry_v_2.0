@@ -214,7 +214,7 @@ const Form = (request) => {
       );
       toast.success(res.message);
       router.replace("/home");
-      router.replace("/home/resit");
+      router.push("/home/resit");
     },
     onError: (err) => {
       toast.error("Operation failed");
@@ -230,10 +230,6 @@ const Form = (request) => {
   };
 
   useEffect(() => {
-    if (error) router.replace("/home/resit");
-  }, [error]);
-
-  useEffect(() => {
     if (applicationData?.subjects.length) {
       const modifiedArr = applicationData?.subjects.map((obj) => ({
         value: obj.sub_id,
@@ -242,16 +238,6 @@ const Form = (request) => {
       setSubjectArr(modifiedArr);
     }
   }, [applicationData]);
-
-  useEffect(() => {
-    console.log(applicationData);
-  }, [applicationData]);
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
-  useEffect(() => {
-    console.log(attemptsData);
-  }, [attemptsData]);
 
   return (
     <>
@@ -354,7 +340,7 @@ const Form = (request) => {
               ) : (
                 <span></span>
               )}
-              {applicationData?.subjects?.length &&
+              {applicationData?.subjects?.length ? (
                 formData?.subjects.map((obj, ind) => {
                   const sub_id = obj.value;
                   const subject = obj.label
@@ -421,7 +407,12 @@ const Form = (request) => {
                       </h1>
                     </div>
                   );
-                })}
+                })
+              ) : (
+                <h1 className="text-lg font-semibold">
+                  No subjects available!
+                </h1>
+              )}
             </div>
             <div className="flex justify-center sm:justify-end">
               {Object.keys(applicationData).length &&

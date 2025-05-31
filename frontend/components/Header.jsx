@@ -7,9 +7,9 @@ const Header = () => {
       <Image
         src={UoV_Logo}
         alt="UOV logo"
-        className="h-[40px] w-[40px] sm:h-[50px] sm:w-[50px] md:h-[60px] md:w-[60px] lg:h-[70px] lg:w-[70px]"
+        className="sm:absolute h-[40px] w-[40px] sm:h-[50px] sm:w-[50px] md:h-[60px] md:w-[60px] lg:h-[70px] lg:w-[70px] sm:left-5"
       />
-      <h1 className="uppercase grow text-xl md:text-2xl lg:text-3xl text-center">
+      <h1 className="uppercase grow text-lg font-semibold md:text-2xl lg:text-3xl lg:font-normal text-right sm:text-center">
         System for Examination Entry
       </h1>
     </div>

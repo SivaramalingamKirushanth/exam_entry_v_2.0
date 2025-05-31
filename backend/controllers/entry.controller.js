@@ -1483,8 +1483,6 @@ export const getStudentMedicalResitApplications = async (req, res, next) => {
         "CALL GetStudentMedicalResitApplications()"
       );
 
-      console.log(rows);
-
       if (rows[0].length === 0) {
         return res.status(200).json([]);
       }
