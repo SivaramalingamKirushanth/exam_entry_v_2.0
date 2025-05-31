@@ -835,7 +835,7 @@ export const forgotPassword = async (req, res, next) => {
       );
 
       // Send email
-      const resetLink = `${see.vau.ac.lk}/reset-password?token=${resetToken}`;
+      const resetLink = `see.vau.ac.lk/reset-password?token=${resetToken}`;
 
       const htmlContent = `
   <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
