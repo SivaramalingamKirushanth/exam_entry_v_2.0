@@ -1288,8 +1288,9 @@ export const getBatchOpenDate = async (req, res, next) => {
       // Parse batch_code in Node.js
       const application_open = batch[0][0].application_open;
       const payment_end = batch[0][0].payment_end;
+      const admin_end = batch[0][0].admin_end;
 
-      return res.status(200).json({ application_open, payment_end });
+      return res.status(200).json({ application_open, payment_end, admin_end });
     } catch (error) {
       console.error("Error retrieving batch application_open date:", error);
       return next(
