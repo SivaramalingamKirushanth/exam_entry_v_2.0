@@ -33,7 +33,7 @@ import { useUser } from "@/utils/useUser";
 import EligibilityHeader from "@/components/EligibilityHeader";
 import EligibilityCell from "@/components/EligibilityCell";
 
-const StudentDetails = ({ sub_id, batch_id,end_date }) => {
+const StudentDetails = ({ sub_id, batch_id, end_date }) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -170,13 +170,17 @@ const StudentDetails = ({ sub_id, batch_id,end_date }) => {
 
   useEffect(() => {
     if (data) {
+      const onlyProper = data.filter(
+        (item) => item.attendance != "M" && item.attendance != "R"
+      );
+
       let filtData = searchValue
-        ? data.filter(
+        ? onlyProper.filter(
             (item) =>
               item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
               item.user_name.toLowerCase().includes(searchValue.toLowerCase())
           )
-        : data;
+        : onlyProper;
 
       setFilteredData(filtData);
     }

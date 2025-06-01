@@ -148,13 +148,17 @@ const StudentDetails = ({ sub_id, batch_id }) => {
 
   useEffect(() => {
     if (data) {
+      const onlyProper = data.filter(
+        (item) => item.attendance != "M" && item.attendance != "R"
+      );
+
       let filtData = searchValue
-        ? data.filter(
+        ? onlyProper.filter(
             (item) =>
               item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
               item.user_name.toLowerCase().includes(searchValue.toLowerCase())
           )
-        : data;
+        : onlyProper;
 
       setFilteredData(filtData);
     }

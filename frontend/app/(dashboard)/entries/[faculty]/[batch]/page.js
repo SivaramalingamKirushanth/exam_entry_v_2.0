@@ -67,7 +67,7 @@ const Batches = () => {
         {deadlinesOfBatchData &&
           deadlinesOfBatchData.length &&
           endDate &&
-          new Date(endDate) < new Date() &&
+          endDate < new Date() &&
           (studentsWithoutIndexNumberData?.count ? (
             <Button onClick={toggleIndexModel} variant="warning">
               Index Number Missing &nbsp;
