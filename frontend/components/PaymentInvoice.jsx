@@ -1,11 +1,15 @@
 import { useEffect } from "react";
 
-const PaymentInvoice = ({ paymentDetails, onRenderComplete }) => {
+const PaymentInvoice = ({
+  paymentDetails,
+  onRenderComplete,
+  instructionsdata,
+}) => {
   useEffect(() => {
-    if (onRenderComplete) {
+    if (onRenderComplete && instructionsdata) {
       onRenderComplete();
     }
-  }, [onRenderComplete]);
+  }, [onRenderComplete, instructionsdata]);
 
   const {
     username,
@@ -85,9 +89,10 @@ const PaymentInvoice = ({ paymentDetails, onRenderComplete }) => {
       <div>
         <h4 className="font-semibold mb-2">Payment Instructions:</h4>
         <p className="text-justify">
-          Please pay the above amount to the university account via the official
-          payment portal before the deadline. Retain a copy of the receipt for
-          future reference.
+          {instructionsdata
+            ? instructionsdata.find((item) => item.type == "payment")
+                ?.instruction
+            : "Please pay the above amount to the university account via the official payment portal before the deadline"}
         </p>
       </div>
     </div>

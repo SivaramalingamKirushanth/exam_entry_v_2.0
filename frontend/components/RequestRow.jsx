@@ -48,7 +48,7 @@ const RequestRow = ({ obj }) => {
     stu_deadline: "",
   });
 
-  const { mutate: mutateRef } = useMutation({
+  const { mutate: mutateRef, isPending: isMutateRefPending } = useMutation({
     mutationFn: updateReference,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["requests", "medical", "resit"]);
@@ -59,27 +59,29 @@ const RequestRow = ({ obj }) => {
     },
   });
 
-  const { mutate: mutateVerified } = useMutation({
-    mutationFn: updateVerified,
-    onSuccess: (res) => {
-      toast.success(res.message);
-    },
-    onError: (err) => {
-      toast.error("Operation failed");
-    },
-  });
+  const { mutate: mutateVerified, isPending: isMutateVerifiedPending } =
+    useMutation({
+      mutationFn: updateVerified,
+      onSuccess: (res) => {
+        toast.success(res.message);
+      },
+      onError: (err) => {
+        toast.error("Operation failed");
+      },
+    });
 
-  const { mutate: acceptMutate } = useMutation({
-    mutationFn: acceptMedicalResitStudents,
-    onSuccess: (res) => {
-      queryClient.invalidateQueries(["requests", "medical", "resit"]);
+  const { mutate: acceptMutate, isPending: isMutateAcceptPending } =
+    useMutation({
+      mutationFn: acceptMedicalResitStudents,
+      onSuccess: (res) => {
+        queryClient.invalidateQueries(["requests", "medical", "resit"]);
 
-      toast.success(res.message);
-    },
-    onError: (err) => {
-      toast.error("Operation failed");
-    },
-  });
+        toast.success(res.message);
+      },
+      onError: (err) => {
+        toast.error("Operation failed");
+      },
+    });
 
   const { mutate: rejectMutate } = useMutation({
     mutationFn: rejectMedicalResitApplication,

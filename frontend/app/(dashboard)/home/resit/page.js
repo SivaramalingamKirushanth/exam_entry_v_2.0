@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import { numberToOrdinalWord } from "@/utils/functions";
 import CryptoJS from "crypto-js";
 import {
+  getAllInstructions,
   getAllPayments,
   getEligibleResitSubjects,
 } from "@/utils/apiRequests/entry.api";
@@ -97,6 +98,11 @@ const StudentResitHome = () => {
     enabled: Boolean(invoiceDownloadBatchId),
   });
 
+  const { data: instructionsdata } = useQuery({
+    queryFn: getAllInstructions,
+    queryKey: ["instructions"],
+  });
+
   const generatePaymentInvoicePDF = async (paymentDetails) => {
     setInvoiceDownloadBatchId(null);
     if (typeof document === "undefined") {
@@ -130,6 +136,7 @@ const StudentResitHome = () => {
           <PaymentInvoice
             paymentDetails={paymentDetails}
             onRenderComplete={resolve}
+            instructionsdata={instructionsdata}
           />
         );
       });

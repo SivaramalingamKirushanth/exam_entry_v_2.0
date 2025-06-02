@@ -11,6 +11,7 @@ import {
   fetchStudentsWithSubjects,
   fetchStudentWithSubjectsByUserId,
   generateIndexNumbers,
+  getAllInstructions,
   getAllPayments,
   getAppliedMedicalStudentsByBatchAndSubject,
   getAppliedResitStudentsByBatchAndSubject,
@@ -164,6 +165,7 @@ router.post(
 router.post("/setApproval", verifyUser(["2", "3"]), setApproval);
 router.post("/upsertPayments", verifyUser(["1"]), upsertPayments);
 router.get("/getAllPayments", verifyUser(["1", "5"]), getAllPayments);
+router.get("/getAllInstructions", verifyUser(["1", "5"]), getAllInstructions);
 router.post(
   "/getEligibleMedicalSubjects",
   verifyUser(["5"]),

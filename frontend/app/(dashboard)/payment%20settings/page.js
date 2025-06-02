@@ -3,7 +3,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getAllPayments, upsertPayments } from "@/utils/apiRequests/entry.api";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  getAllInstructions,
+  getAllPayments,
+  upsertPayments,
+} from "@/utils/apiRequests/entry.api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -18,7 +23,12 @@ const PaymentSettings = () => {
     queryKey: ["payments"],
   });
 
-  const { status, mutate } = useMutation({
+  const { data: instructionsdata } = useQuery({
+    queryFn: getAllInstructions,
+    queryKey: ["instructions"],
+  });
+
+  const { status, mutate, isPending } = useMutation({
     mutationFn: upsertPayments,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["payments"]);
@@ -49,7 +59,20 @@ const PaymentSettings = () => {
   }, [data]);
 
   useEffect(() => {
-    const enabled = formData.medical && formData.resit && formData.upgrade;
+    if (instructionsdata) {
+      const paymentInst = instructionsdata.find(
+        (item) => item.type == "payment"
+      )?.instruction;
+      setFormData({ ...data, instruction: paymentInst });
+    }
+  }, [instructionsdata]);
+
+  useEffect(() => {
+    const enabled =
+      formData.medical &&
+      formData.resit &&
+      formData.upgrade &&
+      formData.instruction;
 
     setBtnEnabled(enabled);
   }, [formData]);
@@ -93,7 +116,7 @@ const PaymentSettings = () => {
               onChange={(e) => onFormDataChanged(e)}
               value={formData.resit || ""}
             />
-          </div>{" "}
+          </div>
           <div className="flex gap-x-3 items-center">
             <Label
               htmlFor="upgrade"
@@ -112,10 +135,30 @@ const PaymentSettings = () => {
               value={formData.upgrade || ""}
             />
           </div>
+          <div className="flex gap-x-3 items-center">
+            <Label
+              htmlFor="instruction"
+              className="text-right w-28 inline-block shrink-0 font-bold"
+            >
+              Instruction
+            </Label>
+            <Textarea
+              placeholder="Enter amount"
+              className="bg-white"
+              name="instruction"
+              id="instruction"
+              onChange={(e) => onFormDataChanged(e)}
+              value={formData.instruction || ""}
+            />
+          </div>
         </div>
         <div className="flex justify-end space-x-2 mt-4">
-          <Button type="button" onClick={onFormSubmit} disabled={!btnEnabled}>
-            Update
+          <Button
+            type="button"
+            onClick={onFormSubmit}
+            disabled={!btnEnabled || isPending}
+          >
+            {isPending ? "Updating" : "Update"}
           </Button>
         </div>
       </div>
