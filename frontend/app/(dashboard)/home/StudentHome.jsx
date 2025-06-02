@@ -1,11 +1,11 @@
 "use client";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+// import {
+//   Accordion,
+//   AccordionContent,
+//   AccordionItem,
+//   AccordionTrigger,
+// } from "@/components/ui/accordion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getAllInstructions } from "@/utils/apiRequests/entry.api";
@@ -54,7 +54,7 @@ const Users = () => {
             </Card>
           </Link>
         </div>
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <Accordion
             type="single"
             collapsible
@@ -173,7 +173,7 @@ const Users = () => {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-        </div>
+        </div> */}
       </div>
     </div>
   );
