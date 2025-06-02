@@ -69,7 +69,7 @@ const Form = (request) => {
       );
       toast.success(res.message);
       router.replace("/home");
-      router.replace("/home/proper");
+      router.push("/home/proper");
     },
     onError: (err) => {
       toast.error("Operation failed");
@@ -170,10 +170,6 @@ const Form = (request) => {
     setIsSubmitDialogOpen(false);
     mutate(removedSubjects);
   };
-
-  useEffect(() => {
-    if (error) router.replace("/home/proper");
-  }, [error]);
 
   return (
     <>

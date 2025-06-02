@@ -262,6 +262,11 @@ export const getAllPayments = async () => {
   return response.data;
 };
 
+export const getAllInstructions = async () => {
+  const response = await axiosInstance.get("/entry/getAllInstructions");
+  return response.data;
+};
+
 export const getEligibleMedicalSubjects = async (data) => {
   const response = await axiosInstance.post(
     "/entry/getEligibleMedicalSubjects",

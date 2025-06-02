@@ -186,16 +186,12 @@ const Form = (request) => {
       );
       toast.success(res.message);
       router.replace("/home");
-      router.replace("/home/medical");
+      router.push("/home/medical");
     },
     onError: (err) => {
       toast.error("Operation failed");
     },
   });
-
-  useEffect(() => {
-    if (error) router.replace("/home/medical");
-  }, [error]);
 
   useEffect(() => {
     if (applicationData?.subjects.length) {
@@ -305,7 +301,7 @@ const Form = (request) => {
               ) : (
                 <span></span>
               )}
-              {applicationData?.subjects?.length &&
+              {applicationData?.subjects?.length ? (
                 formData?.subjects.map((obj, ind) => {
                   const sub_id = obj.value;
                   const subject = obj.label
@@ -332,7 +328,12 @@ const Form = (request) => {
                       </h1>
                     </div>
                   );
-                })}
+                })
+              ) : (
+                <h1 className="text-lg font-semibold">
+                  No subjects available!
+                </h1>
+              )}
             </div>
             <div className="flex justify-center sm:justify-end">
               {Object.keys(applicationData).length &&
@@ -387,7 +388,6 @@ const Form = (request) => {
           </div>
         </div>
       )}
-   
     </>
   );
 };

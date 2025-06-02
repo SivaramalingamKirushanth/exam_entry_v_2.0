@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import { numberToOrdinalWord } from "@/utils/functions";
 import CryptoJS from "crypto-js";
 import {
+  getAllInstructions,
   getAllPayments,
   getEligibleMedicalSubjects,
 } from "@/utils/apiRequests/entry.api";
@@ -96,6 +97,11 @@ const StudentMedicalHome = () => {
     enabled: Boolean(invoiceDownloadBatchId),
   });
 
+  const { data: instructionsdata } = useQuery({
+    queryFn: getAllInstructions,
+    queryKey: ["instructions"],
+  });
+
   const generatePaymentInvoicePDF = async (paymentDetails) => {
     setInvoiceDownloadBatchId(null);
     if (typeof document === "undefined") {
@@ -129,6 +135,7 @@ const StudentMedicalHome = () => {
           <PaymentInvoice
             paymentDetails={paymentDetails}
             onRenderComplete={resolve}
+            instructionsdata={instructionsdata}
           />
         );
       });
@@ -286,6 +293,8 @@ const StudentMedicalHome = () => {
                             ? "warning"
                             : batch.medical_status === "pending"
                             ? "pending"
+                            : batch.medical_status === "processing"
+                            ? "processing"
                             : batch.medical_status === "expired"
                             ? "failure"
                             : "active"
@@ -323,7 +332,7 @@ const StudentMedicalHome = () => {
                             className="uppercase"
                             disabled={true}
                           >
-                            Download Invoice
+                            Download payment Invoice
                           </Button>
                         ) : (
                           <Button
@@ -333,7 +342,7 @@ const StudentMedicalHome = () => {
                               onInvoiceDownloadClick(batch.batch_id)
                             }
                           >
-                            Download Invoice
+                            Download payment Invoice
                           </Button>
                         )}
 
@@ -343,7 +352,7 @@ const StudentMedicalHome = () => {
                             className="uppercase"
                             disabled={true}
                           >
-                            Submit reference
+                            Submit payment reference
                           </Button>
                         ) : (
                           <Button
@@ -351,7 +360,7 @@ const StudentMedicalHome = () => {
                             className="uppercase"
                             onClick={() => onPaymentClicked(batch.batch_id)}
                           >
-                            Submit reference
+                            Submit payment reference
                           </Button>
                         )}
                       </div>
@@ -419,6 +428,8 @@ const StudentMedicalHome = () => {
                         ? "warning"
                         : batch.medical_status === "pending"
                         ? "pending"
+                        : batch.medical_status === "processing"
+                        ? "processing"
                         : batch.medical_status === "expired"
                         ? "failure"
                         : "active"
@@ -458,7 +469,7 @@ const StudentMedicalHome = () => {
                       size="sm"
                       disabled={true}
                     >
-                      Download Invoice
+                      Download payment Invoice
                     </Button>
                   ) : (
                     <Button
@@ -467,7 +478,7 @@ const StudentMedicalHome = () => {
                       size="sm"
                       onClick={() => onInvoiceDownloadClick(batch.batch_id)}
                     >
-                      Download Invoice
+                      Download payment Invoice
                     </Button>
                   )}
                   {new Date(batch.dean_end) > new Date() ? (
@@ -476,7 +487,7 @@ const StudentMedicalHome = () => {
                       className="uppercase"
                       disabled={true}
                     >
-                      Submit reference
+                      Submit payment reference
                     </Button>
                   ) : (
                     <Button
@@ -484,7 +495,7 @@ const StudentMedicalHome = () => {
                       className="uppercase"
                       onClick={() => onPaymentClicked(batch.batch_id)}
                     >
-                      Submit reference
+                      Submit payment reference
                     </Button>
                   )}
                 </div>

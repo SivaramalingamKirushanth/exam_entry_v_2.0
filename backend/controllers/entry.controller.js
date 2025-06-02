@@ -1483,8 +1483,6 @@ export const getStudentMedicalResitApplications = async (req, res, next) => {
         "CALL GetStudentMedicalResitApplications()"
       );
 
-      console.log(rows);
-
       if (rows[0].length === 0) {
         return res.status(200).json([]);
       }
@@ -1857,7 +1855,7 @@ export const setApproval = async (req, res, next) => {
 };
 
 export const upsertPayments = async (req, res, next) => {
-  const payments = req.body;
+  const { instruction, ...payments } = req.body;
 
   try {
     const conn = await pool.getConnection();
@@ -1867,6 +1865,11 @@ export const upsertPayments = async (req, res, next) => {
       for (const [type, amount] of entries) {
         await conn.query("CALL UpsertPayment(?, ?)", [type, amount]);
       }
+
+      await conn.query("CALL UpsertInstruction(?, ?)", [
+        "payment",
+        instruction,
+      ]);
 
       return res
         .status(200)
@@ -1895,6 +1898,27 @@ export const getAllPayments = async (req, res, next) => {
       rows[0].forEach((obj) => (finalObj[obj.type] = obj.amount));
 
       return res.status(200).json(finalObj);
+    } catch (error) {
+      console.error("Error retrieving payment data:", error);
+      return next(
+        errorProvider(500, "An error occurred while retrieving payment data.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getAllInstructions = async (req, res, next) => {
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [rows] = await conn.query("CALL GetAllInstructions()");
+
+      return res.status(200).json(rows[0]);
     } catch (error) {
       console.error("Error retrieving payment data:", error);
       return next(

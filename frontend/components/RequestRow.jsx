@@ -48,7 +48,7 @@ const RequestRow = ({ obj }) => {
     stu_deadline: "",
   });
 
-  const { mutate: mutateRef } = useMutation({
+  const { mutate: mutateRef, isPending: isMutateRefPending } = useMutation({
     mutationFn: updateReference,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["requests", "medical", "resit"]);
@@ -59,27 +59,29 @@ const RequestRow = ({ obj }) => {
     },
   });
 
-  const { mutate: mutateVerified } = useMutation({
-    mutationFn: updateVerified,
-    onSuccess: (res) => {
-      toast.success(res.message);
-    },
-    onError: (err) => {
-      toast.error("Operation failed");
-    },
-  });
+  const { mutate: mutateVerified, isPending: isMutateVerifiedPending } =
+    useMutation({
+      mutationFn: updateVerified,
+      onSuccess: (res) => {
+        toast.success(res.message);
+      },
+      onError: (err) => {
+        toast.error("Operation failed");
+      },
+    });
 
-  const { mutate: acceptMutate } = useMutation({
-    mutationFn: acceptMedicalResitStudents,
-    onSuccess: (res) => {
-      queryClient.invalidateQueries(["requests", "medical", "resit"]);
+  const { mutate: acceptMutate, isPending: isMutateAcceptPending } =
+    useMutation({
+      mutationFn: acceptMedicalResitStudents,
+      onSuccess: (res) => {
+        queryClient.invalidateQueries(["requests", "medical", "resit"]);
 
-      toast.success(res.message);
-    },
-    onError: (err) => {
-      toast.error("Operation failed");
-    },
-  });
+        toast.success(res.message);
+      },
+      onError: (err) => {
+        toast.error("Operation failed");
+      },
+    });
 
   const { mutate: rejectMutate } = useMutation({
     mutationFn: rejectMedicalResitApplication,
@@ -338,7 +340,9 @@ const RequestRow = ({ obj }) => {
               (isMedSubCheckEnable && !formData.medical_subjects_verified) ||
               (isMedRefCheckEnable && !formData.medical_payment_verified) ||
               (isResSubCheckEnable && !formData.resit_subjects_verified) ||
-              (isResRefCheckEnable && !formData.resit_payment_verified)
+              (isResRefCheckEnable && !formData.resit_payment_verified) ||
+              new Date() > new Date(openDateData?.admin_end) ||
+              new Date() < new Date(deadlineObj?.dean_deadline)
             }
             onClick={onAccept}
           >
@@ -387,19 +391,37 @@ const RequestRow = ({ obj }) => {
             </p>
 
             <p>{formData?.batch_code}</p>
+            <p>
+              Request acceptance period :{" "}
+              {new Date(deadlineObj?.dean_deadline)
+                .toString()
+                .slice(
+                  4,
+                  new Date(deadlineObj?.dean_deadline).toString().indexOf("GMT")
+                )}{" "}
+              &#8208;{" "}
+              {new Date(openDateData?.admin_end)
+                .toString()
+                .slice(
+                  4,
+                  new Date(openDateData?.admin_end).toString().indexOf("GMT")
+                )}
+            </p>
             <p className="flex mt-2 items-center text-rose-700">
               <GoDotFill className="text-red-600" />
-              {new Date() < new Date(deadlineObj.stu_deadline)
-                ? "Student Submission"
-                : new Date() < new Date(deadlineObj.lec_deadline)
-                ? "Lecturer Review"
-                : new Date() < new Date(deadlineObj.hod_deadline)
-                ? "HOD Approval"
-                : new Date() < new Date(deadlineObj.dean_deadline)
-                ? "Dean Approval"
+              {new Date() < new Date(deadlineObj?.stu_deadline)
+                ? "Student Submission Phase"
+                : new Date() < new Date(deadlineObj?.lec_deadline)
+                ? "Lecturer Review Phase"
+                : new Date() < new Date(deadlineObj?.hod_deadline)
+                ? "HOD Approval Phase"
+                : new Date() < new Date(deadlineObj?.dean_deadline)
+                ? "Dean Approval Phase"
                 : new Date() < new Date(openDateData?.payment_end)
-                ? "Payment Processing"
-                : "Expired"}
+                ? "Payment Processing Phase"
+                : new Date() < new Date(openDateData?.admin_end)
+                ? "Final Admin Approval Phase"
+                : "Request Expired"}
             </p>
           </div>
         </td>

@@ -32,7 +32,7 @@ const MedicalSubject = ({ id, sub_code, sub_name, user_name }) => {
   };
 
   return (
-    <span className="flex items-center gap-1">
+    <span className="flex items-center gap-1 w-full">
       <Badge className="flex flex-col items-center w-full">
         <span className="text-sm">{sub_code}</span>
         <span className="text-center">{sub_name}</span>
