@@ -49,7 +49,7 @@ export default function Footer() {
 
   return (
     <>
-      <footer className="bg-[hsl(240,5.9%,10%)] text-white py-3 mt-6 text-center">
+      <footer className="bg-[hsl(240,5.9%,10%)] text-white pb-20 sm:pb-3 pt-3 mt-6 text-center">
         <div className="container mx-auto px-4 flex flex-col items-center">
           <p className="text-sm">
             &copy; {new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.

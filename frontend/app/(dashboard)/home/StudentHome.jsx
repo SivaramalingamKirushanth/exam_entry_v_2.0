@@ -10,14 +10,26 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getAllInstructions } from "@/utils/apiRequests/entry.api";
 import { useQuery } from "@tanstack/react-query";
+import { FaChevronDown, FaChevronRight } from "react-icons/fa6";
+import { useState } from "react";
+import CustomFAQ from "@/components/CustomFAQ";
 
 const Users = () => {
   const pathname = usePathname();
+  const [expandId, setExpandId] = useState("item-1");
 
   const { data: instructionsdata } = useQuery({
     queryFn: getAllInstructions,
     queryKey: ["instructions"],
   });
+
+  const expandHandler = (e) => {
+    if (e.target.id == expandId) {
+      setExpandId(null);
+    } else {
+      setExpandId(e.target.id);
+    }
+  };
 
   return (
     <div className="flex justify-center">
@@ -54,6 +66,13 @@ const Users = () => {
             </Card>
           </Link>
         </div>
+        <CustomFAQ
+          expandId={expandId}
+          expandHandler={expandHandler}
+          dynamicInstruction={
+            instructionsdata?.find((i) => i.type === "payment")?.instruction
+          }
+        />
         {/* <div className="mt-6">
           <Accordion
             type="single"
