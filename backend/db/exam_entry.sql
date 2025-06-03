@@ -968,7 +968,7 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `venue`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `instruction` (
+CREATE TABLE `venue` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `short_code` varchar(100) NOT NULL,
   `description` varchar(500) NOT NULL,
