@@ -65,13 +65,13 @@ const ImportModel = ({ isImportOpen, setIsImportOpen, importModelRef }) => {
 
   const onFormSubmitted = async () => {
     setIsLoading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("f_id", formData.f_id);
-    formData.append("syl_id", formData.syl_id);
+    const fmData = new FormData();
+    fmData.append("file", file);
+    fmData.append("f_id", formData.f_id);
+    fmData.append("syl_id", formData.syl_id);
 
     try {
-      const result = await multipleStudentsRegister(formData);
+      const result = await multipleStudentsRegister(fmData);
 
       if (result.isFile) {
         toast.success("Failed records file downloaded.");
