@@ -435,28 +435,36 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                   >
                     <Label className="text-right">Level</Label>
                     <div className="flex col-span-3 gap-4 flex-wrap">
-                      {degreeLevelsData?.levels.map((item) => (
-                        <div className="flex items-center space-x-2" key={item}>
-                          <input
-                            type="radio"
-                            value={item}
-                            id={`l${item}`}
-                            checked={formData.level == item}
-                            name="level"
-                            onChange={(e) => {
-                              setFormData((pre) => ({ ...pre, subjects: [] }));
-                              onFormDataChanged(e);
-                            }}
-                            className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
-                          />
-                          <Label
-                            htmlFor={`l${item}`}
-                            className="cursor-pointer"
+                      {degreeLevelsData?.levels
+                        ?.sort((a, b) => Number(a) - Number(b))
+                        ?.map((item) => (
+                          <div
+                            className="flex items-center space-x-2"
+                            key={item}
                           >
-                            {item}
-                          </Label>
-                        </div>
-                      ))}
+                            <input
+                              type="radio"
+                              value={item}
+                              id={`l${item}`}
+                              checked={formData.level == item}
+                              name="level"
+                              onChange={(e) => {
+                                setFormData((pre) => ({
+                                  ...pre,
+                                  subjects: [],
+                                }));
+                                onFormDataChanged(e);
+                              }}
+                              className="h-4 w-4 shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 accent-black"
+                            />
+                            <Label
+                              htmlFor={`l${item}`}
+                              className="cursor-pointer"
+                            >
+                              {item}
+                            </Label>
+                          </div>
+                        ))}
                     </div>
                   </div>
                   <div
@@ -525,7 +533,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                       }
                       classNamePrefix="react-select"
                       styles={{
-                        multiValue: () => ({ display: "none" }), // hide default chips
+                        multiValue: () => ({ display: "none" }),
                         control: (base) => ({
                           ...base,
                           borderColor: "#ccc",
@@ -535,7 +543,10 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                             borderColor: "#000",
                           },
                         }),
-                        menuList: () => ({
+                        menuList: (base) => ({
+                          ...base,
+                          maxHeight: "300px",
+                          overflowY: "auto",
                           fontSize: "0.9rem",
                         }),
                       }}

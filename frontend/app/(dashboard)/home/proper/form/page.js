@@ -68,8 +68,8 @@ const Form = (request) => {
         ["studentApplicationDetails"]
       );
       toast.success(res.message);
-      router.replace("/home");
-      router.push("/home/proper");
+
+      router.replace("/home/proper");
     },
     onError: (err) => {
       toast.error("Operation failed");

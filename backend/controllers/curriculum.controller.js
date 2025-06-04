@@ -1235,9 +1235,9 @@ export const updateSyllabus = async (req, res, next) => {
 };
 
 export const getAllSubjectsForGroupCreation = async (req, res, next) => {
-  const { f_id, syl_id, level, sem_no } = req.body;
+  const { syl_id, level, sem_no } = req.body;
 
-  if (!f_id || !syl_id || !level || !sem_no) {
+  if (!syl_id || !level || !sem_no) {
     return next(errorProvider(400, "Missing required fileds"));
   }
 
@@ -1246,8 +1246,8 @@ export const getAllSubjectsForGroupCreation = async (req, res, next) => {
 
     try {
       const [results] = await conn.query(
-        "CALL GetAllSubjectsForGroupCreation(?,?,?,?);",
-        [f_id, syl_id, level, sem_no]
+        "CALL GetAllSubjectsForGroupCreation(?,?,?);",
+        [syl_id, level, sem_no]
       );
 
       if (results[0].length === 0) {

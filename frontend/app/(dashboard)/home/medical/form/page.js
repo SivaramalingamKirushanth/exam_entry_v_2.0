@@ -185,8 +185,8 @@ const Form = (request) => {
         ["studentApplicationDetails", "medical"]
       );
       toast.success(res.message);
-      router.replace("/home");
-      router.push("/home/medical");
+
+      router.replace("/home/medical");
     },
     onError: (err) => {
       toast.error("Operation failed");
@@ -265,7 +265,10 @@ const Form = (request) => {
                         borderColor: "#000",
                       },
                     }),
-                    menuList: () => ({
+                    menuList: (base) => ({
+                      ...base,
+                      maxHeight: "200px",
+                      overflowY: "auto",
                       fontSize: "0.9rem",
                     }),
                   }}
