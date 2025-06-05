@@ -213,8 +213,8 @@ const Form = (request) => {
         ["studentApplicationDetails", "resit"]
       );
       toast.success(res.message);
-      router.replace("/home");
-      router.push("/home/resit");
+
+      router.replace("/home/resit");
     },
     onError: (err) => {
       toast.error("Operation failed");
@@ -291,7 +291,7 @@ const Form = (request) => {
                   }
                   classNamePrefix="react-select"
                   styles={{
-                    multiValue: () => ({ display: "none" }), // hide default chips
+                    multiValue: () => ({ display: "none" }),
                     control: (base) => ({
                       ...base,
                       borderColor: "#ccc",
@@ -301,7 +301,10 @@ const Form = (request) => {
                         borderColor: "#000",
                       },
                     }),
-                    menuList: () => ({
+                    menuList: (base) => ({
+                      ...base,
+                      maxHeight: "200px",
+                      overflowY: "auto",
                       fontSize: "0.9rem",
                     }),
                   }}

@@ -66,7 +66,7 @@ export default function Footer() {
             <span className="absolute inset-[2px] bg-black backdrop-blur-md rounded-md" />
 
             {/* Gradient Text */}
-            <span className="relative z-10 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 animate-gradient-x bg-clip-text text-transparent">
+            <span className="relative z-5 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 animate-gradient-x bg-clip-text text-transparent">
               Meet the Team
             </span>
           </button>

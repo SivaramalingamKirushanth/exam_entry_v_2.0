@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { GiCancel } from "react-icons/gi";
 import Dropzone from "@/components/Dropzone";
 import { uploadAttendanceSheet } from "@/utils/apiRequests/batch.api";
+import { useQueryClient } from "@tanstack/react-query";
 
 const AttendanceModel = ({
   isAttendanceOpen,
@@ -16,6 +17,7 @@ const AttendanceModel = ({
 }) => {
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const onFormSubmitted = async () => {
     setIsLoading(true);
@@ -28,6 +30,7 @@ const AttendanceModel = ({
 
       if (result.isFile) {
         toast.success("Report file downloaded.");
+        queryClient.invalidateQueries(["batches"]);
       } else {
         toast.success(result.message);
       }
@@ -68,7 +71,7 @@ const AttendanceModel = ({
                 <li>Ensure the file is in CSV format.</li>
                 <li>
                   The first row must be a header row (User name and subject
-                  codes ex:IT&nbsp;3143(P)).
+                  codes ex:IT3143(P)).
                 </li>
                 <li>
                   Each row after the header must represent a single student

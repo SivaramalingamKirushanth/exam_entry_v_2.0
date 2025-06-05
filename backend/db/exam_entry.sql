@@ -6801,8 +6801,8 @@ DELIMITER ;
 /*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `GetAllSubjectsForGroupCreation`(IN `p_f_id` INT, IN `p_syl_id` INT, IN `p_level` INT, IN `p_sem_no` INT)
+DELIMITER $$
+CREATE PROCEDURE `GetAllSubjectsForGroupCreation`(IN `p_syl_id` INT, IN `p_level` INT, IN `p_sem_no` INT)
 BEGIN
 
 
@@ -6821,23 +6821,10 @@ BEGIN
 
     FROM subject
 
-    
 
-    JOIN syllabus ON subject.syl_id = syllabus.syl_id
+	WHERE subject.syl_id = p_syl_id  AND subject.level = p_level AND subject.sem_no = p_sem_no; 
 
-        
-
-    JOIN deg_syl ON subject.syl_id = deg_syl.syl_id
-
-    
-
-    JOIN fac_deg ON deg_syl.deg_id = fac_deg.deg_id
-
-    
-
-	WHERE fac_deg.f_id = p_f_id AND syllabus.commenced_year = (SELECT commenced_year FROM syllabus WHERE syl_id=p_syl_id) AND subject.level = p_level AND subject.sem_no = p_sem_no; 
-
-END ;;
+END$$
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -9944,12 +9931,7 @@ WHERE b.syl_id = v_syl_id
 
         SET v_last_batch_id = CAST(SUBSTRING_INDEX(v_batch_ids, ',', -1) AS UNSIGNED);
 
-
-
-        -- Get level and sem from that last batch
-
-        SELECT level INTO v_level FROM batch WHERE batch_id = v_last_batch_id;
-
+		SELECT level, status INTO v_level, @last_batch_status FROM batch WHERE batch_id = v_last_batch_id;
 
 
         -- Now filter eligible batches
@@ -10007,7 +9989,11 @@ LEFT JOIN batch_time_periods bt2 ON bt2.batch_id = b.batch_id AND bt2.user_type 
 
 WHERE b.syl_id = v_syl_id 
 
-  AND b.level < v_level
+  AND (
+      (@last_batch_status = 'true' AND b.level < v_level)
+      OR
+      (@last_batch_status = 'false' AND b.level <= v_level)
+    )
 
   AND b.status = 'true'
 
@@ -10211,12 +10197,7 @@ WHERE b.syl_id = v_syl_id
 
         SET v_last_batch_id = CAST(SUBSTRING_INDEX(v_batch_ids, ',', -1) AS UNSIGNED);
 
-
-
-        -- Get level and sem from that last batch
-
-        SELECT level INTO v_level FROM batch WHERE batch_id = v_last_batch_id;
-
+		SELECT level, status INTO v_level, @last_batch_status FROM batch WHERE batch_id = v_last_batch_id;
 
 
         -- Now filter eligible batches
@@ -10275,7 +10256,11 @@ LEFT JOIN batch_time_periods bt2 ON bt2.batch_id = b.batch_id AND bt2.user_type 
 
 WHERE b.syl_id = v_syl_id 
 
-  AND b.level < v_level
+  AND (
+      (@last_batch_status = 'true' AND b.level < v_level)
+      OR
+      (@last_batch_status = 'false' AND b.level <= v_level)
+    )
 
   AND (
 
