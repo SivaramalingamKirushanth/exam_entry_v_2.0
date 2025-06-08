@@ -264,12 +264,14 @@ export const makePagination = (sortedArray) => {
   let pageArrInd = 0;
 
   for (let j = 0; j < examTypesRemoved.length; j++) {
-    if (examTypesRemoved[j].exam_type != exam_type) {
+    if (examTypesRemoved[j]?.exam_type != exam_type) {
       if (pageArrInd !== 0) {
         pageArr.push("");
         //checking availability after pushing the empty
         if (pageArrInd == 79) {
-          grpArr.push(pageArr);
+          if (pageArr.filter((item) => item).length) {
+            grpArr.push(pageArr.filter((obj) => obj != undefined));
+          }
           pageArr = [];
           pageArrInd = 0;
         } else {
@@ -279,7 +281,9 @@ export const makePagination = (sortedArray) => {
         pageArr.push("");
         //checking availability after pushing the empty
         if (pageArrInd == 79) {
-          grpArr.push(pageArr);
+          if (pageArr.filter((item) => item).length) {
+            grpArr.push(pageArr.filter((obj) => obj != undefined));
+          }
           pageArr = [];
           pageArrInd = 0;
         } else {
@@ -291,7 +295,9 @@ export const makePagination = (sortedArray) => {
       exam_type = sortedArray[j].exam_type;
       //checking availability after pushing the exam_type
       if (pageArrInd == 79) {
-        grpArr.push(pageArr);
+        if (pageArr.filter((item) => item).length) {
+          grpArr.push(pageArr.filter((obj) => obj != undefined));
+        }
         pageArr = [];
         pageArrInd = 0;
       } else {
@@ -303,7 +309,9 @@ export const makePagination = (sortedArray) => {
 
     //checking availability after pushing a student
     if (pageArrInd == 79 || j == examTypesRemoved.length - 1) {
-      grpArr.push(pageArr);
+      if (pageArr.filter((item) => item).length) {
+        grpArr.push(pageArr.filter((obj) => obj != undefined));
+      }
       pageArr = [];
       pageArrInd = 0;
     } else {
@@ -314,6 +322,7 @@ export const makePagination = (sortedArray) => {
       break;
     }
   }
+
   return grpArr;
 };
 

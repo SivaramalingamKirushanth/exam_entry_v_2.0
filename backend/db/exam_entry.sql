@@ -3432,7 +3432,7 @@ BEGIN
 
 
 
-            'CREATE TABLE batch_', 
+            'CREATE TABLE IF NOT EXISTS batch_', 
 
 
 
@@ -3452,11 +3452,23 @@ BEGIN
 
 
 
+             	id INT AUTO_INCREMENT PRIMARY KEY,
+
+
+
                 s_id INT(11) NOT NULL,
 
 
 
-                eligibility VARCHAR(50) NOT NULL
+                eligibility VARCHAR(50) NOT NULL,
+
+
+
+            	exam_type VARCHAR(10) NOT NULL,
+
+
+
+            	UNIQUE (s_id)
 
 
 
