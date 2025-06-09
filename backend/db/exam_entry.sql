@@ -2047,10 +2047,9 @@ ae:BEGIN
 
  FROM INFORMATION_SCHEMA.COLUMNS
 
- WHERE TABLE_NAME = CONCAT('batch_', p_batch_id, '_students') 
-
- AND COLUMN_NAME LIKE 'sub_%';
-
+ WHERE TABLE_SCHEMA = DATABASE()
+  AND TABLE_NAME = CONCAT('batch_', p_batch_id, '_students')
+  AND COLUMN_NAME LIKE 'sub_%';
 
 
  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
