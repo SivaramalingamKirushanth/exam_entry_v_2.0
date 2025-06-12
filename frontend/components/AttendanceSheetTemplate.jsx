@@ -71,7 +71,6 @@ const AttendanceSheetTemplate = ({
   setCurrentEditor,
   currentEditor,
   batchFullDetailsData,
-  latestAttendanceTemplateData,
   level_ordinal,
   sem_ordinal,
   academicYear,
@@ -281,88 +280,6 @@ const AttendanceSheetTemplate = ({
     });
     e.target.value = value;
   };
-
-  useEffect(() => {
-    if (latestAttendanceTemplateData) {
-      let obj = {};
-      let groups = {};
-      const latestData = latestAttendanceTemplateData?.data;
-
-      if (latestAttendanceTemplateData.exist) {
-        obj.description = latestData?.description;
-        const transformedDate = latestData?.exam_date
-          ?.split(",")
-          .map((item) => {
-            const [year, months] = item.split(":");
-            return {
-              year: parseInt(year),
-              months: months.split(";").map((mon) => +mon),
-            };
-          });
-
-        obj.date = transformedDate;
-
-        if (hasNumber(latestData?.exam_held_date)) {
-          const transformedHeldDate = latestData?.exam_held_date
-            ?.split(",")
-            .map((item) => {
-              const [year, months] = item.split(":");
-              return {
-                year: parseInt(year),
-                months: months.split(";").map((mon) => +mon),
-              };
-            });
-          obj.heldDate = transformedHeldDate;
-        } else {
-          obj.heldDate = [{ year: "", months: [""] }];
-        }
-        if (latestAttendanceTemplateData.subExist) {
-          setGroupsCount(latestData?.no_of_groups);
-
-          const studentDetail = latestData?.student_detail;
-          const recon = deserializeString(studentDetail);
-          if (Object.keys(recon).length) {
-            setFinalNameList(recon);
-          }
-
-          groups = reconstructGroupsObject(
-            latestData?.venues,
-            latestData?.dates,
-            latestData?.times
-          );
-
-          Object.keys(groups).forEach((key) => {
-            if (groups[key]?.actual_date?.trim()) {
-              const e = getUnmodifiedDate(groups[key]?.actual_date);
-              groups[key].actual_date = `${
-                groups[key]?.actual_date
-              } (${getDayName(e)})`;
-            } else {
-              groups[key].actual_date = "";
-            }
-
-            if (groups[key]?.fromTime) {
-              groups[key].fromTime = groups[key]?.fromTime.slice(0, 5);
-            }
-
-            if (groups[key]?.toTime) {
-              groups[key].toTime = groups[key]?.toTime.slice(0, 5);
-            }
-          });
-        }
-      } else {
-        obj.description = latestData?.description || "";
-      }
-
-      setFormData((cur) => {
-        return {
-          ...cur,
-          ...obj,
-          ...groups,
-        };
-      });
-    }
-  }, [latestAttendanceTemplateData]);
 
   useEffect(() => {
     if (pageArr.length) {
@@ -706,6 +623,7 @@ const AttendanceSheetTemplate = ({
                     ? "Loading..."
                     : "Select venue"
                 }
+                disabled={isVenuesDataLoading || isVenuesDataError}
                 onValueChange={(e) => {
                   setFormData((cur) => ({
                     ...cur,

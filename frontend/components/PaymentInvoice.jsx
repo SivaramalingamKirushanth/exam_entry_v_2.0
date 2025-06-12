@@ -29,36 +29,45 @@ const PaymentInvoice = ({
     <div className="w-[210mm] p-[20mm] bg-white text-[12pt] font-sans">
       {/* Header */}
       <div className="flex justify-between mb-4">
-        <div>
-          <span className="font-semibold">User:</span> {username}
+        <div className="text-sm">
+          <span className="font-semibold">Student's Reg.No:</span> {username}
         </div>
-        <div>
+        <div className="text-sm">
           <span className="font-semibold">Exam Type:</span> {exam_type}
         </div>
       </div>
 
       {/* Title */}
-      <h2 className="text-center text-xl font-bold mb-6">Examination Branch</h2>
+      <h2 className="text-center text-lg font-bold uppercase">
+        University of Vavuniya, sri lanka
+      </h2>
+      <h2 className="text-center text-lg font-bold mb-6 uppercase">
+        paying in voucher
+      </h2>
 
       {/* Dates Row */}
       <div className="flex justify-between mb-6">
-        <div>
+        <div className="text-sm">
           <span className="font-semibold">Generated Date:</span>{" "}
           {generated_date}
         </div>
-        <div>
+        <div className="text-sm">
           <span className="font-semibold">Payment Deadline:</span>{" "}
           {payment_deadline}
         </div>
       </div>
 
       {/* Table */}
-      <table className="w-full border border-black border-collapse mb-6">
+      <table className="w-full border border-black border-collapse mb-6 text-sm">
         <thead>
           <tr>
-            <th className="border border-black p-2 text-left">Subject Code</th>
+            <th className="border border-black p-2 text-left w-28">
+              Subject Code
+            </th>
             <th className="border border-black p-2 text-left">Subject Name</th>
-            <th className="border border-black p-2 text-right">Amount (LKR)</th>
+            <th className="border border-black p-2 text-right w-28">
+              Amount (LKR)
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -88,7 +97,7 @@ const PaymentInvoice = ({
       {/* Instructions */}
       <div>
         <h4 className="font-semibold mb-2">Payment Instructions:</h4>
-        <p className="text-justify">
+        <p className="text-justify text-slate-700 text-sm">
           {instructionsdata
             ? instructionsdata.find((item) => item.type == "payment")
                 ?.instruction

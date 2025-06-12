@@ -334,7 +334,7 @@ const StudentResitHome = () => {
                             className="uppercase"
                             disabled={true}
                           >
-                            Download payment Invoice
+                            Download paying in voucher
                           </Button>
                         ) : (
                           <Button
@@ -344,7 +344,7 @@ const StudentResitHome = () => {
                               onInvoiceDownloadClick(batch.batch_id)
                             }
                           >
-                            Download payment Invoice
+                            Download paying in voucher
                           </Button>
                         )}
 
@@ -354,7 +354,7 @@ const StudentResitHome = () => {
                             className="uppercase"
                             disabled={true}
                           >
-                            Submit payment reference
+                            Submit receipt no
                           </Button>
                         ) : (
                           <Button
@@ -362,7 +362,7 @@ const StudentResitHome = () => {
                             className="uppercase"
                             onClick={() => onPaymentClicked(batch.batch_id)}
                           >
-                            Submit payment reference
+                            Submit receipt no
                           </Button>
                         )}
                       </div>
@@ -471,7 +471,7 @@ const StudentResitHome = () => {
                       size="sm"
                       disabled={true}
                     >
-                      Download payment Invoice
+                      Download paying in voucher
                     </Button>
                   ) : (
                     <Button
@@ -480,7 +480,7 @@ const StudentResitHome = () => {
                       size="sm"
                       onClick={() => onInvoiceDownloadClick(batch.batch_id)}
                     >
-                      Download payment Invoice
+                      Download paying in voucher
                     </Button>
                   )}
                   {new Date(batch.dean_end) > new Date() ? (
@@ -489,7 +489,7 @@ const StudentResitHome = () => {
                       className="uppercase"
                       disabled={true}
                     >
-                      Submit payment reference
+                      Submit receipt no
                     </Button>
                   ) : (
                     <Button
@@ -497,7 +497,7 @@ const StudentResitHome = () => {
                       className="uppercase"
                       onClick={() => onPaymentClicked(batch.batch_id)}
                     >
-                      Submit payment reference
+                      Submit receipt no
                     </Button>
                   )}
                 </div>

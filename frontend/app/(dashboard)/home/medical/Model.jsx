@@ -6,8 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { lecturerRegister } from "@/utils/apiRequests/auth.api";
-import { getLecturerById, updateLecturer } from "@/utils/apiRequests/user.api";
 import { GiCancel } from "react-icons/gi";
 import { updateRequestReference } from "@/utils/apiRequests/entry.api";
 
@@ -66,7 +64,7 @@ const Model = ({ paymentId, isOpen, setIsOpen, modelRef, setPaymentId }) => {
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
-              <h3 className="text-lg font-semibold">Payment Reference</h3>
+              <h3 className="text-lg font-semibold">Receipt no</h3>
 
               <GiCancel
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
@@ -81,7 +79,7 @@ const Model = ({ paymentId, isOpen, setIsOpen, modelRef, setPaymentId }) => {
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="reference" className="text-right">
-                  Reference
+                  Receipt no
                 </Label>
                 <Input
                   id="reference"
@@ -99,7 +97,7 @@ const Model = ({ paymentId, isOpen, setIsOpen, modelRef, setPaymentId }) => {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="creference" className="text-right">
-                  Confirm Reference
+                  Confirm receipt no
                 </Label>
                 <Input
                   id="creference"
@@ -117,7 +115,7 @@ const Model = ({ paymentId, isOpen, setIsOpen, modelRef, setPaymentId }) => {
               </div>
             </div>
             <p className="text-red-500 italic text-xs text-end h-3">
-              {!refMatch ? "Reference do not match" : ""}
+              {!refMatch ? "receipt no do not match" : ""}
             </p>
             <div className="flex justify-end space-x-2 mt-4">
               <Button

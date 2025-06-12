@@ -2047,10 +2047,9 @@ ae:BEGIN
 
  FROM INFORMATION_SCHEMA.COLUMNS
 
- WHERE TABLE_NAME = CONCAT('batch_', p_batch_id, '_students') 
-
- AND COLUMN_NAME LIKE 'sub_%';
-
+ WHERE TABLE_SCHEMA = DATABASE()
+  AND TABLE_NAME = CONCAT('batch_', p_batch_id, '_students')
+  AND COLUMN_NAME LIKE 'sub_%';
 
 
  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
@@ -3432,7 +3431,7 @@ BEGIN
 
 
 
-            'CREATE TABLE batch_', 
+            'CREATE TABLE IF NOT EXISTS batch_', 
 
 
 
@@ -3452,11 +3451,23 @@ BEGIN
 
 
 
+             	id INT AUTO_INCREMENT PRIMARY KEY,
+
+
+
                 s_id INT(11) NOT NULL,
 
 
 
-                eligibility VARCHAR(50) NOT NULL
+                eligibility VARCHAR(50) NOT NULL,
+
+
+
+            	exam_type VARCHAR(10) NOT NULL,
+
+
+
+            	UNIQUE (s_id)
 
 
 
