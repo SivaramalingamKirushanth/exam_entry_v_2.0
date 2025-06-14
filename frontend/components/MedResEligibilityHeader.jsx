@@ -16,16 +16,15 @@ const MedResEligibilityHeader = ({
   onMultipleEligibilityChanged,
   setIsAnyonePending,
   end_date,
-  lec,
 }) => {
   const [remark, setRemark] = useState("");
 
   const isAnyonePending = filteredData.some((stu) => stu.eligibility == "");
+  const isEveryonePending = filteredData.every((stu) => stu.eligibility == "");
 
   const isAnyoneNotEligible = filteredData.some(
     (stu) => stu.eligibility == "false"
   );
-
   useEffect(() => {
     setIsAnyonePending(isAnyonePending);
   }, [isAnyonePending, setIsAnyonePending]);
@@ -36,7 +35,7 @@ const MedResEligibilityHeader = ({
 
       <Select
         onValueChange={(e) => {
-          if (lec) {
+          if (isEveryonePending) {
             onMultipleEligibilityChanged(e, remark);
           } else {
             if (remark) {
@@ -52,11 +51,7 @@ const MedResEligibilityHeader = ({
         </SelectTrigger>
         <SelectContent className="p-2 w-64">
           <p className="font-semibold flex flex-col gap-y-1 text-sm w-full">
-            {lec ? (
-              <span>Enter Remark (optional)</span>
-            ) : (
-              <span>Enter Remark</span>
-            )}
+            <span>Enter Remark {isEveryonePending ? "(optional)" : ""}</span>
             <span>All/Filtered Students</span>
           </p>
           <Textarea
@@ -64,10 +59,22 @@ const MedResEligibilityHeader = ({
             value={remark}
             className="my-2"
           />
-          <SelectItem disabled={!lec && !remark} value="true">
+          <SelectItem
+            disabled={!isEveryonePending && !remark}
+            className={`${
+              !isAnyoneNotEligible && !isAnyonePending ? "hidden" : ""
+            }`}
+            value="true"
+          >
             Eligible
           </SelectItem>
-          <SelectItem disabled={!lec && !remark} value="false">
+          <SelectItem
+            disabled={!isEveryonePending && !remark}
+            className={`${
+              isAnyoneNotEligible && !isAnyonePending ? "hidden" : ""
+            }`}
+            value="false"
+          >
             Not Eligible
           </SelectItem>
         </SelectContent>

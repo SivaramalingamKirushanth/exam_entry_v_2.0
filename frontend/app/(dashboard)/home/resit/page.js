@@ -328,7 +328,7 @@ const StudentResitHome = () => {
                           </Button>
                         )}
 
-                        {new Date(batch.dean_end) > new Date() ? (
+                        {batch.resit_status !== "payment pending" ? (
                           <Button
                             variant="outline"
                             className="uppercase"
@@ -348,7 +348,7 @@ const StudentResitHome = () => {
                           </Button>
                         )}
 
-                        {new Date(batch.dean_end) > new Date() ? (
+                        {batch.resit_status !== "payment pending" ? (
                           <Button
                             variant="outline"
                             className="uppercase"
@@ -464,7 +464,7 @@ const StudentResitHome = () => {
                     </Button>
                   )}
 
-                  {new Date(batch.dean_end) > new Date() ? (
+                  {batch.resit_status !== "payment pending" ? (
                     <Button
                       variant="outline"
                       className="uppercase"
@@ -483,7 +483,7 @@ const StudentResitHome = () => {
                       Download paying in voucher
                     </Button>
                   )}
-                  {new Date(batch.dean_end) > new Date() ? (
+                  {batch.resit_status !== "payment pending" ? (
                     <Button
                       variant="outline"
                       className="uppercase"
