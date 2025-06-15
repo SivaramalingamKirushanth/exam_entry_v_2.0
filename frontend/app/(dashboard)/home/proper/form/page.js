@@ -152,7 +152,7 @@ const Form = (request) => {
       // Save the PDF
       const fileName = `Exam_Application_${
         applicationData?.user_name || "Student"
-      }_${new Date().toISOString().split("T")[0]}.pdf`;
+      }_Proper_${new Date().toISOString().split("T")[0]}.pdf`;
       pdf.save(fileName);
 
       toast.success("Application form downloaded as PDF");
