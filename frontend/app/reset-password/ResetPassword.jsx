@@ -9,11 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { FaChevronLeft } from "react-icons/fa6";
+import { FaChevronLeft, FaEye, FaEyeSlash } from "react-icons/fa6";
 
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [newProtectedPass, setNewProtectedPass] = useState(true);
+  const [conProtectedPass, setConProtectedPass] = useState(true);
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -130,27 +132,53 @@ const ResetPassword = () => {
             <Label htmlFor="newPassword" className="text-right">
               New password
             </Label>
-            <Input
-              className="col-span-3"
-              id="newPassword"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Enter your new password"
-              required
-            />
+            <div className="col-span-3 relative">
+              <Input
+                type={newProtectedPass ? "password" : "text"}
+                id="newPassword"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter your new password"
+                required
+              />
+              {newProtectedPass ? (
+                <FaEye
+                  className="absolute right-3 top-3 cursor-pointer"
+                  onClick={() => setNewProtectedPass(false)}
+                />
+              ) : (
+                <FaEyeSlash
+                  className="absolute right-3 top-3 cursor-pointer"
+                  onClick={() => setNewProtectedPass(true)}
+                />
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="confirmPassword" className="text-right">
               Confirm password
             </Label>
-            <Input
-              className="col-span-3"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Re-enter your new password"
-              required
-            />
+            <div className="col-span-3 relative">
+              <Input
+                type={conProtectedPass ? "password" : "text"}
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter your new password"
+                required
+              />
+              {conProtectedPass ? (
+                <FaEye
+                  className="absolute right-3 top-3 cursor-pointer"
+                  onClick={() => setConProtectedPass(false)}
+                />
+              ) : (
+                <FaEyeSlash
+                  className="absolute right-3 top-3 cursor-pointer"
+                  onClick={() => setConProtectedPass(true)}
+                />
+              )}
+            </div>
           </div>
         </div>
         <div className="flex justify-between space-x-2 mt-4">

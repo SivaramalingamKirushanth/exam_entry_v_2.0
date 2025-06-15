@@ -144,7 +144,21 @@ body {
   background-color: #303030;
 }
 
+input[type="password"]::-ms-reveal {
+  display: none;
+}
 
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none;
+}
 
 @layer base {
   * {
