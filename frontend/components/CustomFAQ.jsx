@@ -10,7 +10,7 @@ const faqs = [
     id: "item-2",
     question: "When should I pay after applying?",
     answer:
-      "After the dean’s deadline, you'll be able to download a payment invoice. You must pay the specified amount and upload the payment reference before the payment deadline.",
+      "After the dean’s deadline, you'll be able to download a paying in voucher. You must pay the specified amount and upload the receipt no before the payment deadline.",
   },
   {
     id: "item-3",

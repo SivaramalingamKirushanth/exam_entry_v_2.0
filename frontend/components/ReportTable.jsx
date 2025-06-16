@@ -89,7 +89,7 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
 
           {subjects?.map((obj) => (
             <TableHead
-              className="text-white"
+              className="text-white text-center"
               key={"header" + obj.sub_id + exam_type + batch_id}
             >
               {obj.sub_code}
@@ -119,7 +119,7 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
                               {subject.eligibility == "true" ? (
                                 <FaCheck />
                               ) : (
-                                <FaTimes />
+                                <FaTimes className="text-red-500" />
                               )}
                             </PopoverTrigger>
                             <PopoverContent className="min-w-64">
@@ -139,7 +139,10 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
                         {editEnable && (
                           <ContextMenuContent className="w-64 p-2">
                             <p className="font-semibold flex justify-center text-sm w-full mb-2">
-                              <span>Enter Remark</span>
+                              <span>
+                                Enter Remark{" "}
+                                {subject.eligibility == "" ? "(optional)" : ""}
+                              </span>
                             </p>
                             <p className="font-semibold flex justify-between text-sm w-full mb-2">
                               <span>{subject.sub_code}</span>
@@ -153,7 +156,10 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
                               className="my-2"
                             />
                             <ContextMenuItem
-                              disabled={!remark}
+                              disabled={subject.eligibility != "" && !remark}
+                              className={`${
+                                subject.eligibility == "true" ? "hidden" : ""
+                              }`}
                               onClick={() =>
                                 onEligibilityChanged(
                                   subject.sub_id,
@@ -166,7 +172,10 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
                               Eligible
                             </ContextMenuItem>
                             <ContextMenuItem
-                              disabled={!remark}
+                              disabled={subject.eligibility != "" && !remark}
+                              className={`${
+                                subject.eligibility == "false" ? "hidden" : ""
+                              }`}
                               onClick={() =>
                                 onEligibilityChanged(
                                   subject.sub_id,
@@ -188,7 +197,7 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
                             {subject.eligibility == "true" ? (
                               <FaCheck />
                             ) : subject.eligibility == "false" ? (
-                              <FaTimes />
+                              <FaTimes className="text-red-500" />
                             ) : (
                               <FaQuestionCircle
                                 size={18}
@@ -199,7 +208,12 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
                           {editEnable && (
                             <ContextMenuContent className="w-64 p-2">
                               <p className="font-semibold flex justify-center text-sm w-full mb-2">
-                                <span>Enter Remark</span>
+                                <span>
+                                  Enter Remark{" "}
+                                  {subject.eligibility == ""
+                                    ? "(optional)"
+                                    : ""}
+                                </span>
                               </p>
                               <p className="font-semibold flex justify-between text-sm w-full mb-2">
                                 <span>{subject.sub_code}</span>
@@ -213,7 +227,10 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
                                 className="my-2"
                               />
                               <ContextMenuItem
-                                disabled={!remark}
+                                disabled={subject.eligibility != "" && !remark}
+                                className={`${
+                                  subject.eligibility == "true" ? "hidden" : ""
+                                }`}
                                 onClick={() =>
                                   onEligibilityChanged(
                                     subject.sub_id,
@@ -226,7 +243,10 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
                                 Eligible
                               </ContextMenuItem>
                               <ContextMenuItem
-                                disabled={!remark}
+                                disabled={subject.eligibility != "" && !remark}
+                                className={`${
+                                  subject.eligibility == "false" ? "hidden" : ""
+                                }`}
                                 onClick={() =>
                                   onEligibilityChanged(
                                     subject.sub_id,

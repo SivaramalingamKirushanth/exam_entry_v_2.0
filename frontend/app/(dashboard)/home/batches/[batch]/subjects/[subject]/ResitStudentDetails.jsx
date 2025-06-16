@@ -12,6 +12,14 @@ import {
   updateResitEligibility,
 } from "@/utils/apiRequests/curriculum.api";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getAppliedResitStudentsByBatchAndSubject } from "@/utils/apiRequests/entry.api";
 
 import { useUser } from "@/utils/useUser";
@@ -40,6 +48,7 @@ const ResitStudentDetails = ({
   const [searchValue, setSearchValue] = useState("");
   const [roleId, setRoleID] = useState(null);
   const { data: user, isLoading } = useUser();
+  const [status, setStatus] = useState("all");
 
   useEffect(() => {
     if (user?.role_id) {
@@ -85,6 +94,10 @@ const ResitStudentDetails = ({
 
   const onEligibilityChanged = async (s_id, eligibility, remark) => {
     mutate({ batch_id, sub_id, eligibility, s_id, remark });
+  };
+
+  const onStatusOptionClicked = (e) => {
+    setStatus(e);
   };
 
   const onMultipleEligibilityChanged = async (eligibility, remark) => {
@@ -186,7 +199,7 @@ const ResitStudentDetails = ({
 
   useEffect(() => {
     if (data) {
-      let filtData = searchValue
+      let filtData1 = searchValue
         ? data.filter(
             (item) =>
               item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
@@ -194,13 +207,21 @@ const ResitStudentDetails = ({
           )
         : data;
 
-      setFilteredData(filtData);
+      let filtData2 = filtData1.filter((item) => {
+        return status == "all"
+          ? true
+          : status == "p"
+          ? item.eligibility == ""
+          : item.eligibility == status;
+      });
+
+      setFilteredData(filtData2);
     }
-  }, [searchValue, data]);
+  }, [searchValue, status, data]);
 
   return (
     <>
-      <div className="flex items-start mb-3">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between mb-2 items-center sm:items-start">
         <div className="bg-white rounded-md flex relative">
           <Input
             placeholder="Search by name or user name"
@@ -216,6 +237,27 @@ const ResitStudentDetails = ({
           >
             <MdCancel className="size-5 cursor-pointer" />
           </span>
+        </div>
+        <div className="flex items-center gap-5">
+          <div className="flex gap-1 items-center">
+            <p className="text-sm font-semibold">Status &nbsp;</p>
+            <Select
+              onValueChange={(e) => onStatusOptionClicked(e)}
+              defaultValue="all"
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a status" defaultValue="all" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="true">Eligible</SelectItem>
+                  <SelectItem value="false">Not Eligible</SelectItem>
+                  <SelectItem value="p">Pending</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
       <div className="container mx-auto">

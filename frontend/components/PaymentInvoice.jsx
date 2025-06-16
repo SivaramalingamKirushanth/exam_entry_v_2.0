@@ -30,7 +30,8 @@ const PaymentInvoice = ({
       {/* Header */}
       <div className="flex justify-between mb-4">
         <div className="text-sm">
-          <span className="font-semibold">Student's Reg.No:</span> {username}
+          <span className="font-semibold">Student&#x27;s Reg.No:</span>{" "}
+          {username}
         </div>
         <div className="text-sm">
           <span className="font-semibold">Exam Type:</span> {exam_type}

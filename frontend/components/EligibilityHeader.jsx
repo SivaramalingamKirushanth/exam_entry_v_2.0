@@ -17,7 +17,7 @@ const EligibilityHeader = ({
   );
 
   return (
-    <div className="flex justify-between">
+    <div className="flex justify-center gap-x-5 items-center">
       <span>Eligibility</span>
       <Switch
         onClick={(e) => {

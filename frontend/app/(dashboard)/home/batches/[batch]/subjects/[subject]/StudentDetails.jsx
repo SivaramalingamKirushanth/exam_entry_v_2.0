@@ -5,30 +5,27 @@ import { useEffect, useRef, useState } from "react";
 import { MdCancel } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAllStudents } from "@/utils/apiRequests/user.api";
 import { EntriesDataTable } from "@/components/EntriesDataTable";
 import {
   updateEligibility,
   updateMultipleEligibility,
 } from "@/utils/apiRequests/curriculum.api";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
+
 import { toast } from "sonner";
 import {
-  getAppliedStudentsForSubject,
   getAppliedStudentsForSubjectOfDepartment,
   getAppliedStudentsForSubjectOfFaculty,
 } from "@/utils/apiRequests/entry.api";
+
 import {
-  getBatchOpenDate,
-  getDeadlinesForBatch,
-} from "@/utils/apiRequests/batch.api";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useUser } from "@/utils/useUser";
 import EligibilityHeader from "@/components/EligibilityHeader";
 import EligibilityCell from "@/components/EligibilityCell";
@@ -37,6 +34,7 @@ const StudentDetails = ({ sub_id, batch_id, end_date }) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
+  const [status, setStatus] = useState("all");
 
   const [roleId, setRoleID] = useState(null);
   const { data: user, isLoading } = useUser();
@@ -86,6 +84,10 @@ const StudentDetails = ({ sub_id, batch_id, end_date }) => {
 
   const onEligibilityChanged = async (s_id, eligibility, remark) => {
     mutate({ batch_id, sub_id, eligibility, s_id, remark });
+  };
+
+  const onStatusOptionClicked = (e) => {
+    setStatus(e);
   };
 
   const onMultipleEligibilityChanged = async (eligibility, remark) => {
@@ -174,7 +176,7 @@ const StudentDetails = ({ sub_id, batch_id, end_date }) => {
         (item) => item.attendance != "M" && item.attendance != "R"
       );
 
-      let filtData = searchValue
+      let filtData1 = searchValue
         ? onlyProper.filter(
             (item) =>
               item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
@@ -182,13 +184,17 @@ const StudentDetails = ({ sub_id, batch_id, end_date }) => {
           )
         : onlyProper;
 
-      setFilteredData(filtData);
+      let filtData2 = filtData1.filter((item) => {
+        return status == "all" ? true : item.eligibility == status;
+      });
+
+      setFilteredData(filtData2);
     }
-  }, [searchValue, data]);
+  }, [searchValue, status, data]);
 
   return (
     <>
-      <div className="flex items-start mb-3">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between mb-2 items-center sm:items-start">
         <div className="bg-white rounded-md flex relative">
           <Input
             placeholder="Search by name or user name"
@@ -204,6 +210,26 @@ const StudentDetails = ({ sub_id, batch_id, end_date }) => {
           >
             <MdCancel className="size-5 cursor-pointer" />
           </span>
+        </div>
+        <div className="flex items-center gap-5">
+          <div className="flex gap-1 items-center">
+            <p className="text-sm font-semibold">Status &nbsp;</p>
+            <Select
+              onValueChange={(e) => onStatusOptionClicked(e)}
+              defaultValue="all"
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a status" defaultValue="all" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="true">Eligible</SelectItem>
+                  <SelectItem value="false">Not Eligible</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
       <div className="container mx-auto">
