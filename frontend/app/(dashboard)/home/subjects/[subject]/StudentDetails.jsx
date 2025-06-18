@@ -138,10 +138,10 @@ const StudentDetails = ({ sub_id, batch_id }) => {
     {
       id: "Eligibility",
       header: () => (
-        <EligibilityHeader
+         <abbr title="Automatically set based on Attendance Criteria. Check Formative assessment criteria and change if necessary."><EligibilityHeader
           filteredData={filteredData}
           onMultipleEligibilityChanged={onMultipleEligibilityChanged}
-        />
+        /></abbr>
       ),
 
       cell: ({ row }) => (

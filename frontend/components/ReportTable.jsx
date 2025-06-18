@@ -85,7 +85,7 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
       <TableHeader>
         <TableRow className="bg-black hover:bg-black">
           <TableHead className="w-[50px] text-white">#</TableHead>
-          <TableHead className="w-[100px] text-white">Index No</TableHead>
+          <TableHead className="w-[100px] text-white">Reg. No.</TableHead>
 
           {subjects?.map((obj) => (
             <TableHead
@@ -101,7 +101,7 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
         {Object.entries(data).map(([index_num, subObjArr], i) => (
           <TableRow key={index_num + exam_type}>
             <TableCell>{i + 1}</TableCell>
-            <TableCell>{index_num}</TableCell>
+            <TableCell>{subObjArr.user_name}</TableCell>
             {subjects?.map((obj) => (
               <TableCell
                 key={"body" + index_num + obj.sub_id + exam_type + batch_id}

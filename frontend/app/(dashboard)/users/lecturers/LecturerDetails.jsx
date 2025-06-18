@@ -64,7 +64,7 @@ const LecturerDetails = () => {
   const columns = [
     {
       id: "user_name",
-      header: "Email",
+      header: "User Name",
       cell: ({ row }) => {
         return <p className="lowercase">{row.original.user_name}</p>;
       },
