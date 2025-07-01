@@ -217,9 +217,8 @@ const AdmissionCardTemplate = ({
   useEffect(() => {
     if (latestAdmissionTemplateData) {
       let obj = {};
+      const latestData = latestAdmissionTemplateData?.data;
       if (latestAdmissionTemplateData.exist) {
-        const latestData = latestAdmissionTemplateData?.data;
-
         obj.generated_date = latestData?.generated_date;
         obj.description = latestData?.description;
         obj.instructions = latestData?.instructions;
@@ -257,9 +256,9 @@ const AdmissionCardTemplate = ({
         obj.subjects = transformedSubjects;
         obj.date = transformedDate;
       } else {
-        obj.description = latestData?.description;
-        obj.instructions = latestData?.instructions;
-        obj.provider = latestData?.provider;
+        obj.description = latestData?.description || "";
+        obj.instructions = latestData?.instructions || "";
+        obj.provider = latestData?.provider || "";
       }
 
       setFormData((cur) => ({

@@ -189,9 +189,11 @@ const Form = (request) => {
     data: applicationData,
     error,
     isLoading,
+    refetch: applicationDataRefetch,
   } = useQuery({
     queryFn: () => getStudentResitApplicationDetails(batch),
     queryKey: ["studentApplicationDetails", "resit"],
+    enabled: !!batch,
   });
 
   const {
@@ -228,6 +230,11 @@ const Form = (request) => {
 
     mutate({ subjects_string, batch_id: batch });
   };
+
+  useEffect(() => {
+    console.log(batch);
+    if (batch) applicationDataRefetch();
+  }, [batch]);
 
   useEffect(() => {
     if (applicationData?.subjects.length) {
