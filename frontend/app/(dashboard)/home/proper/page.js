@@ -23,7 +23,7 @@ const StudentHome = () => {
   const router = useRouter();
   const [generating, setGenerating] = useState(false);
 
-  const onApplyClick = (e) => {
+  const onApplyClick = (e, batch_id) => {
     e.preventDefault();
     const deg = e.currentTarget.dataset.deg;
     const degEncryptedData = CryptoJS.AES.encrypt(
@@ -32,7 +32,9 @@ const StudentHome = () => {
     ).toString();
 
     router.push(
-      `/home/proper/form?deg=${encodeURIComponent(degEncryptedData)}`
+      `/home/proper/form?deg=${encodeURIComponent(
+        degEncryptedData
+      )}&batch_id=${batch_id}`
     );
   };
 
@@ -113,7 +115,7 @@ const StudentHome = () => {
                         variant={
                           batch.status === "done"
                             ? "success"
-                            : batch.status === "pending"
+                            : batch.status === "applied"
                             ? "pending"
                             : batch.status === "expired"
                             ? "failure"
@@ -126,24 +128,14 @@ const StudentHome = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-around items-center h-full">
-                        {batch.status == "active" ? (
-                          <Button
-                            variant="outline"
-                            className="uppercase"
-                            data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
-                            onClick={(e) => onApplyClick(e)}
-                          >
-                            apply
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            className="uppercase"
-                            disabled={true}
-                          >
-                            apply
-                          </Button>
-                        )}
+                        <Button
+                          variant="outline"
+                          className="uppercase"
+                          data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
+                          onClick={(e) => onApplyClick(e, batch.batch_id)}
+                        >
+                          {batch.status == "active" ? "apply" : "View"}
+                        </Button>
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
@@ -202,7 +194,7 @@ const StudentHome = () => {
                     variant={
                       batch.status === "done"
                         ? "success"
-                        : batch.status === "pending"
+                        : batch.status === "applied"
                         ? "pending"
                         : batch.status === "expired"
                         ? "failure"
@@ -214,26 +206,15 @@ const StudentHome = () => {
                   </Badge>
                 </h1>
                 <div className="flex justify-around items-center self-stretch">
-                  {batch.status == "active" ? (
-                    <Button
-                      variant="outline"
-                      className="uppercase"
-                      size="sm"
-                      data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
-                      onClick={(e) => onApplyClick(e)}
-                    >
-                      apply
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="uppercase"
-                      size="sm"
-                      disabled={true}
-                    >
-                      apply
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    className="uppercase"
+                    size="sm"
+                    data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
+                    onClick={(e) => onApplyClick(e)}
+                  >
+                    {batch.status == "active" ? "apply" : "View"}
+                  </Button>
                 </div>
                 <div className="flex flex-col items-center justify-center">
                   <span className="font-semibold">Deadline</span>

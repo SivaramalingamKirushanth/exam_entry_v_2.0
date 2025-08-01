@@ -30,6 +30,7 @@ import {
   getLatestAdmissionTemplate,
   getLatestAttendanceTemplate,
   getStudentMedicalResitApplications,
+  getStudentSubjectEligibility,
   getStudentSubjects,
   getStudentsWithoutIndexNumber,
   getSummarySubjectsData,
@@ -190,6 +191,11 @@ router.post(
   "/getDynamicBatchTablesData",
   verifyUser(["1"]),
   getDynamicBatchTablesData
+);
+router.post(
+  "/getStudentSubjectEligibility",
+  verifyUser(["5"]),
+  getStudentSubjectEligibility
 );
 
 export default router;
