@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const PaymentInvoice = ({
+const PayingInVoucher = ({
   paymentDetails,
   onRenderComplete,
   instructionsdata,
@@ -109,4 +109,4 @@ const PaymentInvoice = ({
   );
 };
 
-export default PaymentInvoice;
+export default PayingInVoucher;

@@ -29,7 +29,7 @@ import html2canvas from "html2canvas";
 import { createRoot } from "react-dom/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
-import PaymentInvoice from "@/components/PaymentInvoice";
+import PayingInVoucher from "@/components/PayingInVoucher";
 import Model from "./Model";
 
 const StudentMedicalHome = () => {
@@ -102,7 +102,7 @@ const StudentMedicalHome = () => {
     queryKey: ["instructions"],
   });
 
-  const generatePaymentInvoicePDF = async (paymentDetails) => {
+  const generatePayingInVoucherPDF = async (paymentDetails) => {
     setInvoiceDownloadBatchId(null);
     if (typeof document === "undefined") {
       console.error("This function can only run in a browser environment.");
@@ -132,7 +132,7 @@ const StudentMedicalHome = () => {
       const root = createRoot(container);
       const renderComplete = new Promise((resolve) => {
         root.render(
-          <PaymentInvoice
+          <PayingInVoucher
             paymentDetails={paymentDetails}
             onRenderComplete={resolve}
             instructionsdata={instructionsdata}
@@ -178,7 +178,7 @@ const StudentMedicalHome = () => {
       document.body.removeChild(container);
 
       // Save the PDF for the current exam type
-      pdf.save(`${paymentDetails.username}_payment_invoice.pdf`);
+      pdf.save(`${paymentDetails.username}_paying_in_voucher.pdf`);
     } catch (error) {
       console.error("Error generating PDFs:", error);
     } finally {
@@ -216,7 +216,7 @@ const StudentMedicalHome = () => {
         amounts: paymentData,
       };
 
-      generatePaymentInvoicePDF(paymentDetails);
+      generatePayingInVoucherPDF(paymentDetails);
       setInvoiceDownloadBatchId(null);
     }
   }, [invoiceDownloadBatchId, openDateData, subjectData, paymentData]);
