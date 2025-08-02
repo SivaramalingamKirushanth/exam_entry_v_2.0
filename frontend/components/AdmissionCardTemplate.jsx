@@ -218,7 +218,6 @@ const AdmissionCardTemplate = ({
     if (latestAdmissionTemplateData) {
       let obj = {};
       const latestData = latestAdmissionTemplateData?.data;
-
       if (latestAdmissionTemplateData.exist) {
         obj.generated_date = latestData?.generated_date;
         obj.description = latestData?.description;

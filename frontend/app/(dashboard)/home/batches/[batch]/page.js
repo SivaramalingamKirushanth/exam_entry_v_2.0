@@ -129,6 +129,7 @@ const Batches = () => {
         </div>
       </div>
     );
+console.log(dashboardData);
 
   return (
     <div className="flex flex-col">
@@ -184,59 +185,59 @@ const Batches = () => {
                     (remarkObj) => remarkObj.s_id == stuObj.s_id
                   );
                   if (stuObj.exam_type == "P") {
-                    properData[stuObj.index_num]
-                      ? properData[stuObj.index_num].push({
+                    properData[stuObj.user_name]
+                      ? properData[stuObj.user_name].push({
                           sub_id: subObj.sub_id,
                           sub_code: subObj.sub_code,
-                          user_name: stuObj.user_name,
+                          index_num: stuObj.index_num,
                           s_id: stuObj.s_id,
                           eligibility: stuObj.eligibility,
                           remarks,
                         })
-                      : (properData[stuObj.index_num] = [
+                      : (properData[stuObj.user_name] = [
                           {
                             sub_id: subObj.sub_id,
                             sub_code: subObj.sub_code,
-                            user_name: stuObj.user_name,
+                            index_num: stuObj.index_num,
                             s_id: stuObj.s_id,
                             eligibility: stuObj.eligibility,
                             remarks,
                           },
                         ]);
                   } else if (stuObj.exam_type == "M") {
-                    medicalData[stuObj.index_num]
-                      ? medicalData[stuObj.index_num].push({
+                    medicalData[stuObj.user_name]
+                      ? medicalData[stuObj.user_name].push({
                           sub_id: subObj.sub_id,
-                          user_name: stuObj.user_name,
+                          index_num: stuObj.index_num,
                           s_id: stuObj.s_id,
                           eligibility: stuObj.eligibility,
                           remarks,
                         })
-                      : (medicalData[stuObj.index_num] = [
+                      : (medicalData[stuObj.user_name] = [
                           {
                             sub_id: subObj.sub_id,
                             sub_code: subObj.sub_code,
-                            user_name: stuObj.user_name,
+                            index_num: stuObj.index_num,
                             s_id: stuObj.s_id,
                             eligibility: stuObj.eligibility,
                             remarks,
                           },
                         ]);
                   } else if (stuObj.exam_type == "R") {
-                    resitData[stuObj.index_num]
-                      ? resitData[stuObj.index_num].push({
+                    resitData[stuObj.user_name]
+                      ? resitData[stuObj.user_name].push({
                           sub_id: subObj.sub_id,
                           sub_code: subObj.sub_code,
-                          user_name: stuObj.user_name,
+                          index_num: stuObj.index_num,
                           s_id: stuObj.s_id,
                           eligibility: stuObj.eligibility,
                           remarks,
                         })
-                      : (resitData[stuObj.index_num] = [
+                      : (resitData[stuObj.user_name] = [
                           {
                             sub_id: subObj.sub_id,
                             sub_code: subObj.sub_code,
-                            user_name: stuObj.user_name,
+                            index_num: stuObj.index_num,
                             s_id: stuObj.s_id,
                             eligibility: stuObj.eligibility,
                             remarks,

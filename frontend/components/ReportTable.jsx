@@ -85,7 +85,7 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
       <TableHeader>
         <TableRow className="bg-black hover:bg-black">
           <TableHead className="w-[50px] text-white">#</TableHead>
-          <TableHead className="w-[100px] text-white">Index No</TableHead>
+          <TableHead className="w-[100px] text-white">Reg. No.</TableHead>
 
           {subjects?.map((obj) => (
             <TableHead
@@ -98,13 +98,13 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {Object.entries(data).map(([index_num, subObjArr], i) => (
-          <TableRow key={index_num + exam_type}>
+        {Object.entries(data).map(([user_name, subObjArr], i) => (
+          <TableRow key={user_name + exam_type}>
             <TableCell>{i + 1}</TableCell>
-            <TableCell>{index_num}</TableCell>
+            <TableCell>{user_name}</TableCell>
             {subjects?.map((obj) => (
               <TableCell
-                key={"body" + index_num + obj.sub_id + exam_type + batch_id}
+                key={"body" + user_name + obj.sub_id + exam_type + batch_id}
               >
                 {(() => {
                   const subject = subObjArr.find(
@@ -147,7 +147,7 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
                             <p className="font-semibold flex justify-between text-sm w-full mb-2">
                               <span>{subject.sub_code}</span>
                               <span>
-                                {index_num || subject.user_name || ""}
+                                {user_name || subject.index_num || ""}
                               </span>
                             </p>
                             <Textarea
@@ -218,7 +218,7 @@ const ReportTable = ({ subjects, data, exam_type, batch_id, editEnable }) => {
                               <p className="font-semibold flex justify-between text-sm w-full mb-2">
                                 <span>{subject.sub_code}</span>
                                 <span>
-                                  {index_num || subject.user_name || ""}
+                                  {user_name || subject.index_num || ""}
                                 </span>
                               </p>
                               <Textarea

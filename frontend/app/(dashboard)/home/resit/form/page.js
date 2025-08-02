@@ -108,9 +108,11 @@ const Form = (request) => {
     data: applicationData,
     error,
     isLoading,
+    refetch: applicationDataRefetch,
   } = useQuery({
     queryFn: () => getStudentResitApplicationDetails(batch),
     queryKey: ["studentApplicationDetails", "resit"],
+    enabled: !!batch,
   });
 
   const { data: resitEligibilityData } = useQuery({
@@ -155,8 +157,15 @@ const Form = (request) => {
   };
 
   useEffect(() => {
-    if (applicationData?.subjects?.length) {
-      const modifiedArr = applicationData?.subjects?.map((obj) => ({
+
+    console.log(batch);
+    if (batch) applicationDataRefetch();
+  }, [batch]);
+
+  useEffect(() => {
+    if (applicationData?.subjects.length) {
+      const modifiedArr = applicationData?.subjects.map((obj) => ({
+
         value: obj.sub_id,
         label: `${obj.sub_code} - ${obj.sub_name}`,
       }));
