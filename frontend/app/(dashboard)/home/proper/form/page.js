@@ -65,8 +65,6 @@ const Form = (request) => {
     queryKey: ["student", "subject", "eligibility"],
   });
 
-  console.log(eligibilityData);
-
   const { status, mutate } = useMutation({
     mutationFn: applyExam,
     onSuccess: async (res) => {
@@ -158,7 +156,7 @@ const Form = (request) => {
                   </div>
                   <h1>
                     {isApplied ? (
-                      ""
+                      <span></span>
                     ) : (
                       <FaMinusCircle size={20} className="opacity-0" />
                     )}
@@ -211,7 +209,7 @@ const Form = (request) => {
                       </div>
                       <h1>
                         {isApplied ? (
-                          ""
+                          <span></span>
                         ) : (
                           <Drawer>
                             <DrawerTrigger>

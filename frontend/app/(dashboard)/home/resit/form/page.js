@@ -31,12 +31,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { applyResitExam } from "@/utils/apiRequests/entry.api";
+import {
+  applyResitExam,
+  getStudentResitSubjectEligibility,
+} from "@/utils/apiRequests/entry.api";
 import { formatResitData, titleCase } from "@/utils/functions";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import { createRoot } from "react-dom/client";
-import ExamApplicationPrint from "./ExamApplicationPrint";
+import { Badge } from "@/components/ui/badge";
+
+const grades = {
+  0: "N/A",
+  1: "F",
+  2: "E",
+  3: "D",
+  4: "D+",
+  5: "C-",
+  6: "C",
+};
 
 const Form = (request) => {
   const router = useRouter();
@@ -48,99 +58,8 @@ const Form = (request) => {
   const [formData, setFormData] = useState({ subjects: [] });
   const [attemptsData, setAttemptsData] = useState({});
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
-
-  const generatePDF = async () => {
-    if (typeof document === "undefined") {
-      console.error("This function can only run in a browser environment.");
-      return;
-    }
-
-    try {
-      // Create a container with precise A4 dimensions (like admission card method)
-      const container = document.createElement("div");
-      container.style.width = "210mm";
-      container.style.padding = "10mm";
-      container.style.backgroundColor = "#fff";
-      container.style.boxSizing = "border-box";
-      container.style.position = "absolute";
-      container.style.left = "-9999px";
-      container.style.top = "0";
-      container.id = `exam-application-print-container`;
-
-      document.body.appendChild(container);
-
-      const root = createRoot(container);
-
-      await new Promise((resolve) => {
-        root.render(
-          <ExamApplicationPrint
-            applicationData={applicationData}
-            examName={examName}
-            subjects={formData.subjects}
-            onRenderComplete={resolve}
-            attemptsData={attemptsData}
-          />
-        );
-      });
-
-      // Use html2canvas with better settings (same as admission card)
-      const quality = 2; // Higher value = better quality
-      const canvas = await html2canvas(container, {
-        scale: quality,
-        useCORS: true,
-        logging: false,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-      });
-
-      // Create PDF with same settings as admission card
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
-
-      // Convert canvas to image
-      const imgData = canvas.toDataURL("image/JPEG", 1.0);
-
-      // Calculate dimensions to fit the page (same as admission card method)
-      const imgWidth = pdf.internal.pageSize.getWidth();
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      // Add image to PDF - ensure it fits on one page
-      const contentHeight = Math.min(imgHeight, pageHeight - 10); // Subtract margin
-      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, contentHeight);
-
-      // Handle content that exceeds page height by adding additional pages
-      if (imgHeight > pageHeight) {
-        let heightLeft = imgHeight - pageHeight;
-        let position = -pageHeight;
-
-        while (heightLeft > 0) {
-          position = position - pageHeight;
-          pdf.addPage();
-          pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
-        }
-      }
-
-      // Clean up by removing the container
-      document.body.removeChild(container);
-
-      // Save the PDF
-      const fileName = `Exam_Application_${
-        applicationData?.user_name || "Student"
-      }_Resit_${new Date().toISOString().split("T")[0]}.pdf`;
-      pdf.save(fileName);
-
-      toast.success("Application form downloaded as PDF");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF");
-    }
-  };
+  const [isApplied, setIsApplied] = useState(false);
+  const [isAttemptDataSatisfied, setIsAttemptDataSatisfied] = useState(false);
 
   const handleSubmit = () => {
     setIsSubmitDialogOpen(true);
@@ -164,7 +83,7 @@ const Form = (request) => {
     const valArr = e.split(":");
     const sub_id = valArr[0];
     const attempt = valArr[1];
-    const result = valArr[2];
+    const result = valArr[2] || "";
     setAttemptsData((cur) => ({
       ...cur,
       [sub_id]: {
@@ -194,6 +113,13 @@ const Form = (request) => {
     queryKey: ["studentApplicationDetails", "resit"],
   });
 
+  const { data: resitEligibilityData } = useQuery({
+    queryFn: () => getStudentResitSubjectEligibility(batch),
+    queryKey: ["student", "resit", "subject", "eligibility"],
+  });
+
+  console.log(resitEligibilityData);
+
   const {
     data: gradesData,
     isLoading: isGradesDataLoading,
@@ -206,11 +132,10 @@ const Form = (request) => {
   const { status, mutate } = useMutation({
     mutationFn: applyResitExam,
     onSuccess: async (res) => {
-      await generatePDF();
-
       queryClient.invalidateQueries(
         ["batchesOfStudent", "resit"],
-        ["studentApplicationDetails", "resit"]
+        ["studentApplicationDetails", "resit"],
+        ["student", "resit", "subject", "eligibility"]
       );
       toast.success(res.message);
 
@@ -230,8 +155,8 @@ const Form = (request) => {
   };
 
   useEffect(() => {
-    if (applicationData?.subjects.length) {
-      const modifiedArr = applicationData?.subjects.map((obj) => ({
+    if (applicationData?.subjects?.length) {
+      const modifiedArr = applicationData?.subjects?.map((obj) => ({
         value: obj.sub_id,
         label: `${obj.sub_code} - ${obj.sub_name}`,
       }));
@@ -239,6 +164,19 @@ const Form = (request) => {
     }
   }, [applicationData]);
 
+  useEffect(() => {
+    if (resitEligibilityData) {
+      if (resitEligibilityData.applied == "true") setIsApplied(true);
+    }
+  }, [resitEligibilityData]);
+
+  useEffect(() => {
+    const attemptDataOk = Object.values(attemptsData).every((obj) =>
+      Object.values(obj).some((result) => result)
+    );
+
+    setIsAttemptDataSatisfied(attemptDataOk);
+  }, [attemptsData]);
   return (
     <>
       {applicationData && Object.keys(applicationData).length && (
@@ -272,154 +210,256 @@ const Form = (request) => {
                 <span className="uppercase p-2 ">{applicationData?.name}</span>
               </p>
             </div>
-            <div className="w-full max-w-md mt-5 flex justify-center">
-              <div className="w-[80%] ">
-                <ReactSelect
-                  value={formData.subjects}
-                  onChange={handleChange}
-                  options={subjectsArr}
-                  isMulti
-                  isClearable={false}
-                  isDisabled={error || isLoading}
-                  name="subjects"
-                  placeholder={
-                    error
-                      ? "Not found"
-                      : isLoading
-                      ? "Loading..."
-                      : "Select subjects"
-                  }
-                  classNamePrefix="react-select"
-                  styles={{
-                    multiValue: () => ({ display: "none" }),
-                    control: (base) => ({
-                      ...base,
-                      borderColor: "#ccc",
-                      boxShadow: "none",
-                      fontSize: "0.9rem",
-                      "&:hover": {
-                        borderColor: "#000",
+            {isApplied ? (
+              <span></span>
+            ) : (
+              <div className="w-full max-w-md mt-5 flex justify-center">
+                <div className="w-[80%] ">
+                  <ReactSelect
+                    value={formData.subjects}
+                    onChange={handleChange}
+                    options={subjectsArr}
+                    isMulti
+                    isClearable={false}
+                    isDisabled={error || isLoading}
+                    name="subjects"
+                    placeholder={
+                      error
+                        ? "Not found"
+                        : isLoading
+                        ? "Loading..."
+                        : "Select subjects"
+                    }
+                    classNamePrefix="react-select"
+                    styles={{
+                      multiValue: () => ({ display: "none" }),
+                      control: (base) => ({
+                        ...base,
+                        borderColor: "#ccc",
+                        boxShadow: "none",
+                        fontSize: "0.9rem",
+                        "&:hover": {
+                          borderColor: "#000",
+                        },
+                      }),
+                      menuList: (base) => ({
+                        ...base,
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                        fontSize: "0.9rem",
+                      }),
+                    }}
+                    theme={(theme) => ({
+                      ...theme,
+                      borderRadius: 5,
+                      colors: {
+                        ...theme.colors,
+                        primary25: "#f2f2f2",
+                        primary: "black",
                       },
-                    }),
-                    menuList: (base) => ({
-                      ...base,
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                      fontSize: "0.9rem",
-                    }),
-                  }}
-                  theme={(theme) => ({
-                    ...theme,
-                    borderRadius: 5,
-                    colors: {
-                      ...theme.colors,
-                      primary25: "#f2f2f2",
-                      primary: "black",
-                    },
-                  })}
-                />
+                    })}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
           <div className="md:w-[85%] w-full">
             <div className="my-5 sm:my-10 flex flex-col gap-2">
-              {formData?.subjects.length ? (
-                <div className="hidden sm:flex gap-2 items-center text-sm">
-                  <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
-                    <h1 className="uppercase w-full sm:w-[12.5%] shrink-0 text-center text-sm">
-                      Subject Code
-                    </h1>
-                    <h1 className="uppercase w-full sm:w-1/2 shrink-0 text-center text-sm">
-                      Subject Name
-                    </h1>
-                    <h1 className="uppercase w-full sm:w-[37.5%] shrink-0 text-center text-sm">
-                      Result
-                    </h1>
-                  </div>
-                  <h1>
-                    <FaMinusCircle size={20} className="opacity-0" />
-                  </h1>
-                </div>
-              ) : (
-                <span></span>
-              )}
-              {applicationData?.subjects?.length ? (
-                formData?.subjects.map((obj, ind) => {
-                  const sub_id = obj.value;
-                  const subject = obj.label
-                    .split("-")
-                    .map((item) => item.trim());
-                  return (
-                    <div key={sub_id} className="flex gap-2 items-center">
-                      <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
-                        <h1 className="uppercase w-full sm:w-[12.5%] shrink-0 text-center text-sm sm:text-base">
-                          {subject[0]}
-                        </h1>
-                        <h1 className="capitalize w-full sm:w-1/2 shrink-0 text-center text-sm sm:text-base mb-2 sm:mb-0">
-                          {subject[1]}
-                        </h1>
-                        {[
-                          { no: 1, suffix: "st" },
-                          { no: 2, suffix: "nd" },
-                          { no: 3, suffix: "rd" },
-                        ].map((attempt) => (
-                          <h1
-                            key={attempt.no}
-                            className="capitalize w-full sm:w-[12.5%] mb-2 sm:mb-0 shrink-0 text-center text-sm sm:text-base"
-                          >
-                            <Select onValueChange={(e) => onSelectChange(e)}>
-                              <SelectTrigger className="w-[90%]">
-                                <SelectValue
-                                  placeholder={`${attempt.no}${attempt.suffix} Attempt`}
-                                />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem
-                                  value={`${sub_id}:${attempt.no}:`}
-                                  className="text-center font-bold w-full"
-                                >
-                                  {attempt.no}
-                                  {attempt.suffix} Attempt
-                                </SelectItem>
-                                {gradesData?.map((grdObj) => (
-                                  <SelectItem
-                                    key={
-                                      "item" + attempt.no + "-grade" + grdObj.id
-                                    }
-                                    value={`${sub_id}:${attempt.no}:${grdObj.id}`}
-                                  >
-                                    {grdObj.grade}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </h1>
-                        ))}
-                      </div>
-                      <h1>
-                        <FaMinusCircle
-                          onClick={() => {
-                            const obj = { ...attemptsData };
-                            delete obj[sub_id];
-                            setAttemptsData(obj);
-                            handleRemove(sub_id);
-                          }}
-                          size={20}
-                          className="text-red-500 hover:text-red-600 cursor-pointer"
-                        />
+              {isApplied &&
+              applicationData &&
+              applicationData?.subjects?.length ? (
+                <div
+                  className={`my-5 sm:my-10 flex flex-col gap-2 opacity-50 cursor-not-allowed`}
+                >
+                  <div className="flex gap-2 items-center text-sm">
+                    <div className="flex-1 hidden sm:flex sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
+                      <h1 className="uppercase w-full sm:w-2/12 shrink-0 text-center text-sm">
+                        Subject Code
+                      </h1>
+                      <h1 className="uppercase w-full sm:w-5/12 shrink-0 text-center text-sm">
+                        Subject Name
+                      </h1>
+                      <h1 className="uppercase w-full sm:w-1/12 shrink-0 text-center text-sm">
+                        1st Attempt
+                      </h1>
+                      <h1 className="uppercase w-full sm:w-1/12 shrink-0 text-center text-sm">
+                        2nd Attempt
+                      </h1>
+                      <h1 className="uppercase w-full sm:w-1/12 shrink-0 text-center text-sm">
+                        3rd Attempt
+                      </h1>
+                      <h1 className="uppercase w-full sm:w-2/12 shrink-0 text-center text-sm">
+                        Eligibility
                       </h1>
                     </div>
-                  );
-                })
+                  </div>
+
+                  {applicationData?.subjects
+                    ?.filter(
+                      (obj) =>
+                        resitEligibilityData.eligibility[obj.sub_id]
+                          ?.eligible == "true" ||
+                        resitEligibilityData.eligibility[obj.sub_id]
+                          ?.eligible == "false" ||
+                        resitEligibilityData.eligibility[obj.sub_id]
+                          ?.eligible == ""
+                    )
+                    .map((obj, ind) => (
+                      <div key={obj.sub_id} className="flex gap-2 items-center">
+                        <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg justify-between items-center w-full">
+                          <h1 className="uppercase w-full sm:w-2/12 shrink-0 text-center text-sm sm:text-base">
+                            {obj.sub_code}
+                          </h1>
+                          <h1 className="capitalize w-full sm:w-5/12 shrink-0 text-center text-sm sm:text-base">
+                            {obj.sub_name}
+                          </h1>
+                          <h1 className="capitalize w-full sm:w-1/12 shrink-0 text-center text-sm sm:text-base">
+                            {grades[
+                              resitEligibilityData.eligibility[obj.sub_id]
+                                ?.attempt_1
+                            ] || ""}
+                          </h1>
+                          <h1 className="capitalize w-full sm:w-1/12 shrink-0 text-center text-sm sm:text-base">
+                            {grades[
+                              resitEligibilityData.eligibility[obj.sub_id]
+                                ?.attempt_2
+                            ] || ""}
+                          </h1>
+                          <h1 className="capitalize w-full sm:w-1/12 shrink-0 text-center text-sm sm:text-base">
+                            {grades[
+                              resitEligibilityData.eligibility[obj.sub_id]
+                                ?.attempt_3
+                            ] || ""}
+                          </h1>
+                          <h1 className="capitalize w-full sm:w-2/12 shrink-0 text-center text-sm sm:text-base">
+                            {resitEligibilityData.eligibility[obj.sub_id]
+                              ?.eligible == "true" ? (
+                              <Badge variant="success" className="capitalize">
+                                eligible
+                              </Badge>
+                            ) : resitEligibilityData.eligibility[obj.sub_id]
+                                ?.eligible == "false" ? (
+                              <Badge variant="failure" className="capitalize">
+                                not eligible
+                              </Badge>
+                            ) : (
+                              <Badge variant="pending" className="capitalize">
+                                pending
+                              </Badge>
+                            )}
+                          </h1>
+                        </div>
+                      </div>
+                    ))}
+                </div>
               ) : (
-                <h1 className="text-lg font-semibold">
-                  No subjects available!
-                </h1>
+                <div className="my-5 sm:my-10 flex flex-col gap-2">
+                  {formData?.subjects.length ? (
+                    <div className="hidden sm:flex gap-2 items-center text-sm">
+                      <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
+                        <h1 className="uppercase w-full sm:w-[12.5%] shrink-0 text-center text-sm">
+                          Subject Code
+                        </h1>
+                        <h1 className="uppercase w-full sm:w-1/2 shrink-0 text-center text-sm">
+                          Subject Name
+                        </h1>
+                        <h1 className="uppercase w-full sm:w-[37.5%] shrink-0 text-center text-sm">
+                          Result
+                        </h1>
+                      </div>
+                      <h1>
+                        <FaMinusCircle size={20} className="opacity-0" />
+                      </h1>
+                    </div>
+                  ) : (
+                    <span></span>
+                  )}
+                  {applicationData?.subjects?.length ? (
+                    formData?.subjects?.map((obj, ind) => {
+                      const sub_id = obj.value;
+                      const subject = obj.label
+                        .split("-")
+                        .map((item) => item.trim());
+                      return (
+                        <div key={sub_id} className="flex gap-2 items-center">
+                          <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
+                            <h1 className="uppercase w-full sm:w-[12.5%] shrink-0 text-center text-sm sm:text-base">
+                              {subject[0]}
+                            </h1>
+                            <h1 className="capitalize w-full sm:w-1/2 shrink-0 text-center text-sm sm:text-base mb-2 sm:mb-0">
+                              {subject[1]}
+                            </h1>
+                            {[
+                              { no: 1, suffix: "st" },
+                              { no: 2, suffix: "nd" },
+                              { no: 3, suffix: "rd" },
+                            ].map((attempt) => (
+                              <h1
+                                key={attempt.no}
+                                className="capitalize w-full sm:w-[12.5%] mb-2 sm:mb-0 shrink-0 text-center text-sm sm:text-base"
+                              >
+                                <Select
+                                  onValueChange={(e) => onSelectChange(e)}
+                                >
+                                  <SelectTrigger className="w-[90%]">
+                                    <SelectValue
+                                      placeholder={`${attempt.no}${attempt.suffix} Attempt`}
+                                    />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem
+                                      value={`${sub_id}:${attempt.no}:`}
+                                      className="text-center font-bold w-full"
+                                    >
+                                      {attempt.no}
+                                      {attempt.suffix} Attempt
+                                    </SelectItem>
+                                    {gradesData?.map((grdObj) => (
+                                      <SelectItem
+                                        key={
+                                          "item" +
+                                          attempt.no +
+                                          "-grade" +
+                                          grdObj.id
+                                        }
+                                        value={`${sub_id}:${attempt.no}:${grdObj.id}`}
+                                      >
+                                        {grdObj.grade}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </h1>
+                            ))}
+                          </div>
+                          <h1>
+                            <FaMinusCircle
+                              onClick={() => {
+                                const obj = { ...attemptsData };
+                                delete obj[sub_id];
+                                setAttemptsData(obj);
+                                handleRemove(sub_id);
+                              }}
+                              size={20}
+                              className="text-red-500 hover:text-red-600 cursor-pointer"
+                            />
+                          </h1>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <h1 className="text-lg font-semibold">
+                      No subjects available!
+                    </h1>
+                  )}
+                </div>
               )}
             </div>
             <div className="flex justify-center sm:justify-end">
-              {Object.keys(applicationData).length &&
-              Object.keys(attemptsData)?.length ? (
+              {!isApplied &&
+              Object.keys(applicationData).length &&
+              Object.keys(attemptsData)?.length &&
+              isAttemptDataSatisfied ? (
                 <AlertDialog
                   open={isSubmitDialogOpen}
                   onOpenChange={setIsSubmitDialogOpen}
@@ -446,10 +486,6 @@ const Form = (request) => {
                         be able to edit or re-apply for this examination. Please
                         review your selected subjects carefully before
                         confirming.
-                        <br />
-                        <br />
-                        After submission, your application form will be
-                        automatically downloaded as a PDF for your records.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

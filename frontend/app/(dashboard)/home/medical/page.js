@@ -306,25 +306,15 @@ const StudentMedicalHome = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-y-1  h-full gap-x-2">
-                        {batch.medical_status == "active" ? (
-                          <Button
-                            variant="outline"
-                            className="uppercase"
-                            data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
-                            data-batch={batch.batch_id}
-                            onClick={(e) => onApplyClick(e)}
-                          >
-                            apply
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            className="uppercase"
-                            disabled={true}
-                          >
-                            apply
-                          </Button>
-                        )}
+                        <Button
+                          variant="outline"
+                          className="uppercase"
+                          data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
+                          data-batch={batch.batch_id}
+                          onClick={(e) => onApplyClick(e)}
+                        >
+                          {batch.medical_status == "active" ? "apply" : "View"}
+                        </Button>
 
                         {batch.medical_status !== "payment pending" ? (
                           <Button
@@ -440,27 +430,16 @@ const StudentMedicalHome = () => {
                   </Badge>
                 </h1>
                 <div className="flex justify-around flex-wrap gap-2 items-center self-stretch">
-                  {batch.medical_status == "active" ? (
-                    <Button
-                      variant="outline"
-                      className="uppercase"
-                      size="sm"
-                      data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
-                      data-batch={batch.batch_id}
-                      onClick={(e) => onApplyClick(e)}
-                    >
-                      apply
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="uppercase"
-                      size="sm"
-                      disabled={true}
-                    >
-                      apply
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    className="uppercase"
+                    size="sm"
+                    data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
+                    data-batch={batch.batch_id}
+                    onClick={(e) => onApplyClick(e)}
+                  >
+                    {batch.medical_status == "active" ? "apply" : "View"}
+                  </Button>
 
                   {batch.medical_status !== "payment pending" ? (
                     <Button
