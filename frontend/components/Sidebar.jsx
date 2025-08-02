@@ -40,10 +40,10 @@ const Sidebar = () => {
   });
 
   return (
-    <div className="w-12 sm:hover:w-48 transition-all duration-300 overflow-hidden rounded-xl fixed top-[45%] left-2 -translate-y-1/3 shadow-2xl bg-white py-3 flex flex-col gap-y-[2px] items-start bg-background supports-[backdrop-filter]:bg-background z-50">
+    <div className="w-12 sm:sm:hover:w-48 transition-all duration-300 overflow-hidden rounded-xl fixed top-[45%] left-2 -translate-y-1/3 shadow-2xl bg-white py-3 flex flex-col gap-y-[2px] items-start bg-background supports-[backdrop-filter]:bg-background z-50">
       <Link
         href="/home"
-        className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
+        className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap sm:hover:bg-zinc-900 active:bg-zinc-900 sm:hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
           pathname.startsWith("/home") ? "bg-gray-200" : ""
         }`}
       >
@@ -55,7 +55,7 @@ const Sidebar = () => {
         <>
           <Link
             href="/courses"
-            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
+            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap sm:hover:bg-zinc-900 active:bg-zinc-900 sm:hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
               pathname.startsWith("/courses") ? "bg-gray-200" : ""
             }`}
           >
@@ -64,7 +64,7 @@ const Sidebar = () => {
           </Link>
           <Link
             href="/curriculums"
-            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
+            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap sm:hover:bg-zinc-900 active:bg-zinc-900 sm:hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
               pathname.startsWith("/curriculums") ? "bg-gray-200" : ""
             }`}
           >
@@ -73,7 +73,7 @@ const Sidebar = () => {
           </Link>
           <Link
             href="/users"
-            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
+            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap sm:hover:bg-zinc-900 active:bg-zinc-900 sm:hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
               pathname.startsWith("/users") ? "bg-gray-200" : ""
             }`}
           >
@@ -82,7 +82,7 @@ const Sidebar = () => {
           </Link>
           <Link
             href="/venues"
-            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
+            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap sm:hover:bg-zinc-900 active:bg-zinc-900 sm:hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
               pathname.startsWith("/venues") ? "bg-gray-200" : ""
             }`}
           >
@@ -91,7 +91,7 @@ const Sidebar = () => {
           </Link>
           <Link
             href="/examinations"
-            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
+            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap sm:hover:bg-zinc-900 active:bg-zinc-900 sm:hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
               pathname.startsWith("/examinations") ? "bg-gray-200" : ""
             }`}
           >
@@ -100,7 +100,7 @@ const Sidebar = () => {
           </Link>
           <Link
             href="/requests"
-            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 relative hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
+            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap sm:hover:bg-zinc-900 active:bg-zinc-900 relative sm:hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
               pathname.startsWith("/requests") ? "bg-gray-200" : ""
             }`}
           >
@@ -114,7 +114,7 @@ const Sidebar = () => {
           </Link>
           <Link
             href="/entries"
-            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900 hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
+            className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap sm:hover:bg-zinc-900 active:bg-zinc-900 sm:hover:text-zinc-100 w-[95%] rounded-r-md transition-colors duration-150 ${
               pathname.startsWith("/entries") ? "bg-gray-200" : ""
             }`}
           >
@@ -125,10 +125,10 @@ const Sidebar = () => {
       )}
 
       <span
-        className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap hover:bg-zinc-900  w-[95%] rounded-r-md transition-colors duration-150 ${
+        className={`flex gap-3 uppercase items-center px-3 py-2 text-nowrap sm:hover:bg-zinc-900 active:bg-zinc-900  w-[95%] rounded-r-md transition-colors duration-150 ${
           pathnameArr.length > 1
-            ? "text-black cursor-pointer hover:text-zinc-100"
-            : "text-slate-400 cursor-not-allowed hover:text-zinc-400"
+            ? "text-black cursor-pointer sm:hover:text-zinc-100"
+            : "text-slate-400 cursor-not-allowed sm:hover:text-zinc-400"
         }`}
         onClick={backHandler}
       >

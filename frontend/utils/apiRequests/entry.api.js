@@ -306,3 +306,27 @@ export const updateRequestReference = async (data) => {
   );
   return response.data;
 };
+
+export const getStudentSubjectEligibility = async (batch_id) => {
+  const response = await axiosInstance.post(
+    "/entry/getStudentSubjectEligibility",
+    { batch_id }
+  );
+  return response.data;
+};
+
+export const getStudentMedicalSubjectEligibility = async (batch_id) => {
+  const response = await axiosInstance.post(
+    "/entry/getStudentMedicalSubjectEligibility",
+    { batch_id }
+  );
+  return response.data;
+};
+
+export const getStudentResitSubjectEligibility = async (batch_id) => {
+  const response = await axiosInstance.post(
+    "/entry/getStudentResitSubjectEligibility",
+    { batch_id }
+  );
+  return response.data;
+};

@@ -7,7 +7,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import CryptoJS from "crypto-js";
 import { useRouter } from "next/navigation";
-import { applyExam } from "@/utils/apiRequests/entry.api";
+import {
+  applyExam,
+  getStudentSubjectEligibility,
+} from "@/utils/apiRequests/entry.api";
 import { toast } from "sonner";
 import { FaMinusCircle } from "react-icons/fa";
 import {
@@ -31,18 +34,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import { titleCase } from "@/utils/functions";
-import ExamApplicationPrint from "./ExamApplicationPrint";
-import { createRoot } from "react-dom/client";
 
 const Form = (request) => {
   const router = useRouter();
   const [examName, setExamName] = useState(null);
   const [removedSubjects, setRemovedSubjects] = useState([]);
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [isApplied, setIsApplied] = useState(false);
+
   const deg = request.searchParams.deg;
+  const batch_id = request.searchParams.batch_id;
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -58,14 +60,18 @@ const Form = (request) => {
     queryKey: ["studentApplicationDetails"],
   });
 
+  const { data: eligibilityData } = useQuery({
+    queryFn: () => getStudentSubjectEligibility(batch_id),
+    queryKey: ["student", "subject", "eligibility"],
+  });
+
   const { status, mutate } = useMutation({
     mutationFn: applyExam,
     onSuccess: async (res) => {
-      await generatePDF();
-
       queryClient.invalidateQueries(
         ["batchesOfStudent"],
-        ["studentApplicationDetails"]
+        ["studentApplicationDetails"],
+        ["student", "subject", "eligibility"]
       );
       toast.success(res.message);
 
@@ -76,92 +82,6 @@ const Form = (request) => {
     },
   });
 
-  const generatePDF = async () => {
-    if (typeof document === "undefined") {
-      console.error("This function can only run in a browser environment.");
-      return;
-    }
-
-    try {
-      // Create a container with precise A4 dimensions (like admission card method)
-      const container = document.createElement("div");
-      container.style.width = "210mm";
-      container.style.padding = "10mm";
-      container.style.backgroundColor = "#fff";
-      container.style.boxSizing = "border-box";
-      container.style.position = "absolute";
-      container.style.left = "-9999px";
-      container.style.top = "0";
-      container.id = `exam-application-print-container`;
-
-      document.body.appendChild(container);
-
-      const root = createRoot(container);
-
-      await new Promise((resolve) => {
-        root.render(
-          <ExamApplicationPrint
-            applicationData={applicationData}
-            examName={examName}
-            removedSubjects={removedSubjects}
-            onRenderComplete={resolve}
-          />
-        );
-      });
-
-      const quality = 2;
-      const canvas = await html2canvas(container, {
-        scale: quality,
-        useCORS: true,
-        logging: false,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-      });
-
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
-
-      const imgData = canvas.toDataURL("image/JPEG", 1.0);
-
-      const imgWidth = pdf.internal.pageSize.getWidth();
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      const contentHeight = Math.min(imgHeight, pageHeight - 10);
-      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, contentHeight);
-
-      if (imgHeight > pageHeight) {
-        let heightLeft = imgHeight - pageHeight;
-        let position = -pageHeight;
-
-        while (heightLeft > 0) {
-          position = position - pageHeight;
-          pdf.addPage();
-          pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
-        }
-      }
-
-      // Clean up by removing the container
-      document.body.removeChild(container);
-
-      // Save the PDF
-      const fileName = `Exam_Application_${
-        applicationData?.user_name || "Student"
-      }_Proper_${new Date().toISOString().split("T")[0]}.pdf`;
-      pdf.save(fileName);
-
-      toast.success("Application form downloaded as PDF");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF");
-    }
-  };
-
   const handleSubmit = () => {
     setIsSubmitDialogOpen(true);
   };
@@ -170,6 +90,16 @@ const Form = (request) => {
     setIsSubmitDialogOpen(false);
     mutate(removedSubjects);
   };
+
+  useEffect(() => {
+    if (eligibilityData) {
+      const trueExist = Object.values(eligibilityData).some(
+        (val) => val == "true"
+      );
+
+      if (trueExist) setIsApplied(true);
+    }
+  }, [eligibilityData]);
 
   return (
     <>
@@ -204,7 +134,13 @@ const Form = (request) => {
                 <span className="uppercase p-2 ">{applicationData?.name}</span>
               </p>
             </div>
-            <div className="my-5 sm:my-10 flex flex-col gap-2">
+            <div
+              className={`my-5 sm:my-10 flex flex-col gap-2 ${
+                isApplied
+                  ? "opacity-50 cursor-not-allowed"
+                  : "opacity-100 cursor-default"
+              }`}
+            >
               {applicationData?.subjects?.length != removedSubjects.length ? (
                 <div className="flex gap-2 items-center text-sm">
                   <div className="flex-1 hidden sm:flex sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
@@ -219,7 +155,11 @@ const Form = (request) => {
                     </h1>
                   </div>
                   <h1>
-                    <FaMinusCircle size={20} className="opacity-0" />
+                    {isApplied ? (
+                      <span></span>
+                    ) : (
+                      <FaMinusCircle size={20} className="opacity-0" />
+                    )}
                   </h1>
                 </div>
               ) : (
@@ -227,9 +167,15 @@ const Form = (request) => {
               )}
               {applicationData?.subjects?.length &&
                 applicationData?.subjects
-                  ?.filter(
-                    (obj) => !removedSubjects.some((item) => item == obj.sub_id)
-                  )
+                  ?.filter((obj) => {
+                    if (isApplied) {
+                      return eligibilityData[obj.sub_id] != "none";
+                    } else {
+                      return !removedSubjects.some(
+                        (item) => item == obj.sub_id
+                      );
+                    }
+                  })
                   .map((obj, ind) => (
                     <div key={obj.sub_id} className="flex gap-2 items-center">
                       <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg justify-between items-center w-full">
@@ -240,7 +186,17 @@ const Form = (request) => {
                           {obj.sub_name}
                         </h1>
                         <h1 className="capitalize w-full sm:w-1/6 shrink-0 text-center text-sm sm:text-base">
-                          {+obj.attendance >= 80 ? (
+                          {isApplied ? (
+                            eligibilityData[obj.sub_id] == "true" ? (
+                              <Badge variant="success" className="capitalize">
+                                eligible
+                              </Badge>
+                            ) : (
+                              <Badge variant="failure" className="capitalize">
+                                not eligible
+                              </Badge>
+                            )
+                          ) : +obj.attendance >= 80 ? (
                             <Badge variant="success" className="capitalize">
                               eligible
                             </Badge>
@@ -252,59 +208,64 @@ const Form = (request) => {
                         </h1>
                       </div>
                       <h1>
-                        <Drawer>
-                          <DrawerTrigger>
-                            <FaMinusCircle
-                              size={20}
-                              className="text-red-500 hover:text-red-600 cursor-pointer"
-                            />
-                          </DrawerTrigger>
-                          <DrawerContent>
-                            <div className="mx-auto w-full max-w-sm">
-                              <DrawerHeader>
-                                <DrawerTitle>
-                                  Are you absolutely sure?
-                                </DrawerTitle>
-                                <DrawerDescription>
-                                  The subject {obj.sub_name} - {obj.sub_code}{" "}
-                                  will be removed from your application. This
-                                  action cannot be undone.
-                                </DrawerDescription>
-                              </DrawerHeader>
-                              <DrawerFooter className="flex justify-center items-center flex-row">
-                                <DrawerClose className="inline">
-                                  <Button
-                                    onClick={() =>
-                                      setRemovedSubjects((cur) => {
-                                        if (
-                                          !removedSubjects.some(
-                                            (item) => item == obj.sub_id
-                                          )
-                                        ) {
-                                          let newArr = [...cur, obj.sub_id];
-                                          return newArr;
-                                        }
-                                      })
-                                    }
-                                    className="hover:bg-red-400 bg-red-500 active:bg-red-400/75"
-                                  >
-                                    Remove
-                                  </Button>
-                                </DrawerClose>
+                        {isApplied ? (
+                          <span></span>
+                        ) : (
+                          <Drawer>
+                            <DrawerTrigger>
+                              <FaMinusCircle
+                                size={20}
+                                className="text-red-500 hover:text-red-600 cursor-pointer"
+                              />
+                            </DrawerTrigger>
+                            <DrawerContent>
+                              <div className="mx-auto w-full max-w-sm">
+                                <DrawerHeader>
+                                  <DrawerTitle>
+                                    Are you absolutely sure?
+                                  </DrawerTitle>
+                                  <DrawerDescription>
+                                    The subject {obj.sub_name} - {obj.sub_code}{" "}
+                                    will be removed from your application. This
+                                    action cannot be undone.
+                                  </DrawerDescription>
+                                </DrawerHeader>
+                                <DrawerFooter className="flex justify-center items-center flex-row">
+                                  <DrawerClose className="inline">
+                                    <Button
+                                      onClick={() =>
+                                        setRemovedSubjects((cur) => {
+                                          if (
+                                            !removedSubjects.some(
+                                              (item) => item == obj.sub_id
+                                            )
+                                          ) {
+                                            let newArr = [...cur, obj.sub_id];
+                                            return newArr;
+                                          }
+                                        })
+                                      }
+                                      className="hover:bg-red-400 bg-red-500 active:bg-red-400/75"
+                                    >
+                                      Remove
+                                    </Button>
+                                  </DrawerClose>
 
-                                <DrawerClose className="inline">
-                                  <Button variant="outline">Cancel</Button>
-                                </DrawerClose>
-                              </DrawerFooter>
-                            </div>
-                          </DrawerContent>
-                        </Drawer>
+                                  <DrawerClose className="inline">
+                                    <Button variant="outline">Cancel</Button>
+                                  </DrawerClose>
+                                </DrawerFooter>
+                              </div>
+                            </DrawerContent>
+                          </Drawer>
+                        )}
                       </h1>
                     </div>
                   ))}
             </div>
             <div className="flex justify-center sm:justify-end">
-              {Object.keys(applicationData).length &&
+              {!isApplied &&
+              Object.keys(applicationData).length &&
               applicationData?.subjects?.length != removedSubjects.length ? (
                 <AlertDialog
                   open={isSubmitDialogOpen}
@@ -332,10 +293,6 @@ const Form = (request) => {
                         be able to edit or re-apply for this examination. Please
                         review your selected subjects carefully before
                         confirming.
-                        <br />
-                        <br />
-                        After submission, your application form will be
-                        automatically downloaded as a PDF for your records.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -356,15 +313,6 @@ const Form = (request) => {
           </div>
         </div>
       )}
-      <div className="fixed -top-[9999px] left-0 opacity-0 pointer-events-none">
-        <div id="print-application-form">
-          <ExamApplicationPrint
-            applicationData={applicationData}
-            examName={examName}
-            removedSubjects={removedSubjects}
-          />
-        </div>
-      </div>
     </>
   );
 };

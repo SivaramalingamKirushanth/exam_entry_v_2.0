@@ -2124,3 +2124,93 @@ export const getDynamicBatchTablesData = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection."));
   }
 };
+
+export const getStudentSubjectEligibility = async (req, res, next) => {
+  const { batch_id } = req.body;
+  const { user_id } = req.user;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [results] = await conn.query(
+        "CALL GetStudentSubjectEligibility(?, ?);",
+        [user_id, batch_id]
+      );
+
+      return res.status(200).json(JSON.parse(results[0][0]["result"]));
+    } catch (error) {
+      console.error("Error fetching Student Subject Eligibility:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while fetching Student Subject Eligibility."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getStudentMedicalSubjectEligibility = async (req, res, next) => {
+  const { batch_id } = req.body;
+  const { user_id } = req.user;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [results] = await conn.query(
+        "CALL GetStudentMedicalSubjectEligibility(?, ?);",
+        [user_id, batch_id]
+      );
+
+      return res.status(200).json(JSON.parse(results[0][0]["result"]));
+    } catch (error) {
+      console.error("Error fetching Student Subject Eligibility:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while fetching Student Subject Eligibility."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const getStudentResitSubjectEligibility = async (req, res, next) => {
+  const { batch_id } = req.body;
+  const { user_id } = req.user;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [results] = await conn.query(
+        "CALL GetStudentResitSubjectEligibility(?, ?);",
+        [user_id, batch_id]
+      );
+
+      return res.status(200).json(JSON.parse(results[0][0]["result"]));
+    } catch (error) {
+      console.error("Error fetching Student Subject Eligibility:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while fetching Student Subject Eligibility."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};

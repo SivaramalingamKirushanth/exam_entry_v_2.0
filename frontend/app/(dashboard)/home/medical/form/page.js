@@ -10,7 +10,10 @@ import { toast } from "sonner";
 import { FaMinusCircle } from "react-icons/fa";
 import ReactSelect from "react-select";
 
-import { applyMedicalExam } from "@/utils/apiRequests/entry.api";
+import {
+  applyMedicalExam,
+  getStudentMedicalSubjectEligibility,
+} from "@/utils/apiRequests/entry.api";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,11 +25,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import ExamApplicationPrint from "./ExamApplicationPrint";
 import { titleCase } from "@/utils/functions";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import { createRoot } from "react-dom/client";
+import { Badge } from "@/components/ui/badge";
 
 const Form = (request) => {
   const router = useRouter();
@@ -37,98 +37,7 @@ const Form = (request) => {
   const [subjectsArr, setSubjectArr] = useState([]);
   const [formData, setFormData] = useState({ subjects: [] });
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
-
-  const generatePDF = async () => {
-    if (typeof document === "undefined") {
-      console.error("This function can only run in a browser environment.");
-      return;
-    }
-
-    try {
-      // Create a container with precise A4 dimensions (like admission card method)
-      const container = document.createElement("div");
-      container.style.width = "210mm";
-      container.style.padding = "10mm";
-      container.style.backgroundColor = "#fff";
-      container.style.boxSizing = "border-box";
-      container.style.position = "absolute";
-      container.style.left = "-9999px";
-      container.style.top = "0";
-      container.id = `exam-application-print-container`;
-
-      document.body.appendChild(container);
-
-      const root = createRoot(container);
-
-      await new Promise((resolve) => {
-        root.render(
-          <ExamApplicationPrint
-            applicationData={applicationData}
-            examName={examName}
-            subjects={formData.subjects}
-            onRenderComplete={resolve}
-          />
-        );
-      });
-
-      // Use html2canvas with better settings (same as admission card)
-      const quality = 2; // Higher value = better quality
-      const canvas = await html2canvas(container, {
-        scale: quality,
-        useCORS: true,
-        logging: false,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-      });
-
-      // Create PDF with same settings as admission card
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
-
-      // Convert canvas to image
-      const imgData = canvas.toDataURL("image/JPEG", 1.0);
-
-      // Calculate dimensions to fit the page (same as admission card method)
-      const imgWidth = pdf.internal.pageSize.getWidth();
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      // Add image to PDF - ensure it fits on one page
-      const contentHeight = Math.min(imgHeight, pageHeight - 10); // Subtract margin
-      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, contentHeight);
-
-      // Handle content that exceeds page height by adding additional pages
-      if (imgHeight > pageHeight) {
-        let heightLeft = imgHeight - pageHeight;
-        let position = -pageHeight;
-
-        while (heightLeft > 0) {
-          position = position - pageHeight;
-          pdf.addPage();
-          pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
-        }
-      }
-
-      // Clean up by removing the container
-      document.body.removeChild(container);
-
-      // Save the PDF
-      const fileName = `Exam_Application_${
-        applicationData?.user_name || "Student"
-      }_Medical_${new Date().toISOString().split("T")[0]}.pdf`;
-      pdf.save(fileName);
-
-      toast.success("Application form downloaded as PDF");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF");
-    }
-  };
+  const [isApplied, setIsApplied] = useState(false);
 
   const handleSubmit = () => {
     setIsSubmitDialogOpen(true);
@@ -175,14 +84,18 @@ const Form = (request) => {
     queryKey: ["studentApplicationDetails", "medical"],
   });
 
+  const { data: medicalEligibilityData } = useQuery({
+    queryFn: () => getStudentMedicalSubjectEligibility(batch),
+    queryKey: ["student", "medical", "subject", "eligibility"],
+  });
+
   const { status, mutate } = useMutation({
     mutationFn: applyMedicalExam,
     onSuccess: async (res) => {
-      await generatePDF();
-
       queryClient.invalidateQueries(
         ["batchesOfStudent", "medical"],
-        ["studentApplicationDetails", "medical"]
+        ["studentApplicationDetails", "medical"],
+        ["student", "medical", "subject", "eligibility"]
       );
       toast.success(res.message);
 
@@ -194,14 +107,20 @@ const Form = (request) => {
   });
 
   useEffect(() => {
-    if (applicationData?.subjects.length) {
-      const modifiedArr = applicationData?.subjects.map((obj) => ({
+    if (applicationData?.subjects?.length) {
+      const modifiedArr = applicationData?.subjects?.map((obj) => ({
         value: obj.sub_id,
         label: `${obj.sub_code} - ${obj.sub_name}`,
       }));
       setSubjectArr(modifiedArr);
     }
   }, [applicationData]);
+
+  useEffect(() => {
+    if (medicalEligibilityData) {
+      if (medicalEligibilityData.applied == "true") setIsApplied(true);
+    }
+  }, [medicalEligibilityData]);
 
   return (
     <>
@@ -236,110 +155,177 @@ const Form = (request) => {
                 <span className="uppercase p-2 ">{applicationData?.name}</span>
               </p>
             </div>
-            <div className="w-full max-w-md mt-5 flex justify-center">
-              <div className="w-[80%] ">
-                <ReactSelect
-                  value={formData.subjects}
-                  onChange={handleChange}
-                  options={subjectsArr}
-                  isMulti
-                  isClearable={false}
-                  isDisabled={error || isLoading}
-                  name="subjects"
-                  placeholder={
-                    error
-                      ? "Not found"
-                      : isLoading
-                      ? "Loading..."
-                      : "Select subjects"
-                  }
-                  classNamePrefix="react-select"
-                  styles={{
-                    multiValue: () => ({ display: "none" }), // hide default chips
-                    control: (base) => ({
-                      ...base,
-                      borderColor: "#ccc",
-                      boxShadow: "none",
-                      fontSize: "0.9rem",
-                      "&:hover": {
-                        borderColor: "#000",
+            {isApplied ? (
+              <span></span>
+            ) : (
+              <div className="w-full max-w-md mt-5 flex justify-center">
+                <div className="w-[80%] ">
+                  <ReactSelect
+                    value={formData.subjects}
+                    onChange={handleChange}
+                    options={subjectsArr}
+                    isMulti
+                    isClearable={false}
+                    isDisabled={error || isLoading}
+                    name="subjects"
+                    placeholder={
+                      error
+                        ? "Not found"
+                        : isLoading
+                        ? "Loading..."
+                        : "Select subjects"
+                    }
+                    classNamePrefix="react-select"
+                    styles={{
+                      multiValue: () => ({ display: "none" }), // hide default chips
+                      control: (base) => ({
+                        ...base,
+                        borderColor: "#ccc",
+                        boxShadow: "none",
+                        fontSize: "0.9rem",
+                        "&:hover": {
+                          borderColor: "#000",
+                        },
+                      }),
+                      menuList: (base) => ({
+                        ...base,
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                        fontSize: "0.9rem",
+                      }),
+                    }}
+                    theme={(theme) => ({
+                      ...theme,
+                      borderRadius: 5,
+                      colors: {
+                        ...theme.colors,
+                        primary25: "#f2f2f2",
+                        primary: "black",
                       },
-                    }),
-                    menuList: (base) => ({
-                      ...base,
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                      fontSize: "0.9rem",
-                    }),
-                  }}
-                  theme={(theme) => ({
-                    ...theme,
-                    borderRadius: 5,
-                    colors: {
-                      ...theme.colors,
-                      primary25: "#f2f2f2",
-                      primary: "black",
-                    },
-                  })}
-                />
+                    })}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
           <div className="md:w-[85%] w-full">
-            <div className="my-5 sm:my-10 flex flex-col gap-2">
-              {formData?.subjects.length ? (
-                <div className="hidden sm:flex gap-2 items-center text-sm">
-                  <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
+            {isApplied &&
+            applicationData &&
+            applicationData?.subjects?.length ? (
+              <div
+                className={`my-5 sm:my-10 flex flex-col gap-2 opacity-50 cursor-not-allowed`}
+              >
+                <div className="flex gap-2 items-center text-sm">
+                  <div className="flex-1 hidden sm:flex sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
                     <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm">
                       Subject Code
                     </h1>
-                    <h1 className="uppercase w-full sm:w-5/6 shrink-0 text-center text-sm">
+                    <h1 className="uppercase w-full sm:w-4/6 shrink-0 text-center text-sm">
                       Subject Name
                     </h1>
+                    <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm">
+                      Eligibility
+                    </h1>
                   </div>
-                  <h1>
-                    <FaMinusCircle size={20} className="opacity-0" />
-                  </h1>
                 </div>
-              ) : (
-                <span></span>
-              )}
-              {applicationData?.subjects?.length ? (
-                formData?.subjects.map((obj, ind) => {
-                  const sub_id = obj.value;
-                  const subject = obj.label
-                    .split("-")
-                    .map((item) => item.trim());
-                  return (
-                    <div key={sub_id} className="flex gap-2 items-center">
-                      <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
+
+                {applicationData?.subjects
+                  ?.filter(
+                    (obj) =>
+                      medicalEligibilityData.eligibility[obj.sub_id] ==
+                        "true" ||
+                      medicalEligibilityData.eligibility[obj.sub_id] ==
+                        "false" ||
+                      medicalEligibilityData.eligibility[obj.sub_id] == ""
+                  )
+                  .map((obj, ind) => (
+                    <div key={obj.sub_id} className="flex gap-2 items-center">
+                      <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg justify-between items-center w-full">
                         <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm sm:text-base">
-                          {subject[0]}
+                          {obj.sub_code}
                         </h1>
-                        <h1 className="capitalize w-full sm:w-5/6 shrink-0 text-center text-sm sm:text-base">
-                          {subject[1]}
+                        <h1 className="capitalize w-full sm:w-4/6 shrink-0 text-center text-sm sm:text-base">
+                          {obj.sub_name}
+                        </h1>
+                        <h1 className="capitalize w-full sm:w-1/6 shrink-0 text-center text-sm sm:text-base">
+                          {medicalEligibilityData.eligibility[obj.sub_id] ==
+                          "true" ? (
+                            <Badge variant="success" className="capitalize">
+                              eligible
+                            </Badge>
+                          ) : medicalEligibilityData.eligibility[obj.sub_id] ==
+                            "false" ? (
+                            <Badge variant="failure" className="capitalize">
+                              not eligible
+                            </Badge>
+                          ) : (
+                            <Badge variant="pending" className="capitalize">
+                              pending
+                            </Badge>
+                          )}
                         </h1>
                       </div>
-                      <h1>
-                        <FaMinusCircle
-                          onClick={() => {
-                            handleRemove(sub_id);
-                          }}
-                          size={20}
-                          className="text-red-500 hover:text-red-600 cursor-pointer"
-                        />
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <div className="my-5 sm:my-10 flex flex-col gap-2">
+                {formData?.subjects.length ? (
+                  <div className="hidden sm:flex gap-2 items-center text-sm">
+                    <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
+                      <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm">
+                        Subject Code
+                      </h1>
+                      <h1 className="uppercase w-full sm:w-5/6 shrink-0 text-center text-sm">
+                        Subject Name
                       </h1>
                     </div>
-                  );
-                })
-              ) : (
-                <h1 className="text-lg font-semibold">
-                  No subjects available!
-                </h1>
-              )}
-            </div>
+                    <h1>
+                      <FaMinusCircle size={20} className="opacity-0" />
+                    </h1>
+                  </div>
+                ) : (
+                  <span></span>
+                )}
+                {applicationData?.subjects?.length ? (
+                  formData?.subjects.map((obj, ind) => {
+                    const sub_id = obj.value;
+                    const subject = obj.label
+                      .split("-")
+                      .map((item) => item.trim());
+                    return (
+                      <div key={sub_id} className="flex gap-2 items-center">
+                        <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
+                          <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm sm:text-base">
+                            {subject[0]}
+                          </h1>
+                          <h1 className="capitalize w-full sm:w-5/6 shrink-0 text-center text-sm sm:text-base">
+                            {subject[1]}
+                          </h1>
+                        </div>
+                        <h1>
+                          <FaMinusCircle
+                            onClick={() => {
+                              handleRemove(sub_id);
+                            }}
+                            size={20}
+                            className="text-red-500 hover:text-red-600 cursor-pointer"
+                          />
+                        </h1>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <h1 className="text-lg font-semibold">
+                    No subjects available!
+                  </h1>
+                )}
+              </div>
+            )}
+
             <div className="flex justify-center sm:justify-end">
-              {Object.keys(applicationData).length &&
+              {!isApplied &&
+              Object.keys(applicationData).length &&
               Object.keys(formData.subjects)?.length ? (
                 <AlertDialog
                   open={isSubmitDialogOpen}
@@ -367,10 +353,6 @@ const Form = (request) => {
                         be able to edit or re-apply for this examination. Please
                         review your selected subjects carefully before
                         confirming.
-                        <br />
-                        <br />
-                        After submission, your application form will be
-                        automatically downloaded as a PDF for your records.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

@@ -62,7 +62,14 @@ const Batches = () => {
   return (
     <div className="flex flex-col items-end md:items-center">
       <div
-        className={`flex flex-col sm:flex-row items-center gap-2 sm:gap-0 sm:items-stretch self-stretch w-[80%] md:w-[85%] lg:w-[70%] mb-2 mx-auto justify-between`}
+        className={`flex flex-col sm:flex-row items-center gap-2 sm:gap-0 sm:items-stretch self-stretch w-[80%] md:w-[85%] lg:w-[70%] mb-2 mx-auto ${
+          deadlinesOfBatchData &&
+          deadlinesOfBatchData.length &&
+          endDate &&
+          endDate < new Date()
+            ? "justify-between"
+            : "justify-end"
+        }`}
       >
         {deadlinesOfBatchData &&
           deadlinesOfBatchData.length &&
