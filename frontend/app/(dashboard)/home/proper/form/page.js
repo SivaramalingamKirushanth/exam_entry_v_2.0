@@ -150,8 +150,9 @@ const Form = (request) => {
                     <h1 className="uppercase w-full sm:w-4/6 shrink-0 text-center text-sm">
                       Subject Name
                     </h1>
-                    <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm">
-                      Eligibility
+                    <h1 className="w-full sm:w-1/6 shrink-0 text-center text-sm">
+                      Attendance based Eligibility (Contact Lecturer in-charge
+                      to check overall eligibility)
                     </h1>
                   </div>
                   <h1>
