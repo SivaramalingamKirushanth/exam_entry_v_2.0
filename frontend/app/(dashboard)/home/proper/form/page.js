@@ -6,7 +6,7 @@ import { getStudentApplicationDetails } from "@/utils/apiRequests/curriculum.api
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import CryptoJS from "crypto-js";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   applyExam,
   getStudentSubjectEligibility,
@@ -38,13 +38,15 @@ import { titleCase } from "@/utils/functions";
 
 const Form = (request) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [examName, setExamName] = useState(null);
   const [removedSubjects, setRemovedSubjects] = useState([]);
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
-  const [isApplied, setIsApplied] = useState(false);
+  const [isApplied, setIsApplied] = useState(true);
 
   const deg = request.searchParams.deg;
-  const batch_id = request.searchParams.batch_id;
+  const batch_id = searchParams.get("batch_id");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -93,11 +95,11 @@ const Form = (request) => {
 
   useEffect(() => {
     if (eligibilityData) {
-      const trueExist = Object.values(eligibilityData).some(
-        (val) => val == "true"
+      const allNone = Object.values(eligibilityData).every(
+        (val) => val == "none"
       );
 
-      if (trueExist) setIsApplied(true);
+      if (allNone) setIsApplied(false);
     }
   }, [eligibilityData]);
 

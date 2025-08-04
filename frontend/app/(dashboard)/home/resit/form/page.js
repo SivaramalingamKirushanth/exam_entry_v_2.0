@@ -58,7 +58,7 @@ const Form = (request) => {
   const [formData, setFormData] = useState({ subjects: [] });
   const [attemptsData, setAttemptsData] = useState({});
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
-  const [isApplied, setIsApplied] = useState(false);
+  const [isApplied, setIsApplied] = useState(true);
   const [isAttemptDataSatisfied, setIsAttemptDataSatisfied] = useState(false);
 
   const handleSubmit = () => {
@@ -120,8 +120,6 @@ const Form = (request) => {
     queryKey: ["student", "resit", "subject", "eligibility"],
   });
 
-  console.log(resitEligibilityData);
-
   const {
     data: gradesData,
     isLoading: isGradesDataLoading,
@@ -157,15 +155,12 @@ const Form = (request) => {
   };
 
   useEffect(() => {
-
-    console.log(batch);
     if (batch) applicationDataRefetch();
   }, [batch]);
 
   useEffect(() => {
     if (applicationData?.subjects.length) {
       const modifiedArr = applicationData?.subjects.map((obj) => ({
-
         value: obj.sub_id,
         label: `${obj.sub_code} - ${obj.sub_name}`,
       }));
@@ -175,7 +170,7 @@ const Form = (request) => {
 
   useEffect(() => {
     if (resitEligibilityData) {
-      if (resitEligibilityData.applied == "true") setIsApplied(true);
+      if (resitEligibilityData.applied == "false") setIsApplied(false);
     }
   }, [resitEligibilityData]);
 
@@ -306,11 +301,11 @@ const Form = (request) => {
                   {applicationData?.subjects
                     ?.filter(
                       (obj) =>
-                        resitEligibilityData.eligibility[obj.sub_id]
+                        resitEligibilityData?.eligibility[obj.sub_id]
                           ?.eligible == "true" ||
-                        resitEligibilityData.eligibility[obj.sub_id]
+                        resitEligibilityData?.eligibility[obj.sub_id]
                           ?.eligible == "false" ||
-                        resitEligibilityData.eligibility[obj.sub_id]
+                        resitEligibilityData?.eligibility[obj.sub_id]
                           ?.eligible == ""
                     )
                     .map((obj, ind) => (
@@ -324,29 +319,29 @@ const Form = (request) => {
                           </h1>
                           <h1 className="capitalize w-full sm:w-1/12 shrink-0 text-center text-sm sm:text-base">
                             {grades[
-                              resitEligibilityData.eligibility[obj.sub_id]
+                              resitEligibilityData?.eligibility[obj.sub_id]
                                 ?.attempt_1
                             ] || ""}
                           </h1>
                           <h1 className="capitalize w-full sm:w-1/12 shrink-0 text-center text-sm sm:text-base">
                             {grades[
-                              resitEligibilityData.eligibility[obj.sub_id]
+                              resitEligibilityData?.eligibility[obj.sub_id]
                                 ?.attempt_2
                             ] || ""}
                           </h1>
                           <h1 className="capitalize w-full sm:w-1/12 shrink-0 text-center text-sm sm:text-base">
                             {grades[
-                              resitEligibilityData.eligibility[obj.sub_id]
+                              resitEligibilityData?.eligibility[obj.sub_id]
                                 ?.attempt_3
                             ] || ""}
                           </h1>
                           <h1 className="capitalize w-full sm:w-2/12 shrink-0 text-center text-sm sm:text-base">
-                            {resitEligibilityData.eligibility[obj.sub_id]
+                            {resitEligibilityData?.eligibility[obj.sub_id]
                               ?.eligible == "true" ? (
                               <Badge variant="success" className="capitalize">
                                 eligible
                               </Badge>
-                            ) : resitEligibilityData.eligibility[obj.sub_id]
+                            ) : resitEligibilityData?.eligibility[obj.sub_id]
                                 ?.eligible == "false" ? (
                               <Badge variant="failure" className="capitalize">
                                 not eligible
