@@ -5,7 +5,7 @@ import { getStudentMedicalApplicationDetails } from "@/utils/apiRequests/curricu
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import CryptoJS from "crypto-js";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { FaMinusCircle } from "react-icons/fa";
 import ReactSelect from "react-select";
@@ -30,9 +30,11 @@ import { Badge } from "@/components/ui/badge";
 
 const Form = (request) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [examName, setExamName] = useState(null);
   const deg = request.searchParams.deg;
-  const batch = request.searchParams.batch;
+  const batch = searchParams.get("batch");
   const queryClient = useQueryClient();
   const [subjectsArr, setSubjectArr] = useState([]);
   const [formData, setFormData] = useState({ subjects: [] });
