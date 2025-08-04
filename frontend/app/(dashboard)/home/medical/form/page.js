@@ -5,7 +5,7 @@ import { getStudentMedicalApplicationDetails } from "@/utils/apiRequests/curricu
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import CryptoJS from "crypto-js";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { FaMinusCircle } from "react-icons/fa";
 import ReactSelect from "react-select";
@@ -30,14 +30,16 @@ import { Badge } from "@/components/ui/badge";
 
 const Form = (request) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [examName, setExamName] = useState(null);
   const deg = request.searchParams.deg;
-  const batch = request.searchParams.batch;
+  const batch = searchParams.get("batch");
   const queryClient = useQueryClient();
   const [subjectsArr, setSubjectArr] = useState([]);
   const [formData, setFormData] = useState({ subjects: [] });
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
-  const [isApplied, setIsApplied] = useState(false);
+  const [isApplied, setIsApplied] = useState(true);
 
   const handleSubmit = () => {
     setIsSubmitDialogOpen(true);
@@ -118,7 +120,7 @@ const Form = (request) => {
 
   useEffect(() => {
     if (medicalEligibilityData) {
-      if (medicalEligibilityData.applied == "true") setIsApplied(true);
+      if (medicalEligibilityData.applied == "false") setIsApplied(false);
     }
   }, [medicalEligibilityData]);
 
@@ -232,11 +234,11 @@ const Form = (request) => {
                 {applicationData?.subjects
                   ?.filter(
                     (obj) =>
-                      medicalEligibilityData.eligibility[obj.sub_id] ==
+                      medicalEligibilityData?.eligibility[obj.sub_id] ==
                         "true" ||
-                      medicalEligibilityData.eligibility[obj.sub_id] ==
+                      medicalEligibilityData?.eligibility[obj.sub_id] ==
                         "false" ||
-                      medicalEligibilityData.eligibility[obj.sub_id] == ""
+                      medicalEligibilityData?.eligibility[obj.sub_id] == ""
                   )
                   .map((obj, ind) => (
                     <div key={obj.sub_id} className="flex gap-2 items-center">
@@ -248,12 +250,12 @@ const Form = (request) => {
                           {obj.sub_name}
                         </h1>
                         <h1 className="capitalize w-full sm:w-1/6 shrink-0 text-center text-sm sm:text-base">
-                          {medicalEligibilityData.eligibility[obj.sub_id] ==
+                          {medicalEligibilityData?.eligibility[obj.sub_id] ==
                           "true" ? (
                             <Badge variant="success" className="capitalize">
                               eligible
                             </Badge>
-                          ) : medicalEligibilityData.eligibility[obj.sub_id] ==
+                          ) : medicalEligibilityData?.eligibility[obj.sub_id] ==
                             "false" ? (
                             <Badge variant="failure" className="capitalize">
                               not eligible

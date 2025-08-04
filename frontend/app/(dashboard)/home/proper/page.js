@@ -132,6 +132,7 @@ const StudentHome = () => {
                           variant="outline"
                           className="uppercase"
                           data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
+                          disabled={batch.status === "expired"}
                           onClick={(e) => onApplyClick(e, batch.batch_id)}
                         >
                           {batch.status == "active" ? "apply" : "View"}
