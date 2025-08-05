@@ -5,37 +5,25 @@ const Timeline = ({ timelineData }) => {
   };
 
   return (
-    <ol className="relative border-s border-gray-200 dark:border-gray-700 max-h-48 overflow-auto pr-1">
+    <ol className="relative border-s border-gray-700 dark:border-gray-700 max-h-48 overflow-auto pr-1">
       {timelineData?.map((item, index) => (
         <li key={index} className="mb-10 ms-4">
-          <div className="absolute w-3 h-3 bg-gray-200 rounded-full mt-1 -start-0.5 border border-white dark:border-gray-900 dark:bg-gray-700"></div>
-          <time className="mb-1 text-sm font-normal leading-none text-gray-500 dark:text-gray-500">
+          <div className="absolute w-3 h-3 bg-gray-700 rounded-full mt-[0.45rem] -start-[0.15rem] border border-white dark:border-gray-900 dark:bg-gray-700"></div>
+          <time className="mb-1 text-sm font-normal leading-none text-gray-700 dark:text-gray-800">
             {new Intl.DateTimeFormat("en-US", options).format(
               new Date(item.date_time)
             )}
           </time>
-          <h3 className="text-base font-semibold flex items-center gap-2 text-gray-900 dark:text-white capitalize">
-            {item.status_from}
-            <svg
-              className="w-3 h-3 rtl:rotate-180"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 14 10"
-            >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M1 5h12m0 0L9 1m4 4L9 9"
-              />
-            </svg>
-            {item.status_to}
-          </h3>
+
           <div className="mb-1 text-base font-normal text-gray-500 dark:text-gray-500">
-            {item.remark}
+            Changed to{" "}
+            <span className="font-semibold">
+              {item.status_to == "true" ? "Eligible" : "Not Eligible"}
+            </span>
           </div>
+          <p className="mb-4 text-xs text-gray-500 dark:text-gray-600">
+            {item.remark}
+          </p>
           <p className="mb-4 text-sm italic text-end text-gray-500 dark:text-gray-600">
             {item.user_name}
           </p>

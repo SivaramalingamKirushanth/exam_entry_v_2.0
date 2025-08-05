@@ -17,7 +17,10 @@ import { FaChevronDown, FaChevronRight } from "react-icons/fa6";
 import ResitStudentDetails from "./ResitStudentDetails";
 import MedicalStudentDetails from "./MedicalStudentDetails";
 import { FaQuestionCircle } from "react-icons/fa";
-import { getBatchDeadlineAndApprovalStatus } from "@/utils/apiRequests/entry.api";
+import {
+  getBatchDeadlineAndApprovalStatus,
+  getRemarksForSubject,
+} from "@/utils/apiRequests/entry.api";
 
 const Subjects = () => {
   const searchParams = useSearchParams();
@@ -27,6 +30,7 @@ const Subjects = () => {
   const [isAnyoneResitPending, setIsAnyoneResitPending] = useState(false);
   const { data: user, isLoading } = useUser();
   const [expandId, setExpandId] = useState("r");
+  const [studentWiseRemarks, setStudentWiseRemarks] = useState({});
 
   const sub_id = searchParams.get("sub_id");
   const batch_id = searchParams.get("batch_id");
@@ -59,6 +63,27 @@ const Subjects = () => {
     queryKey: ["subjectDataDetails", sub_id],
   });
 
+  const { data: remarksData } = useQuery({
+    queryFn: () => getRemarksForSubject({ batch_id, sub_id }),
+    queryKey: ["reamrks", sub_id, batch_id],
+    enabled: roleId == "4",
+  });
+
+  useEffect(() => {
+    if (remarksData) {
+      const tempStudentWiseRemarks = { ...studentWiseRemarks };
+      remarksData.forEach((obj) => {
+        if (tempStudentWiseRemarks[obj.s_id]) {
+          tempStudentWiseRemarks[obj.s_id].push(obj);
+        } else {
+          tempStudentWiseRemarks[obj.s_id] = [obj];
+        }
+      });
+
+      setStudentWiseRemarks(tempStudentWiseRemarks);
+    }
+  }, [remarksData]);
+
   useEffect(() => {
     if ((subjectExistData && !subjectExistData?.subjectExists) || isError) {
       router.replace(`/home/`);
@@ -86,6 +111,7 @@ const Subjects = () => {
               sub_id={sub_id}
               batch_id={batch_id}
               end_date={approvalAndEnddateOfBatchData?.end_date}
+              studentWiseRemarks={studentWiseRemarks}
             />
           </div>
         </div>
@@ -113,6 +139,7 @@ const Subjects = () => {
               batch_id={batch_id}
               end_date={approvalAndEnddateOfBatchData?.end_date}
               setIsAnyonePending={setIsAnyoneMedicalPending}
+              studentWiseRemarks={studentWiseRemarks}
             />
           </div>
         </div>
@@ -140,6 +167,7 @@ const Subjects = () => {
               batch_id={batch_id}
               end_date={approvalAndEnddateOfBatchData?.end_date}
               setIsAnyonePending={setIsAnyoneResitPending}
+              studentWiseRemarks={studentWiseRemarks}
             />
           </div>
         </div>

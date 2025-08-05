@@ -15,6 +15,7 @@ import { FaQuestionCircle } from "react-icons/fa";
 import ResitStudentDetails from "./ResitStudentDetails";
 import MedicalStudentDetails from "./MedicalStudentDetails";
 import Deadlines from "@/components/Deadlines";
+import { getRemarksForSubject } from "@/utils/apiRequests/entry.api";
 
 const Subjects = () => {
   const searchParams = useSearchParams();
@@ -22,6 +23,7 @@ const Subjects = () => {
   const [roleId, setRoleID] = useState(null);
   const [isAnyoneMedicalPending, setIsAnyoneMedicalPending] = useState(false);
   const [isAnyoneResitPending, setIsAnyoneResitPending] = useState(false);
+  const [studentWiseRemarks, setStudentWiseRemarks] = useState({});
   const { data: user, isLoading } = useUser();
   const [expandId, setExpandId] = useState("r");
 
@@ -48,11 +50,35 @@ const Subjects = () => {
     enabled: roleId == "4",
   });
 
+  const { data: remarksData } = useQuery({
+    queryFn: () => getRemarksForSubject({ batch_id, sub_id }),
+    queryKey: ["reamrks", sub_id, batch_id],
+    enabled: roleId == "4",
+  });
+
   useEffect(() => {
-    if ((subjectExistData && !subjectExistData?.subjectExists) || isError) {
-      router.replace("/home");
+    if (remarksData) {
+      const tempStudentWiseRemarks = { ...studentWiseRemarks };
+      remarksData.forEach((obj) => {
+        if (tempStudentWiseRemarks[obj.s_id]) {
+          tempStudentWiseRemarks[obj.s_id].push(obj);
+        } else {
+          tempStudentWiseRemarks[obj.s_id] = [obj];
+        }
+      });
+
+      setStudentWiseRemarks(tempStudentWiseRemarks);
     }
-  }, [subjectExistData, isError]);
+  }, [remarksData]);
+
+  useEffect(
+    (remarksData) => {
+      if ((subjectExistData && !subjectExistData?.subjectExists) || isError) {
+        router.replace("/home");
+      }
+    },
+    [subjectExistData, isError]
+  );
 
   return (
     <div className="flex justify-center overflow-hidden">
@@ -73,7 +99,11 @@ const Subjects = () => {
               expandId == "p" ? "h-auto" : "h-0 overflow-hidden"
             } transition-all`}
           >
-            <StudentDetails sub_id={sub_id} batch_id={batch_id} />
+            <StudentDetails
+              sub_id={sub_id}
+              batch_id={batch_id}
+              studentWiseRemarks={studentWiseRemarks}
+            />
           </div>
         </div>
         <div>
@@ -99,6 +129,7 @@ const Subjects = () => {
               sub_id={sub_id}
               batch_id={batch_id}
               setIsAnyonePending={setIsAnyoneMedicalPending}
+              studentWiseRemarks={studentWiseRemarks}
             />
           </div>
         </div>
@@ -125,6 +156,7 @@ const Subjects = () => {
               sub_id={sub_id}
               batch_id={batch_id}
               setIsAnyonePending={setIsAnyoneResitPending}
+              studentWiseRemarks={studentWiseRemarks}
             />
           </div>
         </div>

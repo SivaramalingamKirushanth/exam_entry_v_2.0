@@ -20,18 +20,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Timeline from "@/components/Timeline";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { getAppliedMedicalStudentsByBatchAndSubject } from "@/utils/apiRequests/entry.api";
 import { useUser } from "@/utils/useUser";
 import MedResEligibilityCell from "@/components/MedResEligibilityCell";
 import MedResEligibilityHeader from "@/components/MedResEligibilityHeader";
 
-const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
+const MedicalStudentDetails = ({
+  sub_id,
+  batch_id,
+  setIsAnyonePending,
+  studentWiseRemarks,
+}) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [roleId, setRoleID] = useState(null);
   const { data: user, isLoading } = useUser();
   const [status, setStatus] = useState("all");
+  const [remarksIncluded, setRemarksIncluded] = useState([]);
 
   useEffect(() => {
     if (user?.role_id) {
@@ -55,7 +67,10 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
   const { mutate } = useMutation({
     mutationFn: updateMedicalEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "medical", "subject", sub_id]);
+      queryClient.invalidateQueries(
+        ["students", "medical", "subject", sub_id],
+        ["reamrks", sub_id, batch_id]
+      );
       toast.success(res.message);
     },
     onError: (err) => {
@@ -66,7 +81,10 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
   const { mutate: mutateMultiple } = useMutation({
     mutationFn: updateMultipleMedicalEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "medical", "subject", sub_id]);
+      queryClient.invalidateQueries(
+        ["students", "medical", "subject", sub_id],
+        ["reamrks", sub_id, batch_id]
+      );
       toast.success(res.message);
     },
     onError: (err) => {
@@ -140,6 +158,28 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
         </div>
       ),
     },
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+      cell: ({ row }) =>
+        row.original.remarks.length ? (
+          <Popover>
+            <PopoverTrigger className="flex py-1 justify-center rounded-md cursor-pointer bg-yellow-300 w-full">
+              VIEW
+            </PopoverTrigger>
+            <PopoverContent className="min-w-64">
+              <h1 className="font-bold mb-1 text-lg text-center">Remarks</h1>
+              <Timeline
+                timelineData={row.original.remarks?.sort(
+                  (a, b) => new Date(b.date_time) - new Date(a.date_time)
+                )}
+              />
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <span>{}</span>
+        ),
+    },
   ];
 
   const onClearClicked = () => setSearchValue("");
@@ -150,13 +190,29 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
 
   useEffect(() => {
     if (data) {
+      const remarksIncludedTemp = data.map((item) => {
+        if (studentWiseRemarks[item.s_id]) {
+          item.remarks = studentWiseRemarks[item.s_id];
+          return item;
+        } else {
+          item.remarks = [];
+          return item;
+        }
+      });
+
+      setRemarksIncluded(remarksIncludedTemp);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (remarksIncluded) {
       let filtData1 = searchValue
-        ? data.filter(
+        ? remarksIncluded.filter(
             (item) =>
               item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
               item.user_name.toLowerCase().includes(searchValue.toLowerCase())
           )
-        : data;
+        : remarksIncluded;
 
       let filtData2 = filtData1.filter((item) => {
         return status == "all"
@@ -168,7 +224,7 @@ const MedicalStudentDetails = ({ sub_id, batch_id, setIsAnyonePending }) => {
 
       setFilteredData(filtData2);
     }
-  }, [searchValue, status, data]);
+  }, [searchValue, status, remarksIncluded]);
 
   return (
     <>
