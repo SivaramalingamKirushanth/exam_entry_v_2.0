@@ -330,3 +330,11 @@ export const getStudentResitSubjectEligibility = async (batch_id) => {
   );
   return response.data;
 };
+
+export const getRemarksForSubject = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/getRemarksForSubject",
+    data
+  );
+  return response.data;
+};

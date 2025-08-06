@@ -24,12 +24,19 @@ import { getAppliedStudentsForSubject } from "@/utils/apiRequests/entry.api";
 import { useUser } from "@/utils/useUser";
 import EligibilityHeader from "@/components/EligibilityHeader";
 import EligibilityCell from "@/components/EligibilityCell";
+import Timeline from "@/components/Timeline";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
-const StudentDetails = ({ sub_id, batch_id }) => {
+const StudentDetails = ({ sub_id, batch_id, studentWiseRemarks }) => {
   const queryClient = useQueryClient();
   const [filteredData, setFilteredData] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("all");
+  const [remarksIncluded, setRemarksIncluded] = useState([]);
 
   const [roleId, setRoleID] = useState(null);
   const { data: user, isLoading } = useUser();
@@ -54,7 +61,10 @@ const StudentDetails = ({ sub_id, batch_id }) => {
   const { mutate } = useMutation({
     mutationFn: updateEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "subject", sub_id]);
+      queryClient.invalidateQueries(
+        ["students", "subject", sub_id],
+        ["reamrks", sub_id, batch_id]
+      );
       toast.success(res.message);
     },
     onError: (err) => {
@@ -65,7 +75,10 @@ const StudentDetails = ({ sub_id, batch_id }) => {
   const { mutate: mutateMultiple } = useMutation({
     mutationFn: updateMultipleEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "subject", sub_id]);
+      queryClient.invalidateQueries(
+        ["students", "subject", sub_id],
+        ["reamrks", sub_id, batch_id]
+      );
       toast.success(res.message);
     },
     onError: (err) => {
@@ -138,10 +151,12 @@ const StudentDetails = ({ sub_id, batch_id }) => {
     {
       id: "Eligibility",
       header: () => (
-         <abbr title="Automatically set based on Attendance Criteria. Check Formative assessment criteria and change if necessary."><EligibilityHeader
-          filteredData={filteredData}
-          onMultipleEligibilityChanged={onMultipleEligibilityChanged}
-        /></abbr>
+        <abbr title="Automatically set based on Attendance Criteria. Check Formative assessment criteria and change if necessary.">
+          <EligibilityHeader
+            filteredData={filteredData}
+            onMultipleEligibilityChanged={onMultipleEligibilityChanged}
+          />
+        </abbr>
       ),
 
       cell: ({ row }) => (
@@ -150,6 +165,29 @@ const StudentDetails = ({ sub_id, batch_id }) => {
           onEligibilityChanged={onEligibilityChanged}
         />
       ),
+    },
+    ,
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+      cell: ({ row }) =>
+        row.original.remarks.length ? (
+          <Popover>
+            <PopoverTrigger className="flex py-1 justify-center rounded-md cursor-pointer bg-yellow-300 w-full">
+              VIEW
+            </PopoverTrigger>
+            <PopoverContent className="min-w-64">
+              <h1 className="font-bold mb-1 text-lg text-center">Remarks</h1>
+              <Timeline
+                timelineData={row.original.remarks?.sort(
+                  (a, b) => new Date(b.date_time) - new Date(a.date_time)
+                )}
+              />
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <span>{}</span>
+        ),
     },
   ];
 
@@ -165,13 +203,29 @@ const StudentDetails = ({ sub_id, batch_id }) => {
         (item) => item.attendance != "M" && item.attendance != "R"
       );
 
+      const remarksIncludedTemp = onlyProper.map((item) => {
+        if (studentWiseRemarks[item.s_id]) {
+          item.remarks = studentWiseRemarks[item.s_id];
+          return item;
+        } else {
+          item.remarks = [];
+          return item;
+        }
+      });
+
+      setRemarksIncluded(remarksIncludedTemp);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (remarksIncluded) {
       let filtData1 = searchValue
-        ? onlyProper.filter(
+        ? remarksIncluded.filter(
             (item) =>
               item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
               item.user_name.toLowerCase().includes(searchValue.toLowerCase())
           )
-        : onlyProper;
+        : remarksIncluded;
 
       let filtData2 = filtData1.filter((item) => {
         return status == "all" ? true : item.eligibility == status;
@@ -179,7 +233,7 @@ const StudentDetails = ({ sub_id, batch_id }) => {
 
       setFilteredData(filtData2);
     }
-  }, [searchValue, status, data]);
+  }, [searchValue, status, remarksIncluded]);
 
   return (
     <>

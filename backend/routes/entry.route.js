@@ -29,6 +29,7 @@ import {
   getLastAssignedIndexNumber,
   getLatestAdmissionTemplate,
   getLatestAttendanceTemplate,
+  getRemarksForSubject,
   getStudentMedicalResitApplications,
   getStudentMedicalSubjectEligibility,
   getStudentResitSubjectEligibility,
@@ -208,6 +209,11 @@ router.post(
   "/getStudentResitSubjectEligibility",
   verifyUser(["5"]),
   getStudentResitSubjectEligibility
+);
+router.post(
+  "/getRemarksForSubject",
+  verifyUser(["1", "2", "3", "4"]),
+  getRemarksForSubject
 );
 
 export default router;

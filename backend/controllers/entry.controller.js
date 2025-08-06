@@ -2214,3 +2214,37 @@ export const getStudentResitSubjectEligibility = async (req, res, next) => {
     return next(errorProvider(500, "Failed to establish database connection."));
   }
 };
+
+export const getRemarksForSubject = async (req, res, next) => {
+  const { batch_id, sub_id } = req.body;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      const [remarks] = await conn.query("CALL GetRemarksForSubject(?, ?)", [
+        batch_id,
+        sub_id,
+      ]);
+
+      const remarkArr = Object.values(remarks[0]).map((obj) => {
+        const { user_id, ...rest } = obj;
+        return rest;
+      });
+
+      return res.status(200).json(remarkArr);
+    } catch (error) {
+      console.error("Error fetching Student Subject Eligibility:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while fetching Student Subject Eligibility."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};

@@ -157,48 +157,58 @@ const AdmissionCard = ({
           </tr>
         </thead>
         <tbody>
-          {Object.keys(student?.subjects).length &&
-            formData.subjects.length &&
-            formData.subjects.map((arr, ind) =>
-              arr
-                .filter((item) =>
+          {(() => {
+            let i = 0;
+            if (
+              Object.keys(student?.subjects).length &&
+              formData.subjects.length
+            ) {
+              return formData.subjects.map((arr) => {
+                const groupOfSubjects = arr.filter((item) =>
                   student?.subjects.some((obj) => obj.sub_id == item)
-                )
-                .map((subId, index) => (
-                  <tr key={index}>
-                    <td className="border border-black text-center text-sm">
-                      <div className="flex justify-center -mt-1 pb-2 items-center leading-[1]">
-                        {index ? "" : ind + 1}
-                      </div>
-                    </td>
-                    <td className="border border-black text-sm w-20">
-                      <div className="flex items-center -mt-1 pb-2 leading-[1] pl-1">
-                        {subjectObject[subId].sub_code}
-                      </div>
-                    </td>
-                    <td className="border border-black text-sm w-80">
-                      <div className="flex justify-start -mt-1 pb-2 items-center leading-[1] px-1">
-                        {subjectObject[subId].sub_name}
-                      </div>
-                    </td>
-                    <td className="border border-black p-1 pb-2 text-center text-sm">
-                      <div className="flex justify-center items-center leading-[1]">
-                        {student?.subjects.some((obj) => obj.sub_id == subId) &&
-                        student?.subjects.filter(
-                          (obj) => obj.sub_id == subId
-                        )[0].eligibility == "true" ? (
-                          <FaCheck />
-                        ) : (
-                          <FaTimes />
-                        )}
-                      </div>
-                    </td>
-                    <td className="border border-black p-1 pb-2 text-center text-sm w-16"></td>
-                    <td className="border border-black p-1 pb-2 text-sm"></td>
-                    <td className="border border-black p-1 pb-2 text-sm"></td>
-                  </tr>
-                ))
-            )}
+                );
+                if (groupOfSubjects.length > 0) {
+                  i++;
+                  return groupOfSubjects.map((subId, index) => (
+                    <tr key={index}>
+                      <td className="border border-black text-center text-sm">
+                        <div className="flex justify-center -mt-1 pb-2 items-center leading-[1]">
+                          {index ? "" : i}
+                        </div>
+                      </td>
+                      <td className="border border-black text-sm w-20">
+                        <div className="flex items-center -mt-1 pb-2 leading-[1] pl-1">
+                          {subjectObject[subId].sub_code}
+                        </div>
+                      </td>
+                      <td className="border border-black text-sm w-80">
+                        <div className="flex justify-start -mt-1 pb-2 items-center leading-[1] px-1">
+                          {subjectObject[subId].sub_name}
+                        </div>
+                      </td>
+                      <td className="border border-black p-1 pb-2 text-center text-sm">
+                        <div className="flex justify-center items-center leading-[1]">
+                          {student?.subjects.some(
+                            (obj) => obj.sub_id == subId
+                          ) &&
+                          student?.subjects.filter(
+                            (obj) => obj.sub_id == subId
+                          )[0].eligibility == "true" ? (
+                            <FaCheck />
+                          ) : (
+                            <FaTimes />
+                          )}
+                        </div>
+                      </td>
+                      <td className="border border-black p-1 pb-2 text-center text-sm w-16"></td>
+                      <td className="border border-black p-1 pb-2 text-sm"></td>
+                      <td className="border border-black p-1 pb-2 text-sm"></td>
+                    </tr>
+                  ));
+                }
+              });
+            }
+          })()}
         </tbody>
       </table>
 

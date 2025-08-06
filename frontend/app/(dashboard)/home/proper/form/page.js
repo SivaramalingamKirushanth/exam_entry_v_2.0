@@ -172,7 +172,7 @@ const Form = (request) => {
                 applicationData?.subjects
                   ?.filter((obj) => {
                     if (isApplied) {
-                      return eligibilityData[obj.sub_id] != "none";
+                      return eligibilityData?.[obj.sub_id] != "none";
                     } else {
                       return !removedSubjects.some(
                         (item) => item == obj.sub_id
@@ -190,7 +190,7 @@ const Form = (request) => {
                         </h1>
                         <h1 className="capitalize w-full sm:w-1/6 shrink-0 text-center text-sm sm:text-base">
                           {isApplied ? (
-                            eligibilityData[obj.sub_id] == "true" ? (
+                            eligibilityData?.[obj.sub_id] == "true" ? (
                               <Badge variant="success" className="capitalize">
                                 eligible
                               </Badge>

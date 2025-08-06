@@ -13,6 +13,7 @@ import {
   updateEligibility,
   updateMultipleEligibility,
 } from "@/utils/apiRequests/curriculum.api";
+import Timeline from "@/components/Timeline";
 import {
   Popover,
   PopoverContent,
@@ -33,7 +34,13 @@ import Link from "next/link";
 import EligibilityHeader from "@/components/EligibilityHeader";
 import EligibilityCell from "@/components/EligibilityCell";
 
-const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
+const StudentDetails = ({
+  sub_id,
+  batch_id,
+  sub_name,
+  sub_code,
+  studentWiseRemarks,
+}) => {
   const queryClient = useQueryClient();
   const pathname = usePathname();
   const [filteredData, setFilteredData] = useState([]);
@@ -41,6 +48,7 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
   const [endDate, setEndDate] = useState(null);
   const [roleId, setRoleID] = useState(null);
   const { data: user, isLoading } = useUser();
+  const [remarksIncluded, setRemarksIncluded] = useState([]);
 
   useEffect(() => {
     if (user?.role_id) {
@@ -67,7 +75,10 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
   const { mutate } = useMutation({
     mutationFn: updateEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "subject", sub_id]);
+      queryClient.invalidateQueries(
+        ["students", "subject", sub_id],
+        ["reamrks", sub_id, batch_id]
+      );
       toast.success(res.message);
     },
     onError: (err) => {
@@ -83,7 +94,10 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
   const { mutate: mutateMultiple } = useMutation({
     mutationFn: updateMultipleEligibility,
     onSuccess: (res) => {
-      queryClient.invalidateQueries(["students", "subject", sub_id]);
+      queryClient.invalidateQueries(
+        ["students", "subject", sub_id],
+        ["reamrks", sub_id, batch_id]
+      );
       toast.success(res.message);
     },
     onError: (err) => {
@@ -177,6 +191,28 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
         />
       ),
     },
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+      cell: ({ row }) =>
+        row.original.remarks.length ? (
+          <Popover>
+            <PopoverTrigger className="flex py-1 justify-center rounded-md cursor-pointer bg-yellow-300 w-full">
+              VIEW
+            </PopoverTrigger>
+            <PopoverContent className="min-w-64">
+              <h1 className="font-bold mb-1 text-lg text-center">Remarks</h1>
+              <Timeline
+                timelineData={row.original.remarks?.sort(
+                  (a, b) => new Date(b.date_time) - new Date(a.date_time)
+                )}
+              />
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <span>{}</span>
+        ),
+    },
   ];
 
   const onClearClicked = () => setSearchValue("");
@@ -187,17 +223,33 @@ const StudentDetails = ({ sub_id, batch_id, sub_name, sub_code }) => {
 
   useEffect(() => {
     if (data) {
+      const remarksIncludedTemp = data.map((item) => {
+        if (studentWiseRemarks[item.s_id]) {
+          item.remarks = studentWiseRemarks[item.s_id];
+          return item;
+        } else {
+          item.remarks = [];
+          return item;
+        }
+      });
+
+      setRemarksIncluded(remarksIncludedTemp);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (remarksIncluded) {
       let filtData = searchValue
-        ? data.filter(
+        ? remarksIncluded.filter(
             (item) =>
               item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
               item.user_name.toLowerCase().includes(searchValue.toLowerCase())
           )
-        : data;
+        : remarksIncluded;
 
       setFilteredData(filtData);
     }
-  }, [searchValue, data]);
+  }, [searchValue, remarksIncluded]);
 
   return (
     <>
