@@ -72,6 +72,22 @@ const Form = (request) => {
       ...prev,
       subjects: selectedOptions,
     }));
+    const notExistSubIds = selectedOptions
+      .filter((obj) => !attemptsData[obj.value])
+      .map((obj) => obj.value);
+    const tempAttemptData = {};
+    notExistSubIds.forEach(
+      (sub_id) =>
+        (tempAttemptData[sub_id] = {
+          1: "",
+          2: "",
+          3: "",
+        })
+    );
+    setAttemptsData((cur) => ({
+      ...cur,
+      ...tempAttemptData,
+    }));
   };
 
   const handleRemove = (value) => {
@@ -105,6 +121,10 @@ const Form = (request) => {
       setExamName(originalDegData);
     }
   }, [deg]);
+
+  useEffect(() => {
+    console.log(attemptsData);
+  }, [attemptsData]);
 
   const {
     data: applicationData,
