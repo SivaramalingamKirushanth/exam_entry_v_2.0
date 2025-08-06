@@ -265,22 +265,6 @@ const AttendanceSheetTemplate = ({
     });
   };
 
-  const onHeldYearBlured = (e, yearIndex) => {
-    let value = +e.target.value;
-    if (value < +e.target.min) {
-      value = +e.target.min;
-    } else if (value > +e.target.max) {
-      value = +e.target.max;
-    }
-
-    setFormData((cur) => {
-      const updatedDates = [...cur.heldDate];
-      updatedDates[yearIndex].year = value;
-      return { ...cur, heldDate: updatedDates };
-    });
-    e.target.value = value;
-  };
-
   useEffect(() => {
     if (pageArr.length) {
       let arr = arrayPadEnd(pageArr);
@@ -488,7 +472,7 @@ const AttendanceSheetTemplate = ({
                           <SelectContent>
                             <SelectGroup>
                               <SelectLabel
-                                className="cursor-default"
+                                className="cursor-pointer"
                                 onClick={() =>
                                   handleHeldMonthChange(
                                     "",
@@ -513,7 +497,11 @@ const AttendanceSheetTemplate = ({
                                 "November",
                                 "December",
                               ].map((m, i) => (
-                                <SelectItem key={i} value={i}>
+                                <SelectItem
+                                  key={i}
+                                  value={i}
+                                  className="cursor-pointer"
+                                >
                                   {m}
                                 </SelectItem>
                               ))}

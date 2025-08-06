@@ -66,7 +66,7 @@ const Subjects = () => {
   const { data: remarksData } = useQuery({
     queryFn: () => getRemarksForSubject({ batch_id, sub_id }),
     queryKey: ["reamrks", sub_id, batch_id],
-    enabled: roleId == "4",
+    enabled: roleId == "2" || roleId == "3",
   });
 
   useEffect(() => {
