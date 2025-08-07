@@ -34,12 +34,14 @@ const Batches = () => {
             item._user_name.toLowerCase().includes(searchValue.toLowerCase())
           )
         : requestsData;
-      let filtData2 = filtData1.filter((item) => {
-        return item.resit_subs?.length || item.medical_subs?.length
-          ? true
-          : false;
-      });
-      setFilteredData(filtData2);
+
+      // ensuring atleast one subject accpeted
+      // let filtData2 = filtData1.filter((item) => {
+      //   return item.resit_subs?.length || item.medical_subs?.length
+      //     ? true
+      //     : false;
+      // });
+      setFilteredData(filtData1);
     } else {
       setFilteredData([]);
     }
