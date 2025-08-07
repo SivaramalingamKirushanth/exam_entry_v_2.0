@@ -315,6 +315,71 @@ export const rejectMedicalResitApplication = async (req, res, next) => {
   }
 };
 
+export const revokeMedicalResitApplication = async (req, res, next) => {
+  const { s_id, batch_id } = req.body;
+
+  if (!s_id || !batch_id) {
+    return res.status(400).json({ message: "s_id and batch_id are required." });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.query("CALL RevokeStudentRequest(?, ?);", [batch_id, s_id]);
+
+      let desc = `Medical and Resit application of s_id=${s_id} for batch_id=${batch_id} revoked`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      return res
+        .status(200)
+        .json({ message: "Application revoked successfully." });
+    } catch (error) {
+      console.error("Error revoking medical/resit students:", error);
+      return next(
+        errorProvider(
+          500,
+          "An error occurred while revoking medical/resit students."
+        )
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
+export const revokeEntry = async (req, res, next) => {
+  const { s_id, batch_id } = req.body;
+  console.log(s_id, batch_id);
+  if (!s_id || !batch_id) {
+    return res.status(400).json({ message: "s_id and batch_id are required." });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.query("CALL RevokeStudentEntry(?, ?);", [batch_id, s_id]);
+
+      let desc = `Entries of s_id=${s_id} for batch_id=${batch_id} revoked`;
+      await conn.query("CALL LogAdminAction(?);", [desc]);
+
+      return res.status(200).json({ message: "Entries revoked successfully." });
+    } catch (error) {
+      console.error("Error revoking entries students:", error);
+      return next(
+        errorProvider(500, "An error occurred while revoking entries students.")
+      );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection."));
+  }
+};
+
 export const getStudentSubjects = async (req, res, next) => {
   const { batch_id, s_id } = req.body;
 

@@ -212,7 +212,7 @@ const StudentHome = () => {
                     className="uppercase"
                     size="sm"
                     data-deg={`${level_ordinal} examination in ${batch.course_title} - ${batch.academic_year} - ${sem_ordinal} semester`}
-                    onClick={(e) => onApplyClick(e)}
+                    onClick={(e) => onApplyClick(e, batch.batch_id)}
                   >
                     {batch.status == "active" ? "apply" : "View"}
                   </Button>

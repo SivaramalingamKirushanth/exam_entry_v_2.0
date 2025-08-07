@@ -1278,14 +1278,12 @@ export const getBatchOpenDate = async (req, res, next) => {
   try {
     const conn = await pool.getConnection();
     try {
-      // Call the first stored procedure to get batch details
       const [batch] = await conn.query("CALL GetBatchOpenDate(?)", [batch_id]);
 
       if (!batch[0].length) {
         return next(errorProvider(404, "No Batches found"));
       }
 
-      // Parse batch_code in Node.js
       const application_open = batch[0][0].application_open;
       const payment_end = batch[0][0].payment_end;
       const admin_end = batch[0][0].admin_end;
