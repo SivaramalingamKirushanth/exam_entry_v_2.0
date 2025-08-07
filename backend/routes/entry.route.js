@@ -40,6 +40,8 @@ import {
   moveToMedical,
   moveToResit,
   rejectMedicalResitApplication,
+  revokeEntry,
+  revokeMedicalResitApplication,
   setApproval,
   updateReference,
   updateRequestReference,
@@ -64,6 +66,12 @@ router.post(
   verifyUser(["1"]),
   rejectMedicalResitApplication
 );
+router.post(
+  "/revokeMedicalResitApplication",
+  verifyUser(["1"]),
+  revokeMedicalResitApplication
+);
+router.post("/revokeEntry", verifyUser(["1"]), revokeEntry);
 router.post(
   "/getStudentsWithoutIndexNumber",
   verifyUser(["1"]),

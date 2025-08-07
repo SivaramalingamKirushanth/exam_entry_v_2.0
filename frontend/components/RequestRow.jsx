@@ -9,11 +9,23 @@ import { numberToOrdinalWord } from "@/utils/functions";
 import {
   acceptMedicalResitStudents,
   rejectMedicalResitApplication,
+  revokeMedicalResitApplication,
   updateReference,
   updateVerified,
 } from "@/utils/apiRequests/entry.api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { GoDotFill } from "react-icons/go";
 import {
   getBatchOpenDate,
@@ -94,6 +106,17 @@ const RequestRow = ({ obj }) => {
     },
   });
 
+  const { mutate: revokeMutate } = useMutation({
+    mutationFn: revokeMedicalResitApplication,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries(["requests", "medical", "resit"]);
+      toast.success(res.message);
+    },
+    onError: (err) => {
+      toast.error("Operation failed");
+    },
+  });
+
   const { data: openDateData } = useQuery({
     queryFn: () => getBatchOpenDate(obj?.batch_id),
     queryKey: ["batch", "openDate", obj?.batch_id],
@@ -150,6 +173,10 @@ const RequestRow = ({ obj }) => {
 
   const onReject = () => {
     rejectMutate({ s_id: obj?.s_id, batch_id: obj?.batch_id });
+  };
+
+  const handleRevoke = () => {
+    revokeMutate({ s_id: obj?.s_id, batch_id: obj?.batch_id });
   };
 
   useEffect(() => {
@@ -349,10 +376,13 @@ const RequestRow = ({ obj }) => {
             Accept
           </Button>
           <Popover>
-            <PopoverTrigger className="trigger flex justify-center mx-auto">
-              <Button type="button" variant="warning">
+            <PopoverTrigger className="trigger flex justify-center mx-auto mb-3">
+              <span
+                type="button"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-red-500 bg-background shadow-sm hover:bg-red-500 text-red-500 hover:text-white h-9 px-4 py-2"
+              >
                 Reject
-              </Button>
+              </span>
             </PopoverTrigger>
             <PopoverContent className="w-64 h-40 flex flex-col gap-2 items-start">
               <p className="font-semibold flex justify-between text-sm w-full">
@@ -374,6 +404,26 @@ const RequestRow = ({ obj }) => {
               </Button>
             </PopoverContent>
           </Popover>
+          <AlertDialog>
+            <AlertDialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-red-500 text-primary-foreground shadow hover:bg-red-500/90 hover:text-white h-9 px-4 py-2">
+              Revoke
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete
+                  student's <strong>all the requests</strong> of this batch.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleRevoke}>
+                  Continue
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </td>
       </tr>
       <tr className="bg-white">

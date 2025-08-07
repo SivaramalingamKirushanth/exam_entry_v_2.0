@@ -26,7 +26,19 @@ import {
   getAppliedStudentsForSubjectOfDepartment,
   getAppliedStudentsForSubjectOfFaculty,
   getBatchDeadlineAndApprovalStatus,
+  revokeEntry,
 } from "@/utils/apiRequests/entry.api";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { getDeadlinesForBatch } from "@/utils/apiRequests/batch.api";
 import { useUser } from "@/utils/useUser";
 import { usePathname } from "next/navigation";
@@ -86,6 +98,17 @@ const StudentDetails = ({
     },
   });
 
+  const { mutate: revokeMutate } = useMutation({
+    mutationFn: revokeEntry,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries(["students", "subject", sub_id]);
+      toast.success(res.message);
+    },
+    onError: (err) => {
+      toast.error("Operation failed");
+    },
+  });
+
   const { data: deadlinesOfBatchData } = useQuery({
     queryFn: () => getDeadlinesForBatch(batch_id),
     queryKey: ["deadlinesOfBatch", batch_id],
@@ -117,6 +140,10 @@ const StudentDetails = ({
       s_ids: filteredData.map((stu) => stu.s_id),
       remark,
     });
+  };
+
+  const handleRevoke = (batchId, sId) => {
+    revokeMutate({ batch_id: batchId, s_id: sId });
   };
 
   useEffect(() => {
@@ -197,8 +224,8 @@ const StudentDetails = ({
       cell: ({ row }) =>
         row.original.remarks.length ? (
           <Popover>
-            <PopoverTrigger className="flex py-1 justify-center rounded-md cursor-pointer bg-yellow-300 w-full">
-              VIEW
+            <PopoverTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-yellow-400 text-primary-foreground shadow hover:bg-yellow-400/90 hover:text-white h-9 px-4 py-2">
+              View
             </PopoverTrigger>
             <PopoverContent className="min-w-64">
               <h1 className="font-bold mb-1 text-lg text-center">Remarks</h1>
@@ -212,6 +239,34 @@ const StudentDetails = ({
         ) : (
           <span>{}</span>
         ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <AlertDialog>
+          <AlertDialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-red-500 text-primary-foreground shadow hover:bg-red-500/90 hover:text-white h-9 px-4 py-2">
+            Revoke
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete
+                student's <strong>all the entries</strong> of this batch.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleRevoke(batch_id, row.original.s_id)}
+              >
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ),
     },
   ];
 

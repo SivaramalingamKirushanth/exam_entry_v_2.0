@@ -41,6 +41,19 @@ export const rejectMedicalResitApplication = async (data) => {
   return response.data;
 };
 
+export const revokeMedicalResitApplication = async (data) => {
+  const response = await axiosInstance.post(
+    "/entry/revokeMedicalResitApplication",
+    data
+  );
+  return response.data;
+};
+
+export const revokeEntry = async (data) => {
+  const response = await axiosInstance.post("/entry/revokeEntry", data);
+  return response.data;
+};
+
 export const getStudentsWithoutIndexNumber = async (batch_id) => {
   const response = await axiosInstance.post(
     "/entry/getStudentsWithoutIndexNumber",
