@@ -467,9 +467,9 @@ export const getStudentApplicationDetails = async (req, res, next) => {
         WHERE s_id = ?
       `;
 
-      const [attendanceResult] = await conn.execute(attendanceQuery, [
-        studentDetails.s_id,
-      ]);
+      const { s_id, ...rest } = studentDetails;
+
+      const [attendanceResult] = await conn.execute(attendanceQuery, [s_id]);
 
       if (!attendanceResult.length) {
         return next(
@@ -483,12 +483,16 @@ export const getStudentApplicationDetails = async (req, res, next) => {
       // Format the response
       const attendance = attendanceResult[0];
       const response = {
-        ...studentDetails,
+        ...rest,
         subjects: subjects.map((subject) => ({
           sub_code: subject.sub_code,
           sub_name: subject.sub_name,
           sub_id: subject.sub_id,
-          attendance: attendance[`sub_${subject.sub_id}`] || "N/A",
+          eligibility: attendance[`sub_${subject.sub_id}`]
+            ? +attendance[`sub_${subject.sub_id}`] >= 80
+              ? "true"
+              : "false"
+            : "false",
         })),
       };
 

@@ -172,7 +172,10 @@ const Form = (request) => {
                 applicationData?.subjects
                   ?.filter((obj) => {
                     if (isApplied) {
-                      return eligibilityData?.[obj.sub_id] != "none";
+                      return (
+                        eligibilityData?.[obj.sub_id] == "true" ||
+                        eligibilityData?.[obj.sub_id] == "false"
+                      );
                     } else {
                       return !removedSubjects.some(
                         (item) => item == obj.sub_id
@@ -199,7 +202,7 @@ const Form = (request) => {
                                 not eligible
                               </Badge>
                             )
-                          ) : +obj.attendance >= 80 ? (
+                          ) : obj.eligibility == "true" ? (
                             <Badge variant="success" className="capitalize">
                               eligible
                             </Badge>
