@@ -31,6 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import PayingInVoucher from "@/components/PayingInVoucher";
 import Model from "./Model";
+import PaymentInstructionsPage from "@/components/PaymentInstructionsPage";
 
 const StudentResitHome = () => {
   const router = useRouter();
@@ -118,69 +119,136 @@ const StudentResitHome = () => {
         format: "a4",
         compress: true,
       });
-      // Create a div element to render the admission card
-      const container = document.createElement("div");
-      container.style.width = "210mm";
-      container.style.padding = "10mm";
-      container.style.backgroundColor = "#fff";
-      container.style.boxSizing = "border-box";
-      container.style.position = "absolute";
-      container.style.left = "-9999px";
-      container.id = `payment-invoice`;
-      document.body.appendChild(container);
 
-      // Render the Admission Card
-      const root = createRoot(container);
-      const renderComplete = new Promise((resolve) => {
-        root.render(
-          <PayingInVoucher
-            paymentDetails={paymentDetails}
-            onRenderComplete={resolve}
-            instructionsdata={instructionsdata}
-          />
-        );
-      });
+      // Helper function to render a page and convert to canvas
+      const renderPageToCanvas = async (Component, containerId) => {
+        const container = document.createElement("div");
+        container.style.width = "210mm";
+        container.style.padding = "0mm";
+        container.style.backgroundColor = "#fff";
+        container.style.boxSizing = "border-box";
+        container.style.position = "absolute";
+        container.style.left = "-9999px";
+        container.id = containerId;
+        document.body.appendChild(container);
 
-      await renderComplete;
+        const root = createRoot(container);
+        const renderComplete = new Promise((resolve) => {
+          root.render(
+            <Component
+              paymentDetails={paymentDetails}
+              onRenderComplete={resolve}
+              instructionsdata={instructionsdata}
+            />
+          );
+        });
 
-      // Convert the admission card to canvas
-      const canvas = await html2canvas(container, {
-        scale: 2, // Enhance image quality
-        useCORS: true, // Enable cross-origin image handling
-        logging: false,
-        allowTaint: true,
-      });
+        await renderComplete;
 
-      const imgData = canvas.toDataURL("image/jpeg", 1.0);
-      // Calculate dimensions to fit the page
+        const canvas = await html2canvas(container, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          allowTaint: true,
+        });
+
+        // Clean up the DOM
+        document.body.removeChild(container);
+
+        return canvas;
+      };
+
+      // Page 1: Instructions Page
+      const instructionsCanvas = await renderPageToCanvas(
+        PaymentInstructionsPage,
+        "payment-instructions"
+      );
+
+      const instructionsImgData = instructionsCanvas.toDataURL(
+        "image/jpeg",
+        1.0
+      );
       const imgWidth = pdf.internal.pageSize.getWidth();
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      // Check if the content exceeds page height
       const pageHeight = pdf.internal.pageSize.getHeight();
 
-      // Add image to PDF - ensure it fits on one page
-      const contentHeight = Math.min(imgHeight, pageHeight - 10); // Subtract margin
-      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, contentHeight);
+      // Add instructions page
+      const instructionsImgHeight =
+        (instructionsCanvas.height * imgWidth) / instructionsCanvas.width;
+      const instructionsContentHeight = Math.min(
+        instructionsImgHeight,
+        pageHeight - 10
+      );
+      pdf.addImage(
+        instructionsImgData,
+        "JPEG",
+        0,
+        0,
+        imgWidth,
+        instructionsContentHeight
+      );
 
-      // Handle content that exceeds page height by adding additional pages
-      if (imgHeight > pageHeight) {
-        let heightLeft = imgHeight - pageHeight;
+      // Handle overflow for instructions page if needed
+      if (instructionsImgHeight > pageHeight) {
+        let heightLeft = instructionsImgHeight - pageHeight;
         let position = -pageHeight;
-
         while (heightLeft > 0) {
           position = position - pageHeight;
           pdf.addPage();
-          pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+          pdf.addImage(
+            instructionsImgData,
+            "JPEG",
+            0,
+            position,
+            imgWidth,
+            instructionsImgHeight
+          );
           heightLeft -= pageHeight;
         }
       }
 
-      // Clean up the DOM after rendering the canvas
-      document.body.removeChild(container);
+      // Page 2: Paying In Voucher
+      pdf.addPage(); // Add new page for voucher
 
-      // Save the PDF for the current exam type
-      pdf.save(`${paymentDetails.username}_paying_in_voucher.pdf`);
+      const voucherCanvas = await renderPageToCanvas(
+        PayingInVoucher,
+        "payment-voucher"
+      );
+
+      const voucherImgData = voucherCanvas.toDataURL("image/jpeg", 1.0);
+      const voucherImgHeight =
+        (voucherCanvas.height * imgWidth) / voucherCanvas.width;
+      const voucherContentHeight = Math.min(voucherImgHeight, pageHeight - 10);
+
+      pdf.addImage(
+        voucherImgData,
+        "JPEG",
+        0,
+        0,
+        imgWidth,
+        voucherContentHeight
+      );
+
+      // Handle overflow for voucher page if needed
+      if (voucherImgHeight > pageHeight) {
+        let heightLeft = voucherImgHeight - pageHeight;
+        let position = -pageHeight;
+        while (heightLeft > 0) {
+          position = position - pageHeight;
+          pdf.addPage();
+          pdf.addImage(
+            voucherImgData,
+            "JPEG",
+            0,
+            position,
+            imgWidth,
+            voucherImgHeight
+          );
+          heightLeft -= pageHeight;
+        }
+      }
+
+      // Save the PDF
+      pdf.save(`${paymentDetails.user_name}_paying_in_voucher.pdf`);
     } catch (error) {
       console.error("Error generating PDFs:", error);
     } finally {
@@ -201,20 +269,35 @@ const StudentResitHome = () => {
           new Date(openDateData?.payment_end).toString().indexOf("GMT")
         );
 
-      const subjects = subjectData.map((subject) => {
+      const filteredSubjects = {};
+      const subjects = subjectData.subjects.map((subject) => {
         return {
-          sub_code: subject.sub_code.toUpperCase(),
-          subject_name: subject.sub_name,
+          sub_code: subject.sub_code?.toUpperCase()?.split("(")[0].trim(),
+          subject_name: subject.sub_name?.split("(")[0].trim(),
           type: subject.type,
         };
       });
 
+      subjects.forEach((obj) => {
+        const onlySubCode = obj.sub_code;
+        if (!filteredSubjects[onlySubCode]) {
+          filteredSubjects[onlySubCode] = obj;
+        } else {
+          if (
+            filteredSubjects[onlySubCode].type == "resit" &&
+            obj.type == "upgrade"
+          ) {
+            filteredSubjects[onlySubCode] = obj;
+          }
+        }
+      });
+
       const paymentDetails = {
-        username: subjectData[0]?.user_name || "",
+        ...subjectData.user,
         exam_type: "Resit",
         generated_date,
         payment_deadline,
-        subjects,
+        subjects: Object.values(filteredSubjects),
         amounts: paymentData,
       };
 

@@ -2016,7 +2016,13 @@ export const getEligibleMedicalSubjects = async (req, res, next) => {
         });
       }
 
-      return res.status(200).json(rows[0]);
+      if (rows[1].length === 0) {
+        return res.status(404).json({
+          message: "No user found",
+        });
+      }
+
+      return res.status(200).json({ user: rows[1][0], subjects: rows[0] });
     } catch (error) {
       console.error("Error retrieving eligible medical subjects:", error);
       return next(
@@ -2042,10 +2048,16 @@ export const getEligibleResitSubjects = async (req, res, next) => {
         "CALL GetEligibleResitSubjectsByBatchAndUser(?, ?)",
         [batch_id, user_id]
       );
-
+      console.log(rows);
       if (rows[0].length === 0) {
         return res.status(404).json({
           message: "No eligible subjects found for the given user and batch.",
+        });
+      }
+
+      if (rows[1].length === 0) {
+        return res.status(404).json({
+          message: "No user found",
         });
       }
 
@@ -2061,7 +2073,7 @@ export const getEligibleResitSubjects = async (req, res, next) => {
             : "resit",
       }));
 
-      return res.status(200).json(arr);
+      return res.status(200).json({ user: rows[1][0], subjects: arr });
     } catch (error) {
       console.error("Error retrieving eligible resit subjects:", error);
       return next(
