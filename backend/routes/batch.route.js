@@ -24,6 +24,7 @@ import {
   uploadAttendanceSheet,
   getEligibleResitBatches,
   getEligibleMedicalBatches,
+  sendPaymentMail,
 } from "../controllers/batch.controller.js";
 import { verifyUser } from "../utils/verifyUsers.js";
 
@@ -100,4 +101,5 @@ router.get(
   verifyUser(["5"]),
   getEligibleMedicalBatches
 );
+router.post("/sendPaymentMail", verifyUser(["1"]), sendPaymentMail);
 export default router;

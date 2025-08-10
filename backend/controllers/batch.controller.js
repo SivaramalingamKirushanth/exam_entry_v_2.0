@@ -2,7 +2,7 @@ import pool from "../config/db.js";
 import errorProvider from "../utils/errorProvider.js";
 import { parseString } from "../utils/functions.js";
 import lodash from "lodash";
-
+import mailer from "../utils/mailer.js";
 import streamifier from "streamifier";
 import csv from "csv-parser";
 import fs from "fs";
@@ -1357,6 +1357,98 @@ export const getEligibleMedicalBatches = async (req, res, next) => {
       return next(
         errorProvider(500, "An error occurred while retrieving student batches")
       );
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return next(errorProvider(500, "Failed to establish database connection"));
+  }
+};
+
+export const sendPaymentMail = async (req, res, next) => {
+  const { batch_id } = req.body;
+  try {
+    if (!batch_id) {
+      return next(errorProvider(400, "missing batch id"));
+    }
+
+    const conn = await pool.getConnection();
+
+    try {
+      await conn.beginTransaction();
+
+      const [results] = await conn.query("CALL GetPaymentMailData(?);", [
+        batch_id,
+      ]);
+
+      const { payment_end: deadline } = results[0][0];
+
+      if (results[1].length > 0) {
+        for (const student of results[1]) {
+          const { email, name } = student;
+
+          try {
+            await mailer(
+              email,
+              "Medical/Resit Payment Reminder",
+              `
+  <div style="max-width:600px;margin:0 auto;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:#fff;border:1px solid #000;border-radius:6px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:20px;text-align:center;">
+      <h1 style="margin:0;font-size:22px;">System for Examination Entry Notification</h1>
+    </div>
+    <div style="padding:30px;">
+      <h2 style="margin-top:0;color:#000;font-size:20px;">Dear ${name}</h2>
+      <h3 style="margin-top:0;color:#000;font-size:20px;">Medical/Resit Application Payment Reminder</h3>
+      <p style="font-size:15px;color:#000;line-height:1.6;">
+        This is a reminder to complete the payment and submit all required documents for your Medical/Resit application.
+        Please ensure you complete the process before the deadline mentioned below.
+      </p>
+
+      <div style="margin:20px 0;padding:15px;border:1px solid #000;background:#fdfdfd;text-align:center;">
+        <p style="margin:0;font-size:15px;"><strong>Deadline:</strong> ${deadline}</p>
+      </div>
+
+      <p style="font-size:14px;color:#000;line-height:1.6;">
+        Kindly make the payment and submit the necessary documents to the Examination Branch <strong>before the deadline</strong>.
+      </p>
+
+       <p style="font-size:15px;color:#000;line-height:1.6;">
+        For payment instructions, please check the <a href="https://see.vau.ac.lk/" style="color:#0000EE; text-decoration:underline;">FAQ section</a> on the official SEE website.
+      </p>
+
+      <p style="font-size:14px;color:#000;line-height:1.6;">
+        If you have already completed the payment, please disregard this email.
+      </p>
+
+      <hr style="margin:30px 0;border:0;border-top:1px solid #000;" />
+
+      <p style="font-size:14px;color:#000;text-align:center;">
+        For any technical inquiries, please mail to <strong>see@vau.ac.lk</strong>.
+      </p>
+    </div>
+    <div style="background:#000;color:#fff;text-align:center;padding:10px;font-size:12px;">
+      &copy; ${new Date().getFullYear()} University&nbsp;of&nbsp;Vavuniya.
+      All&nbsp;rights&nbsp;reserved.
+    </div>
+  </div>
+  `
+            );
+          } catch (mailError) {
+            return next(errorProvider(500, "Failed to send mail:" + mailError));
+          }
+
+          await conn.commit();
+        }
+      }
+
+      return res.status(201).json({
+        message: "Mails sent successfully",
+      });
+    } catch (error) {
+      await conn.rollback();
+      console.error("Error during transaction:", error);
+      return next(errorProvider(500, "Failed to send mails"));
     } finally {
       conn.release();
     }

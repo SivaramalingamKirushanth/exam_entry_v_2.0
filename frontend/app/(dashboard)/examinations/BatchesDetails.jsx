@@ -15,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Model from "./Model";
 import {
   getAllBatchDetails,
+  sendPaymentMail,
   updateBatchStatus,
 } from "@/utils/apiRequests/batch.api";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ import {
 } from "@/components/ui/drawer";
 import AttendanceModel from "./AttendanceModel";
 import { deleteBatchSubjectEntries } from "@/utils/apiRequests/entry.api";
+import { IoMdMail } from "react-icons/io";
 
 const BatchesDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
@@ -58,6 +60,16 @@ const BatchesDetails = () => {
     mutationFn: updateBatchStatus,
     onSuccess: (res) => {
       queryClient.invalidateQueries(["batches"]);
+      toast.success(res.message);
+    },
+    onError: (err) => {
+      toast.error("Operation failed");
+    },
+  });
+
+  const { mutate: mutateSendMails, isPending } = useMutation({
+    mutationFn: sendPaymentMail,
+    onSuccess: (res) => {
       toast.success(res.message);
     },
     onError: (err) => {
@@ -186,6 +198,17 @@ const BatchesDetails = () => {
               >
                 <FaUserCheck />
                 &nbsp;Update Attendance
+              </Button>
+            </div>
+            <div className="flex justify-center items-center">
+              <Button
+                variant="outline"
+                className="flex justify-between"
+                disabled={isPending}
+                onClick={() => mutateSendMails(row.original.batch_id)}
+              >
+                <IoMdMail />
+                &nbsp;Send Payment Mail
               </Button>
             </div>
             <div className="flex justify-center items-center">
