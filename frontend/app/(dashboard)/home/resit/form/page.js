@@ -48,12 +48,12 @@ const grades = {
   6: "C",
 };
 
-const Form = (request) => {
+const Form = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [examName, setExamName] = useState(null);
-  const deg = request.searchParams.deg;
+  const deg = searchParams.get("deg");
   const batch = searchParams.get("batch");
   const queryClient = useQueryClient();
   const [subjectsArr, setSubjectArr] = useState([]);

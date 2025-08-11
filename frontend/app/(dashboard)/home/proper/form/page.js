@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { titleCase } from "@/utils/functions";
 
-const Form = (request) => {
+const Form = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -45,7 +45,7 @@ const Form = (request) => {
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [isApplied, setIsApplied] = useState(true);
 
-  const deg = request.searchParams.deg;
+  const deg = searchParams.get("deg");
   const batch_id = searchParams.get("batch_id");
   const queryClient = useQueryClient();
 
