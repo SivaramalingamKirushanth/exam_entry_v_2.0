@@ -49,6 +49,7 @@ const BatchesDetails = () => {
   const [editId, setEditId] = useState("");
   const [attendanceId, setAttendanceId] = useState("");
   const [dropId, setDropId] = useState(null);
+  const [mailId, setMailId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
@@ -70,9 +71,11 @@ const BatchesDetails = () => {
   const { mutate: mutateSendMails, isPending } = useMutation({
     mutationFn: sendPaymentMail,
     onSuccess: (res) => {
+      setMailId(null);
       toast.success(res.message);
     },
     onError: (err) => {
+      setMailId(null);
       toast.error("Operation failed");
     },
   });
@@ -204,11 +207,20 @@ const BatchesDetails = () => {
               <Button
                 variant="outline"
                 className="flex justify-between"
-                disabled={isPending}
-                onClick={() => mutateSendMails(row.original.batch_id)}
+                disabled={
+                  (mailId == row.original.batch_id && isPending) ||
+                  new Date(row.original.dean_end_date) > new Date()
+                }
+                onClick={() => {
+                  setMailId(row.original.batch_id);
+                  mutateSendMails(row.original.batch_id);
+                }}
               >
                 <IoMdMail />
-                &nbsp;Send Payment Mail
+                &nbsp;
+                {mailId == row.original.batch_id
+                  ? "Sending Mails"
+                  : "Send Payment Mail"}
               </Button>
             </div>
             <div className="flex justify-center items-center">
