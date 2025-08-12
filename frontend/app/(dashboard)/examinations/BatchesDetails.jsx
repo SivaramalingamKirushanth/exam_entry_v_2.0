@@ -15,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Model from "./Model";
 import {
   getAllBatchDetails,
+  sendPaymentMail,
   updateBatchStatus,
 } from "@/utils/apiRequests/batch.api";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ import {
 } from "@/components/ui/drawer";
 import AttendanceModel from "./AttendanceModel";
 import { deleteBatchSubjectEntries } from "@/utils/apiRequests/entry.api";
+import { IoMdMail } from "react-icons/io";
 
 const BatchesDetails = () => {
   const [filteredData, setFilteredData] = useState([]);
@@ -47,6 +49,7 @@ const BatchesDetails = () => {
   const [editId, setEditId] = useState("");
   const [attendanceId, setAttendanceId] = useState("");
   const [dropId, setDropId] = useState(null);
+  const [mailId, setMailId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
@@ -61,6 +64,18 @@ const BatchesDetails = () => {
       toast.success(res.message);
     },
     onError: (err) => {
+      toast.error("Operation failed");
+    },
+  });
+
+  const { mutate: mutateSendMails, isPending } = useMutation({
+    mutationFn: sendPaymentMail,
+    onSuccess: (res) => {
+      setMailId(null);
+      toast.success(res.message);
+    },
+    onError: (err) => {
+      setMailId(null);
       toast.error("Operation failed");
     },
   });
@@ -186,6 +201,26 @@ const BatchesDetails = () => {
               >
                 <FaUserCheck />
                 &nbsp;Update Attendance
+              </Button>
+            </div>
+            <div className="flex justify-center items-center">
+              <Button
+                variant="outline"
+                className="flex justify-between"
+                disabled={
+                  (mailId == row.original.batch_id && isPending) ||
+                  new Date(row.original.dean_end_date) > new Date()
+                }
+                onClick={() => {
+                  setMailId(row.original.batch_id);
+                  mutateSendMails(row.original.batch_id);
+                }}
+              >
+                <IoMdMail />
+                &nbsp;
+                {mailId == row.original.batch_id
+                  ? "Sending Mails"
+                  : "Send Payment Mail"}
               </Button>
             </div>
             <div className="flex justify-center items-center">

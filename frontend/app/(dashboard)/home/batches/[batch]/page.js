@@ -129,7 +129,6 @@ const Batches = () => {
         </div>
       </div>
     );
-console.log(dashboardData);
 
   return (
     <div className="flex flex-col">

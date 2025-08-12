@@ -122,6 +122,13 @@ export const getBatchOpenDate = async (batch_id) => {
   return response.data;
 };
 
+export const sendPaymentMail = async (batch_id) => {
+  const response = await axiosInstance.post("/batch/sendPaymentMail", {
+    batch_id,
+  });
+  return response.data;
+};
+
 export const uploadAttendanceSheet = async (data) => {
   try {
     const response = await axios.post(
