@@ -21,7 +21,7 @@ const PayingInVoucher = ({
     <div className="w-[210mm] p-[20mm] bg-white text-[12pt] font-serif relative">
       {/* Header */}
       <div className="absolute right-3 text-xs">
-        Student&#x27;s Reg.No : {user_name}
+        Student Reg.No : {user_name}
       </div>
 
       {/* Title */}
@@ -45,7 +45,7 @@ const PayingInVoucher = ({
       </div> */}
       <div className="mb-2 text-sm">1) Name of Payer: {name}</div>
       <div className="mb-2 text-sm">
-        2)&nbsp;Payer's&nbsp;Address&nbsp;:&nbsp;.........................................................................................................................................
+        2)&nbsp;Payer&apos;s&nbsp;Address&nbsp;:&nbsp;.........................................................................................................................................
       </div>
       {/* Table */}
       <div className="mb-3 text-sm">
