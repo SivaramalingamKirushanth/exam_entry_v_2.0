@@ -253,7 +253,7 @@ const StudentDetails = ({
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
                 This action cannot be undone. This will permanently delete
-                student's <strong>all the entries</strong> of this batch.
+                students <strong>all the entries</strong> of this batch.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
