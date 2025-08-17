@@ -1023,15 +1023,24 @@ export const uploadAttendanceSheet = async (req, res, next) => {
             const insertVals = [conn.escape(s_id)];
             const updateParts = [];
 
-            subIdOrder.forEach((sub_id, index) => {
-              if (sub_id) {
-                const value = attendanceData[index] || 0;
-                const col = `sub_${sub_id}`;
+            for (let i = 0; i < subIdOrder.length; i++) {
+              if (subIdOrder[i]) {
+                const value = attendanceData[i] || 0;
+                const col = `sub_${subIdOrder[i]}`;
                 insertCols.push(col);
                 insertVals.push(conn.escape(value));
                 updateParts.push(`${col} = VALUES(${col})`);
+
+                let eligibility = value >= 80 ? "true" : "false";
+                let batchSubjectTable = `batch_${batchId}_sub_${subIdOrder[i]}`;
+
+                await conn.query("UPDATE ?? SET eligibility=? WHERE s_id=?;", [
+                  batchSubjectTable,
+                  eligibility,
+                  s_id,
+                ]);
               }
-            });
+            }
 
             if (updateParts.length > 0) {
               const query = `
