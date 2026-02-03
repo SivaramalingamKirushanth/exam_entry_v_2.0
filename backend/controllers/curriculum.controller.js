@@ -474,14 +474,38 @@ export const getStudentApplicationDetails = async (req, res, next) => {
         return next(errorProvider(500, "Batch ID is missing."));
       }
 
-      // Dynamic attendance query
+      // ─── FIX #1: Validate batchId and all sub_ids are strictly positive
+      //     integers BEFORE interpolating into the dynamic query.
+      //     Table names and column names cannot use parameterised placeholders,
+      //     so a whitelist (numeric check) is the correct defence.
+      // ─────────────────────────────────────────────────────────────────────
+      const safeBatchId = Number(batchId);
+      if (!Number.isInteger(safeBatchId) || safeBatchId <= 0) {
+        return next(errorProvider(400, "Invalid batch ID."));
+      }
+
+      // Map every sub_id to a number; keep only valid positive integers.
+      const safeSubIds = subjects
+        .map((s) => Number(s.sub_id))
+        .filter((id) => Number.isInteger(id) && id > 0);
+
+      if (!safeSubIds.length) {
+        return next(errorProvider(404, "No valid subjects found."));
+      }
+      // ─────────────────────────────────────────────────────────────────────
+
+      // Dynamic attendance query — now uses only validated numeric values.
       const attendanceQuery = `
-        SELECT ${subjects.map((s) => `sub_${s.sub_id}`).join(", ")}
-        FROM batch_${batchId}_students
+        SELECT ${safeSubIds.map((id) => `sub_${id}`).join(", ")}
+        FROM batch_${safeBatchId}_students
         WHERE s_id = ?
       `;
 
+      // ─── FIX #7: Explicitly destructure s_id out so it is never included
+      //     in the response, even if other unexpected keys exist.
+      // ─────────────────────────────────────────────────────────────────────
       const { s_id, ...rest } = studentDetails;
+      // ─────────────────────────────────────────────────────────────────────
 
       const [attendanceResult] = await conn.execute(attendanceQuery, [s_id]);
 
@@ -494,20 +518,26 @@ export const getStudentApplicationDetails = async (req, res, next) => {
         );
       }
 
-      // Format the response
+      // Format the response.
+      // We use the original subjects array for sub_code / sub_name (display
+      // fields) but only emit sub_ids that passed the numeric validation.
       const attendance = attendanceResult[0];
+      const validSet = new Set(safeSubIds); // O(1) lookup
+
       const response = {
         ...rest,
-        subjects: subjects.map((subject) => ({
-          sub_code: subject.sub_code,
-          sub_name: subject.sub_name,
-          sub_id: subject.sub_id,
-          eligibility: attendance[`sub_${subject.sub_id}`]
-            ? +attendance[`sub_${subject.sub_id}`] >= 80
-              ? "true"
-              : "false"
-            : "false",
-        })),
+        subjects: subjects
+          .filter((subject) => validSet.has(Number(subject.sub_id))) // only validated ids
+          .map((subject) => ({
+            sub_code: subject.sub_code,
+            sub_name: subject.sub_name,
+            sub_id: subject.sub_id,
+            eligibility: attendance[`sub_${subject.sub_id}`]
+              ? +attendance[`sub_${subject.sub_id}`] >= 80
+                ? "true"
+                : "false"
+              : "false",
+          })),
       };
 
       res.status(200).json(response);
