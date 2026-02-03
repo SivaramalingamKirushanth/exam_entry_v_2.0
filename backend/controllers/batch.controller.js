@@ -931,20 +931,21 @@ export const uploadAttendanceSheet = async (req, res, next) => {
   const unmatchedStudents = [];
   const missingSubjects = [];
   const upsertedStudents = [];
+  const skippedAssessmentColumns = []; // headers skipped because batch has no _as columns
 
   try {
     if (!req.file || !req.file.buffer || !req.body.batch_id) {
       return next(errorProvider(400, "No file uploaded or batch ID provided."));
     }
 
-    const batchId = req.body.batch_id;
+    const batchId = String(req.body.batch_id).trim();
     const buffer = req.file.buffer;
     const stream = streamifier.createReadStream(buffer);
 
     const sanitize = (str) =>
       String(str || "")
         .trim()
-        .replace(/^\uFEFF/, "") // strip BOM if present
+        .replace(/^\uFEFF/, "")
         .replace(/[^a-zA-Z0-9]/g, "")
         .toLowerCase();
 
@@ -956,27 +957,19 @@ export const uploadAttendanceSheet = async (req, res, next) => {
     };
 
     let isFirstRow = true;
-
-    // From header row: raw header text for columns 2..N
-    let incomingHeaders = []; // like ["IT3143(P)", "IT3143(P)_as", ...]
-    // Per column meta aligned by index to incomingHeaders
-    // meta: { rawHeader, type: "attendance"|"assessment", baseSanitized, subId, assessmentMin }
+    let incomingHeaders = [];
     let columnMeta = [];
 
     stream
-      // IMPORTANT: headers must be false so the first CSV row is emitted as a normal row (_0,_1,...)
       .pipe(csv({ headers: false }))
       .on("data", (row) => {
         if (isFirstRow) {
           const cells = Object.values(row);
-
-          // Column 1 is username header label (ignore), columns 2..N are subject headers
           incomingHeaders = cells.slice(1).map((h) =>
             String(h ?? "")
               .trim()
               .replace(/^\uFEFF/, ""),
-          ); // strip BOM on header text
-
+          );
           isFirstRow = false;
         } else {
           results.push(row);
@@ -987,33 +980,65 @@ export const uploadAttendanceSheet = async (req, res, next) => {
         try {
           await conn.beginTransaction();
 
-          // Fetch batch subjects with assessment min mark
+          const studentsTable = `batch_${batchId}_students`;
+
+          // 0) Verify students table exists
+          const [studentsTableExistsRows] = await conn.query(
+            `SELECT COUNT(*) AS cnt
+             FROM information_schema.tables
+             WHERE table_schema = DATABASE() AND table_name = ?`,
+            [studentsTable],
+          );
+
+          if (!studentsTableExistsRows?.[0]?.cnt) {
+            await conn.rollback();
+            return next(
+              errorProvider(
+                400,
+                `Batch students table not found: ${studentsTable}`,
+              ),
+            );
+          }
+
+          // 1) Load existing columns for batch_<id>_students
+          const [studentColsRows] = await conn.query(
+            `SELECT column_name
+             FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = ?`,
+            [studentsTable],
+          );
+          const studentCols = new Set(
+            studentColsRows.map((r) => r.column_name),
+          );
+
+          // 2) Fetch batch subjects (for mapping headers -> sub_id)
           const [dbSubjectRows] = await conn.query(
-            `SELECT bsl.sub_id, s.sub_code, s.assessment_min_mark
+            `SELECT bsl.sub_id, s.sub_code
              FROM batch_subject_lecturer bsl
              JOIN subject s ON bsl.sub_id = s.sub_id
              WHERE bsl.batch_id = ?`,
             [batchId],
           );
 
-          // Map sanitized sub_code -> subject info
           const dbSubjects = dbSubjectRows.reduce((acc, r) => {
             const key = sanitize(r.sub_code);
             acc[key] = {
-              subId: r.sub_id,
-              assessmentMin: Number(r.assessment_min_mark ?? 0),
+              subId: Number(r.sub_id),
               originalCode: r.sub_code,
             };
             return acc;
           }, {});
 
-          // Build meta for each incoming header column (2..N)
+          // 3) Build meta for each incoming header column
+          // meta: { rawHeader, type, subId, targetCol, enabled }
           columnMeta = incomingHeaders.map((rawHeader) => {
             const header = String(rawHeader || "").trim();
             const lower = header.toLowerCase();
 
-            const isAssessment = lower.endsWith("_as");
-            const baseHeader = isAssessment ? header.slice(0, -3) : header; // remove "_as"
+            const isAssessmentHeader = lower.endsWith("_as");
+            const baseHeader = isAssessmentHeader
+              ? header.slice(0, -3)
+              : header;
             const baseSanitized = sanitize(baseHeader);
 
             const match = dbSubjects[baseSanitized];
@@ -1021,19 +1046,33 @@ export const uploadAttendanceSheet = async (req, res, next) => {
               unmatchedSubjects.push(header);
               return {
                 rawHeader: header,
-                type: isAssessment ? "assessment" : "attendance",
+                type: isAssessmentHeader ? "assessment" : "attendance",
                 baseSanitized,
                 subId: null,
-                assessmentMin: null,
+                targetCol: null,
+                enabled: false,
               };
+            }
+
+            const subId = match.subId;
+            const targetCol = isAssessmentHeader
+              ? `sub_${subId}_as`
+              : `sub_${subId}`;
+            const enabled = studentCols.has(targetCol);
+
+            // If assessment header exists in CSV but batch table lacks _as column, skip safely
+            if (isAssessmentHeader && !enabled) {
+              skippedAssessmentColumns.push(header);
             }
 
             return {
               rawHeader: header,
-              type: isAssessment ? "assessment" : "attendance",
+              type: isAssessmentHeader ? "assessment" : "attendance",
               baseSanitized,
-              subId: match.subId,
-              assessmentMin: match.assessmentMin,
+              subId,
+              targetCol,
+              enabled,
+              originalCode: match.originalCode,
             };
           });
 
@@ -1043,7 +1082,7 @@ export const uploadAttendanceSheet = async (req, res, next) => {
             );
           }
 
-          // Missing subjects check (ONLY attendance headers, same behavior as before)
+          // 4) Missing subjects check (attendance only)
           const incomingAttendance = new Set(
             columnMeta
               .filter((m) => m.type === "attendance" && m.subId)
@@ -1062,14 +1101,22 @@ export const uploadAttendanceSheet = async (req, res, next) => {
             );
           }
 
-          // Process each row (data rows are _0,_1,_2,...)
+          if (skippedAssessmentColumns.length > 0) {
+            failedCases.push(
+              `Skipped assessment columns (batch has no _as fields): ${[
+                ...new Set(skippedAssessmentColumns),
+              ].join(", ")}`,
+            );
+          }
+
+          // 5) Process each row: only upsert into batch_<id>_students
           for (const row of results) {
             const cells = Object.values(row);
 
             const user_name = String(cells[0] ?? "")
               .trim()
               .replace(/^\uFEFF/, "");
-            const values = cells.slice(1); // aligned to incomingHeaders / columnMeta
+            const values = cells.slice(1);
 
             const [userResult] = await conn.query(
               `SELECT s.s_id
@@ -1085,7 +1132,6 @@ export const uploadAttendanceSheet = async (req, res, next) => {
             }
 
             const s_id = userResult[0].s_id;
-            const tableName = `batch_${batchId}_students`;
 
             const insertCols = ["s_id"];
             const insertVals = [conn.escape(s_id)];
@@ -1094,67 +1140,50 @@ export const uploadAttendanceSheet = async (req, res, next) => {
             for (let i = 0; i < columnMeta.length; i++) {
               const meta = columnMeta[i];
               if (!meta.subId) continue;
+              if (!meta.enabled) continue;
 
               const value = parseNumber(values[i]);
 
-              const col =
-                meta.type === "assessment"
-                  ? `sub_${meta.subId}_as`
-                  : `sub_${meta.subId}`;
-
-              insertCols.push(col);
+              insertCols.push(meta.targetCol);
               insertVals.push(conn.escape(value));
-              updateParts.push(`${col} = VALUES(${col})`);
-
-              const batchSubjectTable = `batch_${batchId}_sub_${meta.subId}`;
-
-              if (meta.type === "attendance") {
-                const eligibility = value >= 80 ? "true" : "false";
-                await conn.query("UPDATE ?? SET eligibility=? WHERE s_id=?;", [
-                  batchSubjectTable,
-                  eligibility,
-                  s_id,
-                ]);
-              }
-
-              if (meta.type === "assessment") {
-                const minRequired = Number(meta.assessmentMin ?? 0);
-                const eligibilityAs = value >= minRequired ? "true" : "false";
-                await conn.query(
-                  "UPDATE ?? SET eligibility_as=? WHERE s_id=?;",
-                  [batchSubjectTable, eligibilityAs, s_id],
-                );
-              }
+              updateParts.push(`${meta.targetCol} = VALUES(${meta.targetCol})`);
             }
 
             if (updateParts.length > 0) {
               const query = `
-                INSERT INTO ${tableName} (${insertCols.join(", ")})
+                INSERT INTO ${studentsTable} (${insertCols.join(", ")})
                 VALUES (${insertVals.join(", ")})
                 ON DUPLICATE KEY UPDATE ${updateParts.join(", ")}
               `;
               await conn.query(query);
-
-              const [existingBatchIdsResults] = await conn.execute(
-                "SELECT batch_ids FROM student_detail WHERE s_id=?;",
-                [s_id],
-              );
-
-              if (existingBatchIdsResults.length > 0) {
-                const { batch_ids } = existingBatchIdsResults[0];
-                const batch_idsArr = String(batch_ids || "").split(",");
-                const alreadyExist = batch_idsArr.some(
-                  (item) => String(item).trim() === String(batchId),
-                );
-                if (!alreadyExist) {
-                  await conn.query("CALL UpdateStudentBatchIds(?,?);", [
-                    batchId,
-                    s_id,
-                  ]);
-                }
-              }
-
               upsertedStudents.push(user_name);
+            } else {
+              // No valid columns to write, still consider student processed, but record it
+              failedCases.push(`No writable columns for student: ${user_name}`);
+            }
+
+            // Keep your existing batch_ids tracking behavior
+            const [existingBatchIdsResults] = await conn.execute(
+              "SELECT batch_ids FROM student_detail WHERE s_id=?;",
+              [s_id],
+            );
+
+            if (existingBatchIdsResults.length > 0) {
+              const { batch_ids } = existingBatchIdsResults[0];
+              const batch_idsArr = String(batch_ids || "")
+                .split(",")
+                .map((x) => x.trim())
+                .filter(Boolean);
+
+              const alreadyExist = batch_idsArr.some(
+                (item) => item === String(batchId),
+              );
+              if (!alreadyExist) {
+                await conn.query("CALL UpdateStudentBatchIds(?,?);", [
+                  batchId,
+                  s_id,
+                ]);
+              }
             }
           }
 
@@ -1169,6 +1198,7 @@ export const uploadAttendanceSheet = async (req, res, next) => {
 
           await conn.commit();
 
+          // If there are warnings or mismatches, return file as before
           if (
             failedCases.length > 0 ||
             unmatchedStudents.length > 0 ||
