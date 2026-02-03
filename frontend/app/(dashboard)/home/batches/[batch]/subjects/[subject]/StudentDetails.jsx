@@ -57,8 +57,8 @@ const StudentDetails = ({ sub_id, batch_id, end_date, studentWiseRemarks }) => {
       roleId == "3"
         ? getAppliedStudentsForSubjectOfDepartment(batch_id, sub_id)
         : roleId == "2"
-        ? getAppliedStudentsForSubjectOfFaculty(batch_id, sub_id)
-        : null,
+          ? getAppliedStudentsForSubjectOfFaculty(batch_id, sub_id)
+          : null,
     queryKey: ["students", "subject", sub_id],
     enabled: roleId == "2" || roleId == "3",
   });
@@ -72,7 +72,7 @@ const StudentDetails = ({ sub_id, batch_id, end_date, studentWiseRemarks }) => {
     onSuccess: (res) => {
       queryClient.invalidateQueries(
         ["students", "subject", sub_id],
-        ["reamrks", sub_id, batch_id]
+        ["reamrks", sub_id, batch_id],
       );
       toast.success(res.message);
     },
@@ -86,7 +86,7 @@ const StudentDetails = ({ sub_id, batch_id, end_date, studentWiseRemarks }) => {
     onSuccess: (res) => {
       queryClient.invalidateQueries(
         ["students", "subject", sub_id],
-        ["reamrks", sub_id, batch_id]
+        ["reamrks", sub_id, batch_id],
       );
       toast.success(res.message);
     },
@@ -158,15 +158,28 @@ const StudentDetails = ({ sub_id, batch_id, end_date, studentWiseRemarks }) => {
       },
     },
     {
+      accessorKey: "assessment",
+      header: "Assessment",
+      cell: ({ row }) => {
+        return (
+          <p className="text-center ">
+            {row.original.assessment
+              ? +row.original.assessment
+                ? row.original.assessment + "%"
+                : row.original.assessment
+              : "0%"}
+          </p>
+        );
+      },
+    },
+    {
       id: "Eligibility",
       header: () => (
-        <abbr title="Automatically set based on Attendance Criteria. Check Formative assessment criteria and change if necessary.">
-          <EligibilityHeader
-            filteredData={filteredData}
-            onMultipleEligibilityChanged={onMultipleEligibilityChanged}
-            end_date={end_date}
-          />
-        </abbr>
+        <EligibilityHeader
+          filteredData={filteredData}
+          onMultipleEligibilityChanged={onMultipleEligibilityChanged}
+          end_date={end_date}
+        />
       ),
 
       cell: ({ row }) => (
@@ -190,7 +203,7 @@ const StudentDetails = ({ sub_id, batch_id, end_date, studentWiseRemarks }) => {
               <h1 className="font-bold mb-1 text-lg text-center">Remarks</h1>
               <Timeline
                 timelineData={row.original.remarks?.sort(
-                  (a, b) => new Date(b.date_time) - new Date(a.date_time)
+                  (a, b) => new Date(b.date_time) - new Date(a.date_time),
                 )}
               />
             </PopoverContent>
@@ -210,7 +223,7 @@ const StudentDetails = ({ sub_id, batch_id, end_date, studentWiseRemarks }) => {
   useEffect(() => {
     if (data) {
       const onlyProper = data.filter(
-        (item) => item.attendance != "M" && item.attendance != "R"
+        (item) => item.attendance != "M" && item.attendance != "R",
       );
 
       const remarksIncludedTemp = onlyProper.map((item) => {
@@ -233,7 +246,7 @@ const StudentDetails = ({ sub_id, batch_id, end_date, studentWiseRemarks }) => {
         ? remarksIncluded.filter(
             (item) =>
               item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-              item.user_name.toLowerCase().includes(searchValue.toLowerCase())
+              item.user_name.toLowerCase().includes(searchValue.toLowerCase()),
           )
         : remarksIncluded;
 

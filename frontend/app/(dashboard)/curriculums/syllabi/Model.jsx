@@ -173,8 +173,8 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                       isDegreeDataError
                         ? "Not found"
                         : isDegreeDataLoading
-                        ? "Loading..."
-                        : "Select degree"
+                          ? "Loading..."
+                          : "Select degree"
                     }
                     onValueChange={(e) => {
                       onFormDataChanged(e);
@@ -208,9 +208,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                   Expired year <br /> (optional)
                 </Label>
                 <input
-                  type="number"
-                  min="2000"
-                  max="2100"
+                  type="text"
                   placeholder="Enter year"
                   className="flex h-9 col-span-3 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   name="expired_year"

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getStudentApplicationDetails } from "@/utils/apiRequests/curriculum.api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CryptoJS from "crypto-js";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -57,55 +57,114 @@ const Form = () => {
     }
   }, [deg]);
 
-  const { data: applicationData, error } = useQuery({
+  const { data: applicationData } = useQuery({
     queryFn: getStudentApplicationDetails,
     queryKey: ["studentApplicationDetails"],
   });
 
   const { data: eligibilityData } = useQuery({
     queryFn: () => getStudentSubjectEligibility(batch_id),
-    queryKey: ["student", "subject", "eligibility"],
+    queryKey: ["student", "subject", "eligibility", batch_id],
+    enabled: !!batch_id,
   });
 
   const { status, mutate } = useMutation({
     mutationFn: applyExam,
     onSuccess: async (res) => {
-      queryClient.invalidateQueries(
-        ["batchesOfStudent"],
-        ["studentApplicationDetails"],
-        ["student", "subject", "eligibility"]
-      );
-      toast.success(res.message);
+      queryClient.invalidateQueries({
+        queryKey: ["batchesOfStudent"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["studentApplicationDetails"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["student", "subject", "eligibility", batch_id],
+      });
 
+      toast.success(res.message);
       router.replace("/home/proper");
     },
-    onError: (err) => {
-      toast.error("Operation failed");
-    },
+    onError: () => toast.error("Operation failed"),
   });
 
-  const handleSubmit = () => {
-    setIsSubmitDialogOpen(true);
+  const renderStatusBadge = (statusValue) => {
+    // Handle boolean or string inputs
+    const s = String(statusValue).toLowerCase();
+
+    if (
+      s === "none" ||
+      s === "pending" ||
+      s === "null" ||
+      s === "undefined" ||
+      !s
+    ) {
+      return (
+        <Badge variant="secondary" className="capitalize">
+          pending
+        </Badge>
+      );
+    }
+
+    if (s === "true" || s === "eligible") {
+      return (
+        <Badge variant="success" className="capitalize">
+          eligible
+        </Badge>
+      );
+    }
+
+    return (
+      <Badge variant="failure" className="capitalize">
+        not eligible
+      </Badge>
+    );
   };
+
+  const fmtVal = (v, suffix = "") => {
+    if (v === null || v === undefined || v === "none") return "-";
+    const num = Number(v);
+    if (Number.isFinite(num)) return `${num}${suffix}`;
+    return "-";
+  };
+
+  // 1. UPDATED: Check 'is_applied' directly (it is a boolean now)
+  useEffect(() => {
+    if (eligibilityData) {
+      setIsApplied(!!eligibilityData.is_applied);
+    }
+  }, [eligibilityData]);
+
+  const handleSubmit = () => setIsSubmitDialogOpen(true);
 
   const handleConfirmSubmit = () => {
     setIsSubmitDialogOpen(false);
     mutate(removedSubjects);
   };
 
-  useEffect(() => {
-    if (eligibilityData) {
-      const allNone = Object.values(eligibilityData).every(
-        (val) => val == "none"
-      );
+  const visibleSubjects = useMemo(() => {
+    const subs = applicationData?.subjects || [];
+    if (!subs.length) return [];
 
-      if (allNone) setIsApplied(false);
-    }
-  }, [eligibilityData]);
+    const subjectDataMap = eligibilityData?.subjects || {};
+
+    return subs.filter((obj) => {
+      // Get the specific record for this subject
+      const rec = subjectDataMap[obj.sub_id];
+
+      if (isApplied) {
+        // Applied Mode: Show only if data exists and is valid
+        // Check rec.overall (string "true"/"false") instead of overall_status
+        return rec && rec.overall !== "none" && rec.overall !== undefined;
+      }
+
+      // Apply Mode: Show subjects not removed by user
+      return !removedSubjects.some((item) => item == obj.sub_id);
+    });
+  }, [applicationData, eligibilityData, isApplied, removedSubjects]);
 
   return (
     <>
-      {applicationData && Object.keys(applicationData).length && (
+      {applicationData && Object.keys(applicationData).length ? (
         <div className="flex justify-end md:justify-center">
           <div className="md:w-[60%] w-full">
             <div className="text-center uppercase font-bold">
@@ -114,6 +173,7 @@ const Form = () => {
               </h1>
               <h1 className="text-sm sm:text-base">{titleCase(examName)}</h1>
             </div>
+
             <div className="mt-6 sm:mt-12 flex flex-col sm:flex-row justify-between text-xs sm:text-sm font-semibold w-full px-2">
               <p>
                 <span className="uppercase w-20 inline-block">Reg No</span>
@@ -130,149 +190,198 @@ const Form = () => {
                 </p>
               )}
             </div>
-            <div className="mt-0 sm:mt-3 flex text-xs sm:text-sm font-semibold  px-2">
+
+            <div className="mt-0 sm:mt-3 flex text-xs sm:text-sm font-semibold px-2">
               <p>
                 <span className="uppercase w-20 inline-block">Name</span>
                 <span className="uppercase p-2 ">{applicationData?.name}</span>
               </p>
             </div>
+
             <div
               className={`my-5 sm:my-10 flex flex-col gap-2 ${
                 isApplied
-                  ? "opacity-50 cursor-not-allowed"
+                  ? "opacity-100 cursor-not-allowed opacity-75"
                   : "opacity-100 cursor-default"
               }`}
             >
-              {applicationData?.subjects?.length != removedSubjects.length ? (
+              {visibleSubjects.length ? (
+                /* --- HEADER ROW --- */
                 <div className="flex gap-2 items-center text-sm">
-                  <div className="flex-1 hidden sm:flex sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
-                    <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm">
+                  <div className="flex-1 hidden sm:flex sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg items-center w-full">
+                    {/* Width: 2/12 */}
+                    <h1 className="uppercase w-full sm:w-2/12 shrink-0 text-center text-sm">
                       Subject Code
                     </h1>
-                    <h1 className="uppercase w-full sm:w-4/6 shrink-0 text-center text-sm">
+                    {/* Width: 4/12 */}
+                    <h1 className="uppercase w-full sm:w-4/12 shrink-0 text-center text-sm">
                       Subject Name
                     </h1>
-                    <h1 className="w-full sm:w-1/6 shrink-0 text-center text-sm">
-                      Attendance based Eligibility (Contact Lecturer in-charge
-                      to check overall eligibility)
+                    {/* Width: 2/12 */}
+                    <h1 className="uppercase w-full sm:w-2/12 shrink-0 text-center text-sm">
+                      Attendance
+                    </h1>
+                    {/* Width: 2/12 */}
+                    <h1 className="uppercase w-full sm:w-2/12 shrink-0 text-center text-sm">
+                      Assessment
+                    </h1>
+                    {/* Width: 2/12 */}
+                    <h1 className="uppercase w-full sm:w-2/12 shrink-0 text-center text-sm">
+                      Overall
                     </h1>
                   </div>
-                  <h1>
+
+                  {/* Placeholder for Remove Icon alignment */}
+                  <div className="w-[20px]">
                     {isApplied ? (
-                      <span></span>
+                      <span />
                     ) : (
                       <FaMinusCircle size={20} className="opacity-0" />
                     )}
-                  </h1>
+                  </div>
                 </div>
               ) : (
-                <span></span>
+                <span />
               )}
-              {applicationData?.subjects?.length &&
-                applicationData?.subjects
-                  ?.filter((obj) => {
-                    if (isApplied) {
-                      return (
-                        eligibilityData?.[obj.sub_id] == "true" ||
-                        eligibilityData?.[obj.sub_id] == "false"
-                      );
-                    } else {
-                      return !removedSubjects.some(
-                        (item) => item == obj.sub_id
-                      );
-                    }
-                  })
-                  .map((obj, ind) => (
-                    <div key={obj.sub_id} className="flex gap-2 items-center">
-                      <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg justify-between items-center w-full">
-                        <h1 className="uppercase w-full sm:w-1/6 shrink-0 text-center text-sm sm:text-base">
-                          {obj.sub_code}
-                        </h1>
-                        <h1 className="capitalize w-full sm:w-4/6 shrink-0 text-center text-sm sm:text-base">
-                          {obj.sub_name}
-                        </h1>
-                        <h1 className="capitalize w-full sm:w-1/6 shrink-0 text-center text-sm sm:text-base">
-                          {isApplied ? (
-                            eligibilityData?.[obj.sub_id] == "true" ? (
-                              <Badge variant="success" className="capitalize">
-                                eligible
-                              </Badge>
-                            ) : (
-                              <Badge variant="failure" className="capitalize">
-                                not eligible
-                              </Badge>
-                            )
-                          ) : obj.eligibility == "true" ? (
-                            <Badge variant="success" className="capitalize">
-                              eligible
-                            </Badge>
-                          ) : (
-                            <Badge variant="failure" className="capitalize">
-                              not eligible
-                            </Badge>
-                          )}
-                        </h1>
-                      </div>
-                      <h1>
-                        {isApplied ? (
-                          <span></span>
-                        ) : (
-                          <Drawer>
-                            <DrawerTrigger>
-                              <FaMinusCircle
-                                size={20}
-                                className="text-red-500 hover:text-red-600 cursor-pointer"
-                              />
-                            </DrawerTrigger>
-                            <DrawerContent>
-                              <div className="mx-auto w-full max-w-sm">
-                                <DrawerHeader>
-                                  <DrawerTitle>
-                                    Are you absolutely sure?
-                                  </DrawerTitle>
-                                  <DrawerDescription>
-                                    The subject {obj.sub_name} - {obj.sub_code}{" "}
-                                    will be removed from your application. This
-                                    action cannot be undone.
-                                  </DrawerDescription>
-                                </DrawerHeader>
-                                <DrawerFooter className="flex justify-center items-center flex-row">
-                                  <DrawerClose className="inline">
-                                    <Button
-                                      onClick={() =>
-                                        setRemovedSubjects((cur) => {
-                                          if (
-                                            !removedSubjects.some(
-                                              (item) => item == obj.sub_id
-                                            )
-                                          ) {
-                                            let newArr = [...cur, obj.sub_id];
-                                            return newArr;
-                                          }
-                                        })
-                                      }
-                                      className="hover:bg-red-400 bg-red-500 active:bg-red-400/75"
-                                    >
-                                      Remove
-                                    </Button>
-                                  </DrawerClose>
 
-                                  <DrawerClose className="inline">
-                                    <Button variant="outline">Cancel</Button>
-                                  </DrawerClose>
-                                </DrawerFooter>
-                              </div>
-                            </DrawerContent>
-                          </Drawer>
-                        )}
+              {/* --- DATA ROWS --- */}
+              {visibleSubjects.map((obj) => {
+                // 2. UPDATED: Access data using the new nested structure
+                const rec = eligibilityData?.subjects?.[obj.sub_id] || {};
+
+                // Attendance Data
+                const attVal = rec.attendance?.value;
+                const attStatus = rec.attendance?.status;
+                const attThr = rec.attendance?.threshold;
+
+                // Assessment Data
+                const asVal = rec.assessment?.value;
+                const asStatus = rec.assessment?.status;
+                const asThr = rec.assessment?.threshold;
+
+                // Overall Data
+                const overall = rec.overall;
+
+                return (
+                  <div key={obj.sub_id} className="flex gap-2 items-center">
+                    {/* WHITE FORM BOX */}
+                    <div className="flex-1 flex flex-col sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg items-center w-full">
+                      {/* Subject Code */}
+                      <h1 className="uppercase w-full sm:w-2/12 shrink-0 text-center text-sm sm:text-base font-semibold text-gray-700">
+                        {obj.sub_code}
                       </h1>
+
+                      {/* Subject Name */}
+                      <h1 className="capitalize w-full sm:w-4/12 shrink-0 text-center text-sm sm:text-base font-medium">
+                        {obj.sub_name}
+                      </h1>
+
+                      {/* Attendance */}
+                      <div className="w-full sm:w-2/12 shrink-0 flex flex-col items-center gap-1 py-2 sm:py-0">
+                        <h3 className="sm:hidden text-sm font-semibold">
+                          Attendance :
+                        </h3>
+                        <div className="text-xs sm:text-sm font-semibold">
+                          {fmtVal(attVal, "%")}
+                          {attThr ? (
+                            <span className="text-[10px] sm:text-xs font-normal opacity-70">
+                              {` (min ${attThr}%)`}
+                            </span>
+                          ) : null}
+                        </div>
+                        {renderStatusBadge(attStatus)}
+                      </div>
+
+                      {/* Assessment */}
+                      <div className="w-full sm:w-2/12 shrink-0 flex flex-col items-center gap-1 py-2 sm:py-0">
+                        <h3 className="sm:hidden text-sm font-semibold">
+                          Assessment :
+                        </h3>
+                        <div className="text-xs sm:text-sm font-semibold">
+                          {fmtVal(asVal, "")}
+                          {/* Only show threshold if it's greater than 0 */}
+                          {asThr && asThr > 0 ? (
+                            <span className="text-[10px] sm:text-xs font-normal opacity-70">
+                              {` (min ${asThr})`}
+                            </span>
+                          ) : null}
+                        </div>
+                        {renderStatusBadge(asStatus)}
+                      </div>
+
+                      {/* Overall */}
+                      <div className="w-full sm:w-2/12 shrink-0 flex flex-col items-center gap-1 py-2 sm:py-0">
+                        <h3 className="sm:hidden text-sm font-semibold">
+                          Overall :
+                        </h3>
+                        {renderStatusBadge(overall)}
+                      </div>
                     </div>
-                  ))}
+
+                    {/* REMOVE BUTTON */}
+                    <div className="w-[20px] flex justify-center">
+                      {isApplied ? (
+                        <span />
+                      ) : (
+                        <Drawer>
+                          <DrawerTrigger>
+                            <FaMinusCircle
+                              size={20}
+                              className="text-red-500 hover:text-red-600 cursor-pointer transition-colors"
+                            />
+                          </DrawerTrigger>
+                          <DrawerContent>
+                            <div className="mx-auto w-full max-w-sm">
+                              <DrawerHeader>
+                                <DrawerTitle>
+                                  Are you absolutely sure?
+                                </DrawerTitle>
+                                <DrawerDescription>
+                                  The subject {obj.sub_name} - {obj.sub_code}{" "}
+                                  will be removed from your application. This
+                                  action cannot be undone.
+                                </DrawerDescription>
+                              </DrawerHeader>
+
+                              <DrawerFooter className="flex justify-center items-center flex-row">
+                                <DrawerClose className="inline">
+                                  <Button
+                                    onClick={() =>
+                                      setRemovedSubjects((cur) => {
+                                        if (
+                                          !cur.some(
+                                            (item) => item == obj.sub_id,
+                                          )
+                                        ) {
+                                          return [...cur, obj.sub_id];
+                                        }
+                                        return cur;
+                                      })
+                                    }
+                                    className="hover:bg-red-400 bg-red-500 active:bg-red-400/75"
+                                  >
+                                    Remove
+                                  </Button>
+                                </DrawerClose>
+
+                                <DrawerClose className="inline">
+                                  <Button variant="outline">Cancel</Button>
+                                </DrawerClose>
+                              </DrawerFooter>
+                            </div>
+                          </DrawerContent>
+                        </Drawer>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+
             <div className="flex justify-center sm:justify-end">
               {!isApplied &&
               Object.keys(applicationData).length &&
-              applicationData?.subjects?.length != removedSubjects.length ? (
+              applicationData?.subjects?.length !== removedSubjects.length ? (
                 <AlertDialog
                   open={isSubmitDialogOpen}
                   onOpenChange={setIsSubmitDialogOpen}
@@ -286,6 +395,7 @@ const Form = () => {
                       {status === "pending" ? "Submitting..." : "Submit"}
                     </Button>
                   </AlertDialogTrigger>
+
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>
@@ -301,6 +411,7 @@ const Form = () => {
                         confirming.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
+
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
@@ -313,12 +424,12 @@ const Form = () => {
                   </AlertDialogContent>
                 </AlertDialog>
               ) : (
-                <span></span>
+                <span />
               )}
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </>
   );
 };

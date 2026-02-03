@@ -13,12 +13,12 @@ const EligibilityHeader = ({
   const triggerRef = useRef(null);
 
   const isAnyoneNotEligible = filteredData.some(
-    (stu) => stu.eligibility == "false"
+    (stu) => stu.eligibility == "false" || stu.eligibility_as == "false",
   );
 
   return (
     <div className="flex justify-center gap-x-5 items-center">
-      <span>Eligibility</span>
+      <span>Overall Eligibility</span>
       <Switch
         onClick={(e) => {
           e.preventDefault();

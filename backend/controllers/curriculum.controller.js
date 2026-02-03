@@ -59,7 +59,7 @@ export const getAllSubjectsWithExtraDetails = async (req, res, next) => {
 
     try {
       const [results] = await conn.query(
-        "CALL GetAllSubjectsWithExtraDetails();"
+        "CALL GetAllSubjectsWithExtraDetails();",
       );
 
       return res.status(200).json(results[0]); // First result set contains the data
@@ -88,7 +88,7 @@ export const getGroupsBySylLevSem = async (req, res, next) => {
     try {
       const [results] = await conn.query(
         "CALL GetGroupsBySylLevSem(?, ?, ?);",
-        [syl_id, level, sem_no]
+        [syl_id, level, sem_no],
       );
 
       return res.status(200).json(results[0]);
@@ -161,8 +161,8 @@ export const getSubjectsByDid = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "Failed to fetch subject details for the given hod_id"
-        )
+          "Failed to fetch subject details for the given hod_id",
+        ),
       );
     } finally {
       conn.release();
@@ -174,7 +174,7 @@ export const getSubjectsByDid = async (req, res, next) => {
 };
 
 export const createSubject = async (req, res, next) => {
-  const {
+  let {
     sub_code,
     sub_name,
     sem_no,
@@ -182,6 +182,7 @@ export const createSubject = async (req, res, next) => {
     pass_grade,
     d_id,
     level,
+    assessment_min_mark = 0,
     status = "true",
   } = req.body;
 
@@ -193,6 +194,7 @@ export const createSubject = async (req, res, next) => {
     !pass_grade ||
     !d_id ||
     !level ||
+    assessment_min_mark === "" ||
     !status
   ) {
     return res.status(400).json({ message: "All fields are required" });
@@ -204,29 +206,30 @@ export const createSubject = async (req, res, next) => {
     try {
       const [subjectExistsResult] = await conn.query(
         "CALL CheckSubjectExist(?, ?, @exists); SELECT @exists AS subject_exists;",
-        [sub_code, syl_id]
+        [sub_code, syl_id],
       );
       const { subject_exists } = subjectExistsResult[1][0];
 
       if (subject_exists > 0) {
         conn.release();
         return next(
-          errorProvider(409, "Subject code already exists on the syllabus")
+          errorProvider(409, "Subject code already exists on the syllabus"),
         );
       }
 
-      await conn.query("CALL CreateSubject(?, ?, ?, ?, ?, ?, ?, ?);", [
+      await conn.query("CALL CreateSubject(?, ?, ?, ?, ?, ?, ?, ?, ?);", [
         sub_code,
         sub_name,
         sem_no,
         syl_id,
         d_id,
         level,
+        assessment_min_mark,
         status,
         pass_grade,
       ]);
 
-      let desc = `Subject created sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, syl_id=${syl_id}, d_id=${d_id}, level=${level}, pass_grade=${pass_grade}`;
+      let desc = `Subject created sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, syl_id=${syl_id}, d_id=${d_id}, level=${level}, assessment_min_mark=${assessment_min_mark}, status=${status}, pass_grade=${pass_grade}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(201).json({
@@ -237,8 +240,8 @@ export const createSubject = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while creating the subject record"
-        )
+          "An error occurred while creating the subject record",
+        ),
       );
     } finally {
       conn.release();
@@ -250,7 +253,7 @@ export const createSubject = async (req, res, next) => {
 };
 
 export const updateSubject = async (req, res, next) => {
-  const {
+  let {
     sub_code,
     sub_name,
     sem_no,
@@ -259,6 +262,7 @@ export const updateSubject = async (req, res, next) => {
     level,
     sub_id,
     pass_grade,
+    assessment_min_mark = 0,
   } = req.body;
 
   if (!sub_id) {
@@ -270,17 +274,27 @@ export const updateSubject = async (req, res, next) => {
 
     try {
       const [result] = await conn.query(
-        "CALL UpdateSubject(?, ?, ?, ?, ?, ?, ?, ?);",
-        [sub_id, sub_code, sub_name, sem_no, syl_id, d_id, level, pass_grade]
+        "CALL UpdateSubject(?, ?, ?, ?, ?, ?, ?, ?, ?);",
+        [
+          sub_id,
+          sub_code,
+          sub_name,
+          sem_no,
+          syl_id,
+          d_id,
+          level,
+          assessment_min_mark || 0,
+          pass_grade,
+        ],
       );
 
       if (result.affectedRows === 0) {
         return next(
-          errorProvider(404, "Subject record not found or no changes made")
+          errorProvider(404, "Subject record not found or no changes made"),
         );
       }
 
-      let desc = `Subject updated for sub_id=${sub_id}, sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, syl_id=${syl_id}, d_id=${d_id}, level=${level}, pass_grade=${pass_grade}`;
+      let desc = `Subject updated for sub_id=${sub_id}, sub_code=${sub_code}, sub_name=${sub_name}, sem_no=${sem_no}, syl_id=${syl_id}, d_id=${d_id}, level=${level}, assessment_min_mark=${assessment_min_mark}, pass_grade=${pass_grade}`;
       await conn.query("CALL LogAdminAction(?);", [desc]);
 
       return res.status(200).json({ message: "Subject updated successfully" });
@@ -289,8 +303,8 @@ export const updateSubject = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while updating the subject record"
-        )
+          "An error occurred while updating the subject record",
+        ),
       );
     } finally {
       conn.release();
@@ -319,7 +333,7 @@ export const updateSubjectStatus = async (req, res, next) => {
 
       if (result.affectedRows === 0) {
         return next(
-          errorProvider(404, "Subject record not found or no changes made")
+          errorProvider(404, "Subject record not found or no changes made"),
         );
       }
 
@@ -334,8 +348,8 @@ export const updateSubjectStatus = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while updating the subject record"
-        )
+          "An error occurred while updating the subject record",
+        ),
       );
     } finally {
       conn.release();
@@ -355,7 +369,7 @@ export const getNoOfSubjects = async (req, res, next) => {
     } catch (error) {
       console.error("Error retrieving number of subjects:", error);
       return next(
-        errorProvider(500, "An error occurred while fetching subject count")
+        errorProvider(500, "An error occurred while fetching subject count"),
       );
     } finally {
       conn.release();
@@ -406,7 +420,7 @@ export const getSubjectBybatchAndDepartment = async (req, res, next) => {
     try {
       const [departments] = await conn.query(
         "SELECT d_id FROM department WHERE user_id = ? AND status = 'true'",
-        [user_id]
+        [user_id],
       );
 
       if (departments.length === 0) {
@@ -416,7 +430,7 @@ export const getSubjectBybatchAndDepartment = async (req, res, next) => {
 
       const [results] = await conn.query(
         "CALL GetSubjectBybatchAndDepartment(?, ?);",
-        [batch_id, department.d_id]
+        [batch_id, department.d_id],
       );
 
       return res.status(200).json(results[0]);
@@ -444,7 +458,7 @@ export const getStudentApplicationDetails = async (req, res, next) => {
     try {
       const [results] = await conn.query(
         "CALL GetStudentApplicationDetails(?);",
-        [user_id]
+        [user_id],
       );
 
       const studentDetails = results[0][0]; // First result set
@@ -475,8 +489,8 @@ export const getStudentApplicationDetails = async (req, res, next) => {
         return next(
           errorProvider(
             404,
-            "No attendance found for this student in the batch"
-          )
+            "No attendance found for this student in the batch",
+          ),
         );
       }
 
@@ -502,8 +516,8 @@ export const getStudentApplicationDetails = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching student application details"
-        )
+          "An error occurred while fetching student application details",
+        ),
       );
     } finally {
       conn.release();
@@ -527,7 +541,7 @@ export const getAllSubjectsForLecturer = async (req, res, next) => {
       // Call the stored procedure
       const [subjects] = await conn.query(
         "CALL GetAllSubjectsForLecturer(?);",
-        [user_id]
+        [user_id],
       );
 
       if (!subjects.length) {
@@ -547,8 +561,8 @@ export const getAllSubjectsForLecturer = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching subjects for the Lecturer."
-        )
+          "An error occurred while fetching subjects for the Lecturer.",
+        ),
       );
     } finally {
       conn.release();
@@ -572,7 +586,7 @@ export const getAllSubjectsForDepartment = async (req, res, next) => {
     try {
       const [departments] = await conn.query(
         "SELECT d_id FROM department WHERE user_id = ? AND status = 'true'",
-        [user_id]
+        [user_id],
       );
 
       if (departments.length === 0) {
@@ -584,7 +598,7 @@ export const getAllSubjectsForDepartment = async (req, res, next) => {
       // Step 2: Get active degrees under this faculty
       const [degrees] = await conn.query(
         "CALL GetActiveDegreesInDepartment(?)",
-        [department.d_id]
+        [department.d_id],
       );
 
       if (degrees[0].length > 0) {
@@ -592,7 +606,7 @@ export const getAllSubjectsForDepartment = async (req, res, next) => {
           // Step 2: Get active degrees under this faculty
           const [batches] = await conn.query(
             "CALL GetActiveBatchesOfDegWithinDeadline(?, ?)",
-            [degree.deg_id, role_id]
+            [degree.deg_id, role_id],
           );
 
           if (batches[0].length > 0) {
@@ -602,7 +616,7 @@ export const getAllSubjectsForDepartment = async (req, res, next) => {
               // Step 3: Get subjects for this batch
               const [subjects] = await conn.query(
                 "CALL GetSubjectsForBatch(?)",
-                [batch_id]
+                [batch_id],
               );
 
               if (subjects[0].length > 0) {
@@ -653,7 +667,7 @@ export const getAllSubjectsForFaculty = async (req, res, next) => {
     try {
       const [faculty] = await conn.query(
         "SELECT f_id FROM faculty WHERE user_id = ? AND status = 'true'",
-        [user_id]
+        [user_id],
       );
 
       if (faculty.length === 0) {
@@ -673,7 +687,7 @@ export const getAllSubjectsForFaculty = async (req, res, next) => {
           // Step 2: Get active degrees under this faculty
           const [batches] = await conn.query(
             "CALL GetActiveBatchesOfDegWithinDeadline(?, ?)",
-            [degree.deg_id, role_id]
+            [degree.deg_id, role_id],
           );
 
           if (batches[0].length > 0) {
@@ -683,7 +697,7 @@ export const getAllSubjectsForFaculty = async (req, res, next) => {
               // Step 3: Get subjects for this batch
               const [subjects] = await conn.query(
                 "CALL GetSubjectsForBatch(?)",
-                [batch_id]
+                [batch_id],
               );
 
               if (subjects[0].length > 0) {
@@ -784,7 +798,7 @@ export const updateEligibility = async (req, res, next) => {
       }
 
       return next(
-        errorProvider(500, "An error occurred while updating eligibility.")
+        errorProvider(500, "An error occurred while updating eligibility."),
       );
     } finally {
       conn.release();
@@ -859,7 +873,7 @@ export const updateMultipleEligibility = async (req, res, next) => {
       }
 
       return next(
-        errorProvider(500, "An error occurred while updating eligibility.")
+        errorProvider(500, "An error occurred while updating eligibility."),
       );
     } finally {
       conn.release();
@@ -883,7 +897,7 @@ export const checkSubjectExistOnBSL = async (req, res, next) => {
     try {
       const [subjectExistsResult] = await conn.query(
         "CALL CheckSubjectExistOnBSL(?, ?, ?, @subjectExists); SELECT @subjectExists AS subjectExists;",
-        [batch_id, sub_id, user_id]
+        [batch_id, sub_id, user_id],
       );
 
       const subjectExists = subjectExistsResult[1][0].subjectExists;
@@ -896,7 +910,10 @@ export const checkSubjectExistOnBSL = async (req, res, next) => {
       await conn.rollback();
 
       return next(
-        errorProvider(500, "An error occurred while cheking subject existence.")
+        errorProvider(
+          500,
+          "An error occurred while cheking subject existence.",
+        ),
       );
     } finally {
       conn.release();
@@ -920,7 +937,7 @@ export const checkSubjectExistOnDepartment = async (req, res, next) => {
     try {
       const [departments] = await conn.query(
         "SELECT d_id FROM department WHERE user_id = ? AND status = 'true'",
-        [user_id]
+        [user_id],
       );
 
       if (departments.length === 0) {
@@ -930,7 +947,7 @@ export const checkSubjectExistOnDepartment = async (req, res, next) => {
 
       const [subjectExistsResult] = await conn.query(
         "CALL CheckSubjectExistOnDepartment(?, ?, @subjectExists); SELECT @subjectExists AS subjectExists;",
-        [sub_id, department.d_id]
+        [sub_id, department.d_id],
       );
 
       const subjectExists = subjectExistsResult[1][0].subjectExists;
@@ -943,7 +960,10 @@ export const checkSubjectExistOnDepartment = async (req, res, next) => {
       await conn.rollback();
 
       return next(
-        errorProvider(500, "An error occurred while cheking subject existence.")
+        errorProvider(
+          500,
+          "An error occurred while cheking subject existence.",
+        ),
       );
     } finally {
       conn.release();
@@ -967,7 +987,7 @@ export const checkSubjectExistOnFaculty = async (req, res, next) => {
     try {
       const [faculties] = await conn.query(
         "SELECT f_id FROM faculty WHERE user_id = ? AND status = 'true'",
-        [user_id]
+        [user_id],
       );
 
       if (faculties.length === 0) {
@@ -977,7 +997,7 @@ export const checkSubjectExistOnFaculty = async (req, res, next) => {
 
       const [subjectExistsResult] = await conn.query(
         "CALL CheckSubjectExistOnFaculty(?, ?, @subjectExists); SELECT @subjectExists AS subjectExists;",
-        [sub_id, faculty.f_id]
+        [sub_id, faculty.f_id],
       );
 
       const subjectExists = subjectExistsResult[1][0].subjectExists;
@@ -990,7 +1010,10 @@ export const checkSubjectExistOnFaculty = async (req, res, next) => {
       await conn.rollback();
 
       return next(
-        errorProvider(500, "An error occurred while cheking subject existence.")
+        errorProvider(
+          500,
+          "An error occurred while cheking subject existence.",
+        ),
       );
     } finally {
       conn.release();
@@ -1021,7 +1044,7 @@ export const createSyllabus = async (req, res, next) => {
     try {
       const [syllabusExistsResult] = await conn.query(
         "CALL CheckSyllabusExist(?, ?, @exists); SELECT @exists AS syllabus_exists;",
-        [deg_id, commenced_year]
+        [deg_id, commenced_year],
       );
       const { syllabus_exists } = syllabusExistsResult[1][0];
 
@@ -1048,8 +1071,8 @@ export const createSyllabus = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while creating the subject record"
-        )
+          "An error occurred while creating the subject record",
+        ),
       );
     } finally {
       conn.release();
@@ -1066,7 +1089,7 @@ export const getAllSyllabiWithExtraDetails = async (req, res, next) => {
 
     try {
       const [results] = await conn.query(
-        "CALL GetAllSyllabiWithExtraDetails();"
+        "CALL GetAllSyllabiWithExtraDetails();",
       );
 
       return res.status(200).json(results[0]); // First result set contains the data
@@ -1100,7 +1123,7 @@ export const updateSyllabusStatus = async (req, res, next) => {
 
       if (result.affectedRows === 0) {
         return next(
-          errorProvider(404, "Syllabus record not found or no changes made")
+          errorProvider(404, "Syllabus record not found or no changes made"),
         );
       }
 
@@ -1115,8 +1138,8 @@ export const updateSyllabusStatus = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while updating the Syllabus record"
-        )
+          "An error occurred while updating the Syllabus record",
+        ),
       );
     } finally {
       conn.release();
@@ -1176,7 +1199,7 @@ export const getSyllabiByDegreeId = async (req, res, next) => {
 
       if (results[0].length === 0) {
         return next(
-          errorProvider(404, `No syllabi found for deg_id: ${deg_id}`)
+          errorProvider(404, `No syllabi found for deg_id: ${deg_id}`),
         );
       }
 
@@ -1194,7 +1217,7 @@ export const getSyllabiByDegreeId = async (req, res, next) => {
 };
 
 export const updateSyllabus = async (req, res, next) => {
-  const { deg_id, commenced_year, expired_year, syl_id } = req.body;
+  const { deg_id, commenced_year, expired_year = "", syl_id } = req.body;
 
   if (!syl_id) {
     return next(errorProvider(400, "Syllabus ID (syl_id) is required"));
@@ -1213,7 +1236,7 @@ export const updateSyllabus = async (req, res, next) => {
 
       if (result.affectedRows === 0) {
         return next(
-          errorProvider(404, "Syllabus record not found or no changes made")
+          errorProvider(404, "Syllabus record not found or no changes made"),
         );
       }
 
@@ -1226,8 +1249,8 @@ export const updateSyllabus = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while updating the Syllabus record"
-        )
+          "An error occurred while updating the Syllabus record",
+        ),
       );
     } finally {
       conn.release();
@@ -1251,7 +1274,7 @@ export const getAllSubjectsForGroupCreation = async (req, res, next) => {
     try {
       const [results] = await conn.query(
         "CALL GetAllSubjectsForGroupCreation(?,?,?);",
-        [syl_id, level, sem_no]
+        [syl_id, level, sem_no],
       );
 
       if (results[0].length === 0) {
@@ -1303,7 +1326,7 @@ export const createGroup = async (req, res, next) => {
     try {
       const [groupExistsResult] = await conn.query(
         "CALL CheckGroupExist(?, @exists); SELECT @exists AS group_exists;",
-        [grp_code]
+        [grp_code],
       );
       const { group_exists } = groupExistsResult[1][0];
 
@@ -1314,7 +1337,7 @@ export const createGroup = async (req, res, next) => {
 
       const [groupResult] = await conn.query(
         "CALL CreateGroup(?, ?, ?, ?, ?, ?, @grp_id); SELECT @grp_id AS grp_id;",
-        [grp_code, level, sem_no, status, custom_suffix, course_title]
+        [grp_code, level, sem_no, status, custom_suffix, course_title],
       );
       const grp_id = groupResult[1][0].grp_id;
 
@@ -1333,7 +1356,7 @@ export const createGroup = async (req, res, next) => {
     } catch (error) {
       console.error("Error creating Group:", error);
       return next(
-        errorProvider(500, "An error occurred while creating the group")
+        errorProvider(500, "An error occurred while creating the group"),
       );
     } finally {
       conn.release();
@@ -1350,7 +1373,7 @@ export const getAllGroupsWithExtraDetails = async (req, res, next) => {
 
     try {
       const [results] = await conn.query(
-        "CALL GetAllGroupsWithExtraDetails();"
+        "CALL GetAllGroupsWithExtraDetails();",
       );
 
       return res.status(200).json(results[0]);
@@ -1395,7 +1418,7 @@ export const updateGroupStatus = async (req, res, next) => {
     } catch (error) {
       console.error("Error updating group:", error);
       return next(
-        errorProvider(500, "An error occurred while updating the group")
+        errorProvider(500, "An error occurred while updating the group"),
       );
     } finally {
       conn.release();
@@ -1470,7 +1493,7 @@ export const updateGroup = async (req, res, next) => {
 
       const [groupExistsResult] = await conn.query(
         "CALL CheckGroupExist(?, @exists); SELECT @exists AS group_exists;",
-        [grp_id]
+        [grp_id],
       );
       const { group_exists } = groupExistsResult[1][0];
 
@@ -1481,7 +1504,7 @@ export const updateGroup = async (req, res, next) => {
 
       const [duplicateGroupResult] = await conn.query(
         "CALL CheckForDuplicateGroup(?, ?, @exists); SELECT @exists AS duplicate;",
-        [grp_code, grp_id]
+        [grp_code, grp_id],
       );
       const { duplicate } = duplicateGroupResult[1][0];
 
@@ -1517,7 +1540,7 @@ export const updateGroup = async (req, res, next) => {
       await conn.rollback();
       console.error("Error while updating group:", error);
       return next(
-        errorProvider(500, "An error occurred while updating the group")
+        errorProvider(500, "An error occurred while updating the group"),
       );
     } finally {
       conn.release();
@@ -1537,7 +1560,7 @@ export const getNoOfSyllabi = async (req, res, next) => {
     } catch (error) {
       console.error("Error retrieving number of syllabi:", error);
       return next(
-        errorProvider(500, "An error occurred while fetching syllabi count")
+        errorProvider(500, "An error occurred while fetching syllabi count"),
       );
     } finally {
       conn.release();
@@ -1557,7 +1580,7 @@ export const getNoOfGroups = async (req, res, next) => {
     } catch (error) {
       console.error("Error retrieving number of groups:", error);
       return next(
-        errorProvider(500, "An error occurred while fetching groups count")
+        errorProvider(500, "An error occurred while fetching groups count"),
       );
     } finally {
       conn.release();
@@ -1607,7 +1630,7 @@ export const getStudentResitApplicationDetails = async (req, res, next) => {
     try {
       const [results] = await conn.query(
         "CALL GetStudentResitApplicationDetailsByBatch(?,?);",
-        [user_id, batch_id]
+        [user_id, batch_id],
       );
 
       const studentDetails = results[0][0]; // First result set
@@ -1636,8 +1659,8 @@ export const getStudentResitApplicationDetails = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching student application details"
-        )
+          "An error occurred while fetching student application details",
+        ),
       );
     } finally {
       conn.release();
@@ -1661,7 +1684,7 @@ export const getStudentMedicalApplicationDetails = async (req, res, next) => {
     try {
       const [results] = await conn.query(
         "CALL GetStudentMedicalApplicationDetailsByBatch(?,?);",
-        [user_id, batch_id]
+        [user_id, batch_id],
       );
 
       const studentDetails = results[0][0]; // First result set
@@ -1690,8 +1713,8 @@ export const getStudentMedicalApplicationDetails = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching student application details"
-        )
+          "An error occurred while fetching student application details",
+        ),
       );
     } finally {
       conn.release();
@@ -1757,7 +1780,7 @@ export const updateResitEligibility = async (req, res, next) => {
       }
 
       return next(
-        errorProvider(500, "An error occurred while updating eligibility.")
+        errorProvider(500, "An error occurred while updating eligibility."),
       );
     } finally {
       conn.release();
@@ -1832,7 +1855,7 @@ export const updateMultipleResitEligibility = async (req, res, next) => {
       }
 
       return next(
-        errorProvider(500, "An error occurred while updating eligibility.")
+        errorProvider(500, "An error occurred while updating eligibility."),
       );
     } finally {
       conn.release();
@@ -1898,7 +1921,7 @@ export const updateMedicalEligibility = async (req, res, next) => {
       }
 
       return next(
-        errorProvider(500, "An error occurred while updating eligibility.")
+        errorProvider(500, "An error occurred while updating eligibility."),
       );
     } finally {
       conn.release();
@@ -1973,7 +1996,7 @@ export const updateMultipleMedicalEligibility = async (req, res, next) => {
       }
 
       return next(
-        errorProvider(500, "An error occurred while updating eligibility.")
+        errorProvider(500, "An error occurred while updating eligibility."),
       );
     } finally {
       conn.release();

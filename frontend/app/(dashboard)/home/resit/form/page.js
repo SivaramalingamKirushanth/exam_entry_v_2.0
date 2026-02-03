@@ -82,7 +82,7 @@ const Form = () => {
           1: "",
           2: "",
           3: "",
-        })
+        }),
     );
     setAttemptsData((cur) => ({
       ...cur,
@@ -122,10 +122,6 @@ const Form = () => {
     }
   }, [deg]);
 
-  useEffect(() => {
-    console.log(attemptsData);
-  }, [attemptsData]);
-
   const {
     data: applicationData,
     error,
@@ -157,7 +153,7 @@ const Form = () => {
       queryClient.invalidateQueries(
         ["batchesOfStudent", "resit"],
         ["studentApplicationDetails", "resit"],
-        ["student", "resit", "subject", "eligibility"]
+        ["student", "resit", "subject", "eligibility"],
       );
       toast.success(res.message);
 
@@ -198,7 +194,7 @@ const Form = () => {
 
   useEffect(() => {
     const attemptDataOk = Object.values(attemptsData).every((obj) =>
-      Object.values(obj).some((result) => result)
+      Object.values(obj).some((result) => result),
     );
 
     setIsAttemptDataSatisfied(attemptDataOk);
@@ -253,8 +249,8 @@ const Form = () => {
                       error
                         ? "Not found"
                         : isLoading
-                        ? "Loading..."
-                        : "Select subjects"
+                          ? "Loading..."
+                          : "Select subjects"
                     }
                     classNamePrefix="react-select"
                     styles={{
@@ -295,7 +291,7 @@ const Form = () => {
               applicationData &&
               applicationData?.subjects?.length ? (
                 <div
-                  className={`my-5 sm:my-10 flex flex-col gap-2 opacity-50 cursor-not-allowed`}
+                  className={`my-5 sm:my-10 flex flex-col gap-2 opacity-75 cursor-not-allowed`}
                 >
                   <div className="flex gap-2 items-center text-sm">
                     <div className="flex-1 hidden sm:flex sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
@@ -328,7 +324,7 @@ const Form = () => {
                         resitEligibilityData?.eligibility[obj.sub_id]
                           ?.eligible == "false" ||
                         resitEligibilityData?.eligibility[obj.sub_id]
-                          ?.eligible == ""
+                          ?.eligible == "",
                     )
                     .map((obj, ind) => (
                       <div key={obj.sub_id} className="flex gap-2 items-center">
