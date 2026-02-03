@@ -11,9 +11,8 @@ const EligibilityHeader = ({
 }) => {
   const [remark, setRemark] = useState("");
   const triggerRef = useRef(null);
-
   const isAnyoneNotEligible = filteredData.some(
-    (stu) => stu.eligibility == "false" || stu.eligibility_as == "false",
+    (stu) => stu.eligibility === "false",
   );
 
   return (

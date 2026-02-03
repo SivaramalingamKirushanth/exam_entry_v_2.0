@@ -2249,27 +2249,17 @@ export const getStudentSubjectEligibility = async (req, res, next) => {
 
   if (!batch_id) return next(errorProvider(400, "batch_id is required"));
 
-  // ─── FIX #5 (part A): Validate that batch_id is a positive integer before
-  //     it is used anywhere — prevents type-confusion attacks.
-  // ─────────────────────────────────────────────────────────────────────────
   const safeBatchId = Number(batch_id);
   if (!Number.isInteger(safeBatchId) || safeBatchId <= 0) {
     return next(errorProvider(400, "Invalid batch_id."));
   }
-  // ─────────────────────────────────────────────────────────────────────────
 
   const ATT_THRESHOLD = 80;
 
   try {
     const conn = await pool.getConnection();
     try {
-      // ─── FIX #5 (part B): Verify that the authenticated student actually
-      //     belongs to the requested batch BEFORE running the eligibility
-      //     query.  This prevents a student from querying eligibility data
-      //     for arbitrary batches by manipulating the request body.
-      //     The query mirrors the same logic used inside
-      //     GetStudentApplicationDetails to derive the student's batch.
-      // ───────────────────────────────────────────────────────────────────
+      // Verify student owns the batch
       const [[ownershipRow]] = await conn.query(
         `SELECT CAST(SUBSTRING_INDEX(sd.batch_ids, ',', -1) AS UNSIGNED) AS student_batch_id
          FROM student s
@@ -2290,51 +2280,46 @@ export const getStudentSubjectEligibility = async (req, res, next) => {
           ),
         );
       }
-      // ───────────────────────────────────────────────────────────────────
 
       const [results] = await conn.query(
         "CALL GetStudentSubjectEligibility(?, ?);",
-        [user_id, safeBatchId], // use validated integer
+        [user_id, safeBatchId],
       );
 
       const rawJson = results?.[0]?.[0]?.result;
       if (!rawJson) return res.status(200).json({});
 
-      // ─── FIX #12: Wrap JSON.parse in try/catch.  A malformed JSON string
-      //     from the stored procedure would otherwise crash the handler
-      //     before reaching the finally block and leak an unhandled error.
-      // ───────────────────────────────────────────────────────────────────
       let raw;
       try {
         raw = JSON.parse(rawJson);
       } catch (parseError) {
-        // TODO: Log parseError with a structured logger for debugging.
         console.error(
           "Failed to parse stored procedure JSON result:",
           parseError,
         );
         return next(errorProvider(500, "Internal data format error."));
       }
-      // ───────────────────────────────────────────────────────────────────
 
       if (raw.error) return next(errorProvider(400, raw.error));
 
-      // 1. EXTRACT THE MASTER FLAG
       const isApplied = raw.is_applied === "true";
       const subjects = raw.subjects || {};
 
-      const subIds = Object.keys(subjects).map(Number);
-      if (subIds.length === 0)
+      const subIds = Object.keys(subjects)
+        .map(Number)
+        .filter((n) => Number.isFinite(n));
+      if (subIds.length === 0) {
         return res.status(200).json({ is_applied: isApplied, subjects: {} });
+      }
 
-      // Get assignment thresholds
+      // Assessment thresholds for preview
       const [minRows] = await conn.query(
         `SELECT sub_id, assessment_min_mark FROM subject WHERE sub_id IN (?)`,
         [subIds],
       );
 
       const minBySubId = minRows.reduce((acc, r) => {
-        acc[r.sub_id] = Number(r.assessment_min_mark ?? 0);
+        acc[Number(r.sub_id)] = Number(r.assessment_min_mark ?? 0);
         return acc;
       }, {});
 
@@ -2342,9 +2327,11 @@ export const getStudentSubjectEligibility = async (req, res, next) => {
 
       for (const [subIdStr, rec] of Object.entries(subjects)) {
         const subId = Number(subIdStr);
-        const asMin = minBySubId[subId] || 0;
+        if (!Number.isFinite(subId)) continue;
 
-        // Parse Raw Values
+        const asMin = minBySubId[subId] ?? 0;
+
+        // Raw values from procedure
         const attVal =
           rec.attendance_val === "none" ? null : Number(rec.attendance_val);
         const asVal =
@@ -2352,17 +2339,17 @@ export const getStudentSubjectEligibility = async (req, res, next) => {
 
         let attStatus, asStatus, overall;
 
-        // ---------------------------------------------------------
-        // LOGIC SPLIT: APPLIED vs PREVIEW
-        // ---------------------------------------------------------
-        if (isApplied) {
-          // A. IF APPLIED: Trust the DB blindly (The Source of Truth)
+        // Backward compatibility detection:
+        // If procedure returns assessment_val:"none", we treat assessment as not supported for this batch/subject.
+        const assessmentSupported = rec.assessment_val !== "none";
 
+        if (isApplied) {
+          // Applied: trust DB (procedure already normalizes legacy -> overall/attendance correctly)
           attStatus = String(rec.attendance_status || "none").toLowerCase();
           asStatus = String(rec.assessment_status || "none").toLowerCase();
           overall = String(rec.overall_status || "none").toLowerCase();
 
-          // Normalize DB "1"/"0" to "true"/"false" if needed
+          // Normalize DB "1"/"0" to "true"/"false"
           if (attStatus === "1") attStatus = "true";
           if (attStatus === "0") attStatus = "false";
 
@@ -2371,8 +2358,15 @@ export const getStudentSubjectEligibility = async (req, res, next) => {
 
           if (overall === "1") overall = "true";
           if (overall === "0") overall = "false";
+
+          // Extra safety: if assessment not supported, force overall to attendance
+          // (covers any legacy data anomalies)
+          if (!assessmentSupported) {
+            asStatus = "none";
+            overall = attStatus;
+          }
         } else {
-          // B. IF NOT APPLIED: Calculate "Preview" Status locally
+          // Preview: compute locally
 
           attStatus =
             attVal === null
@@ -2381,15 +2375,20 @@ export const getStudentSubjectEligibility = async (req, res, next) => {
                 ? "true"
                 : "false";
 
-          asStatus =
-            asVal === null ? "none" : asVal >= asMin ? "true" : "false";
-
-          // Calculate Overall Preview
-          if (attStatus !== "none" && asStatus !== "none") {
-            overall =
-              attStatus === "true" && asStatus === "true" ? "true" : "false";
+          if (!assessmentSupported) {
+            // Requirement: no assessment => overall == attendance eligibility
+            asStatus = "none";
+            overall = attStatus;
           } else {
-            overall = "none";
+            asStatus =
+              asVal === null ? "none" : asVal >= asMin ? "true" : "false";
+
+            if (attStatus !== "none" && asStatus !== "none") {
+              overall =
+                attStatus === "true" && asStatus === "true" ? "true" : "false";
+            } else {
+              overall = "none";
+            }
           }
         }
 
@@ -2399,8 +2398,13 @@ export const getStudentSubjectEligibility = async (req, res, next) => {
             status: attStatus,
             threshold: ATT_THRESHOLD,
           },
-          assessment: { value: asVal, status: asStatus, threshold: asMin },
-          overall: overall,
+          assessment: {
+            value: asVal,
+            status: asStatus,
+            threshold: asMin,
+            supported: assessmentSupported,
+          },
+          overall,
         };
       }
 

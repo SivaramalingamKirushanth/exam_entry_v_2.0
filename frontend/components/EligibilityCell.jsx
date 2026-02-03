@@ -16,10 +16,7 @@ const EligibilityCell = ({ row, onEligibilityChanged, end_date }) => {
             e.preventDefault();
             e.target.parentElement.click();
           }}
-          checked={
-            row.original.eligibility == "true" &&
-            row.original.eligibility_as == "true"
-          }
+          checked={row.original.eligibility == "true"}
           disabled={new Date() > new Date(end_date)}
         />
       </PopoverTrigger>
