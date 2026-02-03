@@ -54,7 +54,7 @@ const AttendanceModel = ({
             className="bg-white rounded-lg shadow-lg w-[425px] p-6"
           >
             <div className="flex justify-between items-center border-b pb-2 mb-4">
-              <h3 className="text-lg font-semibold">Attendance Sheet</h3>
+              <h3 className="text-lg font-semibold">Attendance & Assignment</h3>
               <GiCancel
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
                 onClick={() => {
@@ -67,18 +67,33 @@ const AttendanceModel = ({
 
             <div className="font-bahnschriftCon pl-5 mt-3">
               <h2 className="font-semibold">Instructions</h2>
-              <ul className="list-disc text-sm">
-                <li>Ensure the file is in CSV format.</li>
+              <ul className="list-disc text-sm space-y-1">
                 <li>
-                  The first row must be a header row (User name and subject
-                  codes ex:IT3143(P)).
+                  Ensure the file is in{" "}
+                  <span className="font-bold">CSV format</span>.
                 </li>
                 <li>
-                  Each row after the header must represent a single student
+                  The first row must be the{" "}
+                  <span className="font-bold">Header Row</span>.
                 </li>
                 <li>
-                  The 1st column is user name and remainings are attendance
-                  percentage (without &apos;%&apos;).
+                  <b>Column 1:</b> User Name (Student Registration Number).
+                </li>
+                <li>
+                  <b>For Attendance columns:</b> Use the Subject Code as the
+                  header (e.g.,{" "}
+                  <code className="bg-gray-100 px-1 rounded">IT3143(P)</code>).
+                </li>
+                <li>
+                  <b>For Assignment Mark columns:</b> Append{" "}
+                  <code className="bg-gray-100 px-1 rounded">_as</code> to the
+                  Subject Code (e.g.,{" "}
+                  <code className="bg-gray-100 px-1 rounded">IT3143(P)_as</code>
+                  ).
+                </li>
+                <li>
+                  <b>Values:</b> Enter numbers only (do not use{" "}
+                  <span className="font-bold">&apos;%&apos;</span> symbols).
                 </li>
               </ul>
             </div>

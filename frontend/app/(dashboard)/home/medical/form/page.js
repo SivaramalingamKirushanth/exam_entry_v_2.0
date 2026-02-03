@@ -97,7 +97,7 @@ const Form = () => {
       queryClient.invalidateQueries(
         ["batchesOfStudent", "medical"],
         ["studentApplicationDetails", "medical"],
-        ["student", "medical", "subject", "eligibility"]
+        ["student", "medical", "subject", "eligibility"],
       );
       toast.success(res.message);
 
@@ -174,8 +174,8 @@ const Form = () => {
                       error
                         ? "Not found"
                         : isLoading
-                        ? "Loading..."
-                        : "Select subjects"
+                          ? "Loading..."
+                          : "Select subjects"
                     }
                     classNamePrefix="react-select"
                     styles={{
@@ -215,7 +215,7 @@ const Form = () => {
             applicationData &&
             applicationData?.subjects?.length ? (
               <div
-                className={`my-5 sm:my-10 flex flex-col gap-2 opacity-50 cursor-not-allowed`}
+                className={`my-5 sm:my-10 flex flex-col gap-2 opacity-75 cursor-not-allowed`}
               >
                 <div className="flex gap-2 items-center text-sm">
                   <div className="flex-1 hidden sm:flex sm:flex-row px-3 py-2 sm:py-4 bg-white rounded-lg  items-center w-full">
@@ -238,7 +238,7 @@ const Form = () => {
                         "true" ||
                       medicalEligibilityData?.eligibility[obj.sub_id] ==
                         "false" ||
-                      medicalEligibilityData?.eligibility[obj.sub_id] == ""
+                      medicalEligibilityData?.eligibility[obj.sub_id] == "",
                   )
                   .map((obj, ind) => (
                     <div key={obj.sub_id} className="flex gap-2 items-center">

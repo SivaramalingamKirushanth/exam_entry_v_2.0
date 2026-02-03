@@ -51,8 +51,8 @@ export const applyExam = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while processing the exam application."
-        )
+          "An error occurred while processing the exam application.",
+        ),
       );
     } finally {
       conn.release();
@@ -69,7 +69,7 @@ export const applyResitExam = async (req, res, next) => {
 
   if (!user_id || !subjects_string || !batch_id) {
     return next(
-      errorProvider(400, "User ID,subjects_string, batch_id are required.")
+      errorProvider(400, "User ID,subjects_string, batch_id are required."),
     );
   }
 
@@ -107,8 +107,8 @@ export const applyResitExam = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while processing the exam application."
-        )
+          "An error occurred while processing the exam application.",
+        ),
       );
     } finally {
       conn.release();
@@ -125,7 +125,7 @@ export const applyMedicalExam = async (req, res, next) => {
 
   if (!user_id || !subjects_string || !batch_id) {
     return next(
-      errorProvider(400, "User ID,subjects_string, batch_id are required.")
+      errorProvider(400, "User ID,subjects_string, batch_id are required."),
     );
   }
 
@@ -163,8 +163,8 @@ export const applyMedicalExam = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while processing the exam application."
-        )
+          "An error occurred while processing the exam application.",
+        ),
       );
     } finally {
       conn.release();
@@ -190,13 +190,13 @@ export const acceptMedicalResitStudents = async (req, res, next) => {
       // 1. Get resit_id for the student and batch
       const [resitReq] = await conn.query(
         "SELECT resit_id FROM resit_request WHERE batch_id = ? AND s_id = ? LIMIT 1",
-        [batch_id, s_id]
+        [batch_id, s_id],
       );
 
       // 2. Get medical_id for the student and batch
       const [medicalReq] = await conn.query(
         "SELECT medical_id FROM medical_request WHERE batch_id = ? AND s_id = ? LIMIT 1",
-        [batch_id, s_id]
+        [batch_id, s_id],
       );
 
       // 3. Collect subject IDs from both tables
@@ -207,7 +207,7 @@ export const acceptMedicalResitStudents = async (req, res, next) => {
         ? (
             await conn.query(
               "SELECT sub_id FROM resit_subject WHERE resit_id = ? AND eligibility='true'",
-              [resit_id]
+              [resit_id],
             )
           )[0]
         : [];
@@ -216,7 +216,7 @@ export const acceptMedicalResitStudents = async (req, res, next) => {
         ? (
             await conn.query(
               "SELECT sub_id FROM medical_subject WHERE medical_id = ? AND eligibility='true'",
-              [medical_id]
+              [medical_id],
             )
           )[0]
         : [];
@@ -236,7 +236,7 @@ export const acceptMedicalResitStudents = async (req, res, next) => {
 
       await conn.query(
         "UPDATE resit_request SET status='true' WHERE resit_id=? ",
-        [resit_id]
+        [resit_id],
       );
 
       // 5. Call the procedure for medical subjects
@@ -253,7 +253,7 @@ export const acceptMedicalResitStudents = async (req, res, next) => {
 
       await conn.query(
         "UPDATE medical_request SET status='true' WHERE medical_id=? ",
-        [medical_id]
+        [medical_id],
       );
       await conn.commit();
 
@@ -265,8 +265,8 @@ export const acceptMedicalResitStudents = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while adding medical/resit students."
-        )
+          "An error occurred while adding medical/resit students.",
+        ),
       );
     } finally {
       conn.release();
@@ -303,8 +303,8 @@ export const rejectMedicalResitApplication = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while rejecting medical/resit students."
-        )
+          "An error occurred while rejecting medical/resit students.",
+        ),
       );
     } finally {
       conn.release();
@@ -338,8 +338,8 @@ export const revokeMedicalResitApplication = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while revoking medical/resit students."
-        )
+          "An error occurred while revoking medical/resit students.",
+        ),
       );
     } finally {
       conn.release();
@@ -369,7 +369,10 @@ export const revokeEntry = async (req, res, next) => {
     } catch (error) {
       console.error("Error revoking entries students:", error);
       return next(
-        errorProvider(500, "An error occurred while revoking entries students.")
+        errorProvider(
+          500,
+          "An error occurred while revoking entries students.",
+        ),
       );
     } finally {
       conn.release();
@@ -395,7 +398,10 @@ export const getStudentSubjects = async (req, res, next) => {
     } catch (error) {
       console.error("Error fetching student subjects:", error);
       return next(
-        errorProvider(500, "An error occurred while fetching student subjects.")
+        errorProvider(
+          500,
+          "An error occurred while fetching student subjects.",
+        ),
       );
     } finally {
       conn.release();
@@ -419,7 +425,7 @@ export const getStudentsWithoutIndexNumber = async (req, res, next) => {
     try {
       const [results] = await conn.query(
         "CALL GetStudentsWithoutIndexNumber(?);",
-        [batch_id]
+        [batch_id],
       );
 
       const count = results[0][0]?.students_without_index || 0;
@@ -433,8 +439,8 @@ export const getStudentsWithoutIndexNumber = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while checking students without index numbers."
-        )
+          "An error occurred while checking students without index numbers.",
+        ),
       );
     } finally {
       conn.release();
@@ -457,7 +463,7 @@ export const generateIndexNumbers = async (req, res, next) => {
     try {
       const [results] = await conn.query(
         "CALL GenerateIndexNumbers(?, ?, ?, ?);",
-        [batch_id, course, batch, parseInt(startsFrom, 10)]
+        [batch_id, course, batch, parseInt(startsFrom, 10)],
       );
 
       return res.status(200).json({
@@ -467,7 +473,7 @@ export const generateIndexNumbers = async (req, res, next) => {
     } catch (error) {
       console.error("Error generating index numbers:", error);
       return next(
-        errorProvider(500, "An error occurred while generating index numbers.")
+        errorProvider(500, "An error occurred while generating index numbers."),
       );
     } finally {
       conn.release();
@@ -490,7 +496,7 @@ export const getLastAssignedIndexNumber = async (req, res, next) => {
     try {
       const [results] = await conn.query(
         "CALL GetLastAssignedIndexNumber(?, ?);",
-        [course, batch]
+        [course, batch],
       );
 
       let lastIndex = results[0][0]?.last_assigned_index || 0;
@@ -504,8 +510,8 @@ export const getLastAssignedIndexNumber = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching the last assigned index number."
-        )
+          "An error occurred while fetching the last assigned index number.",
+        ),
       );
     } finally {
       conn.release();
@@ -573,8 +579,8 @@ export const createOrUpdateAdmission = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while adding or updating admission data."
-        )
+          "An error occurred while adding or updating admission data.",
+        ),
       );
     } finally {
       conn.release();
@@ -613,8 +619,8 @@ export const getLatestAdmissionTemplate = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching the latest admission template."
-        )
+          "An error occurred while fetching the latest admission template.",
+        ),
       );
     } finally {
       conn.release();
@@ -673,7 +679,7 @@ export const fetchStudentsWithSubjects = async (req, res, next) => {
       // Sort each group by lexicographical order of index_num
       Object.keys(groupedResults).forEach((key) => {
         groupedResults[key].sort((a, b) =>
-          a.index_num.localeCompare(b.index_num)
+          a.index_num.localeCompare(b.index_num),
         );
       });
 
@@ -681,7 +687,7 @@ export const fetchStudentsWithSubjects = async (req, res, next) => {
     } catch (error) {
       console.error("Error fetching students with subjects:", error);
       return next(
-        errorProvider(500, "An error occurred while fetching students.")
+        errorProvider(500, "An error occurred while fetching students."),
       );
     } finally {
       conn.release();
@@ -712,7 +718,7 @@ export const getBatchAdmissionDetails = async (req, res, next) => {
     } catch (error) {
       console.error("Error fetching batch admission details:", error);
       return next(
-        errorProvider(500, "Failed to fetch batch admission details")
+        errorProvider(500, "Failed to fetch batch admission details"),
       );
     } finally {
       conn.release();
@@ -741,7 +747,7 @@ export const fetchStudentWithSubjectsByUserId = async (req, res, next) => {
       // Execute the stored procedure
       const [results] = await conn.query(
         "CALL FetchStudentWithSubjectsByUserId(?, ?);",
-        [batch_id, user_id]
+        [batch_id, user_id],
       );
 
       // Parse the results
@@ -750,7 +756,7 @@ export const fetchStudentWithSubjectsByUserId = async (req, res, next) => {
 
       const [attendanceResults] = await conn.query(
         "CALL FetchStudentEligibilityByBatchIdAndSId(?, ?);",
-        [batch_id, studentData.s_id]
+        [batch_id, studentData.s_id],
       );
 
       const attendanceData = attendanceResults[0];
@@ -818,8 +824,8 @@ export const getEligibleStudentsBySub = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching eligible students."
-        )
+          "An error occurred while fetching eligible students.",
+        ),
       );
     } finally {
       conn.release();
@@ -885,7 +891,7 @@ export const createOrUpdateAttendance = async (req, res, next) => {
           times,
           studentDetails,
           sub_id,
-        ]
+        ],
       );
 
       let desc = `Attendance created or updated for batch_id=${batch_id}, transformedDate=${transformedDate}, transformedHeldDate=${transformedHeldDate}, sub_id=${sub_id}, description=${description}, no_of_groups=${no_of_groups}, venues=${venues}, dates=${dates}, times=${times}, studentDetails=${studentDetails}`;
@@ -903,8 +909,8 @@ export const createOrUpdateAttendance = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while adding or updating attendance data."
-        )
+          "An error occurred while adding or updating attendance data.",
+        ),
       );
     } finally {
       conn.release();
@@ -945,8 +951,8 @@ export const getLatestAttendanceTemplate = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching the latest attendance template."
-        )
+          "An error occurred while fetching the latest attendance template.",
+        ),
       );
     } finally {
       conn.release();
@@ -974,7 +980,7 @@ export const deleteBatchSubjectEntries = async (req, res, next) => {
       // Step 1: Fetch all sub_ids for the given batch_id
       const [subjects] = await conn.query(
         "SELECT sub_id FROM batch_subject_lecturer WHERE batch_id = ?",
-        [batch_id]
+        [batch_id],
       );
 
       if (subjects.length === 0) {
@@ -1011,7 +1017,7 @@ export const deleteBatchSubjectEntries = async (req, res, next) => {
       await conn.rollback();
       console.error("Error during subject entries deletion:", error);
       return next(
-        errorProvider(500, "Failed to delete subject entries for the batch.")
+        errorProvider(500, "Failed to delete subject entries for the batch."),
       );
     } finally {
       conn.release();
@@ -1032,7 +1038,7 @@ export const getDeanDashboardData = async (req, res, next) => {
     try {
       const [faculty] = await conn.query(
         "SELECT f_id FROM faculty WHERE user_id = ? AND status = 'true'",
-        [user_id]
+        [user_id],
       );
 
       if (faculty.length === 0) {
@@ -1068,17 +1074,17 @@ export const getDeanDashboardData = async (req, res, next) => {
           // Step 4: Fetch data from dynamic table
           const [students] = await conn.query(
             "CALL GetDynamicTableData(?, ?)",
-            [batch_id, sub_id]
+            [batch_id, sub_id],
           );
 
           const [remarks] = await conn.query(
             "CALL GetRemarksForSubject(?, ?)",
-            [batch_id, sub_id]
+            [batch_id, sub_id],
           );
 
           const [requestedStudents] = await conn.query(
             "CALL RequestedStudents(?, ?);",
-            [batch_id, sub_id]
+            [batch_id, sub_id],
           );
 
           let studentsData = [];
@@ -1088,7 +1094,7 @@ export const getDeanDashboardData = async (req, res, next) => {
 
               const [studentData] = await conn.query(
                 "SELECT sd.index_num, u.user_name FROM student_detail sd JOIN student s ON sd.s_id = s.s_id JOIN user u ON s.user_id = u.user_id WHERE sd.s_id=? ",
-                [s_id]
+                [s_id],
               );
 
               studentsData.push({
@@ -1108,7 +1114,7 @@ export const getDeanDashboardData = async (req, res, next) => {
               if (!studentsData.some((stu) => stu.s_id == s_id)) {
                 const [studentData] = await conn.query(
                   "SELECT sd.index_num, u.user_name FROM student_detail sd JOIN student s ON sd.s_id = s.s_id JOIN user u ON s.user_id = u.user_id WHERE sd.s_id=? ",
-                  [s_id]
+                  [s_id],
                 );
 
                 studentsData.push({
@@ -1161,7 +1167,7 @@ export const getHodDashboardData = async (req, res, next) => {
     try {
       const [departments] = await conn.query(
         "SELECT d_id FROM department WHERE user_id = ? AND status = 'true'",
-        [user_id]
+        [user_id],
       );
 
       if (departments.length === 0) {
@@ -1188,7 +1194,7 @@ export const getHodDashboardData = async (req, res, next) => {
       // Step 3: Get subjects for this batch
       const [subjects] = await conn.query(
         "CALL GetSubjectBybatchAndDepartment(?, ?);",
-        [batch_id, department.d_id]
+        [batch_id, department.d_id],
       );
 
       if (subjects[0].length > 0) {
@@ -1200,17 +1206,17 @@ export const getHodDashboardData = async (req, res, next) => {
           // Step 4: Fetch data from dynamic table
           const [students] = await conn.query(
             "CALL GetDynamicTableData(?, ?)",
-            [batch_id, sub_id]
+            [batch_id, sub_id],
           );
 
           const [remarks] = await conn.query(
             "CALL GetRemarksForSubject(?, ?)",
-            [batch_id, sub_id]
+            [batch_id, sub_id],
           );
 
           const [requestedStudents] = await conn.query(
             "CALL RequestedStudents(?, ?);",
-            [batch_id, sub_id]
+            [batch_id, sub_id],
           );
 
           let studentsData = [];
@@ -1220,7 +1226,7 @@ export const getHodDashboardData = async (req, res, next) => {
 
               const [studentData] = await conn.query(
                 "SELECT sd.index_num, u.user_name FROM student_detail sd JOIN student s ON sd.s_id = s.s_id JOIN user u ON s.user_id = u.user_id WHERE sd.s_id=? ",
-                [s_id]
+                [s_id],
               );
 
               studentsData.push({
@@ -1240,7 +1246,7 @@ export const getHodDashboardData = async (req, res, next) => {
               if (!studentsData.some((stu) => stu.s_id == s_id)) {
                 const [studentData] = await conn.query(
                   "SELECT sd.index_num, u.user_name FROM student_detail sd JOIN student s ON sd.s_id = s.s_id JOIN user u ON s.user_id = u.user_id WHERE sd.s_id=? ",
-                  [s_id]
+                  [s_id],
                 );
 
                 studentsData.push({
@@ -1296,7 +1302,7 @@ export const getAppliedStudentsForSubject = async (req, res, next) => {
     try {
       const [results] = await conn.query(
         "CALL GetAppliedStudentsByBatchAndSubject(?, ?, ?, ?);",
-        [user_id, batch_id, sub_id, role_id]
+        [user_id, batch_id, sub_id, role_id],
       );
 
       return res.status(200).json(results[0]);
@@ -1308,7 +1314,10 @@ export const getAppliedStudentsForSubject = async (req, res, next) => {
       }
 
       return next(
-        errorProvider(500, "An error occurred while fetching applied students.")
+        errorProvider(
+          500,
+          "An error occurred while fetching applied students.",
+        ),
       );
     } finally {
       conn.release();
@@ -1333,7 +1342,7 @@ export const getAppliedStudentsForSubjectOfFaculty = async (req, res, next) => {
     try {
       const [faculty] = await conn.query(
         "SELECT f_id FROM faculty WHERE user_id = ? AND status = 'true'",
-        [user_id]
+        [user_id],
       );
 
       if (faculty.length === 0) {
@@ -1349,14 +1358,14 @@ export const getAppliedStudentsForSubjectOfFaculty = async (req, res, next) => {
       if (degrees[0].length > 0) {
         const [deg] = await conn.query(
           "SELECT deg_id FROM batch WHERE batch_id = ?",
-          [batch_id]
+          [batch_id],
         );
         const degree = degrees[0].find((item) => item.deg_id == deg[0].deg_id);
 
         if (degree) {
           const [batches] = await conn.query(
             "CALL GetActiveBatchesOfDegWithinDeadline(?, ?)",
-            [degree.deg_id, role_id]
+            [degree.deg_id, role_id],
           );
 
           if (batches[0].length > 0) {
@@ -1364,7 +1373,7 @@ export const getAppliedStudentsForSubjectOfFaculty = async (req, res, next) => {
             if (batch) {
               const [subjects] = await conn.query(
                 "CALL GetSubjectsForBatch(?)",
-                [batch_id]
+                [batch_id],
               );
 
               if (subjects[0].length > 0) {
@@ -1372,7 +1381,7 @@ export const getAppliedStudentsForSubjectOfFaculty = async (req, res, next) => {
                 if (subject) {
                   const [results] = await conn.query(
                     "CALL GetAppliedStudentsForSubjectOfFacOrDep(?, ?, ?);",
-                    [batch_id, sub_id, role_id]
+                    [batch_id, sub_id, role_id],
                   );
 
                   return res.status(200).json(results[0]);
@@ -1406,7 +1415,7 @@ export const getAppliedStudentsForSubjectOfFaculty = async (req, res, next) => {
 export const getAppliedStudentsForSubjectOfDepartment = async (
   req,
   res,
-  next
+  next,
 ) => {
   const { user_id, role_id } = req.user;
   const { batch_id, sub_id } = req.body;
@@ -1421,7 +1430,7 @@ export const getAppliedStudentsForSubjectOfDepartment = async (
     try {
       const [departments] = await conn.query(
         "SELECT d_id FROM department WHERE user_id = ? AND status = 'true'",
-        [user_id]
+        [user_id],
       );
 
       if (departments.length === 0) {
@@ -1431,7 +1440,7 @@ export const getAppliedStudentsForSubjectOfDepartment = async (
 
       const [subjects] = await conn.query(
         "CALL GetSubjectBybatchAndDepartment(?, ?);",
-        [batch_id, department.d_id]
+        [batch_id, department.d_id],
       );
 
       if (subjects[0].length > 0) {
@@ -1439,7 +1448,7 @@ export const getAppliedStudentsForSubjectOfDepartment = async (
         if (subject) {
           const [results] = await conn.query(
             "CALL GetAppliedStudentsForSubjectOfFacOrDep(?, ?, ?);",
-            [batch_id, sub_id, role_id]
+            [batch_id, sub_id, role_id],
           );
 
           return res.status(200).json(results[0]);
@@ -1461,7 +1470,7 @@ export const getAppliedStudentsForSubjectOfDepartment = async (
 export const getAppliedResitStudentsByBatchAndSubject = async (
   req,
   res,
-  next
+  next,
 ) => {
   const { user_id, role_id } = req.user;
   const { batch_id, sub_id } = req.body;
@@ -1475,7 +1484,7 @@ export const getAppliedResitStudentsByBatchAndSubject = async (
     try {
       const [results] = await conn.query(
         "CALL GetAppliedResitStudentsByBatchAndSubject(?, ?, ?, ?);",
-        [user_id, batch_id, sub_id, role_id]
+        [user_id, batch_id, sub_id, role_id],
       );
 
       return res.status(200).json(results[0]);
@@ -1487,7 +1496,10 @@ export const getAppliedResitStudentsByBatchAndSubject = async (
       }
 
       return next(
-        errorProvider(500, "An error occurred while fetching applied students.")
+        errorProvider(
+          500,
+          "An error occurred while fetching applied students.",
+        ),
       );
     } finally {
       conn.release();
@@ -1501,7 +1513,7 @@ export const getAppliedResitStudentsByBatchAndSubject = async (
 export const getAppliedMedicalStudentsByBatchAndSubject = async (
   req,
   res,
-  next
+  next,
 ) => {
   const { user_id, role_id } = req.user;
   const { batch_id, sub_id } = req.body;
@@ -1515,7 +1527,7 @@ export const getAppliedMedicalStudentsByBatchAndSubject = async (
     try {
       const [results] = await conn.query(
         "CALL GetAppliedMedicalStudentsByBatchAndSubject(?, ?, ?, ?);",
-        [user_id, batch_id, sub_id, role_id]
+        [user_id, batch_id, sub_id, role_id],
       );
 
       return res.status(200).json(results[0]);
@@ -1527,7 +1539,10 @@ export const getAppliedMedicalStudentsByBatchAndSubject = async (
       }
 
       return next(
-        errorProvider(500, "An error occurred while fetching applied students.")
+        errorProvider(
+          500,
+          "An error occurred while fetching applied students.",
+        ),
       );
     } finally {
       conn.release();
@@ -1545,7 +1560,7 @@ export const getStudentMedicalResitApplications = async (req, res, next) => {
     const conn = await pool.getConnection();
     try {
       const [rows] = await conn.query(
-        "CALL GetStudentMedicalResitApplications()"
+        "CALL GetStudentMedicalResitApplications()",
       );
 
       if (rows[0].length === 0) {
@@ -1584,7 +1599,7 @@ export const getStudentMedicalResitApplications = async (req, res, next) => {
         if (
           row.medical_sub_id &&
           !grouped[key].medical_subs.some(
-            (sub) => sub.sub_id === row.medical_sub_id
+            (sub) => sub.sub_id === row.medical_sub_id,
           )
         ) {
           grouped[key].medical_subs.push({
@@ -1598,7 +1613,7 @@ export const getStudentMedicalResitApplications = async (req, res, next) => {
         if (
           row.resit_sub_id &&
           !grouped[key].resit_subs.some(
-            (sub) => sub.sub_id === row.resit_sub_id
+            (sub) => sub.sub_id === row.resit_sub_id,
           )
         ) {
           grouped[key].resit_subs.push({
@@ -1621,8 +1636,8 @@ export const getStudentMedicalResitApplications = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching the latest admission template."
-        )
+          "An error occurred while fetching the latest admission template.",
+        ),
       );
     } finally {
       conn.release();
@@ -1746,7 +1761,7 @@ export const moveToMedical = async (req, res, next) => {
     try {
       const [rows] = await conn.query(
         "SELECT * FROM resit_subject WHERE id=?;",
-        [id]
+        [id],
       );
 
       const obj = rows[0];
@@ -1786,7 +1801,7 @@ export const moveToResit = async (req, res, next) => {
 
       const [rows] = await conn.query(
         "SELECT * FROM medical_subject WHERE id=?;",
-        [id]
+        [id],
       );
 
       const obj = rows[0];
@@ -1818,7 +1833,7 @@ export const checkPendingMedicalResitRequests = async (req, res, next) => {
     const conn = await pool.getConnection();
     try {
       const [rows] = await conn.query(
-        "CALL CheckPendingMedicalResitRequests();"
+        "CALL CheckPendingMedicalResitRequests();",
       );
 
       const result = rows[0][0];
@@ -1830,7 +1845,10 @@ export const checkPendingMedicalResitRequests = async (req, res, next) => {
     } catch (error) {
       console.error("Error checking pending requests:", error);
       return next(
-        errorProvider(500, "An error occurred while checking pending requests.")
+        errorProvider(
+          500,
+          "An error occurred while checking pending requests.",
+        ),
       );
     } finally {
       conn.release();
@@ -1856,7 +1874,7 @@ export const getBatchDeadlineAndApprovalStatus = async (req, res, next) => {
     try {
       const [rows] = await conn.query(
         "CALL GetBatchApprovalAndDeadline(?, ?)",
-        [batch_id, role_id]
+        [batch_id, role_id],
       );
 
       if (!rows || !rows[0]?.length) {
@@ -1875,10 +1893,10 @@ export const getBatchDeadlineAndApprovalStatus = async (req, res, next) => {
     } catch (error) {
       console.error(
         "Error fetching batch deadline and approval status:",
-        error
+        error,
       );
       return next(
-        errorProvider(500, "An error occurred while fetching batch info.")
+        errorProvider(500, "An error occurred while fetching batch info."),
       );
     } finally {
       conn.release();
@@ -1908,7 +1926,7 @@ export const setApproval = async (req, res, next) => {
     } catch (error) {
       console.error("Error changing approval status:", error);
       return next(
-        errorProvider(500, "An error occurred while changing approval.")
+        errorProvider(500, "An error occurred while changing approval."),
       );
     } finally {
       conn.release();
@@ -1942,7 +1960,7 @@ export const upsertPayments = async (req, res, next) => {
     } catch (error) {
       console.error("Error upserting payment data:", error);
       return next(
-        errorProvider(500, "An error occurred while upserting payment data.")
+        errorProvider(500, "An error occurred while upserting payment data."),
       );
     } finally {
       conn.release();
@@ -1966,7 +1984,7 @@ export const getAllPayments = async (req, res, next) => {
     } catch (error) {
       console.error("Error retrieving payment data:", error);
       return next(
-        errorProvider(500, "An error occurred while retrieving payment data.")
+        errorProvider(500, "An error occurred while retrieving payment data."),
       );
     } finally {
       conn.release();
@@ -1987,7 +2005,7 @@ export const getAllInstructions = async (req, res, next) => {
     } catch (error) {
       console.error("Error retrieving payment data:", error);
       return next(
-        errorProvider(500, "An error occurred while retrieving payment data.")
+        errorProvider(500, "An error occurred while retrieving payment data."),
       );
     } finally {
       conn.release();
@@ -2007,7 +2025,7 @@ export const getEligibleMedicalSubjects = async (req, res, next) => {
     try {
       const [rows] = await conn.query(
         "CALL GetEligibleMedicalSubjectsByBatchAndUser(?, ?)",
-        [batch_id, user_id]
+        [batch_id, user_id],
       );
 
       if (rows[0].length === 0) {
@@ -2026,7 +2044,7 @@ export const getEligibleMedicalSubjects = async (req, res, next) => {
     } catch (error) {
       console.error("Error retrieving eligible medical subjects:", error);
       return next(
-        errorProvider(500, "An error occurred while fetching subject data.")
+        errorProvider(500, "An error occurred while fetching subject data."),
       );
     } finally {
       conn.release();
@@ -2046,7 +2064,7 @@ export const getEligibleResitSubjects = async (req, res, next) => {
     try {
       const [rows] = await conn.query(
         "CALL GetEligibleResitSubjectsByBatchAndUser(?, ?)",
-        [batch_id, user_id]
+        [batch_id, user_id],
       );
       console.log(rows);
       if (rows[0].length === 0) {
@@ -2077,7 +2095,7 @@ export const getEligibleResitSubjects = async (req, res, next) => {
     } catch (error) {
       console.error("Error retrieving eligible resit subjects:", error);
       return next(
-        errorProvider(500, "An error occurred while fetching subject data.")
+        errorProvider(500, "An error occurred while fetching subject data."),
       );
     } finally {
       conn.release();
@@ -2126,7 +2144,7 @@ export const updateRequestReference = async (req, res, next) => {
       await conn.rollback();
 
       return next(
-        errorProvider(500, "An error occurred while updating the reference.")
+        errorProvider(500, "An error occurred while updating the reference."),
       );
     } finally {
       conn.release();
@@ -2151,7 +2169,10 @@ export const getSummarySubjectsData = async (req, res, next) => {
     } catch (error) {
       console.error("Error fetching summary subjects:", error);
       return next(
-        errorProvider(500, "An error occurred while fetching summary subjects.")
+        errorProvider(
+          500,
+          "An error occurred while fetching summary subjects.",
+        ),
       );
     } finally {
       conn.release();
@@ -2190,8 +2211,8 @@ export const getDynamicBatchTablesData = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching dynamic table data."
-        )
+          "An error occurred while fetching dynamic table data.",
+        ),
       );
     } finally {
       conn.release();
@@ -2206,23 +2227,113 @@ export const getStudentSubjectEligibility = async (req, res, next) => {
   const { batch_id } = req.body;
   const { user_id } = req.user;
 
+  if (!batch_id) return next(errorProvider(400, "batch_id is required"));
+
+  const ATT_THRESHOLD = 80;
+
   try {
     const conn = await pool.getConnection();
     try {
       const [results] = await conn.query(
         "CALL GetStudentSubjectEligibility(?, ?);",
-        [user_id, batch_id]
+        [user_id, batch_id],
       );
 
-      return res.status(200).json(JSON.parse(results[0][0]["result"]));
-    } catch (error) {
-      console.error("Error fetching Student Subject Eligibility:", error);
-      return next(
-        errorProvider(
-          500,
-          "An error occurred while fetching Student Subject Eligibility."
-        )
+      const rawJson = results?.[0]?.[0]?.result;
+      if (!rawJson) return res.status(200).json({});
+
+      const raw = JSON.parse(rawJson);
+      if (raw.error) return next(errorProvider(400, raw.error));
+
+      // 1. EXTRACT THE MASTER FLAG
+      const isApplied = raw.is_applied === "true";
+      const subjects = raw.subjects || {};
+
+      const subIds = Object.keys(subjects).map(Number);
+      if (subIds.length === 0)
+        return res.status(200).json({ is_applied: isApplied, subjects: {} });
+
+      // Get assignment thresholds
+      const [minRows] = await conn.query(
+        `SELECT sub_id, assessment_min_mark FROM subject WHERE sub_id IN (?)`,
+        [subIds],
       );
+
+      const minBySubId = minRows.reduce((acc, r) => {
+        acc[r.sub_id] = Number(r.assessment_min_mark ?? 0);
+        return acc;
+      }, {});
+
+      const outSubjects = {};
+
+      for (const [subIdStr, rec] of Object.entries(subjects)) {
+        const subId = Number(subIdStr);
+        const asMin = minBySubId[subId] || 0;
+
+        // Parse Raw Values
+        const attVal =
+          rec.attendance_val === "none" ? null : Number(rec.attendance_val);
+        const asVal =
+          rec.assessment_val === "none" ? null : Number(rec.assessment_val);
+
+        let attStatus, asStatus, overall;
+
+        // ---------------------------------------------------------
+        // LOGIC SPLIT: APPLIED vs PREVIEW
+        // ---------------------------------------------------------
+        if (isApplied) {
+          // A. IF APPLIED: Trust the DB blindly (The Source of Truth)
+
+          attStatus = String(rec.attendance_status || "none").toLowerCase();
+          asStatus = String(rec.assessment_status || "none").toLowerCase();
+          overall = String(rec.overall_status || "none").toLowerCase();
+
+          // Normalize DB "1"/"0" to "true"/"false" if needed
+          if (attStatus === "1") attStatus = "true";
+          if (attStatus === "0") attStatus = "false";
+
+          if (asStatus === "1") asStatus = "true";
+          if (asStatus === "0") asStatus = "false";
+
+          if (overall === "1") overall = "true";
+          if (overall === "0") overall = "false";
+        } else {
+          // B. IF NOT APPLIED: Calculate "Preview" Status locally
+
+          attStatus =
+            attVal === null
+              ? "none"
+              : attVal >= ATT_THRESHOLD
+                ? "true"
+                : "false";
+
+          asStatus =
+            asVal === null ? "none" : asVal >= asMin ? "true" : "false";
+
+          // Calculate Overall Preview
+          if (attStatus !== "none" && asStatus !== "none") {
+            overall =
+              attStatus === "true" && asStatus === "true" ? "true" : "false";
+          } else {
+            overall = "none";
+          }
+        }
+
+        outSubjects[subId] = {
+          attendance: {
+            value: attVal,
+            status: attStatus,
+            threshold: ATT_THRESHOLD,
+          },
+          assessment: { value: asVal, status: asStatus, threshold: asMin },
+          overall: overall, // Now uses the correct source
+        };
+      }
+
+      return res.status(200).json({
+        is_applied: isApplied,
+        subjects: outSubjects,
+      });
     } finally {
       conn.release();
     }
@@ -2241,7 +2352,7 @@ export const getStudentMedicalSubjectEligibility = async (req, res, next) => {
     try {
       const [results] = await conn.query(
         "CALL GetStudentMedicalSubjectEligibility(?, ?);",
-        [user_id, batch_id]
+        [user_id, batch_id],
       );
 
       return res.status(200).json(JSON.parse(results[0][0]["result"]));
@@ -2250,8 +2361,8 @@ export const getStudentMedicalSubjectEligibility = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching Student Subject Eligibility."
-        )
+          "An error occurred while fetching Student Subject Eligibility.",
+        ),
       );
     } finally {
       conn.release();
@@ -2271,7 +2382,7 @@ export const getStudentResitSubjectEligibility = async (req, res, next) => {
     try {
       const [results] = await conn.query(
         "CALL GetStudentResitSubjectEligibility(?, ?);",
-        [user_id, batch_id]
+        [user_id, batch_id],
       );
 
       return res.status(200).json(JSON.parse(results[0][0]["result"]));
@@ -2280,8 +2391,8 @@ export const getStudentResitSubjectEligibility = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching Student Subject Eligibility."
-        )
+          "An error occurred while fetching Student Subject Eligibility.",
+        ),
       );
     } finally {
       conn.release();
@@ -2314,8 +2425,8 @@ export const getRemarksForSubject = async (req, res, next) => {
       return next(
         errorProvider(
           500,
-          "An error occurred while fetching Student Subject Eligibility."
-        )
+          "An error occurred while fetching Student Subject Eligibility.",
+        ),
       );
     } finally {
       conn.release();

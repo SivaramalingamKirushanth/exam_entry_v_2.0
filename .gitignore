@@ -38,6 +38,7 @@ frontend.yarn-error.log*
 
 # Backend folder ignores (Node.js)
 backend/node_modules/
+backend/db/
 backend/.yarn/
 backend/coverage/
 backend/.env

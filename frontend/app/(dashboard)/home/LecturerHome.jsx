@@ -23,6 +23,8 @@ const LecturerHome = () => {
       queryKey: ["subjectsOfManager"],
     });
 
+  console.log(subjectsOfManagerData);
+
   if (isSubjectsOfManagerLoading)
     return (
       <div className="flex justify-center">

@@ -16,7 +16,7 @@ import "./utils/cronScheduler.js";
 
 dotenv.config();
 
-const PORT =  parseInt(process.env.PORT) || 5000; // Default to 5000 if PORT is not set
+const PORT = parseInt(process.env.PORT) || 5000; // Default to 5000 if PORT is not set
 const FRONTEND_SERVER = process.env.FRONTEND_SERVER;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
@@ -30,7 +30,7 @@ app.use(
   cors({
     origin: FRONTEND_SERVER,
     credentials: true,
-  })
+  }),
 );
 
 const adminRegister = async () => {
@@ -43,21 +43,21 @@ const adminRegister = async () => {
       await conn.beginTransaction();
 
       const [adminExists] = await conn.execute(
-        "SELECT COUNT(*) AS count FROM user WHERE role_id = '1'"
+        "SELECT COUNT(*) AS count FROM user WHERE role_id = '1'",
       );
       console.log("Checking if admin exists:", adminExists[0].count);
 
       if (adminExists[0].count == 0) {
         const [userResult] = await conn.execute(
           "INSERT INTO user(user_name, email, password, role_id) VALUES (?,?,?,?)",
-          [ADMIN_USERNAME, ADMIN_EMAIL, hashedPassword, "1"]
+          [ADMIN_USERNAME, ADMIN_EMAIL, hashedPassword, "1"],
         );
         console.log("admin created");
       }
 
       await conn.commit();
-      conn.release();
     } catch (error) {
+      console.error("ADMIN CREATION FAILED:", error);
       await conn.rollback();
     } finally {
       conn.release();

@@ -89,7 +89,7 @@ const StudentDetails = ({
     onSuccess: (res) => {
       queryClient.invalidateQueries(
         ["students", "subject", sub_id],
-        ["reamrks", sub_id, batch_id]
+        ["reamrks", sub_id, batch_id],
       );
       toast.success(res.message);
     },
@@ -119,7 +119,7 @@ const StudentDetails = ({
     onSuccess: (res) => {
       queryClient.invalidateQueries(
         ["students", "subject", sub_id],
-        ["reamrks", sub_id, batch_id]
+        ["reamrks", sub_id, batch_id],
       );
       toast.success(res.message);
     },
@@ -149,7 +149,7 @@ const StudentDetails = ({
   useEffect(() => {
     if (deadlinesOfBatchData && deadlinesOfBatchData.length) {
       let end = new Date(
-        deadlinesOfBatchData.find((obj) => obj.user_type == "2")?.deadline
+        deadlinesOfBatchData.find((obj) => obj.user_type == "2")?.deadline,
       );
 
       setEndDate(end);
@@ -201,6 +201,21 @@ const StudentDetails = ({
       },
     },
     {
+      accessorKey: "assessment",
+      header: "Assessment",
+      cell: ({ row }) => {
+        return (
+          <p className="text-center ">
+            {row.original.assessment
+              ? +row.original.assessment
+                ? row.original.assessment + "%"
+                : row.original.assessment
+              : "0%"}
+          </p>
+        );
+      },
+    },
+    {
       id: "Eligibility",
       header: () => (
         <EligibilityHeader
@@ -231,7 +246,7 @@ const StudentDetails = ({
               <h1 className="font-bold mb-1 text-lg text-center">Remarks</h1>
               <Timeline
                 timelineData={row.original.remarks?.sort(
-                  (a, b) => new Date(b.date_time) - new Date(a.date_time)
+                  (a, b) => new Date(b.date_time) - new Date(a.date_time),
                 )}
               />
             </PopoverContent>
@@ -298,7 +313,7 @@ const StudentDetails = ({
         ? remarksIncluded.filter(
             (item) =>
               item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-              item.user_name.toLowerCase().includes(searchValue.toLowerCase())
+              item.user_name.toLowerCase().includes(searchValue.toLowerCase()),
           )
         : remarksIncluded;
 

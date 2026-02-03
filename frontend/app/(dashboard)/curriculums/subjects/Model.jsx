@@ -25,7 +25,7 @@ import {
 import { LabelSearchCombobox } from "@/components/ui/customCommand";
 
 const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({ assignment_min_mark: 0 });
   const [btnEnable, setBtnEnable] = useState(false);
   const queryClient = useQueryClient();
 
@@ -93,7 +93,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
       queryFn: () => getDegreeById(formData.deg_id),
       queryKey: ["degrees", formData.deg_id],
       enabled: false,
-    }
+    },
   );
 
   const {
@@ -125,15 +125,38 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
 
   const onFormSubmitted = () => {
     mutate(formData);
-    setFormData({});
+    setFormData({ assignment_min_mark: 0 });
     setIsOpen(false);
   };
 
   const onFormReset = () => {
-    setFormData(data || {});
+    setFormData(data || { assignment_min_mark: 0 });
+  };
+
+  const onAssignmentMinMarkChanged = (e) => {
+    let value = e.target.value;
+
+    // If empty, leave it as is or default to 0 depending on your preference
+    if (value === "") return;
+
+    let numValue = Number(value);
+
+    // Clamping logic
+    if (numValue < 0) {
+      numValue = 0;
+    } else if (numValue > 100) {
+      numValue = 100;
+    }
+
+    // Update state only; the input value will update automatically on re-render
+    setFormData((curData) => ({
+      ...curData,
+      assignment_min_mark: numValue,
+    }));
   };
 
   useEffect(() => {
+    console.log(formData);
     const isFormValid =
       formData.sub_code &&
       formData.sub_name &&
@@ -143,6 +166,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
       formData.syl_id &&
       formData.sem_no &&
       formData.pass_grade &&
+      formData.assignment_min_mark !== "" &&
       formData.level;
     setBtnEnable(isFormValid);
   }, [formData]);
@@ -178,7 +202,7 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                 className="text-2xl hover:cursor-pointer hover:text-zinc-700"
                 onClick={() => {
                   setIsOpen(false);
-                  setFormData({});
+                  setFormData({ assignment_min_mark: 0 });
                   setEditId("");
                 }}
               />
@@ -248,8 +272,8 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                       isDegreeDataError
                         ? "Not found"
                         : isDegreeDataLoading
-                        ? "Loading..."
-                        : "Select degree"
+                          ? "Loading..."
+                          : "Select degree"
                     }
                     onValueChange={(e) => {
                       setFormData((cur) => ({
@@ -281,8 +305,8 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                       isSyllabusDataError
                         ? "Not found"
                         : isSyllabusDataLoading
-                        ? "Loading..."
-                        : "Select syllabus"
+                          ? "Loading..."
+                          : "Select syllabus"
                     }
                     onValueChange={(e) => {
                       onFormDataChanged(e);
@@ -369,8 +393,8 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                       isDepartmentDataError
                         ? "Not found"
                         : isDepartmentDataLoading
-                        ? "Loading..."
-                        : "Select department"
+                          ? "Loading..."
+                          : "Select department"
                     }
                     onValueChange={(e) => {
                       onFormDataChanged(e);
@@ -401,6 +425,23 @@ const Model = ({ editId, isOpen, setIsOpen, modelRef, setEditId }) => {
                     disabled={isGradesDataLoading || isGradesDataError}
                   />
                 </div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="assignment_min_mark" className="text-right">
+                  Assignment min mark
+                </Label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="Enter min mark"
+                  className="flex h-9 col-span-3 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  name="assignment_min_mark"
+                  id="assignment_min_mark"
+                  onBlur={onAssignmentMinMarkChanged} // Logic handles clamping
+                  onChange={onFormDataChanged} // Standard change handler
+                  value={formData.assignment_min_mark ?? ""}
+                />
               </div>
             </div>
             <div className="flex justify-between space-x-2 mt-4">
