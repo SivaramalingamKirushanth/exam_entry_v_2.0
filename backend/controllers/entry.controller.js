@@ -4,22 +4,42 @@ import { fetchEmailsForUserType } from "../utils/functions.js";
 import mailer from "../utils/mailer.js";
 
 export const applyExam = async (req, res, next) => {
-  const { removedSubjects } = req.body;
   const { user_id } = req.user;
 
   if (!user_id) {
     return next(errorProvider(400, "User ID is required."));
   }
 
+  // ─── FIX #3: Validate removedSubjects before it reaches the database.
+  //     • Must be an array (or default to empty array if missing entirely).
+  //     • Every element must be a positive integer — anything that fails
+  //       the check is silently dropped.  This prevents injection payloads
+  //       like "1; DROP TABLE ..." from being forwarded to the stored
+  //       procedure or the audit log.
+  // ───────────────────────────────────────────────────────────────────────
+  const raw = req.body.removedSubjects;
+
+  if (raw !== undefined && raw !== null && !Array.isArray(raw)) {
+    return next(errorProvider(400, "removedSubjects must be an array."));
+  }
+
+  const removedSubjects = Array.isArray(raw)
+    ? raw
+        .map(Number) // coerce each element
+        .filter((id) => Number.isInteger(id) && id > 0) // keep only valid positive ints
+    : []; // default to empty if missing
+  // ───────────────────────────────────────────────────────────────────────
+
   try {
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
 
-      let remSubStr = removedSubjects.join(",");
+      // Safe to join — every element is a guaranteed positive integer.
+      const remSubStr = removedSubjects.join(",");
 
       // Call the stored procedure and retrieve the OUT parameter
-      await conn.query("CALL ApplyExam(?, ?,@out_batch_id);", [
+      await conn.query("CALL ApplyExam(?, ?, @out_batch_id);", [
         user_id,
         remSubStr,
       ]);
@@ -2229,20 +2249,74 @@ export const getStudentSubjectEligibility = async (req, res, next) => {
 
   if (!batch_id) return next(errorProvider(400, "batch_id is required"));
 
+  // ─── FIX #5 (part A): Validate that batch_id is a positive integer before
+  //     it is used anywhere — prevents type-confusion attacks.
+  // ─────────────────────────────────────────────────────────────────────────
+  const safeBatchId = Number(batch_id);
+  if (!Number.isInteger(safeBatchId) || safeBatchId <= 0) {
+    return next(errorProvider(400, "Invalid batch_id."));
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const ATT_THRESHOLD = 80;
 
   try {
     const conn = await pool.getConnection();
     try {
+      // ─── FIX #5 (part B): Verify that the authenticated student actually
+      //     belongs to the requested batch BEFORE running the eligibility
+      //     query.  This prevents a student from querying eligibility data
+      //     for arbitrary batches by manipulating the request body.
+      //     The query mirrors the same logic used inside
+      //     GetStudentApplicationDetails to derive the student's batch.
+      // ───────────────────────────────────────────────────────────────────
+      const [[ownershipRow]] = await conn.query(
+        `SELECT CAST(SUBSTRING_INDEX(sd.batch_ids, ',', -1) AS UNSIGNED) AS student_batch_id
+         FROM student s
+         INNER JOIN student_detail sd ON s.s_id = sd.s_id
+         WHERE s.user_id = ?
+         LIMIT 1`,
+        [user_id],
+      );
+
+      if (
+        !ownershipRow ||
+        Number(ownershipRow.student_batch_id) !== safeBatchId
+      ) {
+        return next(
+          errorProvider(
+            403,
+            "Access denied: batch does not belong to this student.",
+          ),
+        );
+      }
+      // ───────────────────────────────────────────────────────────────────
+
       const [results] = await conn.query(
         "CALL GetStudentSubjectEligibility(?, ?);",
-        [user_id, batch_id],
+        [user_id, safeBatchId], // use validated integer
       );
 
       const rawJson = results?.[0]?.[0]?.result;
       if (!rawJson) return res.status(200).json({});
 
-      const raw = JSON.parse(rawJson);
+      // ─── FIX #12: Wrap JSON.parse in try/catch.  A malformed JSON string
+      //     from the stored procedure would otherwise crash the handler
+      //     before reaching the finally block and leak an unhandled error.
+      // ───────────────────────────────────────────────────────────────────
+      let raw;
+      try {
+        raw = JSON.parse(rawJson);
+      } catch (parseError) {
+        // TODO: Log parseError with a structured logger for debugging.
+        console.error(
+          "Failed to parse stored procedure JSON result:",
+          parseError,
+        );
+        return next(errorProvider(500, "Internal data format error."));
+      }
+      // ───────────────────────────────────────────────────────────────────
+
       if (raw.error) return next(errorProvider(400, raw.error));
 
       // 1. EXTRACT THE MASTER FLAG
@@ -2326,7 +2400,7 @@ export const getStudentSubjectEligibility = async (req, res, next) => {
             threshold: ATT_THRESHOLD,
           },
           assessment: { value: asVal, status: asStatus, threshold: asMin },
-          overall: overall, // Now uses the correct source
+          overall: overall,
         };
       }
 

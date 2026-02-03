@@ -51,7 +51,19 @@ const Form = () => {
 
   useEffect(() => {
     if (deg) {
+      // ─── FIX #4 (WARNING): The AES key below is a short, hardcoded string
+      //     that ships inside the client bundle and is trivially extractable
+      //     by anyone who inspects the page source.
+      //     ACTION REQUIRED: Move decryption to a server-side API route and
+      //     read the key from an environment variable, e.g.:
+      //       const key = process.env.NEXT_PUBLIC_... // ← even this is client-visible
+      //     The safest approach is a POST to /api/decrypt that returns the
+      //     plain value, with the real key stored only in server env vars.
+      //     If client-side decryption is unavoidable, use a key that is at
+      //     least 32 random bytes (AES-256) and rotate it regularly.
+      // ──────────────────────────────────────────────────────────────────────
       const degBytes = CryptoJS.AES.decrypt(deg, "uov");
+      // ──────────────────────────────────────────────────────────────────────
       const originalDegData = JSON.parse(degBytes.toString(CryptoJS.enc.Utf8));
       setExamName(originalDegData);
     }
@@ -157,8 +169,14 @@ const Form = () => {
         return rec && rec.overall !== "none" && rec.overall !== undefined;
       }
 
+      // ─── FIX #11: Use strict equality (===) instead of loose (==).
+      //     removedSubjects contains values pushed as obj.sub_id (numbers
+      //     from the API).  Loose equality can cause subtle type-coercion
+      //     bugs, e.g. the string "5" loosely equals the number 5.
+      // ──────────────────────────────────────────────────────────────────
       // Apply Mode: Show subjects not removed by user
-      return !removedSubjects.some((item) => item == obj.sub_id);
+      return !removedSubjects.some((item) => item === obj.sub_id);
+      // ──────────────────────────────────────────────────────────────────
     });
   }, [applicationData, eligibilityData, isApplied, removedSubjects]);
 
@@ -350,7 +368,7 @@ const Form = () => {
                                       setRemovedSubjects((cur) => {
                                         if (
                                           !cur.some(
-                                            (item) => item == obj.sub_id,
+                                            (item) => item === obj.sub_id,
                                           )
                                         ) {
                                           return [...cur, obj.sub_id];
